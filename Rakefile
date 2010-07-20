@@ -17,6 +17,7 @@ rescue LoadError
   puts "Jeweler (or a dependency) not available. Install it with: sudo gem install jeweler"
 end
 
+#not being used yet.
 require 'rake/testtask'
 Rake::TestTask.new(:test) do |test|
   test.libs << 'lib' << 'test'
@@ -41,16 +42,16 @@ task :test => :check_dependencies
 
 task :default => :test
 
-require 'rake/rdoctask'
-Rake::RDocTask.new do |rdoc|
-  if File.exist?('VERSION')
-    version = File.read('VERSION')
-  else
-    version = ""
-  end
+# require 'rake/rdoctask'
+# Rake::RDocTask.new do |rdoc|
+#   if File.exist?('VERSION')
+#     version = File.read('VERSION')
+#   else
+#     version = ""
+#   end
 
-  rdoc.rdoc_dir = 'rdoc'
-  rdoc.title = "ruby-saml #{version}"
-  rdoc.rdoc_files.include('README*')
-  rdoc.rdoc_files.include('lib/**/*.rb')
-end
+#   rdoc.rdoc_dir = 'rdoc'
+#   rdoc.title = "ruby-saml #{version}"
+#   rdoc.rdoc_files.include('README*')
+#   rdoc.rdoc_files.include('lib/**/*.rb')
+#end
