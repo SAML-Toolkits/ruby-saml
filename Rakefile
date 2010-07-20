@@ -6,12 +6,12 @@ begin
   Jeweler::Tasks.new do |gem|
     gem.name = "ruby-saml"
     gem.summary = %Q{SAML Ruby Tookit}
-    gem.description = %Q{TODO: longer description of your gem}
-    gem.email = "fullofcaffeine@gmail.com"
+    gem.description = %Q{SAML toolkit for Ruby on Rails}
+    gem.email = "support@onelogin.com"
     gem.homepage = "http://github.com/celoserpa/ruby-saml"
-    gem.authors = ["Marcelo de Moraes Serpa"]
-    gem.add_development_dependency "thoughtbot-shoulda"
-    # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
+    gem.authors = ["OneLogin LLC"]
+    #gem.add_development_dependency "thoughtbot-shoulda"
+    #gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
   end
 rescue LoadError
   puts "Jeweler (or a dependency) not available. Install it with: sudo gem install jeweler"
