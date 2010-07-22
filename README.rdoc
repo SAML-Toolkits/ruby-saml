@@ -1,6 +1,7 @@
 = ruby-saml
 
-Description goes here.
+* To build the gem run rake build
+* To install the gem run sudo gem install pkg/ruby-saml-x.x.x.gem
 
 == Note on Patches/Pull Requests
  
