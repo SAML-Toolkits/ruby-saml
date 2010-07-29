@@ -1,4 +1,5 @@
 require "base64"
+require "uuid"
 
 module Onelogin::Saml
   class Authrequest
@@ -24,11 +25,7 @@ module Onelogin::Saml
     private 
     
     def self.generateUniqueID(length)
-      chars = ("a".."f").to_a + ("0".."9").to_a
-      chars_len = chars.size
-      uniqueID = ""
-      1.upto(length) { |i| uniqueID << chars[rand(chars_len-1)] }
-      uniqueID
+      UUID.new.generate
     end
     
     def self.getTimestamp
