@@ -8,7 +8,7 @@ begin
     gem.summary = %Q{SAML Ruby Tookit}
     gem.description = %Q{SAML toolkit for Ruby on Rails}
     gem.email = "support@onelogin.com"
-    gem.homepage = "http://github.com/celoserpa/ruby-saml"
+    gem.homepage = "http://github.com/onelogin/ruby-saml"
     gem.authors = ["OneLogin LLC"]
     gem.add_dependency("XMLCanonicalizer",">= 1.0.1")
     #gem.add_development_dependency "thoughtbot-shoulda"
