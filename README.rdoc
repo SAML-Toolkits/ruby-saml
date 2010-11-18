@@ -1,7 +1,84 @@
-= ruby-saml
+= Ruby SAML
 
-* To build the gem run rake build
-* To install the gem run sudo gem install pkg/ruby-saml-x.x.x.gem
+The Ruby SAML library is for implementing the client side of a SAML authorization, i.e. it provides a means for managing authorization initialization and confirmation requests from identity providers.
+
+SAML authorization is a two step process and you are expected to implement support for both. 
+
+== The initialization phase
+
+This is the first request you will get from the identity provider. It will hit your application at a specific URL (that you've announced as being your SAML initialization point). The response to this initialization, is a redirect back to the identity provider, which can look something like this (ignore the saml_settings method call for now):
+
+    def initialize
+      request = Onelogin::Saml::Authrequest.new
+      redirect_to(request.create(saml_settings))
+    end
+
+Once you've redirected back to the identity provider, it will ensure that the user has been authorized and redirect back to your application for final consumption, this is can look something like this (the authorize_success and authorize_failure methods are specific to your application):
+
+    def consume
+      response          = Onelogin::Saml::Response.new(params[:SAMLResponse])
+      response.settings = saml_settings
+
+      if response.is_valid? && user = current_account.users.find_by_email(response.name_id)
+        authorize_success(user)
+      else
+        authorize_failure(user)
+      end
+    end
+
+In the above there are a few assumptions in place, one being that the response.name_id is an email address. This is all handled with how you specify the settings that are in play via the saml_settings method. That could be implemented along the lines of this:
+    
+    def saml_settings
+      settings = Onelogin::Saml::Settings.new
+
+      settings.assertion_consumer_service_url = "http://#{request.host}/saml/finalize"
+      settings.issuer                         = request.host
+      settings.idp_sso_target_url             = "https://app.onelogin.com/saml/signon/#{OneLoginAppId}"
+      settings.idp_cert_fingerprint           = OneLoginAppCertFingerPrint
+      settings.name_identifier_format         = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+
+      settings
+    end
+
+What's left at this point, is to wrap it all up in a controller and point the initialization and consumption URLs in OneLogin at that. A full controller example could look like this:
+
+  # This controller expects you to use the URLs /saml/initialize and /saml/consume in your OneLogin application.
+  class SamlController < ApplicationController
+    def initialize
+      request = Onelogin::Saml::Authrequest.new
+      redirect_to(request.create(saml_settings))
+    end
+    
+    def consume
+      response          = Onelogin::Saml::Response.new(params[:SAMLResponse])
+      response.settings = saml_settings
+      
+      if response.is_valid? && user = current_account.users.find_by_email(response.name_id)
+        authorize_success(user)
+      else
+        authorize_failure(user)
+      end
+    end
+    
+    private
+    
+    def saml_settings
+      settings = Onelogin::Saml::Settings.new
+      
+      settings.assertion_consumer_service_url = "http://#{request.host}/saml/consume"
+      settings.issuer                         = request.host
+      settings.idp_sso_target_url             = "https://app.onelogin.com/saml/signon/#{OneLoginAppId}"
+      settings.idp_cert_fingerprint           = OneLoginAppCertFingerPrint
+      settings.name_identifier_format         = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+      
+      settings
+    end
+  end
+
+
+= Full Example
+
+Please check https://github.com/onelogin/ruby-saml-example for a very basic sample Rails application using this gem.
 
 == Note on Patches/Pull Requests
  
