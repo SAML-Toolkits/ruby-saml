@@ -22,59 +22,6 @@ Gem::Specification.new do |s|
     "README.rdoc",
     "Rakefile",
     "VERSION",
-    "example/README",
-    "example/Rakefile",
-    "example/app/controllers/application_controller.rb",
-    "example/app/controllers/saml_controller.rb",
-    "example/app/helpers/application_helper.rb",
-    "example/app/models/account.rb",
-    "example/app/views/saml/complete.html.erb",
-    "example/app/views/saml/fail.html.erb",
-    "example/app/views/saml/logout.html.erb",
-    "example/config/boot.rb",
-    "example/config/database.yml",
-    "example/config/environment.rb",
-    "example/config/environments/development.rb",
-    "example/config/environments/production.rb",
-    "example/config/environments/test.rb",
-    "example/config/initializers/backtrace_silencers.rb",
-    "example/config/initializers/inflections.rb",
-    "example/config/initializers/mime_types.rb",
-    "example/config/initializers/new_rails_defaults.rb",
-    "example/config/initializers/session_store.rb",
-    "example/config/locales/en.yml",
-    "example/config/routes.rb",
-    "example/db/development.sqlite3",
-    "example/db/migrate/20100414031905_create_sessions.rb",
-    "example/db/schema.rb",
-    "example/db/seeds.rb",
-    "example/doc/README_FOR_APP",
-    "example/public/404.html",
-    "example/public/422.html",
-    "example/public/500.html",
-    "example/public/favicon.ico",
-    "example/public/images/rails.png",
-    "example/public/index.html",
-    "example/public/javascripts/application.js",
-    "example/public/javascripts/controls.js",
-    "example/public/javascripts/dragdrop.js",
-    "example/public/javascripts/effects.js",
-    "example/public/javascripts/prototype.js",
-    "example/public/robots.txt",
-    "example/script/about",
-    "example/script/console",
-    "example/script/dbconsole",
-    "example/script/destroy",
-    "example/script/generate",
-    "example/script/performance/benchmarker",
-    "example/script/performance/profiler",
-    "example/script/plugin",
-    "example/script/runner",
-    "example/script/server",
-    "example/test/fixtures/sessions.yml",
-    "example/test/performance/browsing_test.rb",
-    "example/test/test_helper.rb",
-    "example/test/unit/session_test.rb",
     "lib/onelogin/saml.rb",
     "lib/onelogin/saml/authrequest.rb",
     "lib/onelogin/saml/response.rb",
@@ -100,16 +47,16 @@ Gem::Specification.new do |s|
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
-      s.add_runtime_dependency(%q<XMLCanonicalizer>, [">= 1.0.1"])
+      s.add_runtime_dependency(%q<xmlcanonicalizer>, ["= 0.1.0"])
       s.add_development_dependency(%q<shoulda>, [">= 0"])
       s.add_development_dependency(%q<mocha>, [">= 0"])
     else
-      s.add_dependency(%q<XMLCanonicalizer>, [">= 1.0.1"])
+      s.add_dependency(%q<xmlcanonicalizer>, ["= 0.1.0"])
       s.add_dependency(%q<shoulda>, [">= 0"])
       s.add_dependency(%q<mocha>, [">= 0"])
     end
   else
-    s.add_dependency(%q<XMLCanonicalizer>, [">= 1.0.1"])
+    s.add_dependency(%q<xmlcanonicalizer>, ["= 0.1.0"])
     s.add_dependency(%q<shoulda>, [">= 0"])
     s.add_dependency(%q<mocha>, [">= 0"])
   end
