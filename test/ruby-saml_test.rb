@@ -60,6 +60,13 @@ class RubySamlTest < Test::Unit::TestCase
         assert_equal "support@onelogin.com", response.name_id
       end
     end
+
+    context "#session_expires_at" do
+      should "extract the value of the SessionNotOnOrAfter attribute" do
+        response = Onelogin::Saml::Response.new(response_document)
+        assert response.session_expires_at.is_a?(Time)
+      end
+    end
   end
 
   context "Authrequest" do
@@ -71,4 +78,5 @@ class RubySamlTest < Test::Unit::TestCase
       payload = CGI.unescape(auth_url.split("=").last)
     end
   end
+
 end

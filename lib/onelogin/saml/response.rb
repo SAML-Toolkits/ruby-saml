@@ -1,5 +1,6 @@
 require "rexml/document"
 require "xml_sec" 
+require "time"
 
 module Onelogin::Saml
   class Response
@@ -19,8 +20,14 @@ module Onelogin::Saml
       document.validate(settings.idp_cert_fingerprint, logger)
     end
 
+    # The value of the user identifier as designated by the initialization request response
     def name_id
-      document.elements["/samlp:Response/saml:Assertion/saml:Subject/saml:NameID"].text
+      @name_id ||= document.elements["/samlp:Response/saml:Assertion/saml:Subject/saml:NameID"].text
+    end
+
+    # When this user session should expire at latest
+    def session_expires_at
+      @expires_at ||= Time.parse(document.elements["/samlp:Response/saml:Assertion/saml:AuthnStatement"].attributes["SessionNotOnOrAfter"])
     end
   end
 end
