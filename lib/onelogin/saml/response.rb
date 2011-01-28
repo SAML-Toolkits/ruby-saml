@@ -1,5 +1,4 @@
-require "rexml/document"
-require "xml_sec" 
+require "xml_security"
 require "time"
 
 module Onelogin::Saml
