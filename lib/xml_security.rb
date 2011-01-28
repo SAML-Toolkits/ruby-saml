@@ -72,10 +72,10 @@ module XMLSecurity
 
       # verify signature
       canoner                 = XML::Util::XmlCanonicalizer.new(false, true)
-      signed_info_element     = XPath.first(sig_element, "//ds:SignedInfo", {"ds"=>"http://www.w3.org/2000/09/xmldsig#"})
+      signed_info_element     = REXML::XPath.first(sig_element, "//ds:SignedInfo", {"ds"=>"http://www.w3.org/2000/09/xmldsig#"})
       canon_string            = canoner.canonicalize(signed_info_element)
 
-      base64_signature        = XPath.first(sig_element, "//ds:SignatureValue", {"ds"=>"http://www.w3.org/2000/09/xmldsig#"}).text
+      base64_signature        = REXML::XPath.first(sig_element, "//ds:SignatureValue", {"ds"=>"http://www.w3.org/2000/09/xmldsig#"}).text
       signature               = Base64.decode64(base64_signature)
 
       # get certificate object
