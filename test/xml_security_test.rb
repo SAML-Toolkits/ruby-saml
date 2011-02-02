@@ -8,7 +8,7 @@ class XmlSecurityTest < Test::Unit::TestCase
       @document = XMLSecurity::SignedDocument.new(Base64.decode64(response_document))
     end
 
-    should "should provide getters and settings" do
+    should "should run validate without throwing NS related exceptions" do
       base64cert = @document.elements["//ds:X509Certificate"].text
       @document.validate_doc(base64cert, nil)
     end
