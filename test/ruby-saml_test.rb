@@ -77,6 +77,13 @@ class RubySamlTest < Test::Unit::TestCase
       assert auth_url =~ /^http:\/\/stuff\.com\?SAMLRequest=/
       payload = CGI.unescape(auth_url.split("=").last)
     end
+
+    should "accept extra parameters" do
+      settings = Onelogin::Saml::Settings.new
+      settings.idp_sso_target_url = "http://stuff.com"
+      auth_url = Onelogin::Saml::Authrequest.new.create(settings, { :hello => "there" })
+      assert auth_url =~ /&hello=there$/
+    end
   end
 
 end
