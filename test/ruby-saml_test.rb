@@ -81,9 +81,12 @@ class RubySamlTest < Test::Unit::TestCase
     should "accept extra parameters" do
       settings = Onelogin::Saml::Settings.new
       settings.idp_sso_target_url = "http://stuff.com"
+
       auth_url = Onelogin::Saml::Authrequest.new.create(settings, { :hello => "there" })
       assert auth_url =~ /&hello=there$/
+
+      auth_url = Onelogin::Saml::Authrequest.new.create(settings, { :hello => nil })
+      assert auth_url =~ /&hello=$/
     end
   end
-
 end

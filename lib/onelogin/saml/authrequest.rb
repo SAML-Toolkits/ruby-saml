@@ -23,7 +23,7 @@ module Onelogin::Saml
       request_params    = "?SAMLRequest=" + encoded_request
 
       params.each_pair do |key, value|
-        request_params << "&#{key}=#{CGI.escape(value)}"
+        request_params << "&#{key}=#{CGI.escape(value.to_s)}"
       end
 
       settings.idp_sso_target_url + request_params
