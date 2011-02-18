@@ -7,7 +7,7 @@ module Onelogin::Saml
   class Authrequest
     def create(settings, params = {})
       uuid = UUID.new.generate
-      time = Time.now.strftime("%Y-%m-%dT%H:%M:%SZ")
+      time = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
 
       request =
         "<samlp:AuthnRequest xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\" ID=\"#{uuid}\" Version=\"2.0\" IssueInstant=\"#{time}\" ProtocolBinding=\"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST\" AssertionConsumerServiceURL=\"#{settings.assertion_consumer_service_url}\">" +
