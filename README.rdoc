@@ -2,7 +2,7 @@
 
 The Ruby SAML library is for implementing the client side of a SAML authorization, i.e. it provides a means for managing authorization initialization and confirmation requests from identity providers.
 
-SAML authorization is a two step process and you are expected to implement support for both. 
+SAML authorization is a two step process and you are expected to implement support for both.
 
 == The initialization phase
 
@@ -27,7 +27,7 @@ Once you've redirected back to the identity provider, it will ensure that the us
     end
 
 In the above there are a few assumptions in place, one being that the response.name_id is an email address. This is all handled with how you specify the settings that are in play via the saml_settings method. That could be implemented along the lines of this:
-    
+
     def saml_settings
       settings = Onelogin::Saml::Settings.new
 
@@ -48,29 +48,29 @@ What's left at this point, is to wrap it all up in a controller and point the in
       request = Onelogin::Saml::Authrequest.new
       redirect_to(request.create(saml_settings))
     end
-    
+
     def consume
       response          = Onelogin::Saml::Response.new(params[:SAMLResponse])
       response.settings = saml_settings
-      
+
       if response.is_valid? && user = current_account.users.find_by_email(response.name_id)
         authorize_success(user)
       else
         authorize_failure(user)
       end
     end
-    
+
     private
-    
+
     def saml_settings
       settings = Onelogin::Saml::Settings.new
-      
+
       settings.assertion_consumer_service_url = "http://#{request.host}/saml/consume"
       settings.issuer                         = request.host
       settings.idp_sso_target_url             = "https://app.onelogin.com/saml/signon/#{OneLoginAppId}"
       settings.idp_cert_fingerprint           = OneLoginAppCertFingerPrint
       settings.name_identifier_format         = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
-      
+
       settings
     end
   end
@@ -81,12 +81,10 @@ What's left at this point, is to wrap it all up in a controller and point the in
 Please check https://github.com/onelogin/ruby-saml-example for a very basic sample Rails application using this gem.
 
 == Note on Patches/Pull Requests
- 
+
 * Fork the project.
 * Make your feature addition or bug fix.
 * Add tests for it. This is important so I don't break it in a
   future version unintentionally.
-* Commit, do not mess with rakefile, version, or history.
-  (if you want to have your own version, that is fine but
-   bump version in a commit by itself I can ignore when I pull)
+* Commit, do not mess with rakefile, version, or history. (if you want to have your own version, that is fine but bump version in a commit by itself I can ignore when I pull)
 * Send me a pull request. Bonus points for topic branches.
