@@ -61,6 +61,24 @@ class RubySamlTest < Test::Unit::TestCase
       end
     end
 
+    context "#attributes" do
+      should "extract the first attribute in a hash accessed via its symbol" do
+        response = Onelogin::Saml::Response.new(response_document)
+        assert_equal "demo", response.attributes[:uid]
+      end
+
+      should "extract the first attribute in a hash accessed via its name" do
+        response = Onelogin::Saml::Response.new(response_document)
+        assert_equal "demo", response.attributes["uid"]
+      end
+
+      should "extract all attributes" do
+        response = Onelogin::Saml::Response.new(response_document)
+        assert_equal "demo", response.attributes[:uid]
+        assert_equal "value", response.attributes[:another_value]
+      end
+    end
+
     context "#session_expires_at" do
       should "extract the value of the SessionNotOnOrAfter attribute" do
         response = Onelogin::Saml::Response.new(response_document)
