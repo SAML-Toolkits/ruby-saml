@@ -8,9 +8,9 @@ module Onelogin::Saml
     end
 
     def generate(values)
-      entity_id = values[:entity_id]
-      name_id_format = values[:name_id_format]
-      assertion_consumer_service_location = values[:assertion_consumer_service_location]
+      entity_id = values["entity_id"]
+      name_id_format = values["name_id_format"]
+      assertion_consumer_service_location = values["assertion_consumer_service_location"]
 
       erb = ERB.new(@template)
       erb.result(binding)

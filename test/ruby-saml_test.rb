@@ -112,9 +112,9 @@ class RubySamlTest < Test::Unit::TestCase
     should "generate a correct entity descriptor" do
       descriptor = Onelogin::Saml::EntityDescription.new
       xml = descriptor.generate({
-        :entity_id => "http://test.no/",
-        :name_id_format => "urn:oasis:names:tc:SAML:2.0:nameid-format:transient",
-        :assertion_consumer_service_location => "http://localhost:3000/saml/consume"
+        "entity_id" => "http://test.no/",
+        "name_id_format" => "urn:oasis:names:tc:SAML:2.0:nameid-format:transient",
+        "assertion_consumer_service_location" => "http://localhost:3000/saml/consume"
       })
 
       assert_equal xml, "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>
