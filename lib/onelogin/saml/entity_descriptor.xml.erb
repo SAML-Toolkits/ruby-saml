@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<EntityDescriptor xmlns="urn:oasis:names:tc:SAML:2.0:metadata" entityID="<%= entity_id %>">
+ <SPSSODescriptor AuthnRequestsSigned="false" WantAssertionsSigned="true" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+   <NameIDFormat><%= name_id_format %></NameIDFormat>
+   <AssertionConsumerService
+    isDefault="true"
+    index="0"
+    Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+    Location="<%= assertion_consumer_service_location %>"/>
+ </SPSSODescriptor>
+ <RoleDescriptor xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:query="urn:oasis:names:tc:SAML:metadata:ext:query" xsi:type="query:AttributeQueryDescriptorType" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol"/>
+ <XACMLAuthzDecisionQueryDescriptor WantAssertionsSigned="false" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol"/>
+</EntityDescriptor>

@@ -107,4 +107,30 @@ class RubySamlTest < Test::Unit::TestCase
       assert auth_url =~ /&hello=$/
     end
   end
+
+  context "EntityDescription" do
+    should "generate a correct entity descriptor" do
+      descriptor = Onelogin::Saml::EntityDescription.new
+      xml = descriptor.generate({
+        :entity_id => "http://test.no/",
+        :name_id_format => "urn:oasis:names:tc:SAML:2.0:nameid-format:transient",
+        :assertion_consumer_service_location => "http://localhost:3000/saml/consume"
+      })
+
+      assert_equal xml, "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>
+
+<EntityDescriptor xmlns=\"urn:oasis:names:tc:SAML:2.0:metadata\" entityID=\"http://test.no/\">
+ <SPSSODescriptor AuthnRequestsSigned=\"false\" WantAssertionsSigned=\"true\" protocolSupportEnumeration=\"urn:oasis:names:tc:SAML:2.0:protocol\">
+   <NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:transient</NameIDFormat>
+   <AssertionConsumerService
+    isDefault=\"true\"
+    index=\"0\"
+    Binding=\"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST\"
+    Location=\"http://localhost:3000/saml/consume\"/>
+ </SPSSODescriptor>
+ <RoleDescriptor xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:query=\"urn:oasis:names:tc:SAML:metadata:ext:query\" xsi:type=\"query:AttributeQueryDescriptorType\" protocolSupportEnumeration=\"urn:oasis:names:tc:SAML:2.0:protocol\"/>
+ <XACMLAuthzDecisionQueryDescriptor WantAssertionsSigned=\"false\" protocolSupportEnumeration=\"urn:oasis:names:tc:SAML:2.0:protocol\"/>
+</EntityDescriptor>"
+    end
+  end
 end
