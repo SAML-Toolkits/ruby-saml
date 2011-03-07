@@ -18,9 +18,9 @@ module Onelogin::Saml
         "<saml:AuthnContextClassRef xmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\">urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport</saml:AuthnContextClassRef></samlp:RequestedAuthnContext>\n" +
         "</samlp:AuthnRequest>"
 
-      deflated_request  = Zlib::Deflate.deflate(request, 9)[2..-5]
+      deflated_request  = deflate(request)
       base64_request    = encode(deflated_request)
-      encoded_request   = CGI.escape(base64_request)
+      encoded_request   = escape(base64_request)
       request_params    = "?SAMLRequest=" + encoded_request
 
       params.each_pair do |key, value|

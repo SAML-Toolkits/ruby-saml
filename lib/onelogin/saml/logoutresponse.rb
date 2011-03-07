@@ -8,19 +8,20 @@ module Onelogin
       include Codeing
 
       def initialize(response)
-        @response = decode(response)
-      end
-
-      def name_id
-        document.elements["/samlp:LogoutRequest/saml:NameID"].text
+        begin
+          @response = decode(response)
+          document
+        rescue
+          @response = inflate(decode(response))
+        end
       end
 
       def issuer
-        document.elements["/samlp:LogoutRequest/saml:Issuer"].text
+        document.elements["/samlp:LogoutResponse/saml:Issuer"].text
       end
 
-      def transaction_id
-        document.elements["/samlp:LogoutRequest/samlp:SessionIndex"].text
+      def in_response_to
+        document.elements["/samlp:LogoutResponse"].attributes["InResponseTo"]
       end
 
     protected
