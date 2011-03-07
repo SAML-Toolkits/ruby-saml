@@ -108,6 +108,48 @@ class RubySamlTest < Test::Unit::TestCase
     end
   end
 
+  context "Logoutrequest" do
+
+    setup do
+      UUID.expects(:new).returns(stub(:generate => "da64beb0-2ac4-012e-a9c9-48bcc8e9f44d"))
+      @settings = Onelogin::Saml::Settings.new
+      @settings.issuer = "issuer"
+      @settings.sp_name_qualifier ="sp name"
+      @settings.name_identifier_format = "urn:oasis:names:tc:SAML:2.0:nameid-format:transient"
+      @settings.idp_slo_target_url ="http://slotarget.com/"
+
+      Onelogin::Saml::Logoutrequest.stubs(:timestamp).returns("timestamb")
+    end
+
+    should "generate a correct logout request" do
+      logoutrequest = Onelogin::Saml::Logoutrequest.new
+
+      logout_xml = logoutrequest.xml(@settings, "demo", "test")
+
+      expected_xml = <<-EOF
+    <samlp:LogoutRequest xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\"
+            ID=\"da64beb0-2ac4-012e-a9c9-48bcc8e9f44d\" Version=\"2.0\" IssueInstant=\"test\">
+                <saml:Issuer xmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\">issuer</saml:Issuer>
+                <saml:NameID xmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\"
+                    NameQualifier=\"sp name\"
+                    Format=\"urn:oasis:names:tc:SAML:2.0:nameid-format:transient\">demo</saml:NameID>
+        </samlp:LogoutRequest>
+      EOF
+
+      assert_equal expected_xml.strip, logout_xml.strip
+    end
+
+
+    should "generate a correct request" do
+      logoutrequest = Onelogin::Saml::Logoutrequest.new
+      logout_url = logoutrequest.create(@settings, "demo")
+
+      expected_url = "http://slotarget.com/?SAMLRequest=nZFbS8QwEIXf91eEea%2FWUmQbtgVhEQqroILv03S6BJqkZqbgz7cX0fW2D57H%0Aycl35jBKrdoxun7Qh3AMozzSy0gs6tX1nvXyUsIYvQ7IlrVHR6zF6Kebu4PO%0ALlI9xCDBhB426kT1voQWr%2FOGmjTJ0ORJepVRgoUpknzbGLOlosvzFtQzRbbB%0AlzDBQNXMI9WeBb2UIHZKE3QNVF%2FoH1vrxR9Ptj2%2FLDJTlCkOKrv83F2eYP4K%0AuZ849f4fIT94s2baw4i97SzFEnhQM%2BJ3722IDuV83DyxbdItVi0RPVvyAlVL%0ALrz3Wxt89lvH325ebd4A%0A"
+      assert_equal expected_url, logout_url
+    end
+
+  end
+
   context "EntityDescription" do
     should "generate a correct entity descriptor" do
       descriptor = Onelogin::Saml::EntityDescription.new
@@ -133,4 +175,6 @@ class RubySamlTest < Test::Unit::TestCase
 </EntityDescriptor>"
     end
   end
+
+  
 end

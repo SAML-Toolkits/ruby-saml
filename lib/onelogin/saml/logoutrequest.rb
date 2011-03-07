@@ -11,21 +11,12 @@ module Onelogin::Saml
     end
 
     def create(settings,nameid,params={})
-      issue_instant = Onelogin::Saml::Logoutrequest.getTimestamp
+      issue_instant = Onelogin::Saml::Logoutrequest.timestamp
 
       @logger.error("sp_name_qualifier is nil") if !@logger.nil? && settings.sp_name_qualifier.nil?
       @logger.error("idp_name_qualifier is nil") if !@logger.nil? && settings.idp_name_qualifier.nil?
 
-      request = <<-EOF
-        <samlp:LogoutRequest xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" 
-            ID="#{transaction_id}" Version="2.0" IssueInstant="#{issue_instant}">
-                <saml:Issuer xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">#{settings.issuer}</saml:Issuer>
-                <saml:NameID xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" 
-                    NameQualifier="#{settings.sp_name_qualifier}" 
-                    SPNameQualifier="#{settings.idp_name_qualifier}" 
-                    Format="#{settings.name_identifier_format}">#{nameid}</saml:NameID>
-        </samlp:LogoutRequest>
-      EOF
+      request = xml(settings, nameid, issue_instant)
 
       @logger.debug("Raw SAML request: #{request}") unless @logger.nil?
  
@@ -37,10 +28,26 @@ module Onelogin::Saml
       settings.idp_slo_target_url + "?#{query_string}"
      end
 
+    def xml(settings, nameid, issue_instant)
+      request = <<-EOF
+        <samlp:LogoutRequest xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
+            ID="#{transaction_id}" Version="2.0" IssueInstant="#{issue_instant}">
+                <saml:Issuer xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">#{settings.issuer}</saml:Issuer>
+                <saml:NameID xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
+                    NameQualifier="#{settings.sp_name_qualifier}"
+                    Format="#{settings.name_identifier_format}">#{nameid}</saml:NameID>
+        </samlp:LogoutRequest>
+      EOF
+
+      request
+    end
+
     private 
     
-    def self.getTimestamp
+    def self.timestamp
       Time.new().strftime("%Y-%m-%dT%H:%M:%SZ")
     end
+
+
   end
 end
