@@ -13,12 +13,7 @@ module Onelogin::Saml
     def create(settings,nameid,params={})
       issue_instant = Onelogin::Saml::Logoutrequest.timestamp
 
-      @logger.error("sp_name_qualifier is nil") if !@logger.nil? && settings.sp_name_qualifier.nil?
-      @logger.error("idp_name_qualifier is nil") if !@logger.nil? && settings.idp_name_qualifier.nil?
-
       request = xml(settings, nameid, issue_instant)
-
-      @logger.debug("Raw SAML request: #{request}") unless @logger.nil?
  
       deflated_request  = Zlib::Deflate.deflate(request, 9)[2..-5]
       base64_request    = Base64.encode64(deflated_request)  
@@ -47,7 +42,5 @@ module Onelogin::Saml
     def self.timestamp
       Time.new().strftime("%Y-%m-%dT%H:%M:%SZ")
     end
-
-
   end
 end

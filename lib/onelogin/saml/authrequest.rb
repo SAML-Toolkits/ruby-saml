@@ -5,6 +5,7 @@ require "cgi"
 
 module Onelogin::Saml
   class Authrequest
+    include Codeing
     def create(settings, params = {})
       uuid = UUID.new.generate
       time = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -18,12 +19,12 @@ module Onelogin::Saml
         "</samlp:AuthnRequest>"
 
       deflated_request  = Zlib::Deflate.deflate(request, 9)[2..-5]
-      base64_request    = Base64.encode64(deflated_request)
+      base64_request    = encode(deflated_request)
       encoded_request   = CGI.escape(base64_request)
       request_params    = "?SAMLRequest=" + encoded_request
 
       params.each_pair do |key, value|
-        request_params << "&#{key}=#{CGI.escape(value.to_s)}"
+        request_params << "&#{key}=#{escape(value.to_s)}"
       end
 
       settings.idp_sso_target_url + request_params

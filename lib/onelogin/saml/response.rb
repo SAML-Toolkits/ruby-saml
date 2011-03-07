@@ -3,12 +3,13 @@ require "time"
 
 module Onelogin::Saml
   class Response
+    include Codeing
     attr_accessor :response, :document, :logger, :settings
 
     def initialize(response)
       raise ArgumentError.new("Response cannot be nil") if response.nil?
       self.response = response
-      self.document = XMLSecurity::SignedDocument.new(Base64.decode64(response))
+      self.document = XMLSecurity::SignedDocument.new(decode(response))
     end
 
     def is_valid?
