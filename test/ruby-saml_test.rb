@@ -150,6 +150,7 @@ class RubySamlTest < Test::Unit::TestCase
 
   end
 
+
   context "EntityDescription" do
     should "generate a correct entity descriptor" do
       descriptor = Onelogin::Saml::EntityDescription.new
@@ -159,10 +160,11 @@ class RubySamlTest < Test::Unit::TestCase
         "assertion_consumer_service_location" => "http://localhost:3000/saml/consume"
       })
 
-      assert_equal xml, "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>
+      expected_xml = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>
 
 <EntityDescriptor xmlns=\"urn:oasis:names:tc:SAML:2.0:metadata\" entityID=\"http://test.no/\">
  <SPSSODescriptor AuthnRequestsSigned=\"false\" WantAssertionsSigned=\"true\" protocolSupportEnumeration=\"urn:oasis:names:tc:SAML:2.0:protocol\">
+
    <NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:transient</NameIDFormat>
    <AssertionConsumerService
     isDefault=\"true\"
@@ -170,11 +172,35 @@ class RubySamlTest < Test::Unit::TestCase
     Binding=\"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST\"
     Location=\"http://localhost:3000/saml/consume\"/>
  </SPSSODescriptor>
- <RoleDescriptor xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:query=\"urn:oasis:names:tc:SAML:metadata:ext:query\" xsi:type=\"query:AttributeQueryDescriptorType\" protocolSupportEnumeration=\"urn:oasis:names:tc:SAML:2.0:protocol\"/>
- <XACMLAuthzDecisionQueryDescriptor WantAssertionsSigned=\"false\" protocolSupportEnumeration=\"urn:oasis:names:tc:SAML:2.0:protocol\"/>
+ <RoleDescriptor xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:query=\"urn:oasis:names:tc:SAML:metadata:ext:query\" xsi:type=\"query:AttributeQueryDescriptorType\" protocolSupportEnumeration=\"urn:oasis:names:tc:SAML:2.0:protocol\"/>\n <XACMLAuthzDecisionQueryDescriptor WantAssertionsSigned=\"false\" protocolSupportEnumeration=\"urn:oasis:names:tc:SAML:2.0:protocol\"/>
 </EntityDescriptor>"
+
+      assert_equal expected_xml.gsub(" ", ""), xml.gsub(" ", "")
+    end
+
+    context "with slo" do
+      should "generate correct xml part" do
+        descriptor = Onelogin::Saml::EntityDescription.new
+      xml = descriptor.generate({
+        "entity_id" => "http://test.no/",
+        "name_id_format" => "urn:oasis:names:tc:SAML:2.0:nameid-format:transient",
+        "assertion_consumer_service_location" => "http://localhost:3000/saml/consume",
+
+        "single_logout_service_location" => "slo_location",
+        "single_logout_service_response_location" => "response_location"
+      })
+
+      expected_xml = "     <SingleLogoutService
+      Binding=\"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect\"
+      Location=\"slo_location\"
+      ResponseLocation=\"response_location\"/>"
+
+        assert xml.include?(expected_xml), "Xml does not include\nfull:#{xml}\n\nincluded: #{expected_xml}"
+      end
     end
   end
+
+
 
   
 end

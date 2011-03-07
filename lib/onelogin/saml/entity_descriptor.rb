@@ -12,6 +12,9 @@ module Onelogin::Saml
       name_id_format = values["name_id_format"]
       assertion_consumer_service_location = values["assertion_consumer_service_location"]
 
+      single_logout_service_location = values["single_logout_service_location"]
+      single_logout_service_response_location = values["single_logout_service_response_location"]
+
       erb = ERB.new(@template)
       erb.result(binding)
     end

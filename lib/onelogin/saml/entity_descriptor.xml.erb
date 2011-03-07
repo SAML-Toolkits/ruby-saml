@@ -2,6 +2,12 @@
 
 <EntityDescriptor xmlns="urn:oasis:names:tc:SAML:2.0:metadata" entityID="<%= entity_id %>">
  <SPSSODescriptor AuthnRequestsSigned="false" WantAssertionsSigned="true" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+   <% if single_logout_service_location && single_logout_service_response_location %>
+     <SingleLogoutService
+      Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+      Location="<%= single_logout_service_location %>"
+      ResponseLocation="<%= single_logout_service_response_location %>"/>
+   <% end %>
    <NameIDFormat><%= name_id_format %></NameIDFormat>
    <AssertionConsumerService
     isDefault="true"
