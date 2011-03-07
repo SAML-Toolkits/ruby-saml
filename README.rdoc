@@ -83,6 +83,20 @@ contains all the saml:AttributeStatement with its 'Name' as a indifferent key an
 
   response.attributes[:username]
 
+== EntityDescriptor generation
+
+To install metadata about your SP(service provider) at the SAML IDP(identity provider) you
+have to install a EntityDescriptor containing some metadata for your SP. To generate
+thise files you can follow this example
+
+    config = {
+      entity_id => "https://someaddress.com/",
+      name_id_format => "urn:oasis:names:tc:SAML:2.0:nameid-format:transient
+      assertion_consumer_service_location => "https://someaddress/your/saml/consume/action"
+    }
+    entity_descriptor = Onelogin::Saml::EntityDescription.new
+    puts entity_descriptor.generate(config)
+
 
 = Full Example
 
