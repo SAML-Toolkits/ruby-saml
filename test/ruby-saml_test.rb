@@ -158,12 +158,12 @@ class RubySamlTest < Test::Unit::TestCase
       
       name_id = "asdlkfj"
       issuer = "https://test-idp.test.no:443/issuer"
-      session = "adflkjalkfjalsdfjlaskjdf"
+      transaction_id = "adflkjalkfjalsdfjlaskjdf"
       params = {}
       logoutresponse = "<samlp:LogoutRequest  xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\" ID=\"s27f69d27d58d330578d18d776ed99a77fc8614d59\" Version=\"2.0\" IssueInstant=\"2011-03-07T12:38:15Z\" Destination=\"https://test-idp.prodreg.no:443/opensso/IDPSloRedirect/metaAlias/prodreg/idp\">
         <saml:Issuer xmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\">#{issuer}</saml:Issuer>
         <saml:NameID xmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\" NameQualifier=\"https://test-idp.test.no:443/opensso\" SPNameQualifier=\"https://test-idp.prodreg.no:443/fedlet\" Format=\"urn:oasis:names:tc:SAML:2.0:nameid-format:transient\">#{name_id}</saml:NameID>
-        <samlp:SessionIndex xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\">#{session}</samlp:SessionIndex>
+        <samlp:SessionIndex xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\">#{transaction_id}</samlp:SessionIndex>
       </samlp:LogoutRequest>"
 
       params["SAMLResponse"] = encode(logoutresponse)
@@ -171,7 +171,7 @@ class RubySamlTest < Test::Unit::TestCase
 
       assert_equal logoutresponse.name_id, name_id
       assert_equal logoutresponse.issuer, issuer
-      assert_equal logoutresponse.session, session
+      assert_equal logoutresponse.transaction_id, transaction_id
     end
   end
 

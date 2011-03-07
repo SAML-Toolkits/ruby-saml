@@ -19,7 +19,7 @@ module Onelogin
         document.elements["/samlp:LogoutRequest/saml:Issuer"].text
       end
 
-      def session
+      def transaction_id
         document.elements["/samlp:LogoutRequest/samlp:SessionIndex"].text
       end
 
