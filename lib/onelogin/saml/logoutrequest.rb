@@ -34,7 +34,7 @@ module Onelogin::Saml
       params["SAMLRequest"] = base64_request
       query_string = params.map {|key, value| "#{key}=#{CGI.escape(value)}"}.join("&")
 
-      settings.idp_sso_target_url + "?#{query_string}"
+      settings.idp_slo_target_url + "?#{query_string}"
      end
 
     private 
