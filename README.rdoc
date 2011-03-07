@@ -83,6 +83,8 @@ contains all the saml:AttributeStatement with its 'Name' as a indifferent key an
 
   response.attributes[:username]
 
+Logout is also supported via Onelogin::Saml::Logoutrequest and Onelogin::Saml::Logoutresponse
+
 == EntityDescriptor generation
 
 To install metadata about your SP(service provider) at the SAML IDP(identity provider) you
@@ -96,6 +98,7 @@ thise files you can follow this example
     }
     entity_descriptor = Onelogin::Saml::EntityDescription.new
     puts entity_descriptor.generate(config)
+
 
 
 = Full Example
