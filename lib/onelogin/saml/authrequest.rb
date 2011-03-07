@@ -1,7 +1,7 @@
 require "base64"
 require "uuid"
 require "zlib"
-require "cgi"
+
 
 module Onelogin::Saml
   class Authrequest
