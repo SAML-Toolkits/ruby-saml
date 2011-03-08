@@ -1,10 +1,8 @@
-require 'base64'
 require 'uuid'
-require 'cgi'
 
 module Onelogin::Saml
   class Logoutrequest
-    
+    include Codeing
     attr_reader :transaction_id
 
     def initialize
@@ -16,10 +14,10 @@ module Onelogin::Saml
 
       request = xml(settings, issue_instant)
  
-      deflated_request  = Zlib::Deflate.deflate(request, 9)[2..-5]
-      base64_request    = Base64.encode64(deflated_request)  
+      deflated_request  = deflate(request)
+      base64_request    = encode(deflated_request)
       params["SAMLRequest"] = base64_request
-      query_string = params.map {|key, value| "#{key}=#{CGI.escape(value)}"}.join("&")
+      query_string = params.map {|key, value| "#{key}=#{escape(value)}"}.join("&")
 
       settings.idp_slo_target_url + "?#{query_string}"
      end
