@@ -134,7 +134,9 @@ class RubySamlTest < Test::Unit::TestCase
     should "generate a correct logout request" do
       logoutrequest = Onelogin::Saml::Logoutrequest.new
 
-      logout_xml = logoutrequest.xml(@settings, "demo", "test", "s2c8e391dbfcb2f71796595c803cf8b4079119ff01")
+      @settings.name_id = "demo"
+      @settings.sessionindex = "s2c8e391dbfcb2f71796595c803cf8b4079119ff01"
+      logout_xml = logoutrequest.xml(@settings, "test")
 
       expected_xml = <<-EOF
     <samlp:LogoutRequest xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\"
@@ -153,7 +155,9 @@ class RubySamlTest < Test::Unit::TestCase
 
     should "generate a correct request" do
       logoutrequest = Onelogin::Saml::Logoutrequest.new
-      logout_url = logoutrequest.create(@settings, "demo", "sessionindex", {})
+      @settings.name_id = "demo"
+      @settings.sessionindex = "sessionindex"
+      logout_url = logoutrequest.create(@settings, {})
 
       expected_url = "http://slotarget.com/?SAMLRequest=nZJNa8MwDEDv%2FRXG92xZCKMxTWBQBoFusBV2VxxlGGI7sxToz18%2Bui1hWw%2FV%0A0ZbekywLMceOwLadOvh33%2FMrfvRILE62daSmm1z2wSkPZEg5sEiKtTo%2BPB1U%0AchOrLnj22rdyIxZR7nNZw31aYRVHCeg0iu8SjCDTWZRuK623mDVpWkvxhoGM%0Ad7kcYFKURD2Wjhgc55LNYGOwlSxW9O%2Bu1ZQfFt1ebhaIMPCgk4WZKne3C8x%2F%0AkueBU%2B6vkPzijTHSXnpoTWMw5JI6MSL%2Bzn30wQJf1o0npo6aKVVxAEcGHcui%0ARuvP880TrOc7r%2F2INL5%2F6Wo8XbH1guZ6M9bPtjXzR%2Fp1u%2FpoxeYT%0A"
       assert_equal expected_url, logout_url
