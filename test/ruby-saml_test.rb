@@ -11,7 +11,7 @@ class RubySamlTest < Test::Unit::TestCase
     end
     should "should provide getters and settings" do
       accessors = [
-        :assertion_consumer_service_url, :issuer, :sp_name_qualifier, :sp_name_qualifier,
+        :assertion_consumer_service_url, :issuer, :sp_name_qualifier,
         :idp_sso_target_url, :idp_cert_fingerprint, :name_identifier_format
       ]
 
