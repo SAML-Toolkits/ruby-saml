@@ -43,6 +43,10 @@ module Onelogin::Saml
       @expires_at ||= Time.parse(document.elements["/samlp:Response/saml:Assertion/saml:AuthnStatement"].attributes["SessionNotOnOrAfter"])
     end
 
+    def sessionindex
+      document.elements["/samlp:Response/saml:Assertion/saml:AuthnStatement"].attributes["SessionIndex"]
+    end
+
   private
 
     def make_hash_access_indiferent(hash)

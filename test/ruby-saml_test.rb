@@ -82,6 +82,13 @@ class RubySamlTest < Test::Unit::TestCase
       end
     end
 
+    context "#sessionindex" do
+      should "get the sessionindex" do
+        response = Onelogin::Saml::Response.new(response_document)
+        assert_equal "_531c32d283bdff7e04e487bcdbc4dd8d", response.sessionindex
+      end
+    end
+
     context "#session_expires_at" do
       should "extract the value of the SessionNotOnOrAfter attribute" do
         response = Onelogin::Saml::Response.new(response_document)
@@ -127,7 +134,7 @@ class RubySamlTest < Test::Unit::TestCase
     should "generate a correct logout request" do
       logoutrequest = Onelogin::Saml::Logoutrequest.new
 
-      logout_xml = logoutrequest.xml(@settings, "demo", "test")
+      logout_xml = logoutrequest.xml(@settings, "demo", "test", "s2c8e391dbfcb2f71796595c803cf8b4079119ff01")
 
       expected_xml = <<-EOF
     <samlp:LogoutRequest xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\"
@@ -136,6 +143,7 @@ class RubySamlTest < Test::Unit::TestCase
                 <saml:NameID xmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\"
                     NameQualifier=\"sp name\"
                     Format=\"urn:oasis:names:tc:SAML:2.0:nameid-format:transient\">demo</saml:NameID>
+            <samlp:SessionIndex xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol">s2c8e391dbfcb2f71796595c803cf8b4079119ff01</samlp:SessionIndex>
         </samlp:LogoutRequest>
       EOF
 
@@ -145,9 +153,9 @@ class RubySamlTest < Test::Unit::TestCase
 
     should "generate a correct request" do
       logoutrequest = Onelogin::Saml::Logoutrequest.new
-      logout_url = logoutrequest.create(@settings, "demo")
+      logout_url = logoutrequest.create(@settings, "demo", "sessionindex", {})
 
-      expected_url = "http://slotarget.com/?SAMLRequest=nZFbS8QwEIXf91eEea%2FWUmQbtgVhEQqroILv03S6BJqkZqbgz7cX0fW2D57H%0Aycl35jBKrdoxun7Qh3AMozzSy0gs6tX1nvXyUsIYvQ7IlrVHR6zF6Kebu4PO%0ALlI9xCDBhB426kT1voQWr%2FOGmjTJ0ORJepVRgoUpknzbGLOlosvzFtQzRbbB%0AlzDBQNXMI9WeBb2UIHZKE3QNVF%2FoH1vrxR9Ptj2%2FLDJTlCkOKrv83F2eYP4K%0AuZ849f4fIT94s2baw4i97SzFEnhQM%2BJ3722IDuV83DyxbdItVi0RPVvyAlVL%0ALrz3Wxt89lvH325ebd4A%0A"
+      expected_url = "http://slotarget.com/?SAMLRequest=nZJNa8MwDEDv%2FRXG92xZCKMxTWBQBoFusBV2VxxlGGI7sxToz18%2Bui1hWw%2FV%0A0ZbekywLMceOwLadOvh33%2FMrfvRILE62daSmm1z2wSkPZEg5sEiKtTo%2BPB1U%0AchOrLnj22rdyIxZR7nNZw31aYRVHCeg0iu8SjCDTWZRuK623mDVpWkvxhoGM%0Ad7kcYFKURD2Wjhgc55LNYGOwlSxW9O%2Bu1ZQfFt1ebhaIMPCgk4WZKne3C8x%2F%0AkueBU%2B6vkPzijTHSXnpoTWMw5JI6MSL%2Bzn30wQJf1o0npo6aKVVxAEcGHcui%0ARuvP880TrOc7r%2F2INL5%2F6Wo8XbH1guZ6M9bPtjXzR%2Fp1u%2FpoxeYT%0A"
       assert_equal expected_url, logout_url
     end
 
