@@ -24,6 +24,11 @@ module Onelogin
         document.elements["/samlp:LogoutResponse"].attributes["InResponseTo"]
       end
 
+      def success?
+        document.elements["/samlp:LogoutResponse/samlp:Status/samlp:StatusCode"].attributes["Value"] == "urn:oasis:names:tc:SAML:2.0:status:Success"
+        
+      end
+
     protected
       def document
         REXML::Document.new(@response)

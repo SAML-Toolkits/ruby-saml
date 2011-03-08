@@ -178,7 +178,7 @@ class RubySamlTest < Test::Unit::TestCase
                           <saml:Issuer xmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\">#{issuer}</saml:Issuer>
                           <samlp:Status xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\">
                           <samlp:StatusCode  xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\"
-                          Value=\"urn:oasis:names:tc:SAML:2.0:status:Requester\">
+                          Value=\"urn:oasis:names:tc:SAML:2.0:status:Success\">
                           </samlp:StatusCode>
                           </samlp:Status>
                           </samlp:LogoutResponse>"
@@ -189,6 +189,28 @@ class RubySamlTest < Test::Unit::TestCase
 
       assert_equal logoutresponse.issuer, issuer
       assert_equal logoutresponse.in_response_to, transaction_id
+      assert_equal true, logoutresponse.success?
+    end
+
+    should "validate the a failing response" do
+
+      
+      logout_xml = "<samlp:LogoutResponse  xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\"
+                          ID=\"sedf164edc2121a23d4ca4b31d35261e5563dc352\" Version=\"2.0\"
+                          IssueInstant=\"2011-03-07T14:43:34Z\" Destination=\"http://localhost:3000/saml/consume_logout\"
+                          InResponseTo=\"adflkjalkfjalsdfjlaskjdf\">
+                          <saml:Issuer xmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\">https://test-idp.test.no:443/issuer</saml:Issuer>
+                          <samlp:Status xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\">
+                          <samlp:StatusCode  xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\"
+                          Value=\"urn:oasis:names:tc:SAML:2.0:status:Requester\">
+                          </samlp:StatusCode>
+                          </samlp:Status>
+                          </samlp:LogoutResponse>"
+
+
+      logoutresponse = Onelogin::Saml::Logoutresponse.new(encode(deflate(logout_xml)))
+
+      assert_equal false, logoutresponse.success?
     end
   end
 
