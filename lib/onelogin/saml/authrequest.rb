@@ -7,7 +7,7 @@ module Onelogin::Saml
   class Authrequest
     include Codeing
     def create(settings, params = {})
-      uuid = "_".UUID.new.generate
+      uuid = UUID.new.generate
       time = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
 
       request =
