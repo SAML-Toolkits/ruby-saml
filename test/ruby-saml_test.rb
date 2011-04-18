@@ -30,6 +30,13 @@ class RubySamlTest < Test::Unit::TestCase
       assert_raises(ArgumentError) { Onelogin::Saml::Response.new(nil) }
     end
 
+    should "adapt namespace" do
+      response = Onelogin::Saml::Response.new(response_document)
+      assert !response.name_id.nil?
+      response = Onelogin::Saml::Response.new(response_document_2)
+      assert !response.name_id.nil?
+    end
+
     context "#is_valid?" do
       should "return false when response is initialized with blank data" do
         response = Onelogin::Saml::Response.new('')

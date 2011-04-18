@@ -3,12 +3,17 @@ require "time"
 
 module Onelogin::Saml
   class Response
-    attr_accessor :response, :document, :logger, :settings
+    attr_accessor :response, :document, :logger, :settings, :namespace
 
     def initialize(response)
       raise ArgumentError.new("Response cannot be nil") if response.nil?
-      self.response = response
-      self.document = XMLSecurity::SignedDocument.new(Base64.decode64(response))
+      self.response  = response
+      self.document  = XMLSecurity::SignedDocument.new(Base64.decode64(response))
+      self.namespace = "saml"
+
+      if document.elements["/#{namespace}p:Response/"].nil?
+        self.namespace = "saml2"
+      end
     end
 
     def is_valid?
@@ -21,12 +26,12 @@ module Onelogin::Saml
 
     # The value of the user identifier as designated by the initialization request response
     def name_id
-      @name_id ||= document.elements["/samlp:Response/saml:Assertion/saml:Subject/saml:NameID"].text
+      @name_id ||= document.elements["/#{namespace}p:Response/#{namespace}:Assertion/#{namespace}:Subject/#{namespace}:NameID"].text
     end
 
     # A hash of alle the attributes with the response. Assuming there is onlye one value for each key
     def attributes
-      saml_attribute_statements = document.elements["/samlp:Response/saml:Assertion/saml:AttributeStatement"].elements
+      saml_attribute_statements = document.elements["/#{namespace}p:Response/#{namespace}:Assertion/#{namespace}:AttributeStatement"].elements
       statements = saml_attribute_statements.map do |child|
         child.attributes.map do |key, attribute|
           [attribute, child.elements.first.text]
@@ -39,7 +44,7 @@ module Onelogin::Saml
 
     # When this user session should expire at latest
     def session_expires_at
-      @expires_at ||= Time.parse(document.elements["/samlp:Response/saml:Assertion/saml:AuthnStatement"].attributes["SessionNotOnOrAfter"])
+      @expires_at ||= Time.parse(document.elements["/#{namespace}p:Response/#{namespace}:Assertion/#{namespace}:AuthnStatement"].attributes["SessionNotOnOrAfter"])
     end
 
   private
