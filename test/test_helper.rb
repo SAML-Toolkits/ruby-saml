@@ -15,4 +15,9 @@ class Test::Unit::TestCase
   def response_document_2
     @response_document2 ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'response2.xml.base64'))
   end
+
+  def response_document_3
+    @response_document3 ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'response3.xml.base64'))
+  end
+
 end

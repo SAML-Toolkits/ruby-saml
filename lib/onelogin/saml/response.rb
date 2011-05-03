@@ -3,17 +3,15 @@ require "time"
 
 module Onelogin::Saml
   class Response
-    attr_accessor :response, :document, :logger, :settings, :namespace
+    ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion"
+    PROTOCOL  = "urn:oasis:names:tc:SAML:2.0:protocol"
+
+    attr_accessor :response, :document, :logger, :settings
 
     def initialize(response)
       raise ArgumentError.new("Response cannot be nil") if response.nil?
-      self.response  = response
-      self.document  = XMLSecurity::SignedDocument.new(Base64.decode64(response))
-      self.namespace = "saml"
-
-      if document.elements["/#{namespace}p:Response/"].nil?
-        self.namespace = "saml2"
-      end
+      self.response = response
+      self.document = XMLSecurity::SignedDocument.new(Base64.decode64(response))
     end
 
     def is_valid?
@@ -26,36 +24,40 @@ module Onelogin::Saml
 
     # The value of the user identifier as designated by the initialization request response
     def name_id
-      @name_id ||= document.elements["/#{namespace}p:Response/#{namespace}:Assertion/#{namespace}:Subject/#{namespace}:NameID"].text
+      @name_id ||= begin
+        node = REXML::XPath.first(document, "/p:Response/a:Assertion/a:Subject/a:NameID", { "p" => PROTOCOL, "a" => ASSERTION })
+        node.text
+      end
     end
 
-    # A hash of alle the attributes with the response. Assuming there is onlye one value for each key
+    # A hash of alle the attributes with the response. Assuming there is only one value for each key
     def attributes
-      saml_attribute_statements = document.elements["/#{namespace}p:Response/#{namespace}:Assertion/#{namespace}:AttributeStatement"].elements
-      statements = saml_attribute_statements.map do |child|
-        child.attributes.map do |key, attribute|
-          [attribute, child.elements.first.text]
-        end
-      end
+      @attr_statements ||= begin
+        result = {}
 
-      hash = Hash[statements.flatten(1)]
-      @attributes ||= make_hash_access_indiferent(hash)
+        stmt_element = REXML::XPath.first(document, "/p:Response/a:Assertion/a:AttributeStatement", { "p" => PROTOCOL, "a" => ASSERTION })
+        stmt_element.elements.each do |attr_element|
+          name  = attr_element.attributes["Name"]
+          value = attr_element.elements.first.text
+
+          result[name] = value
+        end
+
+        result.keys.each do |key|
+          result[key.intern] = result[key]
+        end
+
+        result
+      end
     end
 
     # When this user session should expire at latest
     def session_expires_at
-      @expires_at ||= Time.parse(document.elements["/#{namespace}p:Response/#{namespace}:Assertion/#{namespace}:AuthnStatement"].attributes["SessionNotOnOrAfter"])
-    end
-
-  private
-
-    def make_hash_access_indiferent(hash)
-      sym_hash = {}
-      hash.each  do |key, value|
-        sym_hash[key.intern] = value
+      @expires_at ||= begin
+        node = REXML::XPath.first(document, "/p:Response/a:Assertion/a:AuthnStatement", { "p" => PROTOCOL, "a" => ASSERTION })
+        Time.parse(node.attributes["SessionNotOnOrAfter"]) if node && node.attributes["SessionNotOnOrAfter"]
       end
-
-      sym_hash.merge(hash)
     end
+
   end
 end

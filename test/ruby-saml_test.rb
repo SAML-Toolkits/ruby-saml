@@ -35,6 +35,8 @@ class RubySamlTest < Test::Unit::TestCase
       assert !response.name_id.nil?
       response = Onelogin::Saml::Response.new(response_document_2)
       assert !response.name_id.nil?
+      response = Onelogin::Saml::Response.new(response_document_3)
+      assert !response.name_id.nil?
     end
 
     context "#is_valid?" do
@@ -65,6 +67,9 @@ class RubySamlTest < Test::Unit::TestCase
       should "extract the value of the name id element" do
         response = Onelogin::Saml::Response.new(response_document)
         assert_equal "support@onelogin.com", response.name_id
+
+        response = Onelogin::Saml::Response.new(response_document_3)
+        assert_equal "someone@example.com", response.name_id
       end
     end
 
@@ -84,12 +89,20 @@ class RubySamlTest < Test::Unit::TestCase
         assert_equal "demo", response.attributes[:uid]
         assert_equal "value", response.attributes[:another_value]
       end
+
+      should "work for implicit namespaces" do
+        response = Onelogin::Saml::Response.new(response_document_3)
+        assert_equal "someone@example.com", response.attributes["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"]
+      end
     end
 
     context "#session_expires_at" do
       should "extract the value of the SessionNotOnOrAfter attribute" do
         response = Onelogin::Saml::Response.new(response_document)
         assert response.session_expires_at.is_a?(Time)
+
+        response = Onelogin::Saml::Response.new(response_document_2)
+        assert response.session_expires_at.nil?
       end
     end
   end
