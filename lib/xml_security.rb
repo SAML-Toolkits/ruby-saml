@@ -32,6 +32,14 @@ require "digest/sha1"
 module XMLSecurity
 
   class SignedDocument < REXML::Document
+    DSIG      = "http://www.w3.org/2000/09/xmldsig#"
+
+    attr_accessor :signed_element_id
+
+    def initialize(response)
+      super(response)
+      extract_signed_element_id
+    end
 
     def validate (idp_cert_fingerprint, logger = nil)
       # get cert from response
@@ -87,5 +95,11 @@ module XMLSecurity
       return valid_flag
     end
 
+    private
+
+    def extract_signed_element_id
+      reference_element       = REXML::XPath.first(self, "//ds:Signature/ds:SignedInfo/ds:Reference", {"ds"=>DSIG})
+      self.signed_element_id  = reference_element.attribute("URI").value unless reference_element.nil?
+    end
   end
 end

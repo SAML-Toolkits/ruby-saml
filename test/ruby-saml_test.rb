@@ -39,13 +39,11 @@ class RubySamlTest < Test::Unit::TestCase
       assert !response.name_id.nil?
     end
     
-    should "not allow signature wrapping attack" do 
-      response = Onelogin::Saml::Response.new(response_document_4)
-      settings = Onelogin::Saml::Settings.new
-      response.settings = settings
-      settings.idp_cert_fingerprint = signature_fingerprint_1
-      assert response.is_valid?
-      assert response.name_id == "test@onelogin.com"
+    should "check time conditions" do
+      response = Onelogin::Saml::Response.new(response_document)
+      assert !response.check_conditions
+      response = Onelogin::Saml::Response.new(response_document_5)
+      assert response.check_conditions
     end
 
     context "#is_valid?" do
@@ -60,15 +58,25 @@ class RubySamlTest < Test::Unit::TestCase
       end
 
       should "return true when the response is initialized with valid data" do
-        response = Onelogin::Saml::Response.new(response_document)
+        response = Onelogin::Saml::Response.new(response_document_4)
+        response.bypass_conditions_check = true
+        assert !response.is_valid?
         settings = Onelogin::Saml::Settings.new
-        settings.idp_cert_fingerprint = 'hello'
+        assert !response.is_valid?
         response.settings = settings
         assert !response.is_valid?
-        document = stub()
-        document.stubs(:validate).returns(true)
-        response.document = document
+        settings.idp_cert_fingerprint = signature_fingerprint_1
         assert response.is_valid?
+      end
+
+      should "not allow signature wrapping attack" do
+        response = Onelogin::Saml::Response.new(response_document_4)
+        response.bypass_conditions_check = true
+        settings = Onelogin::Saml::Settings.new
+        settings.idp_cert_fingerprint = signature_fingerprint_1
+        response.settings = settings
+        assert response.is_valid?
+        assert response.name_id == "test@onelogin.com"
       end
     end
 

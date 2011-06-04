@@ -8,18 +8,20 @@ module Onelogin::Saml
     DSIG      = "http://www.w3.org/2000/09/xmldsig#"
 
     attr_accessor :response, :document, :logger, :settings, :original
+    attr_accessor :bypass_conditions_check # for testing only
 
     def initialize(response)
       raise ArgumentError.new("Response cannot be nil") if response.nil?
-      self.response = response
-      self.document = XMLSecurity::SignedDocument.new(Base64.decode64(response))
-      self.original = XMLSecurity::SignedDocument.new(Base64.decode64(response))
+      self.bypass_conditions_check  = false
+      self.response                 = response
+      self.document                 = XMLSecurity::SignedDocument.new(Base64.decode64(response))
     end
 
     def is_valid?
       return false if response.empty?
       return false if settings.nil?
       return false if settings.idp_cert_fingerprint.nil?
+      return false if !check_conditions
 
       document.validate(settings.idp_cert_fingerprint, logger)
     end
@@ -27,10 +29,19 @@ module Onelogin::Saml
     # The value of the user identifier as designated by the initialization request response
     def name_id
       @name_id ||= begin
-        uri   = REXML::XPath.first(original, "//ds:Signature/ds:SignedInfo/ds:Reference", {"ds"=>DSIG}).attribute("URI").value
-        node  = REXML::XPath.first(document, "/p:Response/a:Assertion[@ID='#{uri[1,uri.size]}']/a:Subject/a:NameID", { "p" => PROTOCOL, "a" => ASSERTION })
+        node  = REXML::XPath.first(document, "/p:Response/a:Assertion[@ID='#{document.signed_element_id[1,document.signed_element_id.size]}']/a:Subject/a:NameID", { "p" => PROTOCOL, "a" => ASSERTION })
         node.text
       end
+    end
+
+    def check_conditions
+      return true if self.bypass_conditions_check
+
+      cond_element = REXML::XPath.first(document,"/p:Response/a:Assertion[@ID='#{document.signed_element_id[1,document.signed_element_id.size]}']/a:Conditions", { "p" => PROTOCOL, "a" => ASSERTION })
+      return false unless cond_element
+      return false unless parseXsDateTime(cond_element.attribute('NotBefore').to_s) < Time.now.utc
+      return false unless parseXsDateTime(cond_element.attribute('NotOnOrAfter').to_s) >= Time.now.utc
+      true
     end
 
     # A hash of alle the attributes with the response. Assuming there is only one value for each key
@@ -62,5 +73,11 @@ module Onelogin::Saml
       end
     end
 
+    private
+
+    def parseXsDateTime(xsDatetime)
+      return nil unless xsDatetime =~ /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z$/
+      Time.utc($1, $2, $3, $4, $5, $6)
+    end
   end
 end
