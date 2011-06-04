@@ -38,6 +38,15 @@ class RubySamlTest < Test::Unit::TestCase
       response = Onelogin::Saml::Response.new(response_document_3)
       assert !response.name_id.nil?
     end
+    
+    should "not allow signature wrapping attack" do 
+      response = Onelogin::Saml::Response.new(response_document_4)
+      settings = Onelogin::Saml::Settings.new
+      response.settings = settings
+      settings.idp_cert_fingerprint = signature_fingerprint_1
+      assert response.is_valid?
+      assert response.name_id == "test@onelogin.com"
+    end
 
     context "#is_valid?" do
       should "return false when response is initialized with blank data" do

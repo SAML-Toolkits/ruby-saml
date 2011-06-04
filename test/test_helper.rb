@@ -20,4 +20,12 @@ class Test::Unit::TestCase
     @response_document3 ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'response3.xml.base64'))
   end
 
+  def response_document_4
+    @response_document4 ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'response4.xml.base64'))
+  end
+  
+  def signature_fingerprint_1
+    @signature_fingerprint1 ||= "C5:19:85:D9:47:F1:BE:57:08:20:25:05:08:46:EB:27:F6:CA:B7:83"
+  end
+
 end
