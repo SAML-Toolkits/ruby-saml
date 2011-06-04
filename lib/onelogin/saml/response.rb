@@ -38,9 +38,9 @@ module Onelogin::Saml
       return true if self.bypass_conditions_check
 
       cond_element = REXML::XPath.first(document,"/p:Response/a:Assertion[@ID='#{document.signed_element_id[1,document.signed_element_id.size]}']/a:Conditions", { "p" => PROTOCOL, "a" => ASSERTION })
-      return false unless cond_element
-      return false unless parseXsDateTime(cond_element.attribute('NotBefore').to_s) < Time.now.utc
-      return false unless parseXsDateTime(cond_element.attribute('NotOnOrAfter').to_s) >= Time.now.utc
+      return true unless cond_element
+      return false if cond_element.attribute('NotBefore') and Time.now.utc < parseXsDateTime(cond_element.attribute('NotBefore'))
+      return false if cond_element.attribute('NotOnOrAfter') and Time.now.utc >= parseXsDateTime(cond_element.attribute('NotOnOrAfter'))
       true
     end
 
@@ -76,7 +76,7 @@ module Onelogin::Saml
     private
 
     def parseXsDateTime(xsDatetime)
-      return nil unless xsDatetime =~ /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z$/
+      return nil unless xsDatetime.to_s =~ /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z$/
       Time.utc($1, $2, $3, $4, $5, $6)
     end
   end
