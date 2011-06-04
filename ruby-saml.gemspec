@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{ruby-saml}
-  s.version = "0.4.0"
+  s.version = "0.4.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["OneLogin LLC"]
-  s.date = %q{2011-05-03}
+  s.date = %q{2011-06-03}
   s.description = %q{SAML toolkit for Ruby on Rails}
   s.email = %q{support@onelogin.com}
   s.extra_rdoc_files = [
@@ -30,9 +30,11 @@ Gem::Specification.new do |s|
      "lib/ruby-saml.rb",
      "lib/xml_security.rb",
      "ruby-saml.gemspec",
+     "test/responses/certificate1",
      "test/responses/response1.xml.base64",
      "test/responses/response2.xml.base64",
      "test/responses/response3.xml.base64",
+     "test/responses/response4.xml.base64",
      "test/ruby-saml_test.rb",
      "test/test_helper.rb",
      "test/xml_security_test.rb"
