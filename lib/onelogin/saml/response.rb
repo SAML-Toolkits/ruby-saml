@@ -29,8 +29,8 @@ module Onelogin::Saml
     # The value of the user identifier as designated by the initialization request response
     def name_id
       @name_id ||= begin
-        node  = REXML::XPath.first(document, "/p:Response/a:Assertion[@ID='#{document.signed_element_id[1,document.signed_element_id.size]}']/a:Subject/a:NameID", { "p" => PROTOCOL, "a" => ASSERTION })
-        node.text
+        node = REXML::XPath.first(document, "/p:Response/a:Assertion[@ID='#{document.signed_element_id[1,document.signed_element_id.size]}']/a:Subject/a:NameID", { "p" => PROTOCOL, "a" => ASSERTION })
+        node.nil? ? nil : node.text
       end
     end
 
