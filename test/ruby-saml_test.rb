@@ -38,7 +38,7 @@ class RubySamlTest < Test::Unit::TestCase
       response = Onelogin::Saml::Response.new(response_document_3)
       assert !response.name_id.nil?
     end
-    
+
     should "check time conditions" do
       response = Onelogin::Saml::Response.new(response_document)
       assert !response.check_conditions
@@ -110,6 +110,11 @@ class RubySamlTest < Test::Unit::TestCase
       should "work for implicit namespaces" do
         response = Onelogin::Saml::Response.new(response_document_3)
         assert_equal "someone@example.com", response.attributes["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"]
+      end
+
+      should "not raise on responses without attributes" do
+        response = Onelogin::Saml::Response.new(response_document_4)
+        assert_equal Hash.new, response.attributes
       end
     end
 

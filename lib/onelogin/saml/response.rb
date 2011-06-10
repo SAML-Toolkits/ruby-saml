@@ -50,6 +50,8 @@ module Onelogin::Saml
         result = {}
 
         stmt_element = REXML::XPath.first(document, "/p:Response/a:Assertion/a:AttributeStatement", { "p" => PROTOCOL, "a" => ASSERTION })
+        return {} if stmt_element.nil?
+
         stmt_element.elements.each do |attr_element|
           name  = attr_element.attributes["Name"]
           value = attr_element.elements.first.text
