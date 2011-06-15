@@ -43,13 +43,13 @@ module XMLSecurity
 
     def validate (idp_cert_fingerprint, logger = nil)
       # get cert from response
-      base64_cert             = self.elements["//ds:X509Certificate"].text
-      cert_text               = Base64.decode64(base64_cert)
-      cert                    = OpenSSL::X509::Certificate.new(cert_text)
+      base64_cert = self.elements["//ds:X509Certificate"].text
+      cert_text   = Base64.decode64(base64_cert)
+      cert        = OpenSSL::X509::Certificate.new(cert_text)
 
       # check cert matches registered idp cert
-      fingerprint             = Digest::SHA1.hexdigest(cert.to_der)
-      valid_flag              = fingerprint == idp_cert_fingerprint.gsub(":", "").downcase
+      fingerprint = Digest::SHA1.hexdigest(cert.to_der)
+      valid_flag  = fingerprint == idp_cert_fingerprint.gsub(/[^a-zA-Z0-9]/,"").downcase
 
       return valid_flag if !valid_flag
 
