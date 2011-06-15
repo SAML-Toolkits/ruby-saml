@@ -52,7 +52,7 @@ class RubySamlTest < Test::Unit::TestCase
 
       should "return true when the response is initialized with valid data" do
         response = Onelogin::Saml::Response.new(response_document_4)
-        response.bypass_conditions_check = true
+        response.expects(:check_conditions).returns(true)
         assert !response.is_valid?
         settings = Onelogin::Saml::Settings.new
         assert !response.is_valid?
@@ -64,7 +64,7 @@ class RubySamlTest < Test::Unit::TestCase
 
       should "not allow signature wrapping attack" do
         response = Onelogin::Saml::Response.new(response_document_4)
-        response.bypass_conditions_check = true
+        response.expects(:check_conditions).returns(true)
         settings = Onelogin::Saml::Settings.new
         settings.idp_cert_fingerprint = signature_fingerprint_1
         response.settings = settings

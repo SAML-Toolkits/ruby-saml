@@ -8,13 +8,11 @@ module Onelogin::Saml
     DSIG      = "http://www.w3.org/2000/09/xmldsig#"
 
     attr_accessor :response, :document, :logger, :settings, :original
-    attr_accessor :bypass_conditions_check # for testing only
 
     def initialize(response)
       raise ArgumentError.new("Response cannot be nil") if response.nil?
-      self.bypass_conditions_check  = false
-      self.response                 = response
-      self.document                 = XMLSecurity::SignedDocument.new(Base64.decode64(response))
+      self.response = response
+      self.document = XMLSecurity::SignedDocument.new(Base64.decode64(response))
     end
 
     def is_valid?
@@ -35,7 +33,6 @@ module Onelogin::Saml
     end
 
     def check_conditions
-      return true if bypass_conditions_check
       return true if conditions.nil?
 
       not_before = parse_time(conditions, "NotBefore")
