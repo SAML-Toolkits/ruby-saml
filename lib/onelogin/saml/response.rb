@@ -35,12 +35,15 @@ module Onelogin::Saml
     end
 
     def check_conditions
-      return true if self.bypass_conditions_check
+      return true if bypass_conditions_check
+      return true if conditions.nil?
 
-      cond_element = REXML::XPath.first(document,"/p:Response/a:Assertion[@ID='#{document.signed_element_id[1,document.signed_element_id.size]}']/a:Conditions", { "p" => PROTOCOL, "a" => ASSERTION })
-      return true unless cond_element
-      return false if cond_element.attribute('NotBefore') and Time.now.utc < parseXsDateTime(cond_element.attribute('NotBefore'))
-      return false if cond_element.attribute('NotOnOrAfter') and Time.now.utc >= parseXsDateTime(cond_element.attribute('NotOnOrAfter'))
+      not_before = parse_time(conditions, "NotBefore")
+      return false if not_before && Time.now.utc < not_before
+
+      not_on_or_after = parse_time(conditions, "NotOnOrAfter")
+      return false if not_on_or_after && Time.now.utc >= not_on_or_after
+
       true
     end
 
@@ -71,15 +74,23 @@ module Onelogin::Saml
     def session_expires_at
       @expires_at ||= begin
         node = REXML::XPath.first(document, "/p:Response/a:Assertion/a:AuthnStatement", { "p" => PROTOCOL, "a" => ASSERTION })
-        Time.parse(node.attributes["SessionNotOnOrAfter"]) if node && node.attributes["SessionNotOnOrAfter"]
+        parse_time(node, "SessionNotOnOrAfter")
+      end
+    end
+
+    # Conditions (if any) for the assertion to run
+    def conditions
+      @conditions ||= begin
+        REXML::XPath.first(document, "/p:Response/a:Assertion[@ID='#{document.signed_element_id[1,document.signed_element_id.size]}']/a:Conditions", { "p" => PROTOCOL, "a" => ASSERTION })
       end
     end
 
     private
 
-    def parseXsDateTime(xsDatetime)
-      return nil unless xsDatetime.to_s =~ /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z$/
-      Time.utc($1, $2, $3, $4, $5, $6)
+    def parse_time(node, attribute)
+      if node && node.attributes[attribute]
+        Time.parse(node.attributes[attribute])
+      end
     end
   end
 end

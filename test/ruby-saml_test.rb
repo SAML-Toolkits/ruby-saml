@@ -39,13 +39,6 @@ class RubySamlTest < Test::Unit::TestCase
       assert !response.name_id.nil?
     end
 
-    should "check time conditions" do
-      response = Onelogin::Saml::Response.new(response_document)
-      assert !response.check_conditions
-      response = Onelogin::Saml::Response.new(response_document_5)
-      assert response.check_conditions
-    end
-
     context "#is_valid?" do
       should "return false when response is initialized with blank data" do
         response = Onelogin::Saml::Response.new('')
@@ -87,6 +80,19 @@ class RubySamlTest < Test::Unit::TestCase
 
         response = Onelogin::Saml::Response.new(response_document_3)
         assert_equal "someone@example.com", response.name_id
+      end
+    end
+
+    context "#check_conditions" do
+      should "check time conditions" do
+        response = Onelogin::Saml::Response.new(response_document)
+        assert !response.check_conditions
+        response = Onelogin::Saml::Response.new(response_document_6)
+        assert response.check_conditions
+        time     = Time.parse("2011-06-14T18:25:01.516Z")
+        Time.stubs(:now).returns(time)
+        response = Onelogin::Saml::Response.new(response_document_5)
+        assert response.check_conditions
       end
     end
 
