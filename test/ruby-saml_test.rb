@@ -136,12 +136,20 @@ class RubySamlTest < Test::Unit::TestCase
   end
 
   context "Authrequest" do
-    should "create the SAMLRequest URL parameter" do
+    should "create the deflated SAMLRequest URL parameter" do
       settings = Onelogin::Saml::Settings.new
       settings.idp_sso_target_url = "http://stuff.com"
       auth_url = Onelogin::Saml::Authrequest.new.create(settings)
       assert auth_url =~ /^http:\/\/stuff\.com\?SAMLRequest=/
-      payload = CGI.unescape(auth_url.split("=").last)
+      payload  = CGI.unescape(auth_url.split("=").last)
+      decoded  = Base64.decode64(payload)
+
+      zstream  = Zlib::Inflate.new(-Zlib::MAX_WBITS)
+      inflated = zstream.inflate(decoded)
+      zstream.finish
+      zstream.close
+
+      assert_match /^<samlp:AuthnRequest/, inflated
     end
 
     should "accept extra parameters" do
