@@ -10,7 +10,7 @@ begin
     gem.email = "support@onelogin.com"
     gem.homepage = "http://github.com/onelogin/ruby-saml"
     gem.authors = ["OneLogin LLC"]
-    gem.add_dependency("xmlcanonicalizer","~> 0.1")
+    gem.add_dependency("canonix","~> 0.1")
     gem.add_dependency("uuid","~> 2.3")
     gem.add_development_dependency "shoulda"
     gem.add_development_dependency "mocha"
