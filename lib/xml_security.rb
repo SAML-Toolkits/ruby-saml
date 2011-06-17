@@ -28,11 +28,12 @@ require "rexml/xpath"
 require "openssl"
 require "xmlcanonicalizer"
 require "digest/sha1"
+require "onelogin/saml/validation_error"
 
 module XMLSecurity
 
   class SignedDocument < REXML::Document
-    DSIG      = "http://www.w3.org/2000/09/xmldsig#"
+    DSIG = "http://www.w3.org/2000/09/xmldsig#"
 
     attr_accessor :signed_element_id
 
@@ -41,7 +42,7 @@ module XMLSecurity
       extract_signed_element_id
     end
 
-    def validate (idp_cert_fingerprint, logger = nil)
+    def validate(idp_cert_fingerprint, soft = true)
       # get cert from response
       base64_cert = self.elements["//ds:X509Certificate"].text
       cert_text   = Base64.decode64(base64_cert)
@@ -49,14 +50,15 @@ module XMLSecurity
 
       # check cert matches registered idp cert
       fingerprint = Digest::SHA1.hexdigest(cert.to_der)
-      valid_flag  = fingerprint == idp_cert_fingerprint.gsub(/[^a-zA-Z0-9]/,"").downcase
 
-      return valid_flag if !valid_flag
+      if fingerprint != idp_cert_fingerprint.gsub(/[^a-zA-Z0-9]/,"").downcase
+        return soft ? false : (raise Onelogin::Saml::ValidationError.new("Fingerprint mismatch"))
+      end
 
-      validate_doc(base64_cert, logger)
+      validate_doc(base64_cert)
     end
 
-    def validate_doc(base64_cert, logger)
+    def validate_doc(base64_cert, soft = true)
       # validate references
 
       # remove signature node
@@ -64,8 +66,7 @@ module XMLSecurity
       sig_element.remove
 
       #check digests
-      REXML::XPath.each(sig_element, "//ds:Reference", {"ds"=>"http://www.w3.org/2000/09/xmldsig#"}) do | ref |
-
+      REXML::XPath.each(sig_element, "//ds:Reference", {"ds"=>"http://www.w3.org/2000/09/xmldsig#"}) do |ref|
         uri                   = ref.attributes.get_attribute("URI").value
         hashed_element        = REXML::XPath.first(self, "//[@ID='#{uri[1,uri.size]}']")
         canoner               = XML::Util::XmlCanonicalizer.new(false, true)
@@ -73,9 +74,9 @@ module XMLSecurity
         hash                  = Base64.encode64(Digest::SHA1.digest(canon_hashed_element)).chomp
         digest_value          = REXML::XPath.first(ref, "//ds:DigestValue", {"ds"=>"http://www.w3.org/2000/09/xmldsig#"}).text
 
-        valid_flag            = hash == digest_value
-
-        return valid_flag if !valid_flag
+        if hash != digest_value
+          return soft ? false : (raise Onelogin::Saml::ValidationError.new("Digest mismatch"))
+        end
       end
 
       # verify signature
@@ -90,9 +91,11 @@ module XMLSecurity
       cert_text               = Base64.decode64(base64_cert)
       cert                    = OpenSSL::X509::Certificate.new(cert_text)
 
-      valid_flag              = cert.public_key.verify(OpenSSL::Digest::SHA1.new, signature, canon_string)
+      if !cert.public_key.verify(OpenSSL::Digest::SHA1.new, signature, canon_string)
+        return soft ? false : (raise ValidationError.new("Key validation error"))
+      end
 
-      return valid_flag
+      return true
     end
 
     private

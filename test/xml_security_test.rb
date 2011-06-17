@@ -10,7 +10,7 @@ class XmlSecurityTest < Test::Unit::TestCase
 
     should "should run validate without throwing NS related exceptions" do
       base64cert = @document.elements["//ds:X509Certificate"].text
-      @document.validate_doc(base64cert, nil)
+      @document.validate_doc(base64cert, true)
     end
   end
 end

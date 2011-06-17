@@ -2,26 +2,27 @@ require "xml_security"
 require "time"
 
 module Onelogin::Saml
+
   class Response
     ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion"
     PROTOCOL  = "urn:oasis:names:tc:SAML:2.0:protocol"
     DSIG      = "http://www.w3.org/2000/09/xmldsig#"
 
-    attr_accessor :response, :document, :logger, :settings, :original
+    attr_accessor :options, :response, :document, :settings
 
-    def initialize(response)
+    def initialize(response, options = {})
       raise ArgumentError.new("Response cannot be nil") if response.nil?
+      self.options  = options
       self.response = response
       self.document = XMLSecurity::SignedDocument.new(Base64.decode64(response))
     end
 
     def is_valid?
-      return false if response.empty?
-      return false if settings.nil?
-      return false if settings.idp_cert_fingerprint.nil?
-      return false if !check_conditions
+      validate(soft = true)
+    end
 
-      document.validate(settings.idp_cert_fingerprint, logger)
+    def validate!
+      validate(soft = false)
     end
 
     # The value of the user identifier as designated by the initialization request response
@@ -30,18 +31,6 @@ module Onelogin::Saml
         node = REXML::XPath.first(document, "/p:Response/a:Assertion[@ID='#{document.signed_element_id[1,document.signed_element_id.size]}']/a:Subject/a:NameID", { "p" => PROTOCOL, "a" => ASSERTION })
         node.nil? ? nil : node.text
       end
-    end
-
-    def check_conditions
-      return true if conditions.nil?
-
-      not_before = parse_time(conditions, "NotBefore")
-      return false if not_before && Time.now.utc < not_before
-
-      not_on_or_after = parse_time(conditions, "NotOnOrAfter")
-      return false if not_on_or_after && Time.now.utc >= not_on_or_after
-
-      true
     end
 
     # A hash of alle the attributes with the response. Assuming there is only one value for each key
@@ -83,6 +72,49 @@ module Onelogin::Saml
     end
 
     private
+
+    def validation_error(message)
+      raise ValidationError.new(message)
+    end
+
+    def validate(soft = true)
+      validate_response_state(soft) && validate_conditions(soft) && document.validate(settings.idp_cert_fingerprint)
+    end
+
+    def validate_response_state(soft = true)
+      if response.empty?
+        return soft ? false : validation_error("Blank response")
+      end
+
+      if settings.nil?
+        return soft ? false : validation_error("No settings on response")
+      end
+
+      if settings.idp_cert_fingerprint.nil?
+        return soft ? false : validation_error("No fingerpring on settings")
+      end
+
+      true
+    end
+
+    def validate_conditions(soft = true)
+      return true if conditions.nil?
+      return true if options[:skip_conditions]
+
+      if not_before = parse_time(conditions, "NotBefore")
+        if Time.now.utc < not_before
+          return soft ? false : validation_error("Current time is earlier than NotBefore condition")
+        end
+      end
+
+      if not_on_or_after = parse_time(conditions, "NotOnOrAfter")
+        if Time.now.utc >= not_on_or_after
+          return soft ? false : validation_error("Current time is on or after NotOnOrAfter condition")
+        end
+      end
+
+      true
+    end
 
     def parse_time(node, attribute)
       if node && node.attributes[attribute]
