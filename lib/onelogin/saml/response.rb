@@ -78,7 +78,7 @@ module Onelogin::Saml
     end
 
     def validate(soft = true)
-      validate_response_state(soft) && validate_conditions(soft) && document.validate(settings.idp_cert_fingerprint)
+      validate_response_state(soft) && validate_conditions(soft) && document.validate(settings.idp_cert_fingerprint, soft)
     end
 
     def validate_response_state(soft = true)
@@ -91,7 +91,7 @@ module Onelogin::Saml
       end
 
       if settings.idp_cert_fingerprint.nil?
-        return soft ? false : validation_error("No fingerpring on settings")
+        return soft ? false : validation_error("No fingerprint on settings")
       end
 
       true
