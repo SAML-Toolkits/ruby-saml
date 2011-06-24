@@ -55,7 +55,7 @@ module XMLSecurity
         return soft ? false : (raise Onelogin::Saml::ValidationError.new("Fingerprint mismatch"))
       end
 
-      validate_doc(base64_cert)
+      validate_doc(base64_cert, soft)
     end
 
     def validate_doc(base64_cert, soft = true)
@@ -65,7 +65,7 @@ module XMLSecurity
       sig_element = REXML::XPath.first(self, "//ds:Signature", {"ds"=>"http://www.w3.org/2000/09/xmldsig#"})
       sig_element.remove
 
-      #check digests
+      # check digests
       REXML::XPath.each(sig_element, "//ds:Reference", {"ds"=>"http://www.w3.org/2000/09/xmldsig#"}) do |ref|
         uri                   = ref.attributes.get_attribute("URI").value
         hashed_element        = REXML::XPath.first(self, "//[@ID='#{uri[1,uri.size]}']")

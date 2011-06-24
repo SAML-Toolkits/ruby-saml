@@ -58,6 +58,14 @@ class RubySamlTest < Test::Unit::TestCase
         assert response.name_id == "test@onelogin.com"
       end
 
+      should_eventually "validate ADFS assertions" do
+        response = Onelogin::Saml::Response.new(fixture(:adfs_response))
+        response.stubs(:conditions).returns(nil)
+        settings = Onelogin::Saml::Settings.new
+        settings.idp_cert_fingerprint = "17:54:07:27:53:55:D1:93:67:A4:95:0A:6A:E4:D6:1E:FA:4A:94:1D"
+        response.settings = settings
+        assert response.validate!
+      end
     end
 
     context "#name_id" do
@@ -69,9 +77,14 @@ class RubySamlTest < Test::Unit::TestCase
         assert_equal "someone@example.com", response.name_id
       end
 
-      should_eventually "be extractable from OpenSAML" do
+      should_eventually "be extractable from an OpenSAML response" do
         response = Onelogin::Saml::Response.new(fixture(:open_saml))
         assert_equal "someone@example.org", response.name_id
+      end
+
+      should_eventually "be extractable from a Simple SAML PHP response" do
+        response = Onelogin::Saml::Response.new(fixture(:simple_saml_php))
+        assert_equal "someone@example.com", response.name_id
       end
     end
 

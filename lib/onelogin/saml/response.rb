@@ -78,7 +78,9 @@ module Onelogin::Saml
     end
 
     def validate(soft = true)
-      validate_response_state(soft) && validate_conditions(soft) && document.validate(settings.idp_cert_fingerprint, soft)
+      validate_response_state(soft) &&
+      validate_conditions(soft)     &&
+      document.validate(settings.idp_cert_fingerprint, soft)
     end
 
     def validate_response_state(soft = true)
