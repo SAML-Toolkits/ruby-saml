@@ -57,6 +57,7 @@ class RubySamlTest < Test::Unit::TestCase
         assert response.is_valid?
         assert response.name_id == "test@onelogin.com"
       end
+
     end
 
     context "#name_id" do
@@ -66,6 +67,11 @@ class RubySamlTest < Test::Unit::TestCase
 
         response = Onelogin::Saml::Response.new(response_document_3)
         assert_equal "someone@example.com", response.name_id
+      end
+
+      should_eventually "be extractable from OpenSAML" do
+        response = Onelogin::Saml::Response.new(fixture(:open_saml))
+        assert_equal "someone@example.org", response.name_id
       end
     end
 
@@ -119,6 +125,7 @@ class RubySamlTest < Test::Unit::TestCase
         assert response.session_expires_at.nil?
       end
     end
+
   end
 
 end

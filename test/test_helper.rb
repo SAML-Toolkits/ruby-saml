@@ -9,6 +9,15 @@ $LOAD_PATH.unshift(File.dirname(__FILE__))
 require 'ruby-saml'
 
 class Test::Unit::TestCase
+  def fixture(document, base64 = true)
+    response = Dir.glob(File.join(File.dirname(__FILE__), "responses", "#{document}*")).first
+    if base64 && response =~ /\.xml$/
+      Base64.encode64(File.read(response))
+    else
+      File.read(response)
+    end
+  end
+
   def response_document
     @response_document ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'response1.xml.base64'))
   end
