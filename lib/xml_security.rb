@@ -60,6 +60,16 @@ module XMLSecurity
 
     def validate_doc(base64_cert, soft = true)
       # validate references
+      
+      # check for inclusive namespaces
+      
+      inclusive_namespaces            = []
+      inclusive_namespace_element     = REXML::XPath.first(self, "//ec:InclusiveNamespaces")
+      
+      if inclusive_namespace_element
+        prefix_list                   = inclusive_namespace_element.attributes.get_attribute('PrefixList').value
+        inclusive_namespaces          = prefix_list.split(" ")
+      end
 
       # remove signature node
       sig_element = REXML::XPath.first(self, "//ds:Signature", {"ds"=>"http://www.w3.org/2000/09/xmldsig#"})
@@ -67,12 +77,13 @@ module XMLSecurity
 
       # check digests
       REXML::XPath.each(sig_element, "//ds:Reference", {"ds"=>"http://www.w3.org/2000/09/xmldsig#"}) do |ref|
-        uri                   = ref.attributes.get_attribute("URI").value
-        hashed_element        = REXML::XPath.first(self, "//[@ID='#{uri[1,uri.size]}']")
-        canoner               = XML::Util::XmlCanonicalizer.new(false, true)
-        canon_hashed_element  = canoner.canonicalize(hashed_element)
-        hash                  = Base64.encode64(Digest::SHA1.digest(canon_hashed_element)).chomp
-        digest_value          = REXML::XPath.first(ref, "//ds:DigestValue", {"ds"=>"http://www.w3.org/2000/09/xmldsig#"}).text
+        uri                           = ref.attributes.get_attribute("URI").value
+        hashed_element                = REXML::XPath.first(self, "//[@ID='#{uri[1,uri.size]}']")
+        canoner                       = XML::Util::XmlCanonicalizer.new(false, true)
+        canoner.inclusive_namespaces  = inclusive_namespaces if canoner.respond_to?(:inclusive_namespaces) && !inclusive_namespaces.empty?
+        canon_hashed_element          = canoner.canonicalize(hashed_element)
+        hash                          = Base64.encode64(Digest::SHA1.digest(canon_hashed_element)).chomp
+        digest_value                  = REXML::XPath.first(ref, "//ds:DigestValue", {"ds"=>"http://www.w3.org/2000/09/xmldsig#"}).text
 
         if hash != digest_value
           return soft ? false : (raise Onelogin::Saml::ValidationError.new("Digest mismatch"))
