@@ -81,7 +81,7 @@ module Onelogin::Saml
     def validate(soft = true)
       validate_response_state(soft) &&
       validate_conditions(soft)     &&
-      document.validate(settings.idp_cert_fingerprint, soft)
+      document.validate(get_fingerprint, soft)
     end
 
     def validate_response_state(soft = true)
@@ -93,11 +93,20 @@ module Onelogin::Saml
         return soft ? false : validation_error("No settings on response")
       end
 
-      if settings.idp_cert_fingerprint.nil?
-        return soft ? false : validation_error("No fingerprint on settings")
+      if settings.idp_cert_fingerprint.nil? && settings.idp_cert.nil?
+        return soft ? false : validation_error("No fingerprint or certificate on settings")
       end
 
       true
+    end
+    
+    def get_fingerprint
+      if settings.idp_cert
+        cert = OpenSSL::X509::Certificate.new(settings.idp_cert)
+        Digest::SHA1.hexdigest(cert.to_der).upcase.scan(/../).join(":")
+      else
+        settings.idp_cert_fingerprint
+      end
     end
 
     def validate_conditions(soft = true)

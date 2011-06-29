@@ -48,6 +48,15 @@ class RubySamlTest < Test::Unit::TestCase
         assert response.is_valid?
       end
 
+      should "return true when using certificate instead of fingerprint" do
+        response = Onelogin::Saml::Response.new(response_document_4)
+        response.stubs(:conditions).returns(nil)
+        settings = Onelogin::Saml::Settings.new
+        response.settings = settings
+        settings.idp_cert = signature_1
+        assert response.is_valid?
+      end
+
       should "not allow signature wrapping attack" do
         response = Onelogin::Saml::Response.new(response_document_4)
         response.stubs(:conditions).returns(nil)
