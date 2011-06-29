@@ -77,12 +77,12 @@ class RubySamlTest < Test::Unit::TestCase
         assert_equal "someone@example.com", response.name_id
       end
 
-      should_eventually "be extractable from an OpenSAML response" do
+      should "be extractable from an OpenSAML response" do
         response = Onelogin::Saml::Response.new(fixture(:open_saml))
         assert_equal "someone@example.org", response.name_id
       end
 
-      should_eventually "be extractable from a Simple SAML PHP response" do
+      should "be extractable from a Simple SAML PHP response" do
         response = Onelogin::Saml::Response.new(fixture(:simple_saml_php))
         assert_equal "someone@example.com", response.name_id
       end
