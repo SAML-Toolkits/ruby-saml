@@ -21,14 +21,14 @@ include REXML
 		root.attributes['Version'] = "2.0"
 		
 		# Conditionally defined elements based on settings
-		if defined? settings.assertion_consumer_service_url 
+		if settings.assertion_consumer_service_url != nil
 			root.attributes["AssertionConsumerServiceURL"] = settings.assertion_consumer_service_url
 		end
-		if defined? settings.issuer 
+		if settings.issuer != nil
 			issuer = root.add_element "saml:Issuer", { "xmlns:saml" => "urn:oasis:names:tc:SAML:2.0:assertion" }
 			issuer.text = settings.issuer
 		end
-		if defined? settings.name_identifier_format
+		if settings.name_identifier_format != nil
 			root.add_element "samlp:NameIDPolicy", { 
 					"xmlns:samlp" => "urn:oasis:names:tc:SAML:2.0:protocol",
 					# Might want to make AllowCreate a setting?
@@ -40,7 +40,7 @@ include REXML
 		# BUG fix here -- if an authn_context is defined, add the tags with an "exact"
 		# match required for authentication to succeed.  If this is not defined, 
 		# the IdP will choose default rules for authentication.  (Shibboleth IdP)
-		if defined? settings.authn_context
+		if settings.authn_context != nil
 			requested_context = root.add_element "samlp:RequestedAuthnContext", { 
 				"xmlns:samlp" => "urn:oasis:names:tc:SAML:2.0:protocol",
 				"Comparison" => "exact",
