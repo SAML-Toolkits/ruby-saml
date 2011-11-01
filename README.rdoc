@@ -36,7 +36,9 @@ In the above there are a few assumptions in place, one being that the response.n
       settings.idp_sso_target_url             = "https://app.onelogin.com/saml/signon/#{OneLoginAppId}"
       settings.idp_cert_fingerprint           = OneLoginAppCertFingerPrint
       settings.name_identifier_format         = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
-
+      # Optional for most SAML IdPs
+      settings.authn_context = "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport"
+      
       settings
     end
 
@@ -70,7 +72,9 @@ What's left at this point, is to wrap it all up in a controller and point the in
       settings.idp_sso_target_url             = "https://app.onelogin.com/saml/signon/#{OneLoginAppId}"
       settings.idp_cert_fingerprint           = OneLoginAppCertFingerPrint
       settings.name_identifier_format         = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
-
+      # Optional for most SAML IdPs
+      settings.authn_context = "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport"
+      
       settings
     end
   end
