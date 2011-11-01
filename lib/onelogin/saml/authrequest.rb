@@ -54,7 +54,7 @@ include REXML
 		request = ""
 		request_doc.write(request)
 		
-		Rails.logger.debug "Created AuthnRequest: #{request}"
+		Logging.debug "Created AuthnRequest: #{request}"
 		
       deflated_request  = Zlib::Deflate.deflate(request, 9)[2..-5]
       base64_request    = Base64.encode64(deflated_request)
