@@ -31,7 +31,7 @@ require "digest/sha1"
 require "onelogin/saml/validation_error"
 
 module XMLSecurity
-
+  #include Onelogin::Saml
   class SignedDocument < REXML::Document
     DSIG = "http://www.w3.org/2000/09/xmldsig#"
 
@@ -84,7 +84,7 @@ module XMLSecurity
         canon_hashed_element          = canoner.canonicalize(hashed_element)
         hash                          = Base64.encode64(Digest::SHA1.digest(canon_hashed_element)).chomp
         digest_value                  = REXML::XPath.first(ref, "//ds:DigestValue", {"ds"=>"http://www.w3.org/2000/09/xmldsig#"}).text
-
+			Onelogin::Saml::Logging.debug "hash is #{hash}"
         if hash != digest_value
           return soft ? false : (raise Onelogin::Saml::ValidationError.new("Digest mismatch"))
         end

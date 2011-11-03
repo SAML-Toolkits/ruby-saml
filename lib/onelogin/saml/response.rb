@@ -15,6 +15,7 @@ module Onelogin::Saml
       self.options  = options
       self.response = response
       self.document = XMLSecurity::SignedDocument.new(Base64.decode64(response))
+		Logging.debug "Decoded response:\n#{ document }"
     end
 
     def is_valid?

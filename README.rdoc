@@ -98,7 +98,7 @@ The metdata will be polled by the IdP every few minutes, so updating your settin
 to the IdP settings.
 
   class SamlController < ApplicationController
-	  # ... the rest of your controller definitions ...
+    # ... the rest of your controller definitions ...
     def metadata
       settings = Account.get_saml_settings
       meta = Onelogin::Saml::Metadata.new

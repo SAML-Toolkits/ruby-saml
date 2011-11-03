@@ -6,7 +6,9 @@ class RequestTest < Test::Unit::TestCase
     should "create the deflated SAMLRequest URL parameter" do
       settings = Onelogin::Saml::Settings.new
       settings.idp_sso_target_url = "http://stuff.com"
-      auth_url = Onelogin::Saml::Authrequest.new.create(settings)
+      action, auth_url = Onelogin::Saml::Authrequest.new(settings).create
+		assert_match "GET", action
+		
       assert auth_url =~ /^http:\/\/stuff\.com\?SAMLRequest=/
       payload  = CGI.unescape(auth_url.split("=").last)
       decoded  = Base64.decode64(payload)
@@ -23,10 +25,10 @@ class RequestTest < Test::Unit::TestCase
       settings = Onelogin::Saml::Settings.new
       settings.idp_sso_target_url = "http://stuff.com"
 
-      auth_url = Onelogin::Saml::Authrequest.new.create(settings, { :hello => "there" })
+      action, auth_url = Onelogin::Saml::Authrequest.new(settings).create({ :hello => "there" })
       assert auth_url =~ /&hello=there$/
 
-      auth_url = Onelogin::Saml::Authrequest.new.create(settings, { :hello => nil })
+      action, auth_url = Onelogin::Saml::Authrequest.new(settings).create({ :hello => nil })
       assert auth_url =~ /&hello=$/
     end
   end

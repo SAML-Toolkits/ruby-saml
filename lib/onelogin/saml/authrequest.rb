@@ -83,6 +83,12 @@ include REXML
 	 # that we can support.  Currently this is HTTP-Redirect and HTTP-POST
 	 # but more could be added in the future
 	def binding_select
+		# first check if we're still using the old hard coded method for 
+		# backwards compatability
+		if @settings.idp_metadata == nil && @settings.idp_sso_target_url != nil
+			@URL = @settings.idp_sso_target_url
+			return "GET", content_get
+		end
 		# grab the metadata
 		metadata = Metadata::new
 		meta_doc = metadata.get_idp_metadata(@settings)
@@ -92,9 +98,6 @@ include REXML
 			"/EntityDescriptor/IDPSSODescriptor/SingleSignOnService[@Binding='#{HTTP_POST}']")
 		if sso_element 
 			@URL = sso_element.attributes["Location"]
-			# POST requests seem to bomb out when they're deflated
-			# and they probably don't need to be compressed anyway
-			@request_params["SAMLRequest"] = Base64.encode64(@request).gsub(/\n/, "")
 			Logging.debug "binding_select: POST to #{@URL}"
 			return "POST", content_post
 		end
@@ -104,10 +107,6 @@ include REXML
 			"/EntityDescriptor/IDPSSODescriptor/SingleSignOnService[@Binding='#{HTTP_GET}']")
 		if sso_element 
 			@URL = sso_element.attributes["Location"]
-			# compress GET requests to try and stay under that 8KB request limit
-			deflated_request  = Zlib::Deflate.deflate(@request, 9)[2..-5]
-			# strict_encode64() isn't available?  sub out the newlines
-			@request_params["SAMLRequest"] = Base64.encode64(deflated_request).gsub(/\n/, "")
 			Logging.debug "binding_select: GET from #{@URL}"
 			return "GET", content_get
 		end
@@ -116,6 +115,11 @@ include REXML
 	
 	# construct the the parameter list on the URL and return
 	def content_get
+		# compress GET requests to try and stay under that 8KB request limit
+		deflated_request  = Zlib::Deflate.deflate(@request, 9)[2..-5]
+		# strict_encode64() isn't available?  sub out the newlines
+		@request_params["SAMLRequest"] = Base64.encode64(deflated_request).gsub(/\n/, "")
+		
 		Logging.debug "SAMLRequest=#{@request_params["SAMLRequest"]}"
 		uri = Addressable::URI.parse(@URL)
 		uri.query_values = @request_params
@@ -126,6 +130,10 @@ include REXML
 	end
 	# construct an HTML form (POST) and return the content
 	def content_post
+		# POST requests seem to bomb out when they're deflated
+		# and they probably don't need to be compressed anyway
+		@request_params["SAMLRequest"] = Base64.encode64(@request).gsub(/\n/, "")
+		
 		#Logging.debug "SAMLRequest=#{@request_params["SAMLRequest"]}"
 		# kind of a cheesy method of building an HTML, form since we can't rely on Rails too much,
 		# and REXML doesn't work well with quote characters
