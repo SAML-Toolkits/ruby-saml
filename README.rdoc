@@ -8,11 +8,12 @@ SAML authorization is a two step process and you are expected to implement suppo
 
 This is the first request you will get from the identity provider. It will hit your application at a specific URL (that you've announced as being your SAML initialization point). The response to this initialization, is a redirect back to the identity provider, which can look something like this (ignore the saml_settings method call for now):
 
+
     def initialize
       request = Onelogin::Saml::Authrequest.new(settings)
       
-		# Create the request, returning an action type and associated content
-		action, content = request.create
+      # Create the request, returning an action type and associated content
+      action, content = request.create
       case action
       when "GET"
          # for GET requests, do a redirect on the content
@@ -65,7 +66,6 @@ In the above there are a few assumptions in place, one being that the response.n
 
 Either get the file itself, or create one by pasting in the contents of the X509Certificate tag out of the metadata or a SAML response.  If you paste in the example BEGIN CERTIFICATE and END CERTIFICATE lines <b>exactly</b> as you see them in the example below:
 
-<pre>
  $ cat cert.pem
  -----BEGIN CERTIFICATE-----
  MIIBrTCCAaGgAwIBAgIBATADBgEAMGcxCzAJBgNVBAYTAlVTMRMwEQYDVQQIDApD
@@ -79,14 +79,12 @@ Either get the file itself, or create one by pasting in the contents of the X509
  h5+bvkeiM0nLbhhKPRLKCG6f3E5GOM5jVI2sJZA25fZzXEV7AgMBAAEwAwYBAAMB
  AA==
  -----END CERTIFICATE-----
-</pre>
+
 
 - Use this openssl command line to get the SHA1 fingerprint from the public certificate file:
 
-<pre>
  $ openssl x509 -fingerprint < cert.pem
  SHA1 Fingerprint=EC:CA:8E:0E:DB:D3:BC:06:9B:1C:1F:3F:42:FE:47:61:0B:DE:91:43
-</pre>
 
 Then assign <b>settings.idp_cert_fingerprint</b> to this value.
 
