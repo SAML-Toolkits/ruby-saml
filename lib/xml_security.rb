@@ -31,8 +31,9 @@ require "digest/sha1"
 require "onelogin/saml/validation_error"
 
 module XMLSecurity
-
+  
   class SignedDocument < REXML::Document
+	  include Onelogin::Saml
     DSIG = "http://www.w3.org/2000/09/xmldsig#"
 
     attr_accessor :signed_element_id
@@ -42,19 +43,40 @@ module XMLSecurity
       extract_signed_element_id
     end
 
-    def validate(idp_cert_fingerprint, soft = true)
-      # get cert from response
-      base64_cert = self.elements["//ds:X509Certificate"].text
-      cert_text   = Base64.decode64(base64_cert)
-      cert        = OpenSSL::X509::Certificate.new(cert_text)
+    def validate(settings, soft = true)
+		@settings = settings
+		base64_cert = self.elements["//ds:X509Certificate"].text.gsub(/\n/, "")
+		# If we're using idp metadata, grab necessary info from it 
+		if @settings.idp_metadata != nil
+			metadata = Onelogin::Saml::Metadata.new
+			meta_doc = metadata.get_idp_metadata(@settings)
+			# grab the X509 that we trust
+			# [@use='signing']
+			x509 = REXML::XPath.first(meta_doc, 
+							"/EntityDescriptor/IDPSSODescriptor" +
+						"/KeyDescriptor[@use='signing']" +
+						"/ds:KeyInfo/ds:X509Data/ds:X509Certificate"
+					).text.gsub(/\n/, "")
+			#Onelogin::Saml::Logging.debug "idp x509 key: #{x509}"
+			#Onelogin::Saml::Logging.debug "response x509 key: #{base64_cert}"
+			# compare the two certs
+			if x509 != base64_cert 
+				return soft ? false : (raise Onelogin::Saml::ValidationError.new("Response certificate does not match the IdP's certificate in metadata"))
+			end
+		# If we're using the old fingerprint method 
+		elsif @settings.idp_cert_fingerprint != nil
+			# get cert from response
+			cert_text   = Base64.decode64(base64_cert)
+			cert        = OpenSSL::X509::Certificate.new(cert_text)
 
-      # check cert matches registered idp cert
-      fingerprint = Digest::SHA1.hexdigest(cert.to_der)
+			# check cert matches registered idp cert
+			fingerprint = Digest::SHA1.hexdigest(cert.to_der)
 
-      if fingerprint != idp_cert_fingerprint.gsub(/[^a-zA-Z0-9]/,"").downcase
-        return soft ? false : (raise Onelogin::Saml::ValidationError.new("Fingerprint mismatch"))
-      end
-
+			if fingerprint != @settings.idp_cert_fingerprint.gsub(/[^a-zA-Z0-9]/,"").downcase
+			return soft ? false : (raise Onelogin::Saml::ValidationError.new("Fingerprint mismatch"))
+			end
+		end
+		
       validate_doc(base64_cert, soft)
     end
 
@@ -84,7 +106,6 @@ module XMLSecurity
         canon_hashed_element          = canoner.canonicalize(hashed_element)
         hash                          = Base64.encode64(Digest::SHA1.digest(canon_hashed_element)).chomp
         digest_value                  = REXML::XPath.first(ref, "//ds:DigestValue", {"ds"=>"http://www.w3.org/2000/09/xmldsig#"}).text
-
         if hash != digest_value
           return soft ? false : (raise Onelogin::Saml::ValidationError.new("Digest mismatch"))
         end

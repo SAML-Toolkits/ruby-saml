@@ -7,6 +7,7 @@ require 'ruby-debug'
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 require 'ruby-saml'
+ENV['logging_level'] = "0"
 
 class Test::Unit::TestCase
   def fixture(document, base64 = true)
@@ -53,4 +54,7 @@ class Test::Unit::TestCase
     @signature1 ||= File.read(File.join(File.dirname(__FILE__), 'certificates', 'certificate1'))
   end
 
+  def metadata_response1
+    @metadata_response1 ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'metadata_response1.xml')).chomp
+  end
 end

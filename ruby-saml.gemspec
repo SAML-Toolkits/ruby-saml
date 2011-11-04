@@ -69,12 +69,14 @@ Gem::Specification.new do |s|
       s.add_development_dependency(%q<shoulda>, [">= 0"])
       s.add_development_dependency(%q<ruby-debug>, [">= 0"])
       s.add_development_dependency(%q<mocha>, [">= 0"])
+    s.add_dependency(%q<addressable>, [">= 0"])
     else
       s.add_dependency(%q<canonix>, ["~> 0.1"])
       s.add_dependency(%q<uuid>, ["~> 2.3"])
       s.add_dependency(%q<shoulda>, [">= 0"])
       s.add_dependency(%q<ruby-debug>, [">= 0"])
       s.add_dependency(%q<mocha>, [">= 0"])
+    s.add_dependency(%q<addressable>, [">= 0"])
     end
   else
     s.add_dependency(%q<canonix>, ["~> 0.1"])
@@ -82,6 +84,7 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<shoulda>, [">= 0"])
     s.add_dependency(%q<ruby-debug>, [">= 0"])
     s.add_dependency(%q<mocha>, [">= 0"])
+    s.add_dependency(%q<addressable>, [">= 0"])
   end
 end
 

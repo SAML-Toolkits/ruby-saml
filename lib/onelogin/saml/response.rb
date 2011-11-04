@@ -15,6 +15,7 @@ module Onelogin::Saml
       self.options  = options
       self.response = response
       self.document = XMLSecurity::SignedDocument.new(Base64.decode64(response))
+		Logging.debug "Decoded response:\n#{ document }"
     end
 
     def is_valid?
@@ -79,9 +80,13 @@ module Onelogin::Saml
     end
 
     def validate(soft = true)
-      validate_response_state(soft) &&
-      validate_conditions(soft)     &&
-      document.validate(get_fingerprint, soft)
+      return false if validate_response_state(soft) == false
+      return false if validate_conditions(soft) == false
+		# Just in case a user needs to toss out the signature validation,
+		# I'm adding in an option for it.  (Sometimes canonicalization is a bitch!)
+		return true if options[:skip_validation]
+		
+      return document.validate(settings, soft)
     end
 
     def validate_response_state(soft = true)
