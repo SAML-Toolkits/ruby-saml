@@ -10,8 +10,8 @@ class Metadata
       return nil
     end
     
-    def write(id, file)
-      document = Document.new(id, file, Time.now)
+    def write(id, file, expiration)
+      document = Document.new(id, file, Time.now + expiration)
       Rails.cache.write(id, document, :expires_in => document.expires_in)
     end
   end

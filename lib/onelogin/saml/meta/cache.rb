@@ -8,14 +8,16 @@ class Metadata
     
     def read(id)
       document = @hash[id]
-      unless document.nil?() || document.time > Time.new
+		#Logging.debug("READ id: #{id} document: #{document}")
+      unless document.nil?() || document.expires_in < Time.now
         return document.file
       end
       return nil
     end
     
-    def write(id, file)
-      document = Document.new(id, file, Time.now)
+    def write(id, file, expiration)
+		#Logging.debug("expiration: #{expiration}  id: #{id}  file: #{file} ")
+      document = Document.new(id, file, Time.now + expiration)
       @hash[id] = document
       return true
     end

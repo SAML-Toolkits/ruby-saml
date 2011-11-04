@@ -15,7 +15,13 @@ module Onelogin::Saml
 		attr_accessor :cache
 		
 		def initialize
-			@cache = Cache.new
+			# If we're running in Rails, use the RailsCache
+			if defined? Rails
+				@cache = RailsCache.new
+			# otherwise use strictly in memory caching
+			else
+				@cache = Cache.new
+			end
 		end
 		def generate(settings)
 			meta_doc = REXML::Document.new
@@ -35,7 +41,7 @@ module Onelogin::Saml
 			if settings.assertion_consumer_service_url != nil
 				sp_sso.add_element "md:AssertionConsumerService", {
 						# Add this as a setting to create different bindings?
-						"Binding" => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
+						"Binding" => settings.assertion_consumer_service_binding,
 						"Location" => settings.assertion_consumer_service_url
 				}
 			end
@@ -56,16 +62,26 @@ module Onelogin::Saml
 				return false
 			end
 			# Look up the metdata in cache first
-			#id = Digest::MD5.hexdigest(settings.idp_metdata)
-			#lookup = @cache.read(id)
-			#if lookup != nil
-			#	return REXML::Document.new( lookup )
-			#end
+			id = Digest::MD5.hexdigest(settings.idp_metadata)
+			lookup = @cache.read(id)
+			if lookup != nil
+				Logging.debug "IdP metadata cached lookup for #{settings.idp_metadata}"
+				return REXML::Document.new( lookup )
+			end
+			
+			Logging.debug "IdP metadata cache miss on #{settings.idp_metadata}"
 			# cache miss
-			uri = URI.parse(settings.idp_metadata)
-			response = Net::HTTP.get_response(uri)
-			#@cache.write(id, response.body)
-			return REXML::Document.new( response.body )
+			if File.exists?(settings.idp_metadata)
+				fp = File.open( settings.idp_metadata, "r")
+				meta_text = fp.read
+			else
+				uri = URI.parse(settings.idp_metadata)
+				response = Net::HTTP.get_response(uri)
+				meta_text = response.body
+			end
+			# Add it to the cache
+			@cache.write(id, meta_text, settings.idp_metadata_ttl )
+			return REXML::Document.new( meta_text )
 		end
 	end
 end
