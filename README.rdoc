@@ -66,7 +66,6 @@ In the above there are a few assumptions in place, one being that the response.n
 Either get the file itself, or create one by pasting in the contents of the X509Certificate tag out of the metadata or a SAML response.  If you paste in the example BEGIN CERTIFICATE and END CERTIFICATE lines <b>exactly</b> as you see them in the example below:
 
 <pre>
-
 $ cat cert.pem
 -----BEGIN CERTIFICATE-----
 MIIBrTCCAaGgAwIBAgIBATADBgEAMGcxCzAJBgNVBAYTAlVTMRMwEQYDVQQIDApD
@@ -80,16 +79,13 @@ GwlSiB2DDcImFvldaz/xtyua5D5jFJrplcrM1jIIcHNYwahkRpQQZFYU8wknYZ85
 h5+bvkeiM0nLbhhKPRLKCG6f3E5GOM5jVI2sJZA25fZzXEV7AgMBAAEwAwYBAAMB
 AA==
 -----END CERTIFICATE-----
-
 </pre>
 
 - Use this openssl command line to get the SHA1 fingerprint from the public certificate file:
 
 <pre>
-
 $ openssl x509 -fingerprint < cert.pem
 SHA1 Fingerprint=EC:CA:8E:0E:DB:D3:BC:06:9B:1C:1F:3F:42:FE:47:61:0B:DE:91:43
-
 </pre>
 
 Then assign <b>settings.idp_cert_fingerprint</b> to this value.
