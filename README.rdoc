@@ -67,18 +67,18 @@ Either get the file itself, or create one by pasting in the contents of the X509
 
 <pre>
 $ cat cert.pem
------BEGIN CERTIFICATE-----
-MIIBrTCCAaGgAwIBAgIBATADBgEAMGcxCzAJBgNVBAYTAlVTMRMwEQYDVQQIDApD
-YWxpZm9ybmlhMRUwEwYDVQQHDAxTYW50YSBNb25pY2ExETAPBgNVBAoMCE9uZUxv
-Z2luMRkwFwYDVQQDDBBhcHAub25lbG9naW4uY29tMB4XDTExMTAyNzE5MDAyNloX
-DTE2MTAyNjE5MDAyNlowZzELMAkGA1UEBhMCVVMxEzARBgNVBAgMCkNhbGlmb3Ju
-aWExFTATBgNVBAcMDFNhbnRhIE1vbmljYTERMA8GA1UECgwIT25lTG9naW4xGTAX
-BgNVBAMMEGFwcC5vbmVsb2dpbi5jb20wgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJ
-AoGBAMivve9Latml0MJYccayxnXMc5kmSCp8qJZkVnKfei+Dsj0DomzX0iwmuNA4
-GwlSiB2DDcImFvldaz/xtyua5D5jFJrplcrM1jIIcHNYwahkRpQQZFYU8wknYZ85
-h5+bvkeiM0nLbhhKPRLKCG6f3E5GOM5jVI2sJZA25fZzXEV7AgMBAAEwAwYBAAMB
-AA==
------END CERTIFICATE-----
+ -----BEGIN CERTIFICATE-----
+ MIIBrTCCAaGgAwIBAgIBATADBgEAMGcxCzAJBgNVBAYTAlVTMRMwEQYDVQQIDApD
+ YWxpZm9ybmlhMRUwEwYDVQQHDAxTYW50YSBNb25pY2ExETAPBgNVBAoMCE9uZUxv
+ Z2luMRkwFwYDVQQDDBBhcHAub25lbG9naW4uY29tMB4XDTExMTAyNzE5MDAyNloX
+ DTE2MTAyNjE5MDAyNlowZzELMAkGA1UEBhMCVVMxEzARBgNVBAgMCkNhbGlmb3Ju
+ aWExFTATBgNVBAcMDFNhbnRhIE1vbmljYTERMA8GA1UECgwIT25lTG9naW4xGTAX
+ BgNVBAMMEGFwcC5vbmVsb2dpbi5jb20wgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJ
+ AoGBAMivve9Latml0MJYccayxnXMc5kmSCp8qJZkVnKfei+Dsj0DomzX0iwmuNA4
+ GwlSiB2DDcImFvldaz/xtyua5D5jFJrplcrM1jIIcHNYwahkRpQQZFYU8wknYZ85
+ h5+bvkeiM0nLbhhKPRLKCG6f3E5GOM5jVI2sJZA25fZzXEV7AgMBAAEwAwYBAAMB
+ AA==
+ -----END CERTIFICATE-----
 </pre>
 
 - Use this openssl command line to get the SHA1 fingerprint from the public certificate file:
@@ -162,7 +162,7 @@ What's left at this point, is to wrap it all up in a controller and point the in
        when "POST"
           # for POST requests (form) render the content as HTML
           render :inline => content
-		 end
+       end
     end
     
     def consume
