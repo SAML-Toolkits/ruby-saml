@@ -51,5 +51,31 @@ class RequestTest < Test::Unit::TestCase
 		 action, content = request.create
 		 assert action == "POST"
 	 end
+
+    context "when the target url doesn't contain a query string" do
+      should "create the SAMLRequest parameter correctly" do
+        settings = Onelogin::Saml::Settings.new
+        settings.idp_sso_target_url = "http://stuff.com"
+  
+        action, auth_url = Onelogin::Saml::Authrequest.new(settings).create
+        assert auth_url =~ /^http:\/\/stuff.com\?SAMLRequest/
+      end
+    end
+
+    context "when the target url contains a query string" do
+      should "create the SAMLRequest parameter correctly" do
+        settings = Onelogin::Saml::Settings.new
+        settings.idp_sso_target_url = "http://stuff.com?field=value"
+  
+        action, auth_url = Onelogin::Saml::Authrequest.new(settings).create
+        #assert auth_url =~ /^http:\/\/stuff.com\?field=value&SAMLRequest/
+		  # Since the construction of this URL is handled by Addressable:URI, I think
+		  # we can safely assume the syntax will be correct.  But it would be good
+		  # to make sure the parameters made it through, so assert each one 
+		  # individually
+		  assert auth_url =~ /SAMLRequest=/
+		  assert auth_url =~ /field=value/
+      end
+    end
   end
 end
