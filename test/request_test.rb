@@ -29,5 +29,25 @@ class RequestTest < Test::Unit::TestCase
       auth_url = Onelogin::Saml::Authrequest.new.create(settings, { :hello => nil })
       assert auth_url =~ /&hello=$/
     end
+
+    context "when the target url doesn't contain a query string" do
+      should "create the SAMLRequest parameter correctly" do
+        settings = Onelogin::Saml::Settings.new
+        settings.idp_sso_target_url = "http://stuff.com"
+  
+        auth_url = Onelogin::Saml::Authrequest.new.create(settings)
+        assert auth_url =~ /^http:\/\/stuff.com\?SAMLRequest/
+      end
+    end
+
+    context "when the target url contains a query string" do
+      should "create the SAMLRequest parameter correctly" do
+        settings = Onelogin::Saml::Settings.new
+        settings.idp_sso_target_url = "http://stuff.com?field=value"
+  
+        auth_url = Onelogin::Saml::Authrequest.new.create(settings)
+        assert auth_url =~ /^http:\/\/stuff.com\?field=value&SAMLRequest/
+      end
+    end
   end
 end
