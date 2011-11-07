@@ -59,7 +59,8 @@ include REXML
       deflated_request  = Zlib::Deflate.deflate(request, 9)[2..-5]
       base64_request    = Base64.encode64(deflated_request)
       encoded_request   = CGI.escape(base64_request)
-      request_params    = "?SAMLRequest=" + encoded_request
+      params_prefix     = (settings.idp_sso_target_url =~ /\?/) ? '&' : '?'
+      request_params    = "#{params_prefix}SAMLRequest=#{encoded_request}"
 
       params.each_pair do |key, value|
         request_params << "&#{key}=#{CGI.escape(value.to_s)}"
