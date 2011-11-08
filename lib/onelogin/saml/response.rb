@@ -80,13 +80,21 @@ module Onelogin::Saml
     end
 
     def validate(soft = true)
+		# prime the IdP metadata before the document validation. 
+		# The idp_cert needs to be populated before the validate_response_state method
+		Onelogin::Saml::Metadata.new.get_idp_metadata(settings)
+		
       return false if validate_response_state(soft) == false
       return false if validate_conditions(soft) == false
+		
 		# Just in case a user needs to toss out the signature validation,
 		# I'm adding in an option for it.  (Sometimes canonicalization is a bitch!)
 		return true if options[:skip_validation]
 		
-      return document.validate(settings, soft)
+		# document.validte populates the idp_cert
+      return false if document.validate(settings, soft) == false
+		
+		return true
     end
 
     def validate_response_state(soft = true)
@@ -97,11 +105,11 @@ module Onelogin::Saml
       if settings.nil?
         return soft ? false : validation_error("No settings on response")
       end
-
-      if settings.idp_cert_fingerprint.nil? && settings.idp_cert.nil?
+		
+		if settings.idp_cert_fingerprint.nil? && settings.idp_cert.nil?
         return soft ? false : validation_error("No fingerprint or certificate on settings")
       end
-
+		
       true
     end
     

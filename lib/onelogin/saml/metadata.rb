@@ -58,15 +58,18 @@ module Onelogin::Saml
 		# Retrieve the remote IdP metadata from the URL or a cached copy 
 		# returns a REXML document of the metadata
 		def get_idp_metadata(settings)
-			if ! settings.is_valid? 
-				return false
-			end
+			return false if settings.nil?
+		
+			return false if settings.idp_metadata.nil?
+		
 			# Look up the metdata in cache first
 			id = Digest::MD5.hexdigest(settings.idp_metadata)
 			lookup = @cache.read(id)
 			if lookup != nil
 				Logging.debug "IdP metadata cached lookup for #{settings.idp_metadata}"
-				return REXML::Document.new( lookup )
+				doc = REXML::Document.new( lookup )
+				extract_certificate(settings, doc )
+				return doc
 			end
 			
 			Logging.debug "IdP metadata cache miss on #{settings.idp_metadata}"
@@ -81,7 +84,18 @@ module Onelogin::Saml
 			end
 			# Add it to the cache
 			@cache.write(id, meta_text, settings.idp_metadata_ttl )
-			return REXML::Document.new( meta_text )
+			doc = REXML::Document.new( meta_text )
+			extract_certificate(settings, doc)
+			return doc
+		end
+		
+		def extract_certificate(settings, meta_doc)
+			# pull out the x509 tag
+			settings.idp_cert = REXML::XPath.first(meta_doc, 
+							"/EntityDescriptor/IDPSSODescriptor" +
+						"/KeyDescriptor[@use='signing']" +
+						"/ds:KeyInfo/ds:X509Data/ds:X509Certificate"
+					).text.gsub(/\n/, "")
 		end
 	end
 end
