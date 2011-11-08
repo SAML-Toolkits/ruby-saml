@@ -1,0 +1,9 @@
+<?xml version='1.0'?>
+<md:EntityDescriptor xmlns:md='urn:oasis:names:tc:SAML:2.0:metadata' entityID='http://sp.example.com'>
+ <md:SPSSODescriptor protocolSupportEnumeration='urn:oasis:names:tc:SAML:2.0:protocol'>
+  <md:NameIDFormat>
+   urn:oasis:names:tc:SAML:2.0:nameid-format:persistent
+  </md:NameIDFormat>
+  <md:AssertionConsumerService Location='http://sp.example.com/saml/consume' Binding='urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect'/>
+ </md:SPSSODescriptor>
+</md:EntityDescriptor>

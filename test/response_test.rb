@@ -37,10 +37,11 @@ class RubySamlTest < Test::Unit::TestCase
       end
 
       should "return true when the response is initialized with valid data" do
-        response = Onelogin::Saml::Response.new(response_document_4)
+        response = Onelogin::Saml::Response.new( response_document_4 )
         response.stubs(:conditions).returns(nil)
         assert !response.is_valid?
         settings = Onelogin::Saml::Settings.new
+		  settings.idp_sso_target_url = "http://example.com"		  		  
         assert !response.is_valid?
         response.settings = settings
         assert !response.is_valid?
@@ -61,8 +62,12 @@ class RubySamlTest < Test::Unit::TestCase
         response = Onelogin::Saml::Response.new(response_document_4)
         response.stubs(:conditions).returns(nil)
         settings = Onelogin::Saml::Settings.new
+		 settings.idp_sso_target_url = "http://idp.example.com"
+		 settings.assertion_consumer_service_url = "http://sp.example.com"
+		 settings.issuer = "http://sp.example.com"
         settings.idp_cert_fingerprint = signature_fingerprint_1
         response.settings = settings
+
         assert response.is_valid?
         assert response.name_id == "test@onelogin.com"
       end

@@ -4,5 +4,6 @@ require 'onelogin/saml/response'
 require 'onelogin/saml/settings'
 require 'onelogin/saml/validation_error'
 require 'onelogin/saml/metadata'
-
-
+require 'onelogin/saml/meta/cache'
+require 'onelogin/saml/meta/document'
+require 'onelogin/saml/meta/rails_cache'
