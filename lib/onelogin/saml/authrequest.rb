@@ -122,7 +122,12 @@ include REXML
 		
 		Logging.debug "SAMLRequest=#{@request_params["SAMLRequest"]}"
 		uri = Addressable::URI.parse(@URL)
-		uri.query_values = @request_params
+		if uri.query_values == nil
+			uri.query_values = @request_params
+		else
+			# solution to stevenwilkin's parameter merge
+			uri.query_values = @request_params.merge(uri.query_values)
+		end
 		url = uri.to_s
 		#url = @URL + "?SAMLRequest=" + @request_params["SAMLRequest"]
 		Logging.debug "Sending to URL #{url}"

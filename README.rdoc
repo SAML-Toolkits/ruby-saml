@@ -199,7 +199,6 @@ contains all the saml:AttributeStatement with its 'Name' as a indifferent key an
 
   response.attributes[:username]
 
-
 = Full Example
 
 Please check https://github.com/onelogin/ruby-saml-example for a very basic sample Rails application using this gem.
