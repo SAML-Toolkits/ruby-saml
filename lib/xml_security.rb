@@ -49,8 +49,8 @@ module XMLSecurity
 		
 		# If we're using idp metadata, grab necessary info from it 
 		if @settings.idp_metadata != nil
-			metadata = Onelogin::Saml::Metadata.new
-			meta_doc = metadata.get_idp_metadata(@settings)
+			metadata = Onelogin::Saml::Metadata.new(@settings)
+			meta_doc = metadata.get_idp_metadata
 
 			# compare the certificate in response with the IdP's copy
 			if @settings.idp_cert != base64_cert 

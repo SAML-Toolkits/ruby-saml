@@ -9,7 +9,7 @@ module Onelogin
       end
 
       def encode(encoded)
-        Base64.encode64(encoded)
+        Base64.encode64(encoded).gsub(/\n/, "")
       end
 
       def escape(unescaped)

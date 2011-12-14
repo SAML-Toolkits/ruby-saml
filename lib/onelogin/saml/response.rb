@@ -13,6 +13,7 @@ module Onelogin::Saml
     def initialize(response, options = {})
       raise ArgumentError.new("Response cannot be nil") if response.nil?
       self.options  = options
+		
       self.response = response
       self.document = XMLSecurity::SignedDocument.new(Base64.decode64(response))
 		Logging.debug "Decoded response:\n#{ document }"
@@ -80,9 +81,12 @@ module Onelogin::Saml
     end
 
     def validate(soft = true)
+		
 		# prime the IdP metadata before the document validation. 
 		# The idp_cert needs to be populated before the validate_response_state method
-		Onelogin::Saml::Metadata.new.get_idp_metadata(settings)
+		if settings 
+			Onelogin::Saml::Metadata.new(settings).get_idp_metadata
+		end
 		
       return false if validate_response_state(soft) == false
       return false if validate_conditions(soft) == false

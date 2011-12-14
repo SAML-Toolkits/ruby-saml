@@ -1,5 +1,6 @@
 require 'onelogin/saml/logging'
 require 'onelogin/saml/coding'
+require 'onelogin/saml/request'
 require 'onelogin/saml/authrequest'
 require 'onelogin/saml/logout_request'
 require 'onelogin/saml/logout_response'
