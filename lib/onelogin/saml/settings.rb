@@ -4,13 +4,17 @@ module Onelogin::Saml
     attr_accessor :idp_sso_target_url, :idp_cert_fingerprint, :idp_cert, :name_identifier_format
 	 attr_accessor :authn_context, :idp_metadata, :idp_metadata_ttl
 	 attr_accessor :assertion_consumer_service_binding, :idp_slo_target_url
+	 attr_accessor :single_logout_service_url, :single_logout_service_binding
 	 alias :entity_id :issuer
 	 alias :acs_url :assertion_consumer_service_url
 	 alias :acs_binding :assertion_consumer_service_binding
+	 alias :slo_url :single_logout_service_url
+	 alias :slo_binding :single_logout_service_binding
 	 
 		def initialize 
 			# Set some sane default values on a few options
 			self.assertion_consumer_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+			self.single_logout_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
 			# SAML spec snobs seem to think that transient is the default Name ID that 
 			# *everyone* should support.  A good enough default that should cover most installations
 			self.name_identifier_format = "urn:oasis:names:tc:SAML:2.0:nameid-format:transient"

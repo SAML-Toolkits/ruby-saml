@@ -54,6 +54,13 @@ module Onelogin::Saml
 						"Location" => @settings.assertion_consumer_service_url
 				}
 			end
+			if @settings.single_logout_service_url != nil
+				sp_sso.add_element "md:SingleLogoutService", {
+						# Add this as a setting to create different bindings?
+						"Binding" => @settings.single_logout_service_binding,
+						"Location" => @settings.single_logout_service_url
+				}
+			end
 			meta_doc << REXML::XMLDecl.new
 			ret = ""
 			# pretty print the XML so IdP administrators can easily see what the SP supports
