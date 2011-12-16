@@ -11,11 +11,12 @@ module Onelogin
 		PROTOCOL  = "urn:oasis:names:tc:SAML:2.0:protocol"
 		DSIG      = "http://www.w3.org/2000/09/xmldsig#"
 
-      def initialize( options = { :response => nil, :settings => nil })
+      def initialize( options = { } )
+			opt = { :response => nil, :settings => nil }.merge(options)
 			# We've recieved a LogoutResponse from the IdP 
-			if options[:response]
+			if opt[:response]
 				begin
-					@response = REXML::Document.new(decode( options[:response] ))
+					@response = XMLSecurity::SignedDocument.new(decode( opt[:response] ))
 					# Check to see if we have a root tag using the "protocol" namespace.
 					# If not, it means this is deflated text and we need to raise to 
 					# the rescue below
@@ -24,12 +25,12 @@ module Onelogin
 						raise if @response.root.namespace != PROTOCOL
 					document
 				rescue
-					@response = REXML::Document.new( inflate(decode( options[:response] )) )
+					@response = XMLSecurity::SignedDocument.new( inflate(decode( opt[:response] ) ) )
 				end
 			end
 			# We plan to create() a new LogoutResponse
-			if options[:settings]
-				@settings = options[:settings]
+			if opt[:settings]
+				@settings = opt[:settings]
 			end
       end
 
@@ -62,14 +63,22 @@ module Onelogin
 				issuer.text = @settings.issuer
 			end
 			meta = Metadata.new( @settings )
-			saml_text = ""
-			@response.write(saml_text, 1)
-			Logging.debug "Created LogoutResponse:\n#{saml_text}"
-			return meta.create_slo_response( saml_text, opt[:extra_parameters] )
+			Logging.debug "Created LogoutResponse:\n#{@response}"
+			return meta.create_slo_response( to_s, opt[:extra_parameters] )
 			
 			#root.attributes['Destination'] = action
 			
 		end
+		# function to return the created request as an XML document
+		def to_xml
+			text = ""
+			@response.write(text, 1)
+			return text
+		end
+		def to_s
+			@response.to_s
+		end
+		
       def issuer
 			element = REXML::XPath.first(@response, "/p:LogoutResponse/a:Issuer", { 
 						"p" => PROTOCOL, "a" => ASSERTION} )
@@ -91,6 +100,20 @@ module Onelogin
         element.attributes["Value"] == "urn:oasis:names:tc:SAML:2.0:status:Success"
         
       end
+		def is_valid?
+			validate(soft = true)
+		end
+		
+		def validate!
+			validate( soft = false )
+		end
+		def validate( soft = true )
+			return false if @response.nil?
+			return false if @response.validate(@settings, soft) == false
+			
+			return true
+			
+		end
 
     protected
       def document

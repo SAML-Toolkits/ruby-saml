@@ -57,4 +57,11 @@ class Test::Unit::TestCase
   def metadata_response1
     @metadata_response1 ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'metadata_response1.xml')).chomp
   end
+  def logout_request1
+    @logout_request1 ||= File.read(File.join(File.dirname(__FILE__), 'requests', 'logout_request1.base64')).chomp
+  end
+  def logout_response1
+    @logout_response1 ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'logout_response1.base64')).chomp
+  end
+
 end

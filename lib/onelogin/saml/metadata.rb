@@ -163,6 +163,8 @@ module Onelogin::Saml
 			
 			meta_doc = get_idp_metadata
 			
+			return nil unless meta_doc
+			
 			# first try POST
 			sso_element = REXML::XPath.first(meta_doc,
 				"/EntityDescriptor/IDPSSODescriptor/#{service}[@Binding='#{HTTP_POST}']")

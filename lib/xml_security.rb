@@ -45,7 +45,16 @@ module XMLSecurity
 
     def validate(settings, soft = true)
 		@settings = settings
-		base64_cert = self.elements["//ds:X509Certificate"].text.gsub(/\n/, "")
+		x509_cert = self.elements["//ds:X509Certificate"]
+		# What to do if the document doesn't have an X509 cert?  
+		# I'm not sure if the SAML specs require a cert with signed docs,
+		# or if the absense of a cert means this document is not signed.
+		# In this case, return true because we can't perform a signature check
+		unless x509_cert 
+			return true
+		end
+		
+		base64_cert = x509_cert.text.gsub(/\n/, "")
 		
 		# If we're using idp metadata, grab necessary info from it 
 		if @settings.idp_metadata != nil
