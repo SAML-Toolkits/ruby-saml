@@ -199,13 +199,171 @@ contains all the saml:AttributeStatement with its 'Name' as a indifferent key an
 
   response.attributes[:username]
 
+== Adding Single Log-Out (SLO) Functionality
+
+Logging out can actually be more complicated than logging in.  Since each SP can create its own
+cookies, the IdP needs to keep track of which SPs have logged in.  Then to log out, the IdP has 
+to fire a request to log off each one.  (That is, if the user *wants* to log out in all places)
+
+To start the setup, define the URL and binding method in the Onelogin::Saml::Settings object.
+
+   settings.single_logout_service_url = "http://#{request.host}/saml/logout"
+   # This is optional, POST is the default
+   settings.single_logout_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+
+After adding this, the Metadata XML will reflect this change:
+
+  <md:EntityDescriptor xmlns:md='urn:oasis:names:tc:SAML:2.0:metadata' entityID='sp.example.com'>
+    <md:SPSSODescriptor protocolSupportEnumeration='urn:oasis:names:tc:SAML:2.0:protocol'>
+      ... 
+      <md:SingleLogoutService Location="http://sp.example.com/saml/logout" Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" />
+	 </md:SPSSODescriptor>
+  </md:EntityDescriptor>
+
+Then add a wrapper funciton to the SamlController to accept requests and responses to /saml/logout.  
+If you plan on implementing only SP SLO or IdP SLO you can remove those conditions.  
+(It's a good thing to support both methods though)  
+
+  class SamlController < ApplicationController
+  # ... 
+    # Trigger SP and IdP initiated Logout requests
+    def logout
+        # If we're given a logout request, handle it in the IdP initiated method
+        if params[:SAMLRequest]
+                return idp_logout_request
+        end     
+        # We've been given a response back from the IdP 
+        if params[:SAMLResponse]
+                return logout_response
+        end     
+
+        # No parameters means the browser hit this method directly.
+        # Start the SP initiated SLO
+        sp_logout_request
+    end
+  end
+
+There are two methods to accomplish SLO -- SP initiated and IdP initiated.
+
+=== SP Initiated SLO
+
+The SP (you) initiate the logout flow by sending a LogoutRequest to the IdP.  The IdP deletes
+his session and cookies, then sends a LogoutResponse to the SP.  If that response contains a
+success status, the SP can delete his session and cookies.
+
+The difficulty in SP initiated SLO is that each SP needs to set up their own log out functionality.
+  Depending on how the IdP is setup, the user is usually given a page on the IdP asking 
+  which SPs to log out from.  They then have to select each system to log out from.  
+  This can be confusing for the average web user.
+
+  # Create an SP initiated SLO
+  def sp_logout_request
+        # LogoutRequest accepts plain browser requests w/o paramters 
+        logout_request = Onelogin::Saml::LogoutRequest.new( :settings => @settings )
+   
+        # Since we created a new SAML request, save the transaction_id 
+        # in the session to compare it with the response we get back.
+        # You'll need a shared session storage in a clustered environment.
+        session[:transaction_id] = logout_request.transaction_id
+   
+        # Create a new LogoutRequest for this session Name ID
+        logger.debug "Starting SP SLO for user '#{session[:userid]}'"
+   
+        action, content = logout_request.create( :name_id => session[:userid] )
+        case action
+                when "GET"
+                        # for GET requests, do a redirect on the content
+                        redirect_to content
+                when "POST"
+                        # for POST requests (form) render the content as HTML
+                        render :inline => content
+        end
+  end
+   
+  # After sending an SP initiated LogoutRequest to the IdP, we need to accept
+  # the LogoutResponse, verify it, then actually delete our session.
+  def logout_response
+        logout_response = Onelogin::Saml::LogoutResponse.new( :response => params[:SAMLResponse] )
+
+        # If the IdP gave us a signed response, verify it
+        unless logout_response.is_valid?
+                logger.error "The SAML Response signature validation failed"
+                # For each error, add in some custom failure for your app
+        end
+        if session[:transation_id] && logout_response.in_response_to != session[:transaction_id]
+                logger.error "The SAML Response for #{logout_response.in_response_to} does not match our session transaction ID of #{session[:transaction_id]}"
+                # For each error, add in some custom failure for your app
+        end
+
+        # Optional sanity check
+        if logout_response.issuer != @settings.idp_metadata
+                logger.error "The SAML Response from IdP #{logout_response.issuer} does not match our trust relationship with #{@settings.idp_metadata}"
+                # For each error, add in some custom failure for your app
+        end
+
+        # Actually log out this session
+        if logout_response.success?
+            logger.info "Delete session for '#{session[:nameid]}'"
+            # Delete cookies, or whatever you need here
+				session[:userid] = nil
+        end
+  end
+
+
+=== IdP Initiated SLO
+
+In this method, the browser simply hits a URL on the IdP that looks something like:
+http://idp.example.com/Logout.  This URL initiates the SLO by sending a LogoutRequest to
+all known SP sessions simultaneously with AJAX calls.   
+It waits for a successful LogoutResponse from each SP, then redirects the user back 
+to some landing page after they are logged out from all relationships.
+
+This method is easier to implement.  All of the SP relationships use a single URL for a 
+logout link, and there is less setup involved.  The end users are probably happier 
+since one click does the log out.
+
+  # Method to handle IdP initiated logouts
+  def idp_logout_request
+        logout_request = Onelogin::Saml::LogoutRequest.new( :request => params[:SAMLRequest], :settings => @settings)
+        unless logout_request.is_valid?
+                logger.error "IdP initiated LogoutRequest was not valid!"
+        end
+        # Check that the name ID's match
+        if session[:nameid] != logout_request.name_id
+                logger.error "The session's Name ID '#{session[:nameid]}' does not match the LogoutRequest's Name ID '#{logout_request.name_id}'"
+        end
+   
+        logger.info "IdP initiated Logout for #{logout_request.name_id}"
+        # Actually log out this session
+			# Delete cookies, or whatever you need here
+			session[:userid] = nil
+  
+        # Generate a response to the IdP.  :transaction_id sets the InResponseTo
+        # SAML message to create a reply to the IdP in the LogoutResponse
+        action, content = logout_response = Onelogin::Saml::LogoutResponse.new(
+                :settings => @settings ).create(
+                        :transaction_id => logout_request.transaction_id
+                )
+        case action
+                when "GET"
+                        # for GET requests, do a redirect on the content
+                        redirect_to content
+                when "POST"
+                        # for POST requests (form) render the content as HTML
+                        render :inline => content
+        end
+  end
+
+
 = Full Example
 
 Please check https://github.com/onelogin/ruby-saml-example for a very basic sample Rails application using this gem.
 
 = Full Example (rails3)
 
-ruby-saml-rails3-example   -- more after I get this up and running!
+ruby-saml-rails3-example   
+
+Please checkout https://github.com/calh/ruby-saml-rails3-example for a working Rails 3 demo on using ruby-saml.
 
 == Note on Patches/Pull Requests
 

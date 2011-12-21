@@ -38,6 +38,7 @@ module Onelogin
 		#  (For IdP initiated SLO)
 		def create( options )
 			opt = { :transaction_id => nil, 
+				:in_response_to => nil,
 				:status => "urn:oasis:names:tc:SAML:2.0:status:Success", 
 				:extra_parameters => nil }.merge(options)
 			return nil if opt[:transaction_id].nil?
@@ -49,7 +50,12 @@ module Onelogin
 			root.attributes['ID'] = uuid
 			root.attributes['IssueInstant'] = time
 			root.attributes['Version'] = "2.0"
-			root.attributes['InResponseTo'] = opt[:transaction_id]
+			# Just convenient naming to accept both names as InResponseTo
+			if opt[:transaction_id] 
+				root.attributes['InResponseTo'] = opt[:transaction_id]
+			elsif opt[:in_response_to]
+				root.attributes['InResponseTo'] = opt[:in_response_to]
+			end
 			if opt[:status]
 				status = root.add_element "saml2p:Status"
 				status_code = status.add_element "saml2p:StatusCode", {
