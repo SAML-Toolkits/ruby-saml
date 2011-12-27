@@ -115,6 +115,8 @@ module Onelogin
 		end
 		def validate( soft = true )
 			return false if @response.nil?
+			# Skip validation with a failed response if we don't have settings
+			return false if @settings.nil?
 			return false if @response.validate(@settings, soft) == false
 			
 			return true
