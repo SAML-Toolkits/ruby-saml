@@ -216,8 +216,9 @@ After adding this, the Metadata XML will reflect this change:
   <md:EntityDescriptor xmlns:md='urn:oasis:names:tc:SAML:2.0:metadata' entityID='sp.example.com'>
     <md:SPSSODescriptor protocolSupportEnumeration='urn:oasis:names:tc:SAML:2.0:protocol'>
       ... 
-      <md:SingleLogoutService Location="http://sp.example.com/saml/logout" Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" />
-	 </md:SPSSODescriptor>
+      <md:SingleLogoutService Location="http://sp.example.com/saml/logout" 
+      Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" />
+    </md:SPSSODescriptor>
   </md:EntityDescriptor>
 
 Then add a simple method to the SamlController to accept requests and responses to /saml/logout.  
@@ -252,9 +253,9 @@ his session and cookies, then sends a LogoutResponse to the SP.  If that respons
 success status, the SP can delete his session and cookies.
 
 The difficulty in SP initiated SLO is that each SP needs to add a little more code to the 
- logout functionality.  Depending on how the IdP is setup, the user is usually given a 
- page on the IdP asking which SPs to log out from.  They then have to select each 
- system to log out from.  This can be confusing for the average web user.
+logout functionality.  Depending on how the IdP is setup, the user is usually given a 
+page on the IdP asking which SPs to log out from.  They then have to select each 
+system to log out from.  This can be confusing for the average web user.
 
   # Create an SP initiated SLO
   def sp_logout_request
@@ -303,7 +304,7 @@ The difficulty in SP initiated SLO is that each SP needs to add a little more co
         if logout_response.success?
             logger.info "Delete session for '#{session[:nameid]}'"
             # Delete cookies, or whatever you need here
-				session[:userid] = nil
+            session[:userid] = nil
         end
   end
 
@@ -334,8 +335,8 @@ since one click does the log out.
         end
    
         # Actually log out this session
-			# Delete cookies, or whatever you need here
-			session[:userid] = nil
+        # Delete cookies, or whatever you need here
+        session[:userid] = nil
   
         # Generate a response to the IdP.  :transaction_id sets the InResponseTo
         # SAML message to create a reply to the IdP in the LogoutResponse.
