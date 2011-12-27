@@ -202,7 +202,7 @@ contains all the saml:AttributeStatement with its 'Name' as a indifferent key an
 == Adding Single Log-Out (SLO) Functionality
 
 Logging out can actually be more complicated than logging in.  Since each SP can create its own
-cookies, the IdP needs to keep track of which SPs have logged in.  Then to log out, the IdP has 
+cookies, the IdP needs to keep track of which SPs have logged in.  In order to log out, the IdP has 
 to fire a request to log off each one.  (That is, if the user *wants* to log out in all places)
 
 To start the setup, define the URL and binding method in the Onelogin::Saml::Settings object.
@@ -220,7 +220,7 @@ After adding this, the Metadata XML will reflect this change:
 	 </md:SPSSODescriptor>
   </md:EntityDescriptor>
 
-Then add a wrapper funciton to the SamlController to accept requests and responses to /saml/logout.  
+Then add a simple method to the SamlController to accept requests and responses to /saml/logout.  
 If you plan on implementing only SP SLO or IdP SLO you can remove those conditions.  
 (It's a good thing to support both methods though)  
 
@@ -247,14 +247,14 @@ There are two methods to accomplish SLO -- SP initiated and IdP initiated.
 
 === SP Initiated SLO
 
-The SP (you) initiate the logout flow by sending a LogoutRequest to the IdP.  The IdP deletes
+The SP (you) initiates the logout flow by sending a LogoutRequest to the IdP.  The IdP deletes
 his session and cookies, then sends a LogoutResponse to the SP.  If that response contains a
 success status, the SP can delete his session and cookies.
 
-The difficulty in SP initiated SLO is that each SP needs to set up their own log out functionality.
-  Depending on how the IdP is setup, the user is usually given a page on the IdP asking 
-  which SPs to log out from.  They then have to select each system to log out from.  
-  This can be confusing for the average web user.
+The difficulty in SP initiated SLO is that each SP needs to add a little more code to the 
+ logout functionality.  Depending on how the IdP is setup, the user is usually given a 
+ page on the IdP asking which SPs to log out from.  They then have to select each 
+ system to log out from.  This can be confusing for the average web user.
 
   # Create an SP initiated SLO
   def sp_logout_request
@@ -267,8 +267,6 @@ The difficulty in SP initiated SLO is that each SP needs to set up their own log
         session[:transaction_id] = logout_request.transaction_id
    
         # Create a new LogoutRequest for this session Name ID
-        logger.debug "Starting SP SLO for user '#{session[:userid]}'"
-   
         action, content = logout_request.create( :name_id => session[:userid] )
         case action
                 when "GET"
@@ -327,19 +325,20 @@ since one click does the log out.
         logout_request = Onelogin::Saml::LogoutRequest.new( :request => params[:SAMLRequest], :settings => @settings)
         unless logout_request.is_valid?
                 logger.error "IdP initiated LogoutRequest was not valid!"
+                # For each error, add in some custom failure for your app
         end
         # Check that the name ID's match
         if session[:nameid] != logout_request.name_id
                 logger.error "The session's Name ID '#{session[:nameid]}' does not match the LogoutRequest's Name ID '#{logout_request.name_id}'"
+                # For each error, add in some custom failure for your app
         end
    
-        logger.info "IdP initiated Logout for #{logout_request.name_id}"
         # Actually log out this session
 			# Delete cookies, or whatever you need here
 			session[:userid] = nil
   
         # Generate a response to the IdP.  :transaction_id sets the InResponseTo
-        # SAML message to create a reply to the IdP in the LogoutResponse
+        # SAML message to create a reply to the IdP in the LogoutResponse.
         action, content = logout_response = Onelogin::Saml::LogoutResponse.new(
                 :settings => @settings ).create(
                         :transaction_id => logout_request.transaction_id
