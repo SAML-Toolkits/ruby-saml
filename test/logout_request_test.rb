@@ -9,6 +9,7 @@ class LogoutRequestTest < Test::Unit::TestCase
 		 settings.assertion_consumer_service_binding   = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
 		settings.name_identifier_format = "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent"
 		settings.idp_sso_target_url = "http://idp.example.com/sso"
+	  settings.idp_slo_target_url = "http://idp.example.com/slo"
 	  
     should "Create a LogoutRequest" do
 		logout_request = Onelogin::Saml::LogoutRequest.new( :settings => settings )
@@ -17,9 +18,9 @@ class LogoutRequestTest < Test::Unit::TestCase
 		assert logout_request.is_valid? == false
 		
 		action, content = logout_request.create( :name_id => "bob" )
-		
-		assert action == "GET"
 		#puts "action: #{action} content: #{content}"
+		assert action == "GET"
+		
 		payload  = CGI.unescape(content.split("=").last)
 		message = inflate(decode(payload))
 		#puts "message: #{message}"

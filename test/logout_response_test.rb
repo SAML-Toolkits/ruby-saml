@@ -12,6 +12,7 @@ class LogoutResponseTest < Test::Unit::TestCase
 		 settings.assertion_consumer_service_binding   = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
 		settings.name_identifier_format = "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent"
 	  settings.idp_sso_target_url = "http://idp.example.com/sso"
+	  settings.idp_slo_target_url = "http://idp.example.com/slo"
     should "Create a LogoutResponse" do
 		logout_response = Onelogin::Saml::LogoutResponse.new( :settings => settings)
 		

@@ -157,8 +157,13 @@ module Onelogin::Saml
 		def binding_select(service)
 			# first check if we're still using the old hard coded method for 
 			# backwards compatability
-			if @settings.idp_metadata == nil && @settings.idp_sso_target_url != nil
-				return "GET", @settings.idp_sso_target_url
+			if service == "SingleSignOnService" && 
+				@settings.idp_metadata == nil && @settings.idp_sso_target_url != nil
+					return "GET", @settings.idp_sso_target_url
+			end
+			if service == "SingleLogoutService" && 
+				@settings.idp_metadata == nil	&& @settings.idp_slo_target_url != nil
+					return "GET", @settings.idp_slo_target_url
 			end
 			
 			meta_doc = get_idp_metadata
