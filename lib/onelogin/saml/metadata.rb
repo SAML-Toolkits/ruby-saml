@@ -106,11 +106,20 @@ module Onelogin::Saml
 		
 		def extract_certificate(meta_doc)
 			# pull out the x509 tag
-			@settings.idp_cert = REXML::XPath.first(meta_doc, 
+			x509  = REXML::XPath.first(meta_doc, 
 							"/EntityDescriptor/IDPSSODescriptor" +
 						"/KeyDescriptor[@use='signing']" +
 						"/ds:KeyInfo/ds:X509Data/ds:X509Certificate"
-					).text.gsub(/\n/, "")
+					)
+			# If the IdP didn't specify the use attribute
+			if x509.nil?
+				x509 = REXML::XPath.first(meta_doc, 
+							"/EntityDescriptor/IDPSSODescriptor" +
+						"/KeyDescriptor" +
+						"/ds:KeyInfo/ds:X509Data/ds:X509Certificate"
+					)
+			end
+			@settings.idp_cert = x509.text.gsub(/\n/, "")
 		end
 		
 		def create_sso_request(message, extra_parameters = {} )

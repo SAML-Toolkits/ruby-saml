@@ -40,6 +40,5 @@ class LogoutRequestTest < Test::Unit::TestCase
 		 
 		 assert_match /^bob$/, logout_request.name_id
 	 end
-	 
   end
 end
