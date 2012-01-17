@@ -4,14 +4,30 @@ The Ruby SAML library is for implementing the client side of a SAML authorizatio
 
 SAML authorization is a two step process and you are expected to implement support for both.
 
-== The initialization phase
+== The Request Phase
 
 This is the first request you will get from the identity provider. It will hit your application at a specific URL (that you've announced as being your SAML initialization point). The response to this initialization, is a redirect back to the identity provider, which can look something like this (ignore the saml_settings method call for now):
 
+
     def initialize
-      request = Onelogin::Saml::Authrequest.new
-      redirect_to(request.create(saml_settings))
+      request = Onelogin::Saml::Authrequest.new(settings)
+      
+      # Create the request, returning an action type and associated content
+      action, content = request.create
+      case action
+      when "GET"
+         # for GET requests, do a redirect on the content
+         redirect_to content
+      when "POST"
+         # for POST requests (form) render the content as HTML
+         render :inline => content
+      end
     end
+
+The create method will choose the appropriate SSO binding that the IdP supports.  The "action" here represents a GET or a POST method for the request to the IdP.  The content passed back will either be
+a URL to redirect, or HTML content with a form.  (It will submit itself with an onLoad trigger)
+
+== The Response Phase
 
 Once you've redirected back to the identity provider, it will ensure that the user has been authorized and redirect back to your application for final consumption, this is can look something like this (the authorize_success and authorize_failure methods are specific to your application):
 
@@ -25,6 +41,8 @@ Once you've redirected back to the identity provider, it will ensure that the us
         authorize_failure(user)
       end
     end
+
+== Settings and Configuration
 
 In the above there are a few assumptions in place, one being that the response.name_id is an email address. This is all handled with how you specify the settings that are in play via the saml_settings method. That could be implemented along the lines of this:
 
@@ -42,15 +60,109 @@ In the above there are a few assumptions in place, one being that the response.n
       settings
     end
 
+=== <b>Where does that fingerprint come from!!??11</b>
+
+- Get a copy of the IdP public X.509 certificate 
+
+Either get the file itself, or create one by pasting in the contents of the X509Certificate tag out of the metadata or a SAML response.  If you paste in the example BEGIN CERTIFICATE and END CERTIFICATE lines <b>exactly</b> as you see them in the example below:
+
+ $ cat cert.pem
+ -----BEGIN CERTIFICATE-----
+ MIIBrTCCAaGgAwIBAgIBATADBgEAMGcxCzAJBgNVBAYTAlVTMRMwEQYDVQQIDApD
+ YWxpZm9ybmlhMRUwEwYDVQQHDAxTYW50YSBNb25pY2ExETAPBgNVBAoMCE9uZUxv
+ Z2luMRkwFwYDVQQDDBBhcHAub25lbG9naW4uY29tMB4XDTExMTAyNzE5MDAyNloX
+ DTE2MTAyNjE5MDAyNlowZzELMAkGA1UEBhMCVVMxEzARBgNVBAgMCkNhbGlmb3Ju
+ aWExFTATBgNVBAcMDFNhbnRhIE1vbmljYTERMA8GA1UECgwIT25lTG9naW4xGTAX
+ BgNVBAMMEGFwcC5vbmVsb2dpbi5jb20wgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJ
+ AoGBAMivve9Latml0MJYccayxnXMc5kmSCp8qJZkVnKfei+Dsj0DomzX0iwmuNA4
+ GwlSiB2DDcImFvldaz/xtyua5D5jFJrplcrM1jIIcHNYwahkRpQQZFYU8wknYZ85
+ h5+bvkeiM0nLbhhKPRLKCG6f3E5GOM5jVI2sJZA25fZzXEV7AgMBAAEwAwYBAAMB
+ AA==
+ -----END CERTIFICATE-----
+
+
+- Use this openssl command line to get the SHA1 fingerprint from the public certificate file:
+
+ $ openssl x509 -fingerprint < cert.pem
+ SHA1 Fingerprint=EC:CA:8E:0E:DB:D3:BC:06:9B:1C:1F:3F:42:FE:47:61:0B:DE:91:43
+
+Then assign <b>settings.idp_cert_fingerprint</b> to this value.
+
+=== Metadata Based Configuration
+
+The method above requires a little extra work to manually specify attributes about the IdP.  (And your SP application)  There's an easier method -- use a metadata exchange.  Metadata is just an XML file that defines the capabilities of both the IdP and the SP application.  It also contains the X.509 public
+key certificates which add to the trusted relationship.  The IdP administrator can also configure custom settings for an SP based on the metadata.
+
+The IdP administrator will give you a URL pointing at his metadata.  You need to give him a copy of your metadata as well.  Use the Onelogin::Saml::Metadata class to create the XML based on your settings.
+
+  def metadata
+    settings = Account.get_saml_settings
+    meta = Onelogin::Saml::Metadata.new
+    render :xml => meta.generate(settings)
+  end
+
+The IdP adminstrator will add this URL on his end, which will poll your URL every few minutes.  When you make a change to your local settings, they will propagate to the IdP.
+
+The settings themselves will be a little different.  Easier than the method above, as the only required settings are the ACS URL, IdP metadata, and your SP entity ID.  (AKA issuer name)
+
+  def Account.get_saml_settings
+    # this is just for testing purposes. 
+    # should retrieve SAML-settings based on subdomain, IP-address, NameID or similar
+    settings = Onelogin::Saml::Settings.new
+    
+    # This is the URL that the SP will tell the IdP send the response to
+    settings.assertion_consumer_service_url   = "http://sp.example.com/saml/consume"
+    
+    # Add the remote URL of the IdP metadata.  You can also enter a local file path
+    settings.idp_metadata = "http://idp.example.com/idp/Metadata"
+    
+    # This is your Entity ID  (Note that Settings.entity_id is an alias to issuer)
+    settings.issuer = "http://sp.example.com"
+    
+    #### The rest of these settings are *optional*  ####
+    
+    # Defaults to urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST -- if you want to accept GET
+    # requests to your ACS URL, set to "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+    # Read the SAML specs for more goodies, like SOAP.
+    settings.assertion_consumer_service_binding   = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+    
+    # The IdP metadata is cached using Rails.cache, and this selects how long 
+    # we assume the metadata is fresh.
+    # Set this to a value in seconds:  300, 1.day.seconds, 2.weeks.seconds
+    #  Default is 1 day.
+    settings.idp_metadata_ttl = 1.day.seconds
+
+    # Defaults to urn:oasis:names:tc:SAML:2.0:nameid-format:transient -- look this up in the IdP
+    # metadata to see what it supports.  Most IdP's use a transient ID, but others use 
+    # persistant, email address, or all sorts of stuff.
+    settings.name_identifier_format = "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent"
+     
+    # If you need to require a specific authentication context.  Most people don't. 
+    #settings.authn_context = "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport"
+  end
+
+== The Rails Controller
+
 What's left at this point, is to wrap it all up in a controller and point the initialization and consumption URLs in OneLogin at that. A full controller example could look like this:
 
   # This controller expects you to use the URLs /saml/initialize and /saml/consume in your OneLogin application.
   class SamlController < ApplicationController
     def initialize
-      request = Onelogin::Saml::Authrequest.new
-      redirect_to(request.create(saml_settings))
-    end
+       settings = Account.get_saml_settings
+       request = Onelogin::Saml::Authrequest.new(settings)
 
+       # Create the request, returning an action type and associated content
+       action, content = request.create
+       case action
+       when "GET"
+          # for GET requests, do a redirect on the content
+          redirect_to content
+       when "POST"
+          # for POST requests (form) render the content as HTML
+          render :inline => content
+       end
+    end
+    
     def consume
       response          = Onelogin::Saml::Response.new(params[:SAMLResponse])
       response.settings = saml_settings
@@ -79,7 +191,7 @@ What's left at this point, is to wrap it all up in a controller and point the in
     end
   end
 
-If are using saml:AttributeStatement to transfare metadata, like the user name, you can access all the attributes through response.attributes. It
+If are using saml:AttributeStatement to transfer metadata, like the user name, you can access all the attributes through response.attributes. It
 contains all the saml:AttributeStatement with its 'Name' as a indifferent key and the one saml:AttributeValue as value.
 
   response          = Onelogin::Saml::Response.new(params[:SAMLResponse])
@@ -87,29 +199,171 @@ contains all the saml:AttributeStatement with its 'Name' as a indifferent key an
 
   response.attributes[:username]
 
-== Service Provider Metadata
+== Adding Single Log-Out (SLO) Functionality
 
-To form a trusted pair relationship with the IdP, the SP (you) need to provide metadata XML
-to the IdP for various good reasons.  (Caching, certificate lookups, relying party permissions, etc)
+Logging out can actually be more complicated than logging in.  Since each SP can create its own
+cookies, the IdP needs to keep track of which SPs have logged in.  In order to log out, the IdP has 
+to fire a request to log off each one.  (That is, if the user *wants* to log out in all places)
 
-The class Onelogin::Saml::Metdata takes care of this by reading the Settings and returning XML.  All
-you have to do is add a controller to return the data, then give this URL to the IdP administrator.  
-The metdata will be polled by the IdP every few minutes, so updating your settings should propagate
-to the IdP settings.
+To start the setup, define the URL and binding method in the Onelogin::Saml::Settings object.
+
+   settings.single_logout_service_url = "http://#{request.host}/saml/logout"
+   # This is optional, POST is the default
+   settings.single_logout_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+
+After adding this, the Metadata XML will reflect this change:
+
+  <md:EntityDescriptor xmlns:md='urn:oasis:names:tc:SAML:2.0:metadata' entityID='sp.example.com'>
+    <md:SPSSODescriptor protocolSupportEnumeration='urn:oasis:names:tc:SAML:2.0:protocol'>
+      ... 
+      <md:SingleLogoutService Location="http://sp.example.com/saml/logout" 
+      Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" />
+    </md:SPSSODescriptor>
+  </md:EntityDescriptor>
+
+Then add a simple method to the SamlController to accept requests and responses to /saml/logout.  
+If you plan on implementing only SP SLO or IdP SLO you can remove those conditions.  
+(It's a good thing to support both methods though)  
 
   class SamlController < ApplicationController
-    # ... the rest of your controller definitions ...
-    def metadata
-      settings = Account.get_saml_settings
-      meta = Onelogin::Saml::Metadata.new
-      render :xml => meta.create(settings)
+  # ... 
+    # Trigger SP and IdP initiated Logout requests
+    def logout
+        # If we're given a logout request, handle it in the IdP initiated method
+        if params[:SAMLRequest]
+                return idp_logout_request
+        end     
+        # We've been given a response back from the IdP 
+        if params[:SAMLResponse]
+                return logout_response
+        end     
+
+        # No parameters means the browser hit this method directly.
+        # Start the SP initiated SLO
+        sp_logout_request
     end
+  end
+
+There are two methods to accomplish SLO -- SP initiated and IdP initiated.
+
+=== SP Initiated SLO
+
+The SP (you) initiates the logout flow by sending a LogoutRequest to the IdP.  The IdP deletes
+his session and cookies, then sends a LogoutResponse to the SP.  If that response contains a
+success status, the SP can delete his session and cookies.
+
+The difficulty in SP initiated SLO is that each SP needs to add a little more code to the 
+logout functionality.  Depending on how the IdP is setup, the user is usually given a 
+page on the IdP asking which SPs to log out from.  They then have to select each 
+system to log out from.  This can be confusing for the average web user.
+
+  # Create an SP initiated SLO
+  def sp_logout_request
+        # LogoutRequest accepts plain browser requests w/o paramters 
+        logout_request = Onelogin::Saml::LogoutRequest.new( :settings => @settings )
+   
+        # Since we created a new SAML request, save the transaction_id 
+        # in the session to compare it with the response we get back.
+        # You'll need a shared session storage in a clustered environment.
+        session[:transaction_id] = logout_request.transaction_id
+   
+        # Create a new LogoutRequest for this session Name ID
+        action, content = logout_request.create( :name_id => session[:userid] )
+        case action
+                when "GET"
+                        # for GET requests, do a redirect on the content
+                        redirect_to content
+                when "POST"
+                        # for POST requests (form) render the content as HTML
+                        render :inline => content
+        end
+  end
+   
+  # After sending an SP initiated LogoutRequest to the IdP, we need to accept
+  # the LogoutResponse, verify it, then actually delete our session.
+  def logout_response
+        logout_response = Onelogin::Saml::LogoutResponse.new( :response => params[:SAMLResponse] )
+
+        # If the IdP gave us a signed response, verify it
+        unless logout_response.is_valid?
+                logger.error "The SAML Response signature validation failed"
+                # For each error, add in some custom failure for your app
+        end
+        if session[:transation_id] && logout_response.in_response_to != session[:transaction_id]
+                logger.error "The SAML Response for #{logout_response.in_response_to} does not match our session transaction ID of #{session[:transaction_id]}"
+                # For each error, add in some custom failure for your app
+        end
+
+        # Optional sanity check
+        if logout_response.issuer != @settings.idp_metadata
+                logger.error "The SAML Response from IdP #{logout_response.issuer} does not match our trust relationship with #{@settings.idp_metadata}"
+                # For each error, add in some custom failure for your app
+        end
+
+        # Actually log out this session
+        if logout_response.success?
+            logger.info "Delete session for '#{session[:nameid]}'"
+            # Delete cookies, or whatever you need here
+            session[:userid] = nil
+        end
+  end
+
+
+=== IdP Initiated SLO
+
+In this method, the browser simply hits a URL on the IdP that looks something like:
+http://idp.example.com/Logout.  This URL initiates the SLO by sending a LogoutRequest to
+all known SP sessions simultaneously with AJAX calls.   
+It waits for a successful LogoutResponse from each SP, then redirects the user back 
+to some landing page after they are logged out from all relationships.
+
+This method is easier to implement.  All of the SP relationships use a single URL for a 
+logout link, and there is less setup involved.  The end users are probably happier 
+since one click does the log out.
+
+  # Method to handle IdP initiated logouts
+  def idp_logout_request
+        logout_request = Onelogin::Saml::LogoutRequest.new( :request => params[:SAMLRequest], :settings => @settings)
+        unless logout_request.is_valid?
+                logger.error "IdP initiated LogoutRequest was not valid!"
+                # For each error, add in some custom failure for your app
+        end
+        # Check that the name ID's match
+        if session[:nameid] != logout_request.name_id
+                logger.error "The session's Name ID '#{session[:nameid]}' does not match the LogoutRequest's Name ID '#{logout_request.name_id}'"
+                # For each error, add in some custom failure for your app
+        end
+   
+        # Actually log out this session
+        # Delete cookies, or whatever you need here
+        session[:userid] = nil
+  
+        # Generate a response to the IdP.  :transaction_id sets the InResponseTo
+        # SAML message to create a reply to the IdP in the LogoutResponse.
+        action, content = logout_response = Onelogin::Saml::LogoutResponse.new(
+                :settings => @settings ).create(
+                        :transaction_id => logout_request.transaction_id
+                )
+        case action
+                when "GET"
+                        # for GET requests, do a redirect on the content
+                        redirect_to content
+                when "POST"
+                        # for POST requests (form) render the content as HTML
+                        render :inline => content
+        end
   end
 
 
 = Full Example
 
 Please check https://github.com/onelogin/ruby-saml-example for a very basic sample Rails application using this gem.
+
+= Full Example (rails3)
+
+ruby-saml-rails3-example   
+
+Please checkout https://github.com/calh/ruby-saml-rails3-example for a working Rails 3 demo on using ruby-saml.
 
 == Note on Patches/Pull Requests
 
