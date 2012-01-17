@@ -94,8 +94,19 @@ module Onelogin::Saml
 				meta_text = fp.read
 			else
 				uri = URI.parse(@settings.idp_metadata)
-				response = Net::HTTP.get_response(uri)
-				meta_text = response.body
+				if uri.scheme == "http"
+					response = Net::HTTP.get_response(uri)
+					meta_text = response.body
+				elsif uri.scheme == "https"
+					http = Net::HTTP.new(uri.host, uri.port)
+					http.use_ssl = true
+					# Most IdPs will probably use self signed certs
+					#http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+					http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+					get = Net::HTTP::Get.new(uri.request_uri)
+					response = http.request(get)
+					meta_text = response.body
+				end
 			end
 			# Add it to the cache
 			@cache.write(id, meta_text, @settings.idp_metadata_ttl )
