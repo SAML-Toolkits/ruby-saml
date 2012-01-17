@@ -1,6 +1,6 @@
 require "rexml/document"
 require "rexml/xpath"
-require "net/http"
+require "net/https"
 require "uri"
 require "digest/md5"
 
