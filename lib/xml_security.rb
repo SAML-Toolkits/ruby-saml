@@ -85,7 +85,7 @@ module XMLSecurity
         hash                          = Base64.encode64(Digest::SHA1.digest(canon_hashed_element)).chomp
         digest_value                  = REXML::XPath.first(ref, "//ds:DigestValue", {"ds"=>"http://www.w3.org/2000/09/xmldsig#"}).text
 
-        if hash != digest_value
+        unless digests_match?(hash, digest_value)
           return soft ? false : (raise Onelogin::Saml::ValidationError.new("Digest mismatch"))
         end
       end
@@ -110,6 +110,10 @@ module XMLSecurity
     end
 
     private
+
+    def digests_match?(hash, digest_value)
+      hash == digest_value
+    end
 
     def extract_signed_element_id
       reference_element       = REXML::XPath.first(self, "//ds:Signature/ds:SignedInfo/ds:Reference", {"ds"=>DSIG})

@@ -7,6 +7,17 @@ class RubySamlTest < Test::Unit::TestCase
       assert_raises(ArgumentError) { Onelogin::Saml::Response.new(nil) }
     end
 
+    should "be able to parse a document which contains ampersands" do
+      XMLSecurity::SignedDocument.any_instance.stubs(:digests_match?).returns(true)
+      Onelogin::Saml::Response.any_instance.stubs(:validate_conditions).returns(true)
+
+      response = Onelogin::Saml::Response.new(ampersands_response)
+      settings = Onelogin::Saml::Settings.new
+      settings.idp_cert_fingerprint = 'c51985d947f1be57082025050846eb27f6cab783'
+      response.settings = settings
+      response.validate!
+    end
+
     should "adapt namespace" do
       response = Onelogin::Saml::Response.new(response_document)
       assert !response.name_id.nil?
