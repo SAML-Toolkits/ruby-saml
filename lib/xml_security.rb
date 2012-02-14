@@ -45,7 +45,7 @@ module XMLSecurity
 
     def validate(settings, soft = true)
 		@settings = settings
-		x509_cert = self.elements["//ds:X509Certificate"]
+		x509_cert = REXML::XPath.first(self, "//ds:X509Certificate")
 		# What to do if the document doesn't have an X509 cert?  
 		# I'm not sure if the SAML specs require a cert with signed docs,
 		# or if the absense of a cert means this document is not signed.
@@ -105,10 +105,11 @@ module XMLSecurity
         hashed_element                = REXML::XPath.first(self, "//[@ID='#{uri[1,uri.size]}']")
         canoner                       = XML::Util::XmlCanonicalizer.new(false, true)
         canoner.inclusive_namespaces  = inclusive_namespaces if canoner.respond_to?(:inclusive_namespaces) && !inclusive_namespaces.empty?
-        canon_hashed_element          = canoner.canonicalize(hashed_element)
+        canon_hashed_element          = canoner.canonicalize(hashed_element).gsub('&', '&amp;')
         hash                          = Base64.encode64(Digest::SHA1.digest(canon_hashed_element)).chomp
         digest_value                  = REXML::XPath.first(ref, "//ds:DigestValue", {"ds"=>"http://www.w3.org/2000/09/xmldsig#"}).text
-        if hash != digest_value
+			
+        unless digests_match?(hash, digest_value)
           return soft ? false : (raise Onelogin::Saml::ValidationError.new("Digest mismatch"))
         end
       end
@@ -133,7 +134,11 @@ module XMLSecurity
     end
 
     private
-
+	 
+	 def digests_match?(hash, digest_value)
+      hash == digest_value
+	 end
+	 
     def extract_signed_element_id
       reference_element       = REXML::XPath.first(self, "//ds:Signature/ds:SignedInfo/ds:Reference", {"ds"=>DSIG})
       self.signed_element_id  = reference_element.attribute("URI").value unless reference_element.nil?
