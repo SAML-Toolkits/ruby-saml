@@ -27,6 +27,17 @@ class RubySamlTest < Test::Unit::TestCase
       assert !response.name_id.nil?
     end
 
+    context "Assertion" do
+      should "only retreive an assertion with an ID that matches the signature's reference URI" do
+        response = Onelogin::Saml::Response.new(wrapped_response_2)
+        response.stubs(:conditions).returns(nil)
+        settings = Onelogin::Saml::Settings.new
+        settings.idp_cert_fingerprint = signature_fingerprint_1
+        response.settings = settings
+        assert response.name_id.nil?
+      end
+    end
+
     context "#validate!" do
       should "raise when encountering a condition that prevents the document from being valid" do
         response = Onelogin::Saml::Response.new(response_document)

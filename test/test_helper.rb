@@ -49,6 +49,10 @@ class Test::Unit::TestCase
     Base64.encode64(doc)
   end
 
+  def wrapped_response_2
+    @wrapped_response_2 ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'wrapped_response_2.xml.base64'))
+  end
+
   def signature_fingerprint_1
     @signature_fingerprint1 ||= "C5:19:85:D9:47:F1:BE:57:08:20:25:05:08:46:EB:27:F6:CA:B7:83"
   end
