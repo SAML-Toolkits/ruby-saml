@@ -170,6 +170,12 @@ class RubySamlTest < Test::Unit::TestCase
       end
     end
 
-  end
+    context "#issuer" do
+      should "return the issuer of the assertion" do
+        response = Onelogin::Saml::Response.new(response_document_2)
+        assert_equal "wibble", response.issuer
+      end
+    end
 
+  end
 end
