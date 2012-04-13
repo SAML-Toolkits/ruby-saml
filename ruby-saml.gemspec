@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["OneLogin LLC"]
-  s.date = %q{2011-06-30}
+  s.date = Time.now.strftime("%Y-%m-%d")
   s.description = %q{SAML toolkit for Ruby on Rails}
   s.email = %q{support@onelogin.com}
   s.extra_rdoc_files = [
@@ -16,6 +16,7 @@ Gem::Specification.new do |s|
   ]
   s.files = `git ls-files`.split("\n")
   s.homepage = %q{http://github.com/onelogin/ruby-saml}
+  s.rubyforge_project = %q{http://www.rubygems.org/gems/ruby-saml}
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.3.7}
