@@ -72,6 +72,13 @@ module Onelogin::Saml
       end
     end
 
+    def issuer
+      @issuer ||= begin
+        node = REXML::XPath.first(document, "/p:Response/a:Issuer", { "p" => PROTOCOL, "a" => ASSERTION })
+        node.nil? ? nil : node.text
+      end
+    end
+
     private
 
     def validation_error(message)
