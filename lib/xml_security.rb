@@ -28,7 +28,7 @@ require "rexml/xpath"
 require "openssl"
 require "xmlcanonicalizer"
 require "digest/sha1"
-require "onelogin/saml/validation_error"
+require "onelogin/ruby-saml/validation_error"
 
 module XMLSecurity
 
