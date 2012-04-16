@@ -5,9 +5,9 @@ class RequestTest < Test::Unit::TestCase
   context "Authrequest" do
     should "create the deflated SAMLRequest URL parameter" do
       settings = Onelogin::Saml::Settings.new
-      settings.idp_sso_target_url = "http://stuff.com"
+      settings.idp_sso_target_url = "http://example.com"
       auth_url = Onelogin::Saml::Authrequest.new.create(settings)
-      assert auth_url =~ /^http:\/\/stuff\.com\?SAMLRequest=/
+      assert auth_url =~ /^http:\/\/example\.com\?SAMLRequest=/
       payload  = CGI.unescape(auth_url.split("=").last)
       decoded  = Base64.decode64(payload)
 
@@ -21,7 +21,7 @@ class RequestTest < Test::Unit::TestCase
 
     should "accept extra parameters" do
       settings = Onelogin::Saml::Settings.new
-      settings.idp_sso_target_url = "http://stuff.com"
+      settings.idp_sso_target_url = "http://example.com"
 
       auth_url = Onelogin::Saml::Authrequest.new.create(settings, { :hello => "there" })
       assert auth_url =~ /&hello=there$/
@@ -33,20 +33,20 @@ class RequestTest < Test::Unit::TestCase
     context "when the target url doesn't contain a query string" do
       should "create the SAMLRequest parameter correctly" do
         settings = Onelogin::Saml::Settings.new
-        settings.idp_sso_target_url = "http://stuff.com"
+        settings.idp_sso_target_url = "http://example.com"
   
         auth_url = Onelogin::Saml::Authrequest.new.create(settings)
-        assert auth_url =~ /^http:\/\/stuff.com\?SAMLRequest/
+        assert auth_url =~ /^http:\/\/example.com\?SAMLRequest/
       end
     end
 
     context "when the target url contains a query string" do
       should "create the SAMLRequest parameter correctly" do
         settings = Onelogin::Saml::Settings.new
-        settings.idp_sso_target_url = "http://stuff.com?field=value"
+        settings.idp_sso_target_url = "http://example.com?field=value"
   
         auth_url = Onelogin::Saml::Authrequest.new.create(settings)
-        assert auth_url =~ /^http:\/\/stuff.com\?field=value&SAMLRequest/
+        assert auth_url =~ /^http:\/\/example.com\?field=value&SAMLRequest/
       end
     end
   end
