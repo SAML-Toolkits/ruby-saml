@@ -84,8 +84,8 @@ module XMLSecurity
         canoner.inclusive_namespaces  = inclusive_namespaces if canoner.respond_to?(:inclusive_namespaces) && !inclusive_namespaces.empty?
         canon_hashed_element          = canoner.canonicalize(hashed_element).gsub('&','&amp;')
         digest_algorithm              = algorithm(REXML::XPath.first(ref, "//ds:DigestMethod"))
-        hash                          = Base64.encode64(digest_algorithm.digest(canon_hashed_element)).chomp
-        digest_value                  = REXML::XPath.first(ref, "//ds:DigestValue", {"ds"=>DSIG}).text
+        hash                          = digest_algorithm.digest(canon_hashed_element)
+        digest_value                  = Base64.decode64(REXML::XPath.first(ref, "//ds:DigestValue", {"ds"=>DSIG}).text)
 
         unless digests_match?(hash, digest_value)
           return soft ? false : (raise Onelogin::Saml::ValidationError.new("Digest mismatch"))
