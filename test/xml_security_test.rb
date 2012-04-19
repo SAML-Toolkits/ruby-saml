@@ -3,14 +3,47 @@ require 'xml_security'
 
 class XmlSecurityTest < Test::Unit::TestCase
   include XMLSecurity
+
   context "XmlSecurity" do
     setup do
       @document = XMLSecurity::SignedDocument.new(Base64.decode64(response_document))
+      @base64cert = @document.elements["//ds:X509Certificate"].text
     end
 
     should "should run validate without throwing NS related exceptions" do
-      base64cert = @document.elements["//ds:X509Certificate"].text
-      @document.validate_doc(base64cert, true)
+      assert !@document.validate_doc(@base64cert, true)
+    end
+
+    should "should run validate with throwing NS related exceptions" do
+      assert_raise(Onelogin::Saml::ValidationError) do
+        @document.validate_doc(@base64cert, false)
+      end
+    end
+
+    should "should raise Fingerprint mismatch" do
+      exception = assert_raise(Onelogin::Saml::ValidationError) do
+        @document.validate("no:fi:ng:er:pr:in:t", false)
+      end
+      assert_equal("Fingerprint mismatch", exception.message)
+    end
+
+    should "should raise Digest mismatch" do
+      exception = assert_raise(Onelogin::Saml::ValidationError) do
+        @document.validate_doc(@base64cert, false)
+      end
+      assert_equal("Digest mismatch", exception.message)
+    end
+
+    should "should raise Key validation error" do
+      response = Base64.decode64(response_document)
+      response.sub!("<ds:DigestValue>pJQ7MS/ek4KRRWGmv/H43ReHYMs=</ds:DigestValue>",
+                    "<ds:DigestValue>b9xsAXLsynugg3Wc1CI3kpWku+0=</ds:DigestValue>")
+      document = XMLSecurity::SignedDocument.new(response)
+      base64cert = document.elements["//ds:X509Certificate"].text
+      exception = assert_raise(Onelogin::Saml::ValidationError) do
+        document.validate_doc(base64cert, false)
+      end
+      assert_equal("Key validation error", exception.message)
     end
   end
 

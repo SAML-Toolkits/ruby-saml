@@ -108,7 +108,7 @@ module XMLSecurity
       algorithm               = signature_algorithm(REXML::XPath.first(signed_info_element, "//ds:SignatureMethod"))
 
       if !cert.public_key.verify(algorithm.new, signature, canon_string)
-        return soft ? false : (raise ValidationError.new("Key validation error"))
+        return soft ? false : (raise Onelogin::Saml::ValidationError.new("Key validation error"))
       end
 
       return true
