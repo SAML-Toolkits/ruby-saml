@@ -90,7 +90,7 @@ class RubySamlTest < Test::Unit::TestCase
       end
 
       should "validate ADFS assertions" do
-        response = Onelogin::Saml::Response.new(fixture(:adfs_response))
+        response = Onelogin::Saml::Response.new(fixture(:adfs_response_sha256))
         response.stubs(:conditions).returns(nil)
         settings = Onelogin::Saml::Settings.new
         settings.idp_cert_fingerprint = "28:74:9B:E8:1F:E8:10:9C:A8:7C:A9:C3:E3:C5:01:6C:92:1C:B4:BA"
