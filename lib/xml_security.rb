@@ -83,9 +83,9 @@ module XMLSecurity
         canoner                       = XML::Util::XmlCanonicalizer.new(false, true)
         canoner.inclusive_namespaces  = inclusive_namespaces if canoner.respond_to?(:inclusive_namespaces) && !inclusive_namespaces.empty?
         canon_hashed_element          = canoner.canonicalize(hashed_element).gsub('&','&amp;')
-        algorithm                     = digest_algorithm(REXML::XPath.first(ref, "//ds:DigestMethod"))
-        hash                          = Base64.encode64(algorithm.digest(canon_hashed_element)).chomp
-        digest_value                  = REXML::XPath.first(ref, "//ds:DigestValue", {"ds"=>DSIG}).text
+        digest_algorithm              = algorithm(REXML::XPath.first(ref, "//ds:DigestMethod"))
+        hash                          = digest_algorithm.digest(canon_hashed_element)
+        digest_value                  = Base64.decode64(REXML::XPath.first(ref, "//ds:DigestValue", {"ds"=>DSIG}).text)
 
         unless digests_match?(hash, digest_value)
           return soft ? false : (raise Onelogin::Saml::ValidationError.new("Digest mismatch"))
@@ -105,9 +105,9 @@ module XMLSecurity
       cert                    = OpenSSL::X509::Certificate.new(cert_text)
 
       # signature method
-      algorithm               = signature_algorithm(REXML::XPath.first(signed_info_element, "//ds:SignatureMethod"))
+      signature_algorithm     = algorithm(REXML::XPath.first(signed_info_element, "//ds:SignatureMethod"))
 
-      if !cert.public_key.verify(algorithm.new, signature, canon_string)
+      unless cert.public_key.verify(signature_algorithm.new, signature, canon_string)
         return soft ? false : (raise Onelogin::Saml::ValidationError.new("Key validation error"))
       end
 
@@ -125,17 +125,9 @@ module XMLSecurity
       self.signed_element_id  = reference_element.attribute("URI").value[1..-1] unless reference_element.nil?
     end
 
-    def digest_algorithm(element)
+    def algorithm(element)
       algorithm = element.attribute("Algorithm").value if element
-      algorithm && algorithm =~ /sha(256|384|512)$/ ? Digest::SHA2 : Digest::SHA1
-    end
-
-    def signature_algorithm(element)
-      algorithm = element.attribute("Algorithm").value if element
-      if algorithm
-        algorithm =~ /sha(.*?)$/i
-        algorithm = $1.to_i
-      end
+      algorithm = algorithm && algorithm =~ /sha(.*?)$/i && $1.to_i
       case algorithm
       when 256 then OpenSSL::Digest::SHA256
       when 384 then OpenSSL::Digest::SHA384
