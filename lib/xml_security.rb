@@ -45,9 +45,10 @@ module XMLSecurity
 
     def validate(idp_cert_fingerprint, soft = true)
       # get cert from response
-      base64_cert = REXML::XPath.first(self, "//ds:X509Certificate").text
-      cert_text   = Base64.decode64(base64_cert)
-      cert        = OpenSSL::X509::Certificate.new(cert_text)
+      cert_element = REXML::XPath.first(self, "//ds:X509Certificate", { "ds"=>DSIG })
+      base64_cert  = cert_element.text
+      cert_text    = Base64.decode64(base64_cert)
+      cert         = OpenSSL::X509::Certificate.new(cert_text)
 
       # check cert matches registered idp cert
       fingerprint = Digest::SHA1.hexdigest(cert.to_der)
