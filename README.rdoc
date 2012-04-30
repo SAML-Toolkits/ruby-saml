@@ -102,7 +102,7 @@ to the IdP settings.
     def metadata
       settings = Account.get_saml_settings
       meta = Onelogin::Saml::Metadata.new
-      render :xml => meta.generate(settings)
+      render :xml => meta.generate(settings), :content_type => "application/samlmetadata+xml"
     end
   end
 
