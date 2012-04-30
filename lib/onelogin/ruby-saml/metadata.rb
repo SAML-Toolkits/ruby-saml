@@ -3,7 +3,7 @@ require "rexml/xpath"
 require "uri"
 
 # Class to return SP metadata based on the settings requested.
-# Return this XML in a controller, then give that URL to the the 
+# Return this XML in a controller, then give that URL to the the
 # IdP administrator.  The IdP will poll the URL and your settings
 # will be updated automatically
 module Onelogin
@@ -12,10 +12,12 @@ module Onelogin
     class Metadata
       def generate(settings)
         meta_doc = REXML::Document.new
-        root = meta_doc.add_element "md:EntityDescriptor", { 
-            "xmlns:md" => "urn:oasis:names:tc:SAML:2.0:metadata" 
+        root = meta_doc.add_element "md:EntityDescriptor", {
+            "xmlns:md" => "urn:oasis:names:tc:SAML:2.0:metadata"
         }
-        sp_sso = root.add_element "md:SPSSODescriptor", { 
+        sp_sso = root.add_element "md:SPSSODescriptor", {
+            "AuthnRequestsSigned" => "false",
+            "WantsAssertionsSigned" => "true",
             "protocolSupportEnumeration" => "urn:oasis:names:tc:SAML:2.0:protocol"
         }
         if settings.issuer != nil
@@ -32,15 +34,12 @@ module Onelogin
               "Location" => settings.assertion_consumer_service_url
           }
         end
-        meta_doc << REXML::XMLDecl.new
+        meta_doc << REXML::XMLDecl.new("1.0", "UTF-8", "yes")
         ret = ""
         # pretty print the XML so IdP administrators can easily see what the SP supports
         meta_doc.write(ret, 1)
 
-        Logging.debug "Generated metadata:\n#{ret}"
-
         return ret
-
       end
     end
   end
