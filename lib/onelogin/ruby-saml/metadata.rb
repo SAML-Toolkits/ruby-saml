@@ -3,7 +3,7 @@ require "rexml/xpath"
 require "uri"
 
 # Class to return SP metadata based on the settings requested.
-# Return this XML in a controller, then give that URL to the the 
+# Return this XML in a controller, then give that URL to the the
 # IdP administrator.  The IdP will poll the URL and your settings
 # will be updated automatically
 module Onelogin
@@ -48,18 +48,17 @@ module Onelogin
               "index" => 0
           }
         end
+
         # With OpenSSO, it might be required to also include
         #  <md:RoleDescriptor xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:query="urn:oasis:names:tc:SAML:metadata:ext:query" xsi:type="query:AttributeQueryDescriptorType" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol"/>
         #  <md:XACMLAuthzDecisionQueryDescriptor WantAssertionsSigned="false" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol"/>
 
-        meta_doc << REXML::XMLDecl.new
+        meta_doc << REXML::XMLDecl.new("1.0", "UTF-8", "yes")
         ret = ""
         # pretty print the XML so IdP administrators can easily see what the SP supports
         meta_doc.write(ret, 1)
 
-        Logging.debug "Generated metadata:\n#{ret}"
-
-        ret
+        return ret
       end
     end
   end
