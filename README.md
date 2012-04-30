@@ -120,7 +120,7 @@ class SamlController < ApplicationController
   def metadata
     settings = Account.get_saml_settings
     meta = OneLogin::RubySaml::Metadata.new
-    render :xml => meta.generate(settings)
+    render :xml => meta.generate(settings), :content_type => "application/samlmetadata+xml"
   end
 end
 ```
