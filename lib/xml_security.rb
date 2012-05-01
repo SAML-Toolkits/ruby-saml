@@ -106,7 +106,7 @@ module XMLSecurity
       cert                    = OpenSSL::X509::Certificate.new(cert_text)
 
       # signature method
-      signature_algorithm     = algorithm(REXML::XPath.first(signed_info_element, "//ds:SignatureMethod"))
+      signature_algorithm     = algorithm(REXML::XPath.first(signed_info_element, "//ds:SignatureMethod", {"ds"=>DSIG}))
 
       unless cert.public_key.verify(signature_algorithm.new, signature, canon_string)
         return soft ? false : (raise Onelogin::Saml::ValidationError.new("Key validation error"))
