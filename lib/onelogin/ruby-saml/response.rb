@@ -73,6 +73,14 @@ module Onelogin
         end
       end
 
+      def not_before
+        @not_before ||= parse_time(conditions, "NotBefore")
+      end
+
+      def not_on_or_after
+        @not_on_or_after ||= parse_time(conditions, "NotOnOrAfter")
+      end
+
       def issuer
         @issuer ||= begin
           node = REXML::XPath.first(document, "/p:Response/a:Issuer", { "p" => PROTOCOL, "a" => ASSERTION })
@@ -121,16 +129,14 @@ module Onelogin
         return true if conditions.nil?
         return true if options[:skip_conditions]
 
-        if not_before = parse_time(conditions, "NotBefore")
-          if Time.now.utc < not_before
-            return soft ? false : validation_error("Current time is earlier than NotBefore condition")
-          end
+        now = Time.now.utc
+
+        if not_before && (now + (options[:allowed_clock_drift] || 0)) < not_before
+          return soft ? false : validation_error("Current time is earlier than NotBefore condition")
         end
 
-        if not_on_or_after = parse_time(conditions, "NotOnOrAfter")
-          if Time.now.utc >= not_on_or_after
-            return soft ? false : validation_error("Current time is on or after NotOnOrAfter condition")
-          end
+        if not_on_or_after && now >= not_on_or_after
+          return soft ? false : validation_error("Current time is on or after NotOnOrAfter condition")
         end
 
         true

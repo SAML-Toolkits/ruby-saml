@@ -38,7 +38,7 @@ In the above there are a few assumptions in place, one being that the response.n
       settings.name_identifier_format         = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
       # Optional for most SAML IdPs
       settings.authn_context = "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport"
-      
+
       settings
     end
 
@@ -74,7 +74,7 @@ What's left at this point, is to wrap it all up in a controller and point the in
       settings.name_identifier_format         = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
       # Optional for most SAML IdPs
       settings.authn_context = "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport"
-      
+
       settings
     end
   end
@@ -93,7 +93,7 @@ To form a trusted pair relationship with the IdP, the SP (you) need to provide m
 to the IdP for various good reasons.  (Caching, certificate lookups, relying party permissions, etc)
 
 The class Onelogin::Saml::Metdata takes care of this by reading the Settings and returning XML.  All
-you have to do is add a controller to return the data, then give this URL to the IdP administrator.  
+you have to do is add a controller to return the data, then give this URL to the IdP administrator.
 The metdata will be polled by the IdP every few minutes, so updating your settings should propagate
 to the IdP settings.
 
@@ -105,6 +105,19 @@ to the IdP settings.
       render :xml => meta.generate(settings)
     end
   end
+
+
+== Clock Drift
+
+Server clocks tend to drift naturally. If during validation of the response you get the error "Current time is earlier than NotBefore condition" then this may be due to clock differences between your system and that of the Identity Provider.
+
+First, ensure that both systems synchronize their clocks, using e.g. industry standard NTP -- http://en.wikipedia.org/wiki/Network_Time_Protocol.
+
+Even then you may experience intermittent issues though, because the clock of the Identity Provider may drift slightly ahead of your system clocks. To allow for a small amount of clock drift you can initialize the response passing in an option named :allowed_clock_drift. Its value must be given in a number (and/or fraction) of seconds. The value given is added to the current time at which the response is validated before it's tested against the NotBefore assertion. For example:
+
+  response = Onelogin::Saml::Response.new(params[:SAMLResponse], :allowed_clock_drift => 1)
+
+Make sure to keep the value as comfortably small as possible to keep security risks to a minimum.
 
 
 = Full Example
