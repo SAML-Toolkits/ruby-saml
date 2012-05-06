@@ -131,7 +131,7 @@ module Onelogin
 
         now = Time.now.utc
 
-        if not_before && now < not_before
+        if not_before && (now + (options[:allowed_clock_drift] || 0)) < not_before
           return soft ? false : validation_error("Current time is earlier than NotBefore condition")
         end
 
