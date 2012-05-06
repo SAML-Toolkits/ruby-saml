@@ -184,6 +184,17 @@ class RubySamlTest < Test::Unit::TestCase
         response = Onelogin::Saml::Response.new(response_document_5)
         assert response.send(:validate_conditions, true)
       end
+
+      should "optionally allow for clock drift" do
+        # The NotBefore condition in the document is 2011-06-14T18:21:01.516Z
+        Time.stubs(:now).returns(Time.parse("2011-06-14T18:21:01Z"))
+        response = Onelogin::Saml::Response.new(response_document_5, :allowed_clock_drift => 0.515)
+        assert !response.send(:validate_conditions, true)
+
+        Time.stubs(:now).returns(Time.parse("2011-06-14T18:21:01Z"))
+        response = Onelogin::Saml::Response.new(response_document_5, :allowed_clock_drift => 0.516)
+        assert response.send(:validate_conditions, true)
+      end
     end
 
     context "#attributes" do
