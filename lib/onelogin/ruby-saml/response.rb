@@ -76,6 +76,7 @@ module Onelogin
       def issuer
         @issuer ||= begin
           node = REXML::XPath.first(document, "/p:Response/a:Issuer", { "p" => PROTOCOL, "a" => ASSERTION })
+          node ||= REXML::XPath.first(document, "/p:Response/a:Assertion/a:Issuer", { "p" => PROTOCOL, "a" => ASSERTION })
           node.nil? ? nil : node.text
         end
       end

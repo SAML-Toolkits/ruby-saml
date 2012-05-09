@@ -181,7 +181,12 @@ class RubySamlTest < Test::Unit::TestCase
     end
 
     context "#issuer" do
-      should "return the issuer of the assertion" do
+      should "return the issuer inside the response assertion" do
+        response = Onelogin::Saml::Response.new(response_document)
+        assert_equal "https://app.onelogin.com/saml/metadata/13590", response.issuer
+      end
+      
+      should "return the issuer inside the response" do
         response = Onelogin::Saml::Response.new(response_document_2)
         assert_equal "wibble", response.issuer
       end
