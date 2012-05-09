@@ -68,5 +68,37 @@ class XmlSecurityTest < Test::Unit::TestCase
       assert @document.validate("F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72")
     end
   end
-
+  
+  context "XmlSecurity::SignedDocument" do
+    
+    context "#extract_inclusive_namespaces" do
+      should "support explicit namespace resolution for exclusive canonicalization" do
+        response = fixture(:open_saml_response, false)
+        document = XMLSecurity::SignedDocument.new(response)
+        inclusive_namespaces = document.send(:extract_inclusive_namespaces)
+        
+        assert_equal %w[ xs ], inclusive_namespaces
+      end
+      
+      should "support implicit namespace resolution for exclusive canonicalization" do
+        response = fixture(:no_signature_ns, false)
+        document = XMLSecurity::SignedDocument.new(response)
+        inclusive_namespaces = document.send(:extract_inclusive_namespaces)
+        
+        assert_equal %w[ #default saml ds xs xsi ], inclusive_namespaces
+      end
+      
+      should "return an empty list when inclusive namespace element is missing" do
+        response = fixture(:no_signature_ns, false)
+        response.slice! %r{<InclusiveNamespaces xmlns="http://www.w3.org/2001/10/xml-exc-c14n#" PrefixList="#default saml ds xs xsi"/>}
+        
+        document = XMLSecurity::SignedDocument.new(response)
+        inclusive_namespaces = document.send(:extract_inclusive_namespaces)
+        
+        assert inclusive_namespaces.empty?
+      end
+    end
+    
+  end
+  
 end

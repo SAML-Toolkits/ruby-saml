@@ -34,6 +34,7 @@ require "onelogin/ruby-saml/validation_error"
 module XMLSecurity
 
   class SignedDocument < REXML::Document
+    C14N = "http://www.w3.org/2001/10/xml-exc-c14n#"
     DSIG = "http://www.w3.org/2000/09/xmldsig#"
 
     attr_accessor :signed_element_id
@@ -64,14 +65,7 @@ module XMLSecurity
       # validate references
 
       # check for inclusive namespaces
-
-      inclusive_namespaces            = []
-      inclusive_namespace_element     = REXML::XPath.first(self, "//ec:InclusiveNamespaces")
-
-      if inclusive_namespace_element
-        prefix_list                   = inclusive_namespace_element.attributes.get_attribute('PrefixList').value
-        inclusive_namespaces          = prefix_list.split(" ")
-      end
+      inclusive_namespaces = extract_inclusive_namespaces
 
       # remove signature node
       sig_element = REXML::XPath.first(self, "//ds:Signature", {"ds"=>DSIG})
@@ -135,6 +129,15 @@ module XMLSecurity
       when 512 then OpenSSL::Digest::SHA512
       else
         OpenSSL::Digest::SHA1
+      end
+    end
+    
+    def extract_inclusive_namespaces
+      if element = REXML::XPath.first(self, "//ec:InclusiveNamespaces", { "ec" => C14N })
+        prefix_list = element.attributes.get_attribute("PrefixList").value
+        prefix_list.split(" ")
+      else
+        []
       end
     end
 
