@@ -36,7 +36,7 @@ module XMLSecurity
   class SignedDocument < REXML::Document
     DSIG = "http://www.w3.org/2000/09/xmldsig#"
 
-    attr_accessor :signed_element_id
+    attr_accessor :signed_element_id, :sig_element
 
     def initialize(response)
       super(response)
@@ -73,9 +73,11 @@ module XMLSecurity
         inclusive_namespaces          = prefix_list.split(" ")
       end
 
-      # remove signature node
-      sig_element = REXML::XPath.first(self, "//ds:Signature", {"ds"=>DSIG})
-      sig_element.remove
+      # store and remove signature node
+      self.sig_element ||= begin
+        element = REXML::XPath.first(self, "//ds:Signature", {"ds"=>DSIG})
+        element.remove
+      end
 
       # check digests
       REXML::XPath.each(sig_element, "//ds:Reference", {"ds"=>DSIG}) do |ref|
