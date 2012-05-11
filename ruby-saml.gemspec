@@ -23,29 +23,12 @@ Gem::Specification.new do |s|
   s.summary = %q{SAML Ruby Tookit}
   s.test_files = `git ls-files test/*`.split("\n")
 
-  if s.respond_to? :specification_version then
-    current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION
-    s.specification_version = 3
+  s.add_runtime_dependency("canonix", ["0.1.1"])
+  s.add_runtime_dependency("uuid", ["~> 2.3"])
 
-    if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
-      s.add_runtime_dependency(%q<canonix>, ["~> 0.1"])
-      s.add_runtime_dependency(%q<uuid>, ["~> 2.3"])
-      s.add_development_dependency(%q<shoulda>, [">= 0"])
-      s.add_development_dependency(%q<ruby-debug>, [">= 0"])
-      s.add_development_dependency(%q<mocha>, [">= 0"])
-    else
-      s.add_dependency(%q<canonix>, ["~> 0.1"])
-      s.add_dependency(%q<uuid>, ["~> 2.3"])
-      s.add_dependency(%q<shoulda>, [">= 0"])
-      s.add_dependency(%q<ruby-debug>, [">= 0"])
-      s.add_dependency(%q<mocha>, [">= 0"])
-    end
-  else
-    s.add_dependency(%q<canonix>, ["~> 0.1"])
-    s.add_dependency(%q<uuid>, ["~> 2.3"])
-    s.add_dependency(%q<shoulda>, [">= 0"])
-    s.add_dependency(%q<ruby-debug>, [">= 0"])
-    s.add_dependency(%q<mocha>, [">= 0"])
-  end
+  s.add_development_dependency("shoulda", [">= 0"])
+  s.add_development_dependency("rake", [">= 0"])
+  s.add_development_dependency("ruby-debug", [">= 0"])
+  s.add_development_dependency("mocha", [">= 0"])
 end
 

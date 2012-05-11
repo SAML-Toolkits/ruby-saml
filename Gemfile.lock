@@ -1,6 +1,14 @@
+PATH
+  remote: .
+  specs:
+    ruby-saml (0.5.3)
+      canonix (= 0.1.1)
+      uuid (~> 2.3)
+
 GEM
   remote: http://rubygems.org/
   specs:
+    canonix (0.1.1)
     columnize (0.3.6)
     linecache (0.46)
       rbx-require-relative (> 0.0.4)
@@ -9,7 +17,7 @@ GEM
     metaclass (0.0.1)
     mocha (0.10.5)
       metaclass (~> 0.0.1)
-    rake (0.8.7)
+    rake (0.9.2.2)
     rbx-require-relative (0.0.9)
     ruby-debug (0.10.4)
       columnize (>= 0.1)
@@ -24,15 +32,13 @@ GEM
     systemu (2.5.0)
     uuid (2.3.5)
       macaddr (~> 1.0)
-    xmlcanonicalizer (0.1.1)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
-  mocha (~> 0.10.5)
+  mocha
   rake
-  ruby-debug (~> 0.10.4)
-  shoulda (~> 3.0.1)
-  uuid (~> 2.3.5)
-  xmlcanonicalizer (~> 0.1.1)
+  ruby-debug
+  ruby-saml!
+  shoulda
