@@ -25,10 +25,5 @@ Gem::Specification.new do |s|
 
   s.add_runtime_dependency("canonix", ["0.1.1"])
   s.add_runtime_dependency("uuid", ["~> 2.3"])
-
-  s.add_development_dependency("shoulda", [">= 0"])
-  s.add_development_dependency("rake", [">= 0"])
-  s.add_development_dependency("ruby-debug", [">= 0"])
-  s.add_development_dependency("mocha", [">= 0"])
 end
 
