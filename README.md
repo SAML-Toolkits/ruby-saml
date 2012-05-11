@@ -33,19 +33,19 @@ Once you've redirected back to the identity provider, it will ensure that the us
 In the above there are a few assumptions in place, one being that the response.name_id is an email address. This is all handled with how you specify the settings that are in play via the saml_settings method. That could be implemented along the lines of this:
 
 ```ruby
-    def saml_settings
-      settings = Onelogin::Saml::Settings.new
+  def saml_settings
+    settings = Onelogin::Saml::Settings.new
 
-      settings.assertion_consumer_service_url = "http://#{request.host}/saml/finalize"
-      settings.issuer                         = request.host
-      settings.idp_sso_target_url             = "https://app.onelogin.com/saml/signon/#{OneLoginAppId}"
-      settings.idp_cert_fingerprint           = OneLoginAppCertFingerPrint
-      settings.name_identifier_format         = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
-      # Optional for most SAML IdPs
-      settings.authn_context = "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport"
+    settings.assertion_consumer_service_url = "http://#{request.host}/saml/finalize"
+    settings.issuer                         = request.host
+    settings.idp_sso_target_url             = "https://app.onelogin.com/saml/signon/#{OneLoginAppId}"
+    settings.idp_cert_fingerprint           = OneLoginAppCertFingerPrint
+    settings.name_identifier_format         = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+    # Optional for most SAML IdPs
+    settings.authn_context = "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport"
 
-      settings
-    end
+    settings
+  end
 ```
 
 What's left at this point, is to wrap it all up in a controller and point the initialization and consumption URLs in OneLogin at that. A full controller example could look like this:
