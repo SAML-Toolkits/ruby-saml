@@ -107,6 +107,16 @@ class RubySamlTest < Test::Unit::TestCase
         response.settings = settings
         assert response.validate!
       end
+
+      should "validate Okta xxxx assertions" do
+        response = Onelogin::Saml::Response.new(fixture("okta_response"))
+        response.stubs(:conditions).returns(nil)
+        settings = Onelogin::Saml::Settings.new
+        settings.idp_cert_fingerprint = "04104a67fe96453182bd59584171861f429bcdb4"
+        response.settings = settings
+
+        assert response.validate!
+      end
     end
 
     context "#name_id" do

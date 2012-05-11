@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<saml2p:Response xmlns:saml2p="urn:oasis:names:tc:SAML:2.0:protocol" Destination="https://example.com/saml" ID="id2482885801599192095686896" IssueInstant="2012-05-11T17:11:35.835Z" Version="2.0">
+  <saml2:Issuer xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion" Format="urn:oasis:names:tc:SAML:2.0:nameid-format:entity">hello</saml2:Issuer>
+  <saml2p:Status xmlns:saml2p="urn:oasis:names:tc:SAML:2.0:protocol">
+    <saml2p:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success"/>
+  </saml2p:Status>
+  <saml2:Assertion xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion" ID="id2482885802889191021584798" IssueInstant="2012-05-11T17:11:35.835Z" Version="2.0">
+    <saml2:Issuer xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion" Format="urn:oasis:names:tc:SAML:2.0:nameid-format:entity">hello</saml2:Issuer>
+    <ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+      <ds:SignedInfo>
+        <ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+        <ds:SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
+        <ds:Reference URI="#id2482885802889191021584798">
+          <ds:Transforms>
+            <ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+            <ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#">
+              <ec:InclusiveNamespaces xmlns:ec="http://www.w3.org/2001/10/xml-exc-c14n#" PrefixList="ds saml2"/>
+            </ds:Transform>
+          </ds:Transforms>
+          <ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+          <ds:DigestValue>h30n8fWZFh0HpTokR3whMugIO/c=</ds:DigestValue>
+        </ds:Reference>
+      </ds:SignedInfo>
+      <ds:SignatureValue>
+ta9Gm7pItaqqfmvc0k7p9ab0US13f/I+jlWNRY76rqugJlqNdAfa48LZIbob/pON3f4jbkDiZh7M
+yqpyelDMJkdzH4k5bC77GWvfWdwT3M42ijz1B9tQHlLjsed7eEsGL/SuS1+qcK5dK4U740skF6DQ
+oJcCBJpeAQVra+lSlzo=
+</ds:SignatureValue>
+      <ds:KeyInfo>
+        <ds:X509Data>
+          <ds:X509Certificate>MIICmzCCAgSgAwIBAgIGATcUfymDMA0GCSqGSIb3DQEBBQUAMIGQMQswCQYDVQQGEwJVUzETMBEG
+A1UECAwKQ2FsaWZvcm5pYTEWMBQGA1UEBwwNU2FuIEZyYW5jaXNjbzENMAsGA1UECgwET2t0YTEU
+MBIGA1UECwwLU1NPUHJvdmlkZXIxETAPBgNVBAMMCHNia2lubmV5MRwwGgYJKoZIhvcNAQkBFg1p
+bmZvQG9rdGEuY29tMB4XDTEyMDUwMzIwNTcyN1oXDTQyMDUwMzIwNTgyN1owgZAxCzAJBgNVBAYT
+AlVTMRMwEQYDVQQIDApDYWxpZm9ybmlhMRYwFAYDVQQHDA1TYW4gRnJhbmNpc2NvMQ0wCwYDVQQK
+DARPa3RhMRQwEgYDVQQLDAtTU09Qcm92aWRlcjERMA8GA1UEAwwIc2JraW5uZXkxHDAaBgkqhkiG
+9w0BCQEWDWluZm9Ab2t0YS5jb20wgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALvY5zl0OyfN
+acgvtz1EVCK138kQGrHLfED5sl468VJUYY3p79bvjooQ7TPDXoI4/DyvWQDdivxeLGXB2ilAQMXL
+8vTiZ0S1UmdPeqUxKqxf5Ut4GMb0oea0vWEPCpYyBXWfM8ccIOBfqfn6tCUq82WylLHlXbrEOE5N
+qnhDlQGrAgMBAAEwDQYJKoZIhvcNAQEFBQADgYEAXdQiwRsaHZvpfsXUVsBwyeNCZXMllHpqhRCZ
+GdA+7neUtJltloVn17JLm8AD/+VvG5IQ561dLu6lY+H81WSasQZQR/8sKf2wbkATN+HgOa7eMTol
+5nRXabElTWiZuagtzibRCW5fZE6/0uvp0EVHUoEz6qzP2ep++11vCNppCnk=</ds:X509Certificate>
+        </ds:X509Data>
+      </ds:KeyInfo>
+    </ds:Signature>
+    <saml2:Subject xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion">
+      <saml2:NameID>joe@example.org</saml2:NameID>
+      <saml2:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer">
+        <saml2:SubjectConfirmationData NotOnOrAfter="2012-05-11T17:16:35.836Z" Recipient="https://example.com/saml"/>
+      </saml2:SubjectConfirmation>
+    </saml2:Subject>
+    <saml2:Conditions xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion" NotBefore="2012-05-11T17:06:35.836Z" NotOnOrAfter="2012-05-11T17:16:35.836Z">
+      <saml2:AudienceRestriction>
+        <saml2:Audience>example.com</saml2:Audience>
+      </saml2:AudienceRestriction>
+    </saml2:Conditions>
+    <saml2:AuthnStatement xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion" AuthnInstant="2012-05-11T17:11:35.835Z" SessionIndex="id1336756295835.416493559">
+      <saml2:AuthnContext>
+        <saml2:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport</saml2:AuthnContextClassRef>
+      </saml2:AuthnContext>
+    </saml2:AuthnStatement>
+  </saml2:Assertion>
+</saml2p:Response>
