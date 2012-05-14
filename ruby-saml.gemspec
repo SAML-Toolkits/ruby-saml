@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.email = %q{support@onelogin.com}
   s.extra_rdoc_files = [
     "LICENSE",
-     "README.rdoc"
+     "README.md"
   ]
   s.files = `git ls-files`.split("\n")
   s.homepage = %q{http://github.com/onelogin/ruby-saml}
