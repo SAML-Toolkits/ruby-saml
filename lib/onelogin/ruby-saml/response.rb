@@ -15,7 +15,16 @@ module Onelogin
         raise ArgumentError.new("Response cannot be nil") if response.nil?
         self.options  = options
         self.response = response
-        self.document = XMLSecurity::SignedDocument.new(Base64.decode64(response))
+
+        begin
+          self.document = XMLSecurity::SignedDocument.new(Base64.decode64(response))
+        rescue REXML::ParseException => e
+          if response =~ /</
+            self.document = XMLSecurity::SignedDocument.new(response)
+          else
+            raise e
+          end
+        end
       end
 
       def is_valid?

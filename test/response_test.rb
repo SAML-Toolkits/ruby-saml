@@ -27,6 +27,12 @@ class RubySamlTest < Test::Unit::TestCase
       assert !response.name_id.nil?
     end
 
+    should "default to raw input when a response is not Base64 encoded" do
+      decoded  = Base64.decode64(response_document_2)
+      response = Onelogin::Saml::Response.new(decoded)
+      assert response.document
+    end
+
     context "Assertion" do
       should "only retreive an assertion with an ID that matches the signature's reference URI" do
         response = Onelogin::Saml::Response.new(wrapped_response_2)
