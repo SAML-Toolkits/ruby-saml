@@ -9,7 +9,7 @@ SAML authorization is a two step process and you are expected to implement suppo
 This is the first request you will get from the identity provider. It will hit your application at a specific URL (that you've announced as being your SAML initialization point). The response to this initialization, is a redirect back to the identity provider, which can look something like this (ignore the saml_settings method call for now):
 
 ```ruby
-    def initialize
+    def init
       request = Onelogin::Saml::Authrequest.new
       redirect_to(request.create(saml_settings))
     end
@@ -51,9 +51,9 @@ In the above there are a few assumptions in place, one being that the response.n
 What's left at this point, is to wrap it all up in a controller and point the initialization and consumption URLs in OneLogin at that. A full controller example could look like this:
 
 ```ruby
-  # This controller expects you to use the URLs /saml/initialize and /saml/consume in your OneLogin application.
+  # This controller expects you to use the URLs /saml/init and /saml/consume in your OneLogin application.
   class SamlController < ApplicationController
-    def initialize
+    def init
       request = Onelogin::Saml::Authrequest.new
       redirect_to(request.create(saml_settings))
     end
