@@ -192,6 +192,18 @@ class RubySamlTest < Test::Unit::TestCase
         assert_equal "wibble", response.issuer
       end
     end
+    
+    context "#conditions" do
+      should "work when the signed element id references the Assertion element" do
+        response = Onelogin::Saml::Response.new(response_document)
+        assert_equal "Conditions", response.conditions.name
+      end
+      
+      should "work when the singned element id refrences the Response element" do
+        response = Onelogin::Saml::Response.new(fixture(:open_saml_response))
+        assert_equal "Conditions", response.conditions.name
+      end
+    end
 
   end
 end
