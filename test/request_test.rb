@@ -19,6 +19,18 @@ class RequestTest < Test::Unit::TestCase
       assert_match /^<samlp:AuthnRequest/, inflated
     end
 
+    should "create the SAMLRequest URL parameter without deflating" do
+      settings = Onelogin::Saml::Settings.new
+      settings.compress_request = false
+      settings.idp_sso_target_url = "http://example.com"
+      auth_url = Onelogin::Saml::Authrequest.new.create(settings)
+      assert auth_url =~ /^http:\/\/example\.com\?SAMLRequest=/
+      payload  = CGI.unescape(auth_url.split("=").last)
+      decoded  = Base64.decode64(payload)
+
+      assert_match /^<samlp:AuthnRequest/, decoded
+    end
+
     should "accept extra parameters" do
       settings = Onelogin::Saml::Settings.new
       settings.idp_sso_target_url = "http://example.com"
