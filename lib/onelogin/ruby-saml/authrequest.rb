@@ -32,7 +32,7 @@ module Onelogin
 
       def create_authentication_xml_doc(settings)
         uuid = "_" + UUID.new.generate
-        time = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
+        time = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%S")
         # Create AuthnRequest root element using REXML 
         request_doc = REXML::Document.new
 
