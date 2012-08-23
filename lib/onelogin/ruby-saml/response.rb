@@ -1,6 +1,8 @@
 require "xml_security"
 require "time"
+require "nokogiri"
 
+# Only supports SAML 2.0
 module Onelogin
   module Saml
 
@@ -28,11 +30,11 @@ module Onelogin
       end
 
       def is_valid?
-        validate(soft = true)
+        validate
       end
 
       def validate!
-        validate(soft = false)
+        validate(false)
       end
 
       # The value of the user identifier as designated by the initialization request response
@@ -96,9 +98,22 @@ module Onelogin
       end
 
       def validate(soft = true)
+        validate_structure(soft)      &&
         validate_response_state(soft) &&
         validate_conditions(soft)     &&
         document.validate(get_fingerprint, soft)
+      end
+
+      def validate_structure(soft = true)
+        Dir.chdir(File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'schemas'))) do
+          @schema = Nokogiri::XML::Schema(IO.read('saml20protocol_schema.xsd'))
+          @xml = Nokogiri::XML(self.document.to_s)
+        end
+        if soft
+          @schema.validate(@xml).map{ return false }
+        else
+          @schema.validate(@xml).map{ |error| raise(Exception.new("#{error.message}\n\n#{@xml.to_s}")) }
+        end
       end
 
       def validate_response_state(soft = true)
