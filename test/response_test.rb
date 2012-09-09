@@ -192,6 +192,13 @@ class RubySamlTest < Test::Unit::TestCase
         assert_equal "wibble", response.issuer
       end
     end
+    
+    context "#success" do
+      should "find a status code that says success" do
+        response = Onelogin::Saml::Response.new(response_document)
+        response.success?
+      end
+    end
 
   end
 end
