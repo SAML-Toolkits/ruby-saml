@@ -10,8 +10,29 @@ module Onelogin
   include REXML
     class Authrequest
       def create(settings, params = {})
+        request_doc = create_authentication_xml_doc(settings)
+
+        request = ""
+        request_doc.write(request)
+
+        Logging.debug "Created AuthnRequest: #{request}"
+
+        deflated_request  = Zlib::Deflate.deflate(request, 9)[2..-5]
+        base64_request    = Base64.encode64(deflated_request)
+        encoded_request   = CGI.escape(base64_request)
+        params_prefix     = (settings.idp_sso_target_url =~ /\?/) ? '&' : '?'
+        request_params    = "#{params_prefix}SAMLRequest=#{encoded_request}"
+
+        params.each_pair do |key, value|
+          request_params << "&#{key}=#{CGI.escape(value.to_s)}"
+        end
+
+        settings.idp_sso_target_url + request_params
+      end
+
+      def create_authentication_xml_doc(settings)
         uuid = "_" + UUID.new.generate
-        time = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
+        time = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%S")
         # Create AuthnRequest root element using REXML 
         request_doc = REXML::Document.new
 
@@ -50,23 +71,7 @@ module Onelogin
           }
           class_ref.text = settings.authn_context
         end
-
-        request = ""
-        request_doc.write(request)
-
-        Logging.debug "Created AuthnRequest: #{request}"
-
-        deflated_request  = Zlib::Deflate.deflate(request, 9)[2..-5]
-        base64_request    = Base64.encode64(deflated_request)
-        encoded_request   = CGI.escape(base64_request)
-        params_prefix     = (settings.idp_sso_target_url =~ /\?/) ? '&' : '?'
-        request_params    = "#{params_prefix}SAMLRequest=#{encoded_request}"
-
-        params.each_pair do |key, value|
-          request_params << "&#{key}=#{CGI.escape(value.to_s)}"
-        end
-
-        settings.idp_sso_target_url + request_params
+        request_doc
       end
 
     end
