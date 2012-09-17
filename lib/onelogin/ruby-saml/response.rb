@@ -76,6 +76,14 @@ module Onelogin
           parse_time(node, "SessionNotOnOrAfter")
         end
       end
+      
+      # Checks the status of the response for a "Success" code
+      def success?
+        @status_code ||= begin
+          node = REXML::XPath.first(document, "/p:Response/p:Status/p:StatusCode", { "p" => PROTOCOL, "a" => ASSERTION })
+          node.attributes["Value"] == "urn:oasis:names:tc:SAML:2.0:status:Success"
+        end
+      end
 
       # Conditions (if any) for the assertion to run
       def conditions
@@ -101,7 +109,8 @@ module Onelogin
         validate_structure(soft)      &&
         validate_response_state(soft) &&
         validate_conditions(soft)     &&
-        document.validate(get_fingerprint, soft)
+        document.validate(get_fingerprint, soft) && 
+        success?
       end
 
       def validate_structure(soft = true)
