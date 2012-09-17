@@ -19,6 +19,12 @@ class XmlSecurityTest < Test::Unit::TestCase
         @document.validate_doc(@base64cert, false)
       end
     end
+    
+    should "not raise an error when softly validating the document multiple times" do
+      assert_nothing_raised do
+        2.times { @document.validate_doc(@base64cert, true) }
+      end
+    end
 
     should "should raise Fingerprint mismatch" do
       exception = assert_raise(Onelogin::Saml::ValidationError) do
