@@ -113,6 +113,16 @@ class RubySamlTest < Test::Unit::TestCase
         response.settings = settings
         assert response.validate!
       end
+
+      should "validate SAML 2.0 XML structure" do
+        resp_xml = Base64.decode64(response_document_4).gsub(/emailAddress/,'test')
+        response = Onelogin::Saml::Response.new(Base64.encode64(resp_xml))
+        response.stubs(:conditions).returns(nil)
+        settings = Onelogin::Saml::Settings.new
+        settings.idp_cert_fingerprint = signature_fingerprint_1
+        response.settings = settings
+        assert_raises(Onelogin::Saml::ValidationError, 'Digest mismatch'){ response.validate! }
+      end
     end
 
     context "#name_id" do

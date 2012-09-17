@@ -8,4 +8,5 @@ group :test do
   gem "shoulda"
   gem "rake"
   gem "mocha"
+  gem "nokogiri"
 end
