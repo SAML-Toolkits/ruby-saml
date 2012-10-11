@@ -26,7 +26,8 @@ require 'rubygems'
 require "rexml/document"
 require "rexml/xpath"
 require "openssl"
-require "xmlcanonicalizer"
+require 'nokogiri'
+require 'xmlcanonicalizer'
 require "digest/sha1"
 require "digest/sha2"
 require "onelogin/ruby-saml/validation_error"
@@ -73,14 +74,18 @@ module XMLSecurity
         element.remove
       end
 
+      document = Nokogiri.parse(self.to_s)
+
       # check digests
       REXML::XPath.each(sig_element, "//ds:Reference", {"ds"=>DSIG}) do |ref|
         uri                           = ref.attributes.get_attribute("URI").value
-        hashed_element                = REXML::XPath.first(self, "//[@ID='#{uri[1..-1]}']")
-        canoner                       = XML::Util::XmlCanonicalizer.new(false, true)
-        canoner.inclusive_namespaces  = inclusive_namespaces if canoner.respond_to?(:inclusive_namespaces) && !inclusive_namespaces.empty?
-        canon_hashed_element          = canoner.canonicalize(hashed_element).gsub('&','&amp;')
+
+        hashed_element                = document.at_xpath("//*[@ID='#{uri[1..-1]}']")
+        canon_algorithm               = canon_algorithm REXML::XPath.first(ref, '//ds:CanonicalizationMethod').attribute('Algorithm').value
+        canon_hashed_element          = hashed_element.canonicalize(canon_algorithm, inclusive_namespaces).gsub('&','&amp;')
+
         digest_algorithm              = algorithm(REXML::XPath.first(ref, "//ds:DigestMethod"))
+
         hash                          = digest_algorithm.digest(canon_hashed_element)
         digest_value                  = Base64.decode64(REXML::XPath.first(ref, "//ds:DigestValue", {"ds"=>DSIG}).text)
 
@@ -122,6 +127,14 @@ module XMLSecurity
       self.signed_element_id  = reference_element.attribute("URI").value[1..-1] unless reference_element.nil?
     end
 
+    def canon_algorithm(algorithm)
+      case algorithm
+        when "http://www.w3.org/2001/10/xml-exc-c14n#"         then Nokogiri::XML::XML_C14N_EXCLUSIVE_1_0
+        when "http://www.w3.org/TR/2001/REC-xml-c14n-20010315" then Nokogiri::XML::XML_C14N_1_0
+        when "http://www.w3.org/2006/12/xml-c14n11"            then Nokogiri::XML::XML_C14N_1_1
+      end
+    end
+
     def algorithm(element)
       algorithm = element.attribute("Algorithm").value if element
       algorithm = algorithm && algorithm =~ /sha(.*?)$/i && $1.to_i
@@ -133,7 +146,7 @@ module XMLSecurity
         OpenSSL::Digest::SHA1
       end
     end
-    
+
     def extract_inclusive_namespaces
       if element = REXML::XPath.first(self, "//ec:InclusiveNamespaces", { "ec" => C14N })
         prefix_list = element.attributes.get_attribute("PrefixList").value
