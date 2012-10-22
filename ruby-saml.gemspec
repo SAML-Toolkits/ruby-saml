@@ -2,7 +2,7 @@ $LOAD_PATH.push File.expand_path('../lib', __FILE__)
 require 'onelogin/ruby-saml/version'
 
 Gem::Specification.new do |s|
-  s.name = 'ruby-saml'
+  s.name = 'ruby-saml-uppercase'
   s.version = Onelogin::Saml::VERSION
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
@@ -26,4 +26,3 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency("canonix", ["0.1.1"])
   s.add_runtime_dependency("uuid", ["~> 2.3"])
 end
-
