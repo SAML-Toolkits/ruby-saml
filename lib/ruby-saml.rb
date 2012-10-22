@@ -1,5 +1,6 @@
 require 'onelogin/ruby-saml/logging'
 require 'onelogin/ruby-saml/authrequest'
+require 'onelogin/ruby-saml/logoutrequest'
 require 'onelogin/ruby-saml/response'
 require 'onelogin/ruby-saml/settings'
 require 'onelogin/ruby-saml/validation_error'
