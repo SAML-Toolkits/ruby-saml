@@ -79,7 +79,7 @@ class RequestTest < Test::Unit::TestCase
         unauth_url = unauth_req.create(settings)
 
         inflated = decode_saml_request_payload(unauth_url)
-        assert_match %r[LogoutRequest ID='#{unauth_req.uuid}'], inflated
+        assert_match %r[ID='#{unauth_req.uuid}'], inflated
       end
     end
   end
