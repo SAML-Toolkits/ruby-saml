@@ -93,7 +93,20 @@ class XmlSecurityTest < Test::Unit::TestCase
         
         assert_equal %w[ #default saml ds xs xsi ], inclusive_namespaces
       end
-      
+
+      should_eventually 'support inclusive canonicalization' do
+
+        response = Onelogin::Saml::Response.new(fixture("tdnf_response.xml"))
+        response.stubs(:conditions).returns(nil)
+        assert !response.is_valid?
+        settings = Onelogin::Saml::Settings.new
+        assert !response.is_valid?
+        response.settings = settings
+        assert !response.is_valid?
+        settings.idp_cert_fingerprint = "e6 38 9a 20 b7 4f 13 db 6a bc b1 42 6a e7 52 1d d6 56 d4 1b".upcase.gsub(" ", ":")
+        assert response.validate!
+      end
+
       should "return an empty list when inclusive namespace element is missing" do
         response = fixture(:no_signature_ns, false)
         response.slice! %r{<InclusiveNamespaces xmlns="http://www.w3.org/2001/10/xml-exc-c14n#" PrefixList="#default saml ds xs xsi"/>}
