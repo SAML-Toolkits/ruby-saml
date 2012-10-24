@@ -13,6 +13,7 @@ module Onelogin
       attr_accessor :idp_slo_target_url
       attr_accessor :name_identifier_value
       attr_accessor :sessionindex
+      attr_accessor :assertion_consumer_logout_service_url
     end
   end
 end
