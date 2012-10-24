@@ -92,19 +92,19 @@ module Onelogin
 
       def valid_state?(soft = true)
         if response.empty?
-          return soft ? false : ValidationError.new("Blank response")
+          return soft ? false : validation_error("Blank response")
         end
 
         if settings.nil?
-          return soft ? false : ValidationError.new("No settings on response")
+          return soft ? false : validation_error("No settings on response")
         end
 
         if settings.issuer.nil?
-          return soft ? false : ValidationError.new("No issuer in settings")
+          return soft ? false : validation_error("No issuer in settings")
         end
 
         if settings.idp_cert_fingerprint.nil? && settings.idp_cert.nil?
-          return soft ? false : ValidationError.new("No fingerprint or certificate on settings")
+          return soft ? false : validation_error("No fingerprint or certificate on settings")
         end
 
         true
@@ -114,7 +114,7 @@ module Onelogin
         return true unless self.options.has_key? :matches_request_id
 
         unless self.options[:matches_request_id] == in_response_to
-          return soft ? false : ValidationError.new("Response does not match the request ID, expected: <#{self.options[:matches_request_id]}>, but was: <#{in_response_to}>")
+          return soft ? false : validation_error("Response does not match the request ID, expected: <#{self.options[:matches_request_id]}>, but was: <#{in_response_to}>")
         end
 
         true
@@ -122,11 +122,14 @@ module Onelogin
 
       def valid_issuer?(soft = true)
         unless issuer == self.settings.issuer
-          return soft ? false : ValidationError.new("Doesn't match the issuer, expected: <#{self.settings.issuer}>, but was: <#{issuer}>")
+          return soft ? false : validation_error("Doesn't match the issuer, expected: <#{self.settings.issuer}>, but was: <#{issuer}>")
         end
         true
       end
 
+      def validation_error(message)
+        raise ValidationError.new(message)
+      end
     end
   end
 end
