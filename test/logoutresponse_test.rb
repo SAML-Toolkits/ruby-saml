@@ -28,13 +28,13 @@ class RubySamlTest < Test::Unit::TestCase
       end
     end
 
-    context "validation" do
+    context "#validate" do
       should "validate the response" do
         in_relation_to_request_id = random_id
 
         logoutresponse = Onelogin::Saml::Logoutresponse.new(valid_response({:uuid => in_relation_to_request_id}), settings)
 
-        logoutresponse.validate!
+        assert logoutresponse.validate
 
         assert_equal settings.issuer, logoutresponse.issuer
         assert_equal in_relation_to_request_id, logoutresponse.in_response_to
@@ -54,11 +54,55 @@ class RubySamlTest < Test::Unit::TestCase
       end
 
       should "invalidate responses with wrong request status" do
-        logoutresponse = Onelogin::Saml::Logoutresponse.new(invalid_response, settings)
+        logoutresponse = Onelogin::Saml::Logoutresponse.new(unsuccessful_response, settings)
+
+        assert !logoutresponse.validate
+        assert !logoutresponse.success?
+      end
+    end
+
+    context "#validate!" do
+      should "validates good responses" do
+        in_relation_to_request_id = random_id
+
+        logoutresponse = Onelogin::Saml::Logoutresponse.new(valid_response({:uuid => in_relation_to_request_id}), settings)
 
         logoutresponse.validate!
+      end
 
-        assert !logoutresponse.success?
+      should "raises validation error when matching for wrong request id" do
+
+        expected_request_id = "_some_other_expected_id"
+        opts = { :matches_request_id => expected_request_id}
+
+        logoutresponse = Onelogin::Saml::Logoutresponse.new(valid_response, settings, opts)
+
+        assert_raises(Onelogin::Saml::ValidationError) { logoutresponse.validate! }
+      end
+
+      should "raise validation error for wrong request status" do
+        logoutresponse = Onelogin::Saml::Logoutresponse.new(unsuccessful_response, settings)
+
+        assert_raises(Onelogin::Saml::ValidationError) { logoutresponse.validate! }
+      end
+
+      should "raise validation error when in bad state" do
+        # no settings
+        logoutresponse = Onelogin::Saml::Logoutresponse.new(unsuccessful_response)
+        assert_raises(Onelogin::Saml::ValidationError) { logoutresponse.validate! }
+      end
+
+      should "raise validation error when in lack of issuer setting" do
+        bad_settings = settings
+        bad_settings.issuer = nil
+        logoutresponse = Onelogin::Saml::Logoutresponse.new(unsuccessful_response, bad_settings)
+        assert_raises(Onelogin::Saml::ValidationError) { logoutresponse.validate! }
+      end
+
+      should "raise error for invalid xml" do
+        logoutresponse = Onelogin::Saml::Logoutresponse.new(invalid_xml_response, settings)
+
+        assert_raises(Exception) { logoutresponse.validate! }
       end
     end
 

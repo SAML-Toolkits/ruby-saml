@@ -26,7 +26,7 @@ def valid_response(opts = {})
       </samlp:LogoutResponse>"
 end
 
-def invalid_response(opts = {})
+def unsuccessful_response(opts = {})
   opts = default_response_opts.merge!(opts)
 
   "<samlp:LogoutResponse
@@ -42,6 +42,13 @@ def invalid_response(opts = {})
       </samlp:StatusCode>
       </samlp:Status>
       </samlp:LogoutResponse>"
+end
+
+def invalid_xml_response
+  "<samlp:SomethingAwful
+        xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\"
+        ID=\"#{random_id}\" Version=\"2.0\">
+      </samlp:SomethingAwful>"
 end
 
 def settings

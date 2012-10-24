@@ -53,11 +53,14 @@ module Onelogin
       def validate(soft = true)
         return false unless valid_saml?(soft) && valid_state?(soft)
 
-        valid_in_response_to?(soft) && valid_issuer?(soft) && success?
+        valid_in_response_to?(soft) && valid_issuer?(soft) && success?(soft)
       end
 
-      def success?
-        @status_code == "urn:oasis:names:tc:SAML:2.0:status:Success"
+      def success?(soft = true)
+        unless @status_code == "urn:oasis:names:tc:SAML:2.0:status:Success"
+          return soft ? false : validation_error("Bad status code. Expected <urn:oasis:names:tc:SAML:2.0:status:Success>, but was: <#@status_code> ")
+        end
+        true
       end
 
       private
