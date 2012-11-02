@@ -27,7 +27,6 @@ require "rexml/document"
 require "rexml/xpath"
 require "openssl"
 require 'nokogiri'
-require 'xmlcanonicalizer'
 require "digest/sha1"
 require "digest/sha2"
 require "onelogin/ruby-saml/validation_error"
@@ -78,9 +77,7 @@ module XMLSecurity
 
 
       # verify signature
-      canoner                 = XML::Util::XmlCanonicalizer.new(false, true)
       signed_info_element     = REXML::XPath.first(sig_element, "//ds:SignedInfo", {"ds"=>DSIG})
-      canon_string            = canoner.canonicalize(signed_info_element)
       self.noko_sig_element ||= document.at_xpath('//ds:Signature', 'ds' => DSIG)
       noko_signed_info_element = noko_sig_element.at_xpath('./ds:SignedInfo', 'ds' => DSIG)
       canon_algorithm = canon_algorithm REXML::XPath.first(sig_element, '//ds:CanonicalizationMethod')
