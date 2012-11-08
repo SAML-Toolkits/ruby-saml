@@ -11,25 +11,18 @@ module Onelogin
       PROTOCOL  = "urn:oasis:names:tc:SAML:2.0:protocol"
       DSIG      = "http://www.w3.org/2000/09/xmldsig#"
 
-      attr_accessor :options, :response, :document, :settings
-      attr_reader :raw_response
+      # TODO: This should probably be ctor initialized too... WDYT?
+      attr_accessor :settings
+
+      attr_reader :options
+      attr_reader :response
+      attr_reader :document
 
       def initialize(response, options = {})
         raise ArgumentError.new("Response cannot be nil") if response.nil?
-        self.options  = options
-        @raw_response = response
-
-        parse_response!
-      end
-
-      def parse_response!
-        @response = (@raw_response =~ /^</) ? @raw_response : Base64.decode64(@raw_response)
-
-        begin
-          self.document = XMLSecurity::SignedDocument.new(@response)
-        rescue REXML::ParseException => e
-          raise e
-        end
+        @options  = options
+        @response = (response =~ /^</) ? response : Base64.decode64(response)
+        @document = XMLSecurity::SignedDocument.new(@response)
       end
 
       def is_valid?
@@ -166,13 +159,13 @@ module Onelogin
         return true if conditions.nil?
         return true if options[:skip_conditions]
 
-        if not_before = parse_time(conditions, "NotBefore")
+        if (not_before = parse_time(conditions, "NotBefore"))
           if Time.now.utc < not_before
             return soft ? false : validation_error("Current time is earlier than NotBefore condition")
           end
         end
 
-        if not_on_or_after = parse_time(conditions, "NotOnOrAfter")
+        if (not_on_or_after = parse_time(conditions, "NotOnOrAfter"))
           if Time.now.utc >= not_on_or_after
             return soft ? false : validation_error("Current time is on or after NotOnOrAfter condition")
           end
