@@ -12,20 +12,23 @@ module Onelogin
       DSIG      = "http://www.w3.org/2000/09/xmldsig#"
 
       attr_accessor :options, :response, :document, :settings
+      attr_reader :raw_response
 
       def initialize(response, options = {})
         raise ArgumentError.new("Response cannot be nil") if response.nil?
         self.options  = options
-        self.response = response
+        @raw_response = response
+
+        parse_response!
+      end
+
+      def parse_response!
+        @response = (@raw_response =~ /^</) ? @raw_response : Base64.decode64(@raw_response)
 
         begin
-          self.document = XMLSecurity::SignedDocument.new(Base64.decode64(response))
+          self.document = XMLSecurity::SignedDocument.new(@response)
         rescue REXML::ParseException => e
-          if response =~ /</
-            self.document = XMLSecurity::SignedDocument.new(response)
-          else
-            raise e
-          end
+          raise e
         end
       end
 
@@ -43,6 +46,14 @@ module Onelogin
           node = REXML::XPath.first(document, "/p:Response/a:Assertion[@ID='#{document.signed_element_id}']/a:Subject/a:NameID", { "p" => PROTOCOL, "a" => ASSERTION })
           node ||=  REXML::XPath.first(document, "/p:Response[@ID='#{document.signed_element_id}']/a:Assertion/a:Subject/a:NameID", { "p" => PROTOCOL, "a" => ASSERTION })
           node.nil? ? nil : node.text
+        end
+      end
+
+      def sessionindex
+        @sessionindex ||= begin
+          node = REXML::XPath.first(document, "/p:Response/a:Assertion[@ID='#{document.signed_element_id}']/a:AuthnStatement", { "p" => PROTOCOL, "a" => ASSERTION })
+          node ||=  REXML::XPath.first(document, "/p:Response[@ID='#{document.signed_element_id}']/a:Assertion/a:AuthnStatement", { "p" => PROTOCOL, "a" => ASSERTION })
+          node.nil? ? nil : node.attributes['SessionIndex']
         end
       end
 
