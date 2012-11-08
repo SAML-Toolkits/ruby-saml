@@ -16,8 +16,6 @@ module Onelogin
 
       attr_reader :document
       attr_reader :options
-      attr_reader :response
-      attr_reader :raw_response
       attr_reader :in_response_to, :issuer
 
       #
@@ -33,9 +31,8 @@ module Onelogin
         self.settings = settings
 
         @options = options
-        @raw_response = response
 
-        parse_logoutresponse
+        parse_logoutresponse(decode_raw_response(response))
       end
 
       def validate!
@@ -57,36 +54,30 @@ module Onelogin
 
       private
 
-      # TODO: move these to a helper?
       def decode(encoded)
         Base64.decode64(encoded)
       end
+
       def inflate(deflated)
         zlib = Zlib::Inflate.new(-Zlib::MAX_WBITS)
         zlib.inflate(deflated)
       end
 
-      # TODO: This is pretty ugly... Mimic an applicative functor?
-      def parse_samlresponse!
-        return if @response =~ /^</
-
-        if raw_response =~ /^</
-          @response = raw_response
-        else
-          @response = ((decoded = decode(raw_response)) =~ /^</) ? decoded : inflate(decoded)
+      def decode_raw_response(response)
+        if response =~ /^</
+          return response
+        elsif (decoded  = decode(response)) =~ /^</
+          return decoded
+        elsif (inflated = inflate(decoded)) =~ /^</
+          return inflated
         end
 
-        raise Exception.new("Couldn't decode SAMLResponse") unless @response =~ /^</
+        raise "Couldn't decode SAMLResponse"
       end
 
-      def parse_logoutresponse
-        parse_samlresponse!
-
-        begin
-          @document = XMLSecurity::SignedDocument.new(response)
-        rescue REXML::ParseException => e
-          raise e
-        end
+      def parse_logoutresponse(response)
+        # raises REXML::ParseException on errors
+        @document = XMLSecurity::SignedDocument.new(response)
 
         @in_response_to ||= begin
           node = REXML::XPath.first(document, "/p:LogoutResponse", { "p" => PROTOCOL, "a" => ASSERTION })
