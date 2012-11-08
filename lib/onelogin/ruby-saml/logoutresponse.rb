@@ -15,8 +15,8 @@ module Onelogin
       attr_accessor :settings
 
       attr_reader :document
+      attr_reader :response
       attr_reader :options
-      attr_reader :in_response_to, :issuer
 
       #
       # In order to validate that the response matches a given request, append
@@ -31,8 +31,8 @@ module Onelogin
         self.settings = settings
 
         @options = options
-
-        parse_logoutresponse(decode_raw_response(response))
+        @response = decode_raw_response(response)
+        @document = XMLSecurity::SignedDocument.new(response)
       end
 
       def validate!
@@ -46,10 +46,32 @@ module Onelogin
       end
 
       def success?(soft = true)
-        unless @status_code == "urn:oasis:names:tc:SAML:2.0:status:Success"
+        unless status_code == "urn:oasis:names:tc:SAML:2.0:status:Success"
           return soft ? false : validation_error("Bad status code. Expected <urn:oasis:names:tc:SAML:2.0:status:Success>, but was: <#@status_code> ")
         end
         true
+      end
+
+      def in_response_to
+        @in_response_to ||= begin
+          node = REXML::XPath.first(document, "/p:LogoutResponse", { "p" => PROTOCOL, "a" => ASSERTION })
+          node.nil? ? nil : node.attributes['InResponseTo']
+        end
+      end
+
+      def issuer
+        @issuer ||= begin
+          node = REXML::XPath.first(document, "/p:LogoutResponse/a:Issuer", { "p" => PROTOCOL, "a" => ASSERTION })
+          node ||= REXML::XPath.first(document, "/p:LogoutResponse/a:Assertion/a:Issuer", { "p" => PROTOCOL, "a" => ASSERTION })
+          node.nil? ? nil : node.text
+        end
+      end
+
+      def status_code
+        @status_code ||= begin
+          node = REXML::XPath.first(document, "/p:LogoutResponse/p:Status/p:StatusCode", { "p" => PROTOCOL, "a" => ASSERTION })
+          node.nil? ? nil : node.attributes["Value"]
+        end
       end
 
       private
@@ -73,25 +95,6 @@ module Onelogin
         end
 
         raise "Couldn't decode SAMLResponse"
-      end
-
-      def parse_logoutresponse(response)
-        # raises REXML::ParseException on errors
-        @document = XMLSecurity::SignedDocument.new(response)
-
-        @in_response_to ||= begin
-          node = REXML::XPath.first(document, "/p:LogoutResponse", { "p" => PROTOCOL, "a" => ASSERTION })
-          node.nil? ? nil : node.attributes['InResponseTo']
-        end
-        @issuer ||= begin
-          node = REXML::XPath.first(document, "/p:LogoutResponse/a:Issuer", { "p" => PROTOCOL, "a" => ASSERTION })
-          node ||= REXML::XPath.first(document, "/p:LogoutResponse/a:Assertion/a:Issuer", { "p" => PROTOCOL, "a" => ASSERTION })
-          node.nil? ? nil : node.text
-        end
-        @status_code ||= begin
-          node = REXML::XPath.first(document, "/p:LogoutResponse/p:Status/p:StatusCode", { "p" => PROTOCOL, "a" => ASSERTION })
-          node.nil? ? nil : node.attributes["Value"]
-        end
       end
 
       def valid_saml?(soft = true)
