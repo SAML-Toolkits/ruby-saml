@@ -7,6 +7,8 @@ class RequestTest < Test::Unit::TestCase
 
     should "create the deflated SAMLRequest URL parameter" do
       settings.idp_slo_target_url = "http://unauth.com/logout"
+      settings.name_identifier_value = "f00f00"
+
       unauth_url = Onelogin::Saml::Logoutrequest.new.create(settings)
       assert unauth_url =~ /^http:\/\/unauth\.com\/logout\?SAMLRequest=/
 
@@ -50,10 +52,19 @@ class RequestTest < Test::Unit::TestCase
       assert_match %r(#{name_identifier_value}</saml:NameID>), inflated
     end
 
+    should "require name_identifier_value" do
+      settings = Onelogin::Saml::Settings.new
+      settings.idp_slo_target_url = "http://example.com"
+      settings.name_identifier_format = nil
+
+      assert_raises(Onelogin::Saml::ValidationError) { Onelogin::Saml::Logoutrequest.new.create(settings) }
+    end
+
     context "when the target url doesn't contain a query string" do
       should "create the SAMLRequest parameter correctly" do
         settings = Onelogin::Saml::Settings.new
         settings.idp_slo_target_url = "http://example.com"
+        settings.name_identifier_value = "f00f00"
 
         unauth_url = Onelogin::Saml::Logoutrequest.new.create(settings)
         assert unauth_url =~ /^http:\/\/example.com\?SAMLRequest/
@@ -64,6 +75,7 @@ class RequestTest < Test::Unit::TestCase
       should "create the SAMLRequest parameter correctly" do
         settings = Onelogin::Saml::Settings.new
         settings.idp_slo_target_url = "http://example.com?field=value"
+        settings.name_identifier_value = "f00f00"
 
         unauth_url = Onelogin::Saml::Logoutrequest.new.create(settings)
         assert unauth_url =~ /^http:\/\/example.com\?field=value&SAMLRequest/
@@ -74,6 +86,7 @@ class RequestTest < Test::Unit::TestCase
       should "have access to the request uuid" do
         settings = Onelogin::Saml::Settings.new
         settings.idp_slo_target_url = "http://example.com?field=value"
+        settings.name_identifier_value = "f00f00"
 
         unauth_req = Onelogin::Saml::Logoutrequest.new
         unauth_url = unauth_req.create(settings)
