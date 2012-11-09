@@ -53,6 +53,8 @@ module Onelogin
           name_id.attributes['NameQualifier'] = settings.sp_name_qualifier if settings.sp_name_qualifier
           name_id.attributes['Format'] = settings.name_identifier_format if settings.name_identifier_format
           name_id.text = settings.name_identifier_value
+        else
+          raise ValidationError.new("Missing required name identifier")
         end
 
         if settings.sessionindex
