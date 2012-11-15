@@ -35,7 +35,7 @@ module Onelogin
 
       def create_unauth_xml_doc(settings, params)
 
-        time = Time.new().strftime("%Y-%m-%dT%H:%M:%SZ")
+        time = Time.new().strftime("%Y-%m-%dT%H:%M:%S")
 
         request_doc = REXML::Document.new
         root = request_doc.add_element "samlp:LogoutRequest", { "xmlns:samlp" => "urn:oasis:names:tc:SAML:2.0:protocol" }
