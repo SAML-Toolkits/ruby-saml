@@ -80,7 +80,7 @@ module XMLSecurity
       signed_info_element     = REXML::XPath.first(sig_element, "//ds:SignedInfo", {"ds"=>DSIG})
       self.noko_sig_element ||= document.at_xpath('//ds:Signature', 'ds' => DSIG)
       noko_signed_info_element = noko_sig_element.at_xpath('./ds:SignedInfo', 'ds' => DSIG)
-      canon_algorithm = canon_algorithm REXML::XPath.first(sig_element, '//ds:CanonicalizationMethod')
+      canon_algorithm = canon_algorithm REXML::XPath.first(sig_element, '//ds:CanonicalizationMethod', 'ds' => DSIG)
       canon_string = noko_signed_info_element.canonicalize(canon_algorithm)
       noko_sig_element.remove
 
@@ -89,7 +89,7 @@ module XMLSecurity
         uri                           = ref.attributes.get_attribute("URI").value
 
         hashed_element                = document.at_xpath("//*[@ID='#{uri[1..-1]}']")
-        canon_algorithm               = canon_algorithm REXML::XPath.first(ref, '//ds:CanonicalizationMethod')
+        canon_algorithm               = canon_algorithm REXML::XPath.first(ref, '//ds:CanonicalizationMethod', 'ds' => DSIG)
         canon_hashed_element          = hashed_element.canonicalize(canon_algorithm, inclusive_namespaces).gsub('&','&amp;')
 
         digest_algorithm              = algorithm(REXML::XPath.first(ref, "//ds:DigestMethod"))
