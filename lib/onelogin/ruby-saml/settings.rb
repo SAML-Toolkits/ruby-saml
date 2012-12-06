@@ -1,7 +1,8 @@
 module Onelogin
   module Saml
     class Settings
-      def initialize(config = {})
+      def initialize(overrides = {})
+        config = DEFAULTS.merge(overrides)
         config.each do |k,v|
           acc = "#{k.to_s}=".to_sym
           self.send(acc, v) if self.respond_to? acc
@@ -14,6 +15,11 @@ module Onelogin
       attr_accessor :name_identifier_value
       attr_accessor :sessionindex
       attr_accessor :assertion_consumer_logout_service_url
+      attr_accessor :compress_request
+
+      private
+      
+      DEFAULTS = {:compress_request => true}
     end
   end
 end
