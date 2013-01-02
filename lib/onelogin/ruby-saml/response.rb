@@ -36,16 +36,14 @@ module Onelogin
       # The value of the user identifier as designated by the initialization request response
       def name_id
         @name_id ||= begin
-          node = REXML::XPath.first(document, "/p:Response/a:Assertion[@ID='#{document.signed_element_id}']/a:Subject/a:NameID", { "p" => PROTOCOL, "a" => ASSERTION })
-          node ||=  REXML::XPath.first(document, "/p:Response[@ID='#{document.signed_element_id}']/a:Assertion/a:Subject/a:NameID", { "p" => PROTOCOL, "a" => ASSERTION })
+          node = xpath_first_from_signed_assertion('/a:Subject/a:NameID')
           node.nil? ? nil : node.text
         end
       end
 
       def sessionindex
         @sessionindex ||= begin
-          node = REXML::XPath.first(document, "/p:Response/a:Assertion[@ID='#{document.signed_element_id}']/a:AuthnStatement", { "p" => PROTOCOL, "a" => ASSERTION })
-          node ||=  REXML::XPath.first(document, "/p:Response[@ID='#{document.signed_element_id}']/a:Assertion/a:AuthnStatement", { "p" => PROTOCOL, "a" => ASSERTION })
+          node = xpath_first_from_signed_assertion('/a:AuthnStatement')
           node.nil? ? nil : node.attributes['SessionIndex']
         end
       end
@@ -55,7 +53,7 @@ module Onelogin
         @attr_statements ||= begin
           result = {}
 
-          stmt_element = REXML::XPath.first(document, "/p:Response/a:Assertion/a:AttributeStatement", { "p" => PROTOCOL, "a" => ASSERTION })
+          stmt_element = xpath_first_from_signed_assertion('/a:AttributeStatement')
           return {} if stmt_element.nil?
 
           stmt_element.elements.each do |attr_element|
@@ -76,7 +74,7 @@ module Onelogin
       # When this user session should expire at latest
       def session_expires_at
         @expires_at ||= begin
-          node = REXML::XPath.first(document, "/p:Response/a:Assertion/a:AuthnStatement", { "p" => PROTOCOL, "a" => ASSERTION })
+          node = xpath_first_from_signed_assertion('/a:AuthnStatement')
           parse_time(node, "SessionNotOnOrAfter")
         end
       end
@@ -91,15 +89,13 @@ module Onelogin
 
       # Conditions (if any) for the assertion to run
       def conditions
-        @conditions ||= begin
-          REXML::XPath.first(document, "/p:Response/a:Assertion[@ID='#{document.signed_element_id}']/a:Conditions", { "p" => PROTOCOL, "a" => ASSERTION })
-        end
+        @conditions ||= xpath_first_from_signed_assertion('/a:Conditions')
       end
 
       def issuer
         @issuer ||= begin
           node = REXML::XPath.first(document, "/p:Response/a:Issuer", { "p" => PROTOCOL, "a" => ASSERTION })
-          node ||= REXML::XPath.first(document, "/p:Response/a:Assertion/a:Issuer", { "p" => PROTOCOL, "a" => ASSERTION })
+          node ||= xpath_first_from_signed_assertion('/a:Issuer')
           node.nil? ? nil : node.text
         end
       end
@@ -144,6 +140,12 @@ module Onelogin
         end
 
         true
+      end
+
+      def xpath_first_from_signed_assertion(subelt=nil)
+        node = REXML::XPath.first(document, "/p:Response/a:Assertion[@ID='#{document.signed_element_id}']#{subelt}", { "p" => PROTOCOL, "a" => ASSERTION })
+        node ||= REXML::XPath.first(document, "/p:Response[@ID='#{document.signed_element_id}']/a:Assertion#{subelt}", { "p" => PROTOCOL, "a" => ASSERTION })
+        node
       end
 
       def get_fingerprint

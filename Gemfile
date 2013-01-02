@@ -9,4 +9,5 @@ group :test do
   gem "rake"
   gem "mocha"
   gem "nokogiri"
+  gem "timecop"
 end
