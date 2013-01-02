@@ -119,12 +119,29 @@ class XmlSecurityTest < Test::Unit::TestCase
     end
 
     context "StarfieldTMS" do
-      should "be able to validate a response" do
-        response = Onelogin::Saml::Response.new(fixture(:starfield_response))
-        response.settings = Onelogin::Saml::Settings.new(
-          :idp_cert_fingerprint => "8D:BA:53:8E:A3:B6:F9:F1:69:6C:BB:D9:D8:BD:41:B3:AC:4F:9D:4D"
-        )
-        assert response.validate!
+      setup do
+        @response = Onelogin::Saml::Response.new(fixture(:starfield_response))
+        @response.settings = Onelogin::Saml::Settings.new(
+                                                          :idp_cert_fingerprint => "8D:BA:53:8E:A3:B6:F9:F1:69:6C:BB:D9:D8:BD:41:B3:AC:4F:9D:4D"
+                                                          )
+      end
+
+      should "be able to validate a good response" do
+        Timecop.freeze Time.parse('2012-11-28 17:55:00 UTC') do
+          assert @response.validate!
+        end
+      end
+
+      should "fail before response is valid" do
+        Timecop.freeze Time.parse('2012-11-20 17:55:00 UTC') do
+          assert ! @response.is_valid?
+        end
+      end
+
+      should "fail after response expires" do
+        Timecop.freeze Time.parse('2012-11-30 17:55:00 UTC') do
+          assert ! @response.is_valid?
+        end
       end
     end
 
