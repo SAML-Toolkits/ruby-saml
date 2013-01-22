@@ -90,7 +90,7 @@ module XMLSecurity
 
         hashed_element                = document.at_xpath("//*[@ID='#{uri[1..-1]}']")
         canon_algorithm               = canon_algorithm REXML::XPath.first(ref, '//ds:CanonicalizationMethod', 'ds' => DSIG)
-        canon_hashed_element          = hashed_element.canonicalize(canon_algorithm, inclusive_namespaces).gsub('&','&amp;')
+        canon_hashed_element          = hashed_element.canonicalize(canon_algorithm, inclusive_namespaces).gsub(/&(?!amp;)/,'&amp;')
 
         digest_algorithm              = algorithm(REXML::XPath.first(ref, "//ds:DigestMethod"))
 
