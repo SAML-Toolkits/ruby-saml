@@ -26,7 +26,8 @@ module Onelogin
       end
 
       def is_valid?
-        validate
+        # this is because validate, in and of itself, is destructive.
+        @validate_result.nil? ? @validate_result = validate : @validate_result
       end
 
       def validate!
