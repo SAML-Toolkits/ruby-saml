@@ -37,7 +37,7 @@ module XMLSecurity
     C14N = "http://www.w3.org/2001/10/xml-exc-c14n#"
     DSIG = "http://www.w3.org/2000/09/xmldsig#"
 
-    attr_accessor :signed_element_id, :sig_element, :noko_sig_element
+    attr_accessor :signed_element_id
 
     def initialize(response)
       super(response)
@@ -69,23 +69,26 @@ module XMLSecurity
 
       document = Nokogiri.parse(self.to_s)
 
+      # create a working copy so we don't modify the original
+      @working_copy ||= REXML::Document.new(self.to_s).root
+
       # store and remove signature node
-      self.sig_element ||= begin
-        element = REXML::XPath.first(self, "//ds:Signature", {"ds"=>DSIG})
+      @sig_element ||= begin
+        element = REXML::XPath.first(@working_copy, "//ds:Signature", {"ds"=>DSIG})
         element.remove
       end
 
 
       # verify signature
-      signed_info_element     = REXML::XPath.first(sig_element, "//ds:SignedInfo", {"ds"=>DSIG})
-      self.noko_sig_element ||= document.at_xpath('//ds:Signature', 'ds' => DSIG)
+      signed_info_element     = REXML::XPath.first(@sig_element, "//ds:SignedInfo", {"ds"=>DSIG})
+      noko_sig_element = document.at_xpath('//ds:Signature', 'ds' => DSIG)
       noko_signed_info_element = noko_sig_element.at_xpath('./ds:SignedInfo', 'ds' => DSIG)
-      canon_algorithm = canon_algorithm REXML::XPath.first(sig_element, '//ds:CanonicalizationMethod', 'ds' => DSIG)
+      canon_algorithm = canon_algorithm REXML::XPath.first(@sig_element, '//ds:CanonicalizationMethod', 'ds' => DSIG)
       canon_string = noko_signed_info_element.canonicalize(canon_algorithm)
       noko_sig_element.remove
 
       # check digests
-      REXML::XPath.each(sig_element, "//ds:Reference", {"ds"=>DSIG}) do |ref|
+      REXML::XPath.each(@sig_element, "//ds:Reference", {"ds"=>DSIG}) do |ref|
         uri                           = ref.attributes.get_attribute("URI").value
 
         hashed_element                = document.at_xpath("//*[@ID='#{uri[1..-1]}']")
@@ -102,7 +105,7 @@ module XMLSecurity
         end
       end
 
-      base64_signature        = REXML::XPath.first(sig_element, "//ds:SignatureValue", {"ds"=>DSIG}).text
+      base64_signature        = REXML::XPath.first(@sig_element, "//ds:SignatureValue", {"ds"=>DSIG}).text
       signature               = Base64.decode64(base64_signature)
 
       # get certificate object

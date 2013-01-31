@@ -76,6 +76,25 @@ class RubySamlTest < Test::Unit::TestCase
         assert response.is_valid?
       end
 
+      should "should be idempotent when the response is initialized with invalid data" do
+        response = Onelogin::Saml::Response.new(response_document_4)
+        response.stubs(:conditions).returns(nil)
+        settings = Onelogin::Saml::Settings.new
+        response.settings = settings
+        assert !response.is_valid?
+        assert !response.is_valid?
+      end
+
+      should "should be idempotent when the response is initialized with valid data" do
+        response = Onelogin::Saml::Response.new(response_document_4)
+        response.stubs(:conditions).returns(nil)
+        settings = Onelogin::Saml::Settings.new
+        response.settings = settings
+        settings.idp_cert_fingerprint = signature_fingerprint_1
+        assert response.is_valid?
+        assert response.is_valid?
+      end
+
       should "return true when using certificate instead of fingerprint" do
         response = Onelogin::Saml::Response.new(response_document_4)
         response.stubs(:conditions).returns(nil)
