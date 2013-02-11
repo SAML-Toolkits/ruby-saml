@@ -51,6 +51,16 @@ class XmlSecurityTest < Test::Unit::TestCase
       end
       assert_equal("Key validation error", exception.message)
     end
+
+    should "raise validation error when the X509Certificate is missing" do
+      response = Base64.decode64(response_document)
+      response.sub!(/<ds:X509Certificate>.*<\/ds:X509Certificate>/, "")
+      document = XMLSecurity::SignedDocument.new(response)
+      exception = assert_raise(Onelogin::Saml::ValidationError) do
+        document.validate("a fingerprint", false) # The fingerprint isn't relevant to this test
+      end
+      assert_equal("Certificate element missing in response (ds:X509Certificate)", exception.message)
+    end
   end
 
   context "Algorithms" do
