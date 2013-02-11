@@ -16,10 +16,11 @@ module Onelogin
       attr_accessor :sessionindex
       attr_accessor :assertion_consumer_logout_service_url
       attr_accessor :compress_request
+      attr_accessor :double_quote_xml_attribute_values
 
       private
       
-      DEFAULTS = {:compress_request => true}
+      DEFAULTS = {:compress_request => true, :double_quote_xml_attribute_values => false}
     end
   end
 end
