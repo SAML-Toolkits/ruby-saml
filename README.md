@@ -100,7 +100,7 @@ contains all the saml:AttributeStatement with its 'Name' as a indifferent key an
 To form a trusted pair relationship with the IdP, the SP (you) need to provide metadata XML
 to the IdP for various good reasons.  (Caching, certificate lookups, relying party permissions, etc)
 
-The class Onelogin::Saml::Metdata takes care of this by reading the Settings and returning XML.  All
+The class Onelogin::Saml::Metadata takes care of this by reading the Settings and returning XML.  All
 you have to do is add a controller to return the data, then give this URL to the IdP administrator.
 The metdata will be polled by the IdP every few minutes, so updating your settings should propagate
 to the IdP settings.
