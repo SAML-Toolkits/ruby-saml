@@ -90,10 +90,12 @@ What's left at this point, is to wrap it all up in a controller and point the in
 If are using saml:AttributeStatement to transfare metadata, like the user name, you can access all the attributes through response.attributes. It
 contains all the saml:AttributeStatement with its 'Name' as a indifferent key and the one saml:AttributeValue as value.
 
+```ruby
   response          = Onelogin::Saml::Response.new(params[:SAMLResponse])
   response.settings = saml_settings
 
   response.attributes[:username]
+```
 
 ## Service Provider Metadata
 
