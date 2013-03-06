@@ -133,6 +133,15 @@ class RubySamlTest < Test::Unit::TestCase
         assert response.validate!
       end
 
+      should "validate the digest" do
+        response = Onelogin::Saml::Response.new(r1_response_document_6)
+        response.stubs(:conditions).returns(nil)
+        settings = Onelogin::Saml::Settings.new
+        settings.idp_cert = Base64.decode64(r1_signature_2)
+        response.settings = settings
+        assert response.validate!
+      end
+
       should "validate SAML 2.0 XML structure" do
         resp_xml = Base64.decode64(response_document_4).gsub(/emailAddress/,'test')
         response = Onelogin::Saml::Response.new(Base64.encode64(resp_xml))
