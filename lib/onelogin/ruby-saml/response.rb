@@ -118,7 +118,9 @@ module OneLogin
         validate_structure(soft)      &&
         validate_response_state(soft) &&
         validate_conditions(soft)     &&
+        validate_new_assertion_id(soft) &&
         document.validate_document(get_fingerprint, soft) &&
+        document.validate(get_fingerprint, soft) &&
         success?
       end
 
@@ -154,6 +156,19 @@ module OneLogin
         node = REXML::XPath.first(document, "/p:Response/a:Assertion[@ID='#{document.signed_element_id}']#{subelt}", { "p" => PROTOCOL, "a" => ASSERTION })
         node ||= REXML::XPath.first(document, "/p:Response[@ID='#{document.signed_element_id}']/a:Assertion#{subelt}", { "p" => PROTOCOL, "a" => ASSERTION })
         node
+      end
+
+      def assertion_id
+        document.signed_element_id
+      end
+
+      # validate that we use the assertion id only once
+      def validate_new_assertion_id(soft = true)
+        valid = settings.assertion_id_validator.valid?(assertion_id)
+        unless valid
+          return soft ? false : validation_error("Assertion ID can be use only once")
+        end
+        true
       end
 
       def get_fingerprint

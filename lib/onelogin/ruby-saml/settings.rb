@@ -1,5 +1,11 @@
 module OneLogin
   module RubySaml
+    class PermissiveAssertionIdValidator
+      def valid?(id)
+        true
+      end
+    end
+
     class Settings
       def initialize(overrides = {})
         config = DEFAULTS.merge(overrides)
@@ -19,10 +25,11 @@ module OneLogin
       attr_accessor :double_quote_xml_attribute_values
       attr_accessor :passive
       attr_accessor :protocol_binding
+      attr_accessor :assertion_id_validator
 
       private
 
-      DEFAULTS = {:compress_request => true, :double_quote_xml_attribute_values => false}
+      DEFAULTS = {:compress_request => true, :double_quote_xml_attribute_values => false, :assertion_id_validator => PermissiveAssertionIdValidator.new}
     end
   end
 end
