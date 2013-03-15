@@ -1,7 +1,13 @@
 require File.expand_path(File.join(File.dirname(__FILE__), "test_helper"))
 
 class CustomPermissiveAssertionIdValidator
- def valid?(id)
+  def valid?(id)
+    false
+  end
+end
+
+class CustomPermissiveTimeRangeValidator
+  def valid?(begin_time, end_time)
     false
   end
 end
@@ -139,6 +145,17 @@ class RubySamlTest < Test::Unit::TestCase
         settings.idp_cert_fingerprint = "28:74:9B:E8:1F:E8:10:9C:A8:7C:A9:C3:E3:C5:01:6C:92:1C:B4:BA"
         XMLSecurity::SignedDocument.any_instance.expects(:validate_doc).returns(true)
         assert_raises(Onelogin::Saml::ValidationError, 'Assertion ID can be use only once'){response.validate!}
+      end
+
+      should "use the custom time range validator to validate the reponse" do
+        response = Onelogin::Saml::Response.new(fixture("no_signature_ns.xml"))
+        response.stubs(:conditions).returns(nil)
+        settings = Onelogin::Saml::Settings.new
+        settings.time_range_validator = CustomPermissiveTimeRangeValidator.new
+        response.settings = settings
+        settings.idp_cert_fingerprint = "28:74:9B:E8:1F:E8:10:9C:A8:7C:A9:C3:E3:C5:01:6C:92:1C:B4:BA"
+        XMLSecurity::SignedDocument.any_instance.expects(:validate_doc).returns(true)
+        assert_raises(Onelogin::Saml::ValidationError, 'Time range validation failed'){response.validate!}
       end
 
       should "validate ADFS assertions" do
