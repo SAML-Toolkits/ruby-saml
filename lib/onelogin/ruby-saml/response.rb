@@ -119,9 +119,21 @@ module OneLogin
         validate_response_state(soft) &&
         validate_conditions(soft)     &&
         validate_new_assertion_id(soft) &&
+        validate_time_range(soft)     &&
         document.validate_document(get_fingerprint, soft) &&
         document.validate(get_fingerprint, soft) &&
         success?
+      end
+
+      # validate the time range using the validator (settings)
+      def validate_time_range(soft = true)
+        begin_time = parse_time(conditions, "NotBefore")
+        end_time = parse_time(conditions, "NotOnOrAfter")
+        valid = settings.time_range_validator.valid?(begin_time, end_time)
+        unless valid
+          return soft ? false : validation_error("Time range validation failed")
+        end
+        true
       end
 
       def validate_structure(soft = true)

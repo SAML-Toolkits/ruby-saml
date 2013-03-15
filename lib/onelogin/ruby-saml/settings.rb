@@ -6,6 +6,12 @@ module OneLogin
       end
     end
 
+    class PermissiveTimeRangeValidator
+      def valid?(begin_time, end_time)
+        true
+      end
+    end
+
     class Settings
       def initialize(overrides = {})
         config = DEFAULTS.merge(overrides)
@@ -26,10 +32,11 @@ module OneLogin
       attr_accessor :passive
       attr_accessor :protocol_binding
       attr_accessor :assertion_id_validator
+      attr_accessor :time_range_validator
 
       private
 
-      DEFAULTS = {:compress_request => true, :double_quote_xml_attribute_values => false, :assertion_id_validator => PermissiveAssertionIdValidator.new}
+      DEFAULTS = {:compress_request => true, :double_quote_xml_attribute_values => false, :assertion_id_validator => PermissiveAssertionIdValidator.new, :time_range_validator => PermissiveTimeRangeValidator.new}
     end
   end
 end
