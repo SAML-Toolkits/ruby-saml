@@ -11,7 +11,8 @@ class SettingsTest < Test::Unit::TestCase
         :assertion_consumer_service_url, :issuer, :sp_name_qualifier,
         :idp_sso_target_url, :idp_cert_fingerprint, :name_identifier_format,
         :idp_slo_target_url, :name_identifier_value, :sessionindex,
-        :assertion_consumer_logout_service_url
+        :assertion_consumer_logout_service_url,
+        :passive
       ]
 
       accessors.each do |accessor|
@@ -31,6 +32,7 @@ class SettingsTest < Test::Unit::TestCase
           :idp_slo_target_url => "http://sso.muda.no/slo",
           :idp_cert_fingerprint => "00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00",
           :name_identifier_format => "urn:oasis:names:tc:SAML:2.0:nameid-format:transient",
+          :passive => true,
       }
       @settings = Onelogin::Saml::Settings.new(config)
 

@@ -17,6 +17,7 @@ module Onelogin
       attr_accessor :assertion_consumer_logout_service_url
       attr_accessor :compress_request
       attr_accessor :double_quote_xml_attribute_values
+      attr_accessor :passive
 
       private
       
