@@ -6,7 +6,7 @@ module Onelogin
         true
       end
     end
-    
+
     class PermissiveTimeRangeValidator
       def valid?(begin_time, end_time)
         true
@@ -32,9 +32,9 @@ module Onelogin
       attr_accessor :double_quote_xml_attribute_values
       attr_accessor :assertion_id_validator
       attr_accessor :time_range_validator
-
+      attr_accessor :passive
       private
-      
+
       DEFAULTS = {:compress_request => true, :double_quote_xml_attribute_values => false, :assertion_id_validator => PermissiveAssertionIdValidator.new, :time_range_validator => PermissiveTimeRangeValidator.new}
     end
 
