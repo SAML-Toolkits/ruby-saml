@@ -102,7 +102,7 @@ class RubySamlTest < Test::Unit::TestCase
       should "raise error for invalid xml" do
         logoutresponse = Onelogin::Saml::Logoutresponse.new(invalid_xml_response, settings)
 
-        assert_raises(StandardError) { logoutresponse.validate! }
+        assert_raises(Onelogin::Saml::ValidationError) { logoutresponse.validate! }
       end
     end
 

@@ -105,7 +105,7 @@ module Onelogin
         if soft
           @schema.validate(@xml).map{ return false }
         else
-          @schema.validate(@xml).map{ |error| raise(StandardError.new("#{error.message}\n\n#{@xml.to_s}")) }
+          @schema.validate(@xml).map{ |error| validation_error("#{error.message}\n\n#{@xml.to_s}") }
         end
       end
 
