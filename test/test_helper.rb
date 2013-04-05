@@ -41,6 +41,10 @@ class Test::Unit::TestCase
     @response_document5 ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'response5.xml.base64'))
   end
 
+  def r1_response_document_6
+    @response_document6 ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'r1_response6.xml.base64'))
+  end
+
   def ampersands_response
     @ampersands_resposne ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'response_with_ampersands.xml.base64'))
   end
@@ -62,6 +66,10 @@ class Test::Unit::TestCase
   
   def signature_1
     @signature1 ||= File.read(File.join(File.dirname(__FILE__), 'certificates', 'certificate1'))
+  end
+
+  def r1_signature_2
+    @signature2 ||= File.read(File.join(File.dirname(__FILE__), 'certificates', 'r1_certificate2_base64'))
   end
 
 end

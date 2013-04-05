@@ -8,6 +8,6 @@ group :test do
   gem "shoulda"
   gem "rake"
   gem "mocha"
-  gem "nokogiri"
+  gem "nokogiri", ">= 1.5.0"
   gem "timecop"
 end
