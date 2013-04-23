@@ -126,3 +126,7 @@ to the IdP settings.
   future version unintentionally.
 * Commit, do not mess with rakefile, version, or history. (if you want to have your own version, that is fine but bump version in a commit by itself I can ignore when I pull)
 * Send me a pull request. Bonus points for topic branches.
+
+## Note on JRuby version
+Removed structure validation in JRuby platform
+See: https://github.com/dougalcorn/nokogiri-chdir-schema-validate-bug and https://github.com/sparklemotion/nokogiri/issues/862

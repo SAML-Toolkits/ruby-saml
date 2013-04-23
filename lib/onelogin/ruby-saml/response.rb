@@ -115,6 +115,8 @@ module Onelogin
       end
 
       def validate_structure(soft = true)
+        # See: https://github.com/dougalcorn/nokogiri-chdir-schema-validate-bug
+        return true if RUBY_ENGINE == 'jruby'
         Dir.chdir(File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'schemas'))) do
           @schema = Nokogiri::XML::Schema(IO.read('saml20protocol_schema.xsd'))
           @xml = Nokogiri::XML(self.document.to_s)
