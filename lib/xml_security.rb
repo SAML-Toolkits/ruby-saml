@@ -30,6 +30,7 @@ require 'nokogiri'
 require "digest/sha1"
 require "digest/sha2"
 require "onelogin/ruby-saml/validation_error"
+require 'xmlcanonicalizer'
 
 module XMLSecurity
 
@@ -83,9 +84,10 @@ module XMLSecurity
       # verify signature
       signed_info_element     = REXML::XPath.first(@sig_element, "//ds:SignedInfo", {"ds"=>DSIG})
       noko_sig_element = document.at_xpath('//ds:Signature', 'ds' => DSIG)
-      noko_signed_info_element = noko_sig_element.at_xpath('./ds:SignedInfo', 'ds' => DSIG)
-      canon_algorithm = canon_algorithm REXML::XPath.first(@sig_element, '//ds:CanonicalizationMethod', 'ds' => DSIG)
-      canon_string = noko_signed_info_element.canonicalize(canon_algorithm)
+
+      xml_canonicalizer = build_xml_canonicalizer REXML::XPath.first(@sig_element, '//ds:CanonicalizationMethod', 'ds' => DSIG)
+      canon_string = xml_canonicalizer.canonicalize(signed_info_element)
+
       noko_sig_element.remove
 
       # check digests
@@ -93,8 +95,9 @@ module XMLSecurity
         uri                           = ref.attributes.get_attribute("URI").value
 
         hashed_element                = document.at_xpath("//*[@ID='#{uri[1..-1]}']")
-        canon_algorithm               = canon_algorithm REXML::XPath.first(ref, '//ds:CanonicalizationMethod', 'ds' => DSIG)
-        canon_hashed_element          = hashed_element.canonicalize(canon_algorithm, inclusive_namespaces)
+
+        xml_canonicalizer             = build_xml_canonicalizer REXML::XPath.first(ref, '//ds:CanonicalizationMethod', 'ds' => DSIG)
+        canon_hashed_element          = xml_canonicalizer.canonicalize(REXML::Document.new(hashed_element.to_xml))
 
         digest_algorithm              = algorithm(REXML::XPath.first(ref, "//ds:DigestMethod"))
 
@@ -134,13 +137,13 @@ module XMLSecurity
       self.signed_element_id  = reference_element.attribute("URI").value[1..-1] unless reference_element.nil?
     end
 
-    def canon_algorithm(element)
+    def build_xml_canonicalizer(element)
       algorithm = element.attribute('Algorithm').value if element
       case algorithm
-        when "http://www.w3.org/2001/10/xml-exc-c14n#"         then Nokogiri::XML::XML_C14N_EXCLUSIVE_1_0
-        when "http://www.w3.org/TR/2001/REC-xml-c14n-20010315" then Nokogiri::XML::XML_C14N_1_0
-        when "http://www.w3.org/2006/12/xml-c14n11"            then Nokogiri::XML::XML_C14N_1_1
-        else                                                        Nokogiri::XML::XML_C14N_EXCLUSIVE_1_0
+        when "http://www.w3.org/2001/10/xml-exc-c14n#"         then XML::Util::XmlCanonicalizer.new(false,true)
+        when "http://www.w3.org/TR/2001/REC-xml-c14n-20010315" then XML::Util::XmlCanonicalizer.new(false,false)
+        when "http://www.w3.org/2006/12/xml-c14n11"            then XML::Util::XmlCanonicalizer.new(false,false)
+        else                                                        XML::Util::XmlCanonicalizer.new(false,true)
       end
     end
 
