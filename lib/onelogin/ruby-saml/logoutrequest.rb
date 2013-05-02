@@ -33,7 +33,7 @@ module Onelogin
         @logout_url = settings.idp_slo_target_url + request_params
       end
 
-      def createSigned(settings, private_key, params={})
+      def create_signed(settings, private_key, params={})
         request_doc = create_unauth_xml_doc(settings, params)
         request = ""
         request_doc.write(request)
