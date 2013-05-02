@@ -45,7 +45,8 @@ module Onelogin
         encoded_sig_alg = CGI.escape('http://www.w3.org/2000/09/xmldsig#rsa-sha1')
 
         params_prefix     = (settings.idp_slo_target_url =~ /\?/) ? '&' : '?'
-        request_params    =  "#{params_prefix}SAMLRequest=#{encoded_request}&SigAlg=#{encoded_sig_alg}"
+        url_string = "SAMLRequest=#{encoded_request}&SigAlg=#{encoded_sig_alg}"
+        request_params    =  "#{params_prefix}#{url_string}"
 
         signature = private_key.sign(OpenSSL::Digest::SHA1.new, url_string)
         encoded_signature = CGI.escape(Base64.encode64(signature).gsub("\n", ''))
