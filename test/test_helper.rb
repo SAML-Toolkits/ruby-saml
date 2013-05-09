@@ -2,11 +2,7 @@ require 'rubygems'
 require 'test/unit'
 require 'shoulda'
 require 'mocha'
-if RUBY_ENGINE == "jruby"
-  require 'ruby-debug'
-else
-  require 'debugger'
-end
+require 'ruby-debug'
 require 'timecop'
 
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))

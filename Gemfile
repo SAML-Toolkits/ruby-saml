@@ -13,7 +13,7 @@ group :test do
     gem "ruby-debug-base",   :require => nil
     gem "ruby-debug", "~> 0.10.4", :require => nil
   end
-
+  
   gem "shoulda"
   gem "rake"
   gem "mocha"
