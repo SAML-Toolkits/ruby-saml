@@ -30,7 +30,9 @@ require 'nokogiri'
 require "digest/sha1"
 require "digest/sha2"
 require "onelogin/ruby-saml/validation_error"
-require 'xmlcanonicalizer'
+if RUBY_ENGINE == "jruby"
+  require 'xmlcanonicalizer'
+end
 
 module XMLSecurity
 
@@ -63,7 +65,14 @@ module XMLSecurity
       validate_doc(base64_cert, soft)
     end
 
-    def validate_doc(base64_cert, soft = true)
+    def validate_doc(*args)
+      if RUBY_ENGINE == "jruby"
+        validate_doc_nokogiri(*args)
+      else
+        validate_doc_xmlcanonicalizer(*args)
+    end
+
+    def validate_doc_nokogiri(base64_cert, soft = true)
       # validate references
 
       # check for inclusive namespaces
@@ -84,11 +93,68 @@ module XMLSecurity
       # verify signature
       signed_info_element     = REXML::XPath.first(@sig_element, "//ds:SignedInfo", {"ds"=>DSIG})
       noko_sig_element = document.at_xpath('//ds:Signature', 'ds' => DSIG)
+      noko_signed_info_element = noko_sig_element.at_xpath('./ds:SignedInfo', 'ds' => DSIG)
+      canon_algorithm = canon_algorithm REXML::XPath.first(@sig_element, '//ds:CanonicalizationMethod', 'ds' => DSIG)
+      canon_string = noko_signed_info_element.canonicalize(canon_algorithm)
+      noko_sig_element.remove
+
+      # check digests
+      REXML::XPath.each(@sig_element, "//ds:Reference", {"ds"=>DSIG}) do |ref|
+        uri                           = ref.attributes.get_attribute("URI").value
+
+        hashed_element                = document.at_xpath("//*[@ID='#{uri[1..-1]}']")
+        canon_algorithm               = canon_algorithm REXML::XPath.first(ref, '//ds:CanonicalizationMethod', 'ds' => DSIG)
+        canon_hashed_element          = hashed_element.canonicalize(canon_algorithm, inclusive_namespaces)
+
+        digest_algorithm              = algorithm(REXML::XPath.first(ref, "//ds:DigestMethod"))
+
+        hash                          = digest_algorithm.digest(canon_hashed_element)
+        digest_value                  = Base64.decode64(REXML::XPath.first(ref, "//ds:DigestValue", {"ds"=>DSIG}).text)
+
+        unless digests_match?(hash, digest_value)
+          return soft ? false : (raise Onelogin::Saml::ValidationError.new("Digest mismatch"))
+        end
+      end
+
+      base64_signature        = REXML::XPath.first(@sig_element, "//ds:SignatureValue", {"ds"=>DSIG}).text
+      signature               = Base64.decode64(base64_signature)
+
+      # get certificate object
+      cert_text               = Base64.decode64(base64_cert)
+      cert                    = OpenSSL::X509::Certificate.new(cert_text)
+
+      # signature method
+      signature_algorithm     = algorithm(REXML::XPath.first(signed_info_element, "//ds:SignatureMethod", {"ds"=>DSIG}))
+
+      unless cert.public_key.verify(signature_algorithm.new, signature, canon_string)
+        return soft ? false : (raise Onelogin::Saml::ValidationError.new("Key validation error"))
+      end
+
+      return true
+    end
+
+    def validate_doc_xmlcanonicalizer(base64_cert, soft = true)
+      # validate references
+
+      # check for inclusive namespaces
+      inclusive_namespaces = extract_inclusive_namespaces
+
+      document = Nokogiri.parse(self.to_s)
+
+      # create a working copy so we don't modify the original
+      @working_copy ||= REXML::Document.new(self.to_s).root
+
+      # store and remove signature node
+      @sig_element ||= begin
+        element = REXML::XPath.first(@working_copy, "//ds:Signature", {"ds"=>DSIG})
+        element.remove
+      end
+
+      # verify signature
+      signed_info_element     = REXML::XPath.first(@sig_element, "//ds:SignedInfo", {"ds"=>DSIG})
 
       xml_canonicalizer = build_xml_canonicalizer REXML::XPath.first(@sig_element, '//ds:CanonicalizationMethod', 'ds' => DSIG)
       canon_string = xml_canonicalizer.canonicalize(signed_info_element)
-
-      noko_sig_element.remove
 
       # check digests
       REXML::XPath.each(@sig_element, "//ds:Reference", {"ds"=>DSIG}) do |ref|
@@ -135,6 +201,16 @@ module XMLSecurity
     def extract_signed_element_id
       reference_element       = REXML::XPath.first(self, "//ds:Signature/ds:SignedInfo/ds:Reference", {"ds"=>DSIG})
       self.signed_element_id  = reference_element.attribute("URI").value[1..-1] unless reference_element.nil?
+    end
+
+    def canon_algorithm(element)
+      algorithm = element.attribute('Algorithm').value if element
+      case algorithm
+        when "http://www.w3.org/2001/10/xml-exc-c14n#"         then Nokogiri::XML::XML_C14N_EXCLUSIVE_1_0
+        when "http://www.w3.org/TR/2001/REC-xml-c14n-20010315" then Nokogiri::XML::XML_C14N_1_0
+        when "http://www.w3.org/2006/12/xml-c14n11"            then Nokogiri::XML::XML_C14N_1_1
+        else                                                        Nokogiri::XML::XML_C14N_EXCLUSIVE_1_0
+      end
     end
 
     def build_xml_canonicalizer(element)
