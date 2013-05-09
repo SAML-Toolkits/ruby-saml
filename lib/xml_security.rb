@@ -67,9 +67,9 @@ module XMLSecurity
 
     def validate_doc(*args)
       if RUBY_ENGINE == "jruby"
-        validate_doc_nokogiri(*args)
-      else
         validate_doc_xmlcanonicalizer(*args)
+      else
+        validate_doc_nokogiri(*args)
       end
     end
 
