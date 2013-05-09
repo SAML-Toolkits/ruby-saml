@@ -70,6 +70,7 @@ module XMLSecurity
         validate_doc_nokogiri(*args)
       else
         validate_doc_xmlcanonicalizer(*args)
+      end
     end
 
     def validate_doc_nokogiri(base64_cert, soft = true)
