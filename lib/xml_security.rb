@@ -151,11 +151,15 @@ module XMLSecurity
         element.remove
       end
 
+
       # verify signature
       signed_info_element     = REXML::XPath.first(@sig_element, "//ds:SignedInfo", {"ds"=>DSIG})
+      noko_sig_element = document.at_xpath('//ds:Signature', 'ds' => DSIG)
 
       xml_canonicalizer = build_xml_canonicalizer REXML::XPath.first(@sig_element, '//ds:CanonicalizationMethod', 'ds' => DSIG)
       canon_string = xml_canonicalizer.canonicalize(signed_info_element)
+
+      noko_sig_element.remove
 
       # check digests
       REXML::XPath.each(@sig_element, "//ds:Reference", {"ds"=>DSIG}) do |ref|
