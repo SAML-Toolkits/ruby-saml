@@ -11,8 +11,7 @@ class SettingsTest < Test::Unit::TestCase
         :assertion_consumer_service_url, :issuer, :sp_name_qualifier,
         :idp_sso_target_url, :idp_cert_fingerprint, :name_identifier_format,
         :idp_slo_target_url, :name_identifier_value, :sessionindex,
-        :assertion_consumer_logout_service_url,
-        :passive
+        :assertion_consumer_logout_service_url, :passive, :protocol_binding
       ]
 
       accessors.each do |accessor|
@@ -33,6 +32,7 @@ class SettingsTest < Test::Unit::TestCase
           :idp_cert_fingerprint => "00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00",
           :name_identifier_format => "urn:oasis:names:tc:SAML:2.0:nameid-format:transient",
           :passive => true,
+          :protocol_binding => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
       }
       @settings = Onelogin::Saml::Settings.new(config)
 

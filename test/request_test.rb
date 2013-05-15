@@ -63,6 +63,23 @@ class RequestTest < Test::Unit::TestCase
       assert_match /<samlp:AuthnRequest[^<]* IsPassive='true'/, inflated
     end
 
+    should "create the SAMLRequest URL parameter with ProtocolBinding" do
+      settings = Onelogin::Saml::Settings.new
+      settings.idp_sso_target_url = "http://example.com"
+      settings.protocol_binding = 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'
+      auth_url = Onelogin::Saml::Authrequest.new.create(settings)
+      assert auth_url =~ /^http:\/\/example\.com\?SAMLRequest=/
+      payload  = CGI.unescape(auth_url.split("=").last)
+      decoded  = Base64.decode64(payload)
+
+      zstream  = Zlib::Inflate.new(-Zlib::MAX_WBITS)
+      inflated = zstream.inflate(decoded)
+      zstream.finish
+      zstream.close
+
+      assert_match /<samlp:AuthnRequest[^<]* ProtocolBinding='urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'/, inflated
+    end
+
     should "accept extra parameters" do
       settings = Onelogin::Saml::Settings.new
       settings.idp_sso_target_url = "http://example.com"
@@ -78,7 +95,7 @@ class RequestTest < Test::Unit::TestCase
       should "create the SAMLRequest parameter correctly" do
         settings = Onelogin::Saml::Settings.new
         settings.idp_sso_target_url = "http://example.com"
-  
+
         auth_url = Onelogin::Saml::Authrequest.new.create(settings)
         assert auth_url =~ /^http:\/\/example.com\?SAMLRequest/
       end
@@ -88,7 +105,7 @@ class RequestTest < Test::Unit::TestCase
       should "create the SAMLRequest parameter correctly" do
         settings = Onelogin::Saml::Settings.new
         settings.idp_sso_target_url = "http://example.com?field=value"
-  
+
         auth_url = Onelogin::Saml::Authrequest.new.create(settings)
         assert auth_url =~ /^http:\/\/example.com\?field=value&SAMLRequest/
       end
