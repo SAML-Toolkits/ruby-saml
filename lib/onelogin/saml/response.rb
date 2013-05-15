@@ -48,7 +48,12 @@ module Onelogin::Saml
           name  = attr_element.attributes["Name"]
           value = attr_element.elements.first.text
 
-          result[name] = value
+          result[name] =
+            if result[name]
+              ([value] << result[name]).flatten
+            else
+              value
+            end
         end
 
         result.keys.each do |key|
