@@ -33,6 +33,32 @@ module Onelogin
         @logout_url = settings.idp_slo_target_url + request_params
       end
 
+      def create_signed(settings, private_key, params={})
+        request_doc = create_unauth_xml_doc(settings, params)
+        request = ""
+        request_doc.write(request)
+
+        deflated_request  = Zlib::Deflate.deflate(request, 9)[2..-5]
+        base64_request    = Base64.encode64(deflated_request)
+        encoded_request   = CGI.escape(base64_request)
+
+        encoded_sig_alg = CGI.escape('http://www.w3.org/2000/09/xmldsig#rsa-sha1')
+
+        params_prefix     = (settings.idp_slo_target_url =~ /\?/) ? '&' : '?'
+        url_string = "SAMLRequest=#{encoded_request}&SigAlg=#{encoded_sig_alg}"
+        request_params    =  "#{params_prefix}#{url_string}"
+
+        signature = private_key.sign(OpenSSL::Digest::SHA1.new, url_string)
+        encoded_signature = CGI.escape(Base64.encode64(signature).gsub("\n", ''))
+        request_params += "&Signature=#{encoded_signature}"
+
+        params.each_pair do |key, value|
+          request_params << "&#{key}=#{CGI.escape(value.to_s)}"
+        end
+
+        @logout_url = settings.idp_slo_target_url + request_params
+      end
+
       def create_unauth_xml_doc(settings, params)
 
         time = Time.new().strftime("%Y-%m-%dT%H:%M:%S")

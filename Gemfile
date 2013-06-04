@@ -3,8 +3,14 @@ source 'http://rubygems.org'
 gemspec
 
 group :test do
-  gem "ruby-debug", "~> 0.10.4", :require => nil, :platforms => :ruby_18
-  gem "debugger",   "~> 1.1.1",  :require => nil, :platforms => :ruby_19
+  platform :ruby do
+    gem "debugger",   "~> 1.4.0",  :require => nil
+  end
+  platform :jruby do
+    gem "ruby-debug-base",   :require => nil
+    gem "ruby-debug", "~> 0.10.4", :require => nil
+  end
+
   gem "shoulda"
   gem "rake"
   gem "mocha"
