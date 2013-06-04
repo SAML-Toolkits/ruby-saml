@@ -42,6 +42,7 @@ module Onelogin
         root.attributes['ID'] = @uuid
         root.attributes['IssueInstant'] = time
         root.attributes['Version'] = "2.0"
+        root.attributes['Destination'] = settings.idp_slo_target_url unless settings.idp_slo_target_url.nil?
 
         if settings.issuer
           issuer = root.add_element "saml:Issuer", { "xmlns:saml" => "urn:oasis:names:tc:SAML:2.0:assertion" }
