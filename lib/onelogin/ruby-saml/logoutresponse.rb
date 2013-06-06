@@ -2,7 +2,6 @@ require "xml_security"
 require "time"
 require "base64"
 require "zlib"
-require "open-uri"
 
 module Onelogin
   module Saml
