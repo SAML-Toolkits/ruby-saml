@@ -12,6 +12,7 @@ class SettingsTest < Test::Unit::TestCase
         :idp_sso_target_url, :idp_cert_fingerprint, :name_identifier_format,
         :idp_slo_target_url, :name_identifier_value, :sessionindex,
         :assertion_consumer_logout_service_url,
+        :attributes_index,
         :passive, :protocol_binding
       ]
 
@@ -32,6 +33,7 @@ class SettingsTest < Test::Unit::TestCase
           :idp_slo_target_url => "http://sso.muda.no/slo",
           :idp_cert_fingerprint => "00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00",
           :name_identifier_format => "urn:oasis:names:tc:SAML:2.0:nameid-format:transient",
+          :attributes_index => 30,
           :passive => true,
           :protocol_binding => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'
       }
