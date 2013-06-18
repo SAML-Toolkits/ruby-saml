@@ -24,6 +24,10 @@ module OneLogin
       attr_accessor :attributes_index
       attr_accessor :sign_request, :certificate, :private_key, :digest_method, :signature_method
 
+      def simple_sign_request
+        assertion_consumer_service_binding == 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST-SimpleSign'
+      end
+
       private
 
       DEFAULTS = {
