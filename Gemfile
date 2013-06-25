@@ -16,4 +16,5 @@ group :test do
   gem "mocha"
   gem "nokogiri", ">= 1.5.0"
   gem "timecop"
+  gem "rspec"
 end

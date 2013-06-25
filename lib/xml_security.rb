@@ -137,9 +137,6 @@ module XMLSecurity
     def validate_doc_xmlcanonicalizer(base64_cert, soft = true)
       # validate references
 
-      # check for inclusive namespaces
-      inclusive_namespaces = extract_inclusive_namespaces
-
       document = Nokogiri.parse(self.to_s)
 
       # create a working copy so we don't modify the original
@@ -156,8 +153,8 @@ module XMLSecurity
       signed_info_element     = REXML::XPath.first(@sig_element, "//ds:SignedInfo", {"ds"=>DSIG})
       noko_sig_element = document.at_xpath('//ds:Signature', 'ds' => DSIG)
 
-      xml_canonicalizer = build_xml_canonicalizer REXML::XPath.first(@sig_element, '//ds:CanonicalizationMethod', 'ds' => DSIG)
-      canon_string = xml_canonicalizer.canonicalize(signed_info_element)
+      xml_canonicalizer = build_signed_info_canonicalizer REXML::XPath.first(@sig_element, '//ds:CanonicalizationMethod', 'ds' => DSIG)
+      canon_string = xml_canonicalizer.canonicalize(@sig_element.to_s)
 
       noko_sig_element.remove
 
@@ -226,6 +223,11 @@ module XMLSecurity
         when "http://www.w3.org/2006/12/xml-c14n11"            then XML::Util::XmlCanonicalizer.new(false,false)
         else                                                        XML::Util::XmlCanonicalizer.new(false,true)
       end
+    end
+
+    def build_signed_info_canonicalizer(element)
+      algorithm = element.nil? ? "http://www.w3.org/2001/10/xml-exc-c14n#" : element.attribute('Algorithm').value
+      Java::com::connectedhealth::xmlcanonicalizer::SignedInfoCanonicalizer.new(algorithm)
     end
 
     def algorithm(element)
