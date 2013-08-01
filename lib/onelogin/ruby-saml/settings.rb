@@ -18,9 +18,10 @@ module Onelogin
       attr_accessor :compress_request
       attr_accessor :double_quote_xml_attribute_values
       attr_accessor :passive
+      attr_accessor :protocol_binding
 
       private
-      
+
       DEFAULTS = {:compress_request => true, :double_quote_xml_attribute_values => false}
     end
   end
