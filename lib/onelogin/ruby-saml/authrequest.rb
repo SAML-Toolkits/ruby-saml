@@ -36,7 +36,7 @@ module Onelogin
       def create_authentication_xml_doc(settings)
         uuid = "_" + UUID.new.generate
         time = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
-        # Create AuthnRequest root element using REXML 
+        # Create AuthnRequest root element using REXML
         request_doc = REXML::Document.new
 
         root = request_doc.add_element "samlp:AuthnRequest", { "xmlns:samlp" => "urn:oasis:names:tc:SAML:2.0:protocol" }
@@ -45,6 +45,7 @@ module Onelogin
         root.attributes['Version'] = "2.0"
         root.attributes['Destination'] = settings.idp_sso_target_url unless settings.idp_sso_target_url.nil?
         root.attributes['IsPassive'] = settings.passive unless settings.passive.nil?
+        root.attributes['ProtocolBinding'] = settings.protocol_binding unless settings.protocol_binding.nil?
 
         # Conditionally defined elements based on settings
         if settings.assertion_consumer_service_url != nil
@@ -55,7 +56,7 @@ module Onelogin
           issuer.text = settings.issuer
         end
         if settings.name_identifier_format != nil
-          root.add_element "samlp:NameIDPolicy", { 
+          root.add_element "samlp:NameIDPolicy", {
               "xmlns:samlp" => "urn:oasis:names:tc:SAML:2.0:protocol",
               # Might want to make AllowCreate a setting?
               "AllowCreate" => "true",
@@ -64,14 +65,14 @@ module Onelogin
         end
 
         # BUG fix here -- if an authn_context is defined, add the tags with an "exact"
-        # match required for authentication to succeed.  If this is not defined, 
+        # match required for authentication to succeed.  If this is not defined,
         # the IdP will choose default rules for authentication.  (Shibboleth IdP)
         if settings.authn_context != nil
-          requested_context = root.add_element "samlp:RequestedAuthnContext", { 
+          requested_context = root.add_element "samlp:RequestedAuthnContext", {
             "xmlns:samlp" => "urn:oasis:names:tc:SAML:2.0:protocol",
             "Comparison" => "exact",
           }
-          class_ref = requested_context.add_element "saml:AuthnContextClassRef", { 
+          class_ref = requested_context.add_element "saml:AuthnContextClassRef", {
             "xmlns:saml" => "urn:oasis:names:tc:SAML:2.0:assertion",
           }
           class_ref.text = settings.authn_context
