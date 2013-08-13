@@ -13,12 +13,14 @@ module OneLogin
 
       # TODO: This should probably be ctor initialized too... WDYT?
       attr_accessor :settings
+      attr_accessor :errors
 
       attr_reader :options
       attr_reader :response
       attr_reader :document
 
       def initialize(response, options = {})
+        @errors = []
         raise ArgumentError.new("Response cannot be nil") if response.nil?
         @options  = options
         @response = (response =~ /^</) ? response : Base64.decode64(response)
@@ -31,6 +33,10 @@ module OneLogin
 
       def validate!
         validate(false)
+      end
+
+      def errors
+        @errors
       end
 
       # The value of the user identifier as designated by the initialization request response
@@ -182,10 +188,12 @@ module OneLogin
         now = Time.now.utc
 
         if not_before && (now + (options[:allowed_clock_drift] || 0)) < not_before
+          @errors << "Current time is earlier than NotBefore condition #{(now + (options[:allowed_clock_drift] || 0))} < #{not_before})"
           return soft ? false : validation_error("Current time is earlier than NotBefore condition")
         end
 
         if not_on_or_after && now >= not_on_or_after
+          @errors << "Current time is on or after NotOnOrAfter condition (#{now} >= #{not_on_or_after})"
           return soft ? false : validation_error("Current time is on or after NotOnOrAfter condition")
         end
 
