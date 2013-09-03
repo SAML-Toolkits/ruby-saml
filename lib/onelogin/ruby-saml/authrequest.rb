@@ -77,6 +77,18 @@ module Onelogin
           }
           class_ref.text = settings.authn_context
         end
+
+        # add saml:AuthnContextDeclRef element to choose login page
+        if settings.authn_context_decl_ref != nil
+          requested_context = root.add_element "samlp:RequestedAuthnContext", {
+            "xmlns:samlp" => "urn:oasis:names:tc:SAML:2.0:protocol",
+          }
+          class_ref = requested_context.add_element "saml:AuthnContextDeclRef", {
+            "xmlns:saml" => "urn:oasis:names:tc:SAML:2.0:assertion",
+          }
+          class_ref.text = settings.authn_context_decl_ref
+        end
+
         request_doc
       end
 
