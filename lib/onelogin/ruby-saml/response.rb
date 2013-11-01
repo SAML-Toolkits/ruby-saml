@@ -41,6 +41,20 @@ module Onelogin
         end
       end
 
+      def recipient
+        @recipient ||= begin
+          node = xpath_first_from_signed_assertion('/a:Subject/a:SubjectConfirmation/a:SubjectConfirmationData')
+          node.nil? ? nil : node.attributes['Recipient']
+        end
+      end
+
+      def destination
+        @destination ||= begin
+          node = REXML::XPath.first(document, "/p:Response", { "p" => PROTOCOL })
+          node.nil? ? nil : node.attributes['Destination']
+        end
+      end
+
       def sessionindex
         @sessionindex ||= begin
           node = xpath_first_from_signed_assertion('/a:AuthnStatement')
@@ -78,7 +92,7 @@ module Onelogin
           parse_time(node, "SessionNotOnOrAfter")
         end
       end
-      
+
       # Checks the status of the response for a "Success" code
       def success?
         @status_code ||= begin
@@ -110,10 +124,28 @@ module Onelogin
         validate_structure(soft)      &&
         validate_response_state(soft) &&
         validate_conditions(soft)     &&
-        document.validate(get_fingerprint, soft) && 
+        document.validate(get_fingerprint, soft) &&
         validate_new_assertion_id(soft) &&
         validate_time_range(soft)     &&
+        validate_recipient(soft) &&
+        validate_destination(soft) &&
         success?
+      end
+
+      def validate_recipient(soft = true)
+        valid = settings.recipient_validator.valid?(recipient, settings.assertion_consumer_service_url)
+        unless valid
+          return soft ? false : validation_error('Recipient and assertion consumer URL must match')
+        end
+        true
+      end
+
+      def validate_destination(soft = true)
+        valid = settings.destination_validator.valid?(destination, settings.assertion_consumer_service_url)
+        unless valid
+          return soft ? false : validation_error('Destination and assertion consumer URL must match')
+        end
+        true
       end
 
       # validate the time range using the validator (settings)
