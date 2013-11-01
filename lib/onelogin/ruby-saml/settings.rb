@@ -12,6 +12,18 @@ module OneLogin
       end
     end
 
+    class PermissiveRecipientValidator
+      def valid?(recipient_url, assertion_consumer_url)
+        true
+      end
+    end
+
+    class PermissiveDestinationValidator
+      def valid?(destination_url, assertion_consumer_url)
+        true
+      end
+    end
+
     class Settings
       def initialize(overrides = {})
         config = DEFAULTS.merge(overrides)
@@ -33,10 +45,20 @@ module OneLogin
       attr_accessor :protocol_binding
       attr_accessor :assertion_id_validator
       attr_accessor :time_range_validator
-
+      attr_accessor :passive
+      attr_accessor :destination_validator
+      attr_accessor :recipient_validator
+      
       private
 
-      DEFAULTS = {:compress_request => true, :double_quote_xml_attribute_values => false, :assertion_id_validator => PermissiveAssertionIdValidator.new, :time_range_validator => PermissiveTimeRangeValidator.new}
+      DEFAULTS = {
+        :compress_request                  => true,
+        :double_quote_xml_attribute_values => false,
+        :assertion_id_validator            => PermissiveAssertionIdValidator.new,
+        :time_range_validator              => PermissiveTimeRangeValidator.new,
+        :recipient_validator               => PermissiveRecipientValidator.new,
+        :destination_validator             => PermissiveDestinationValidator.new
+      }
     end
   end
 end
