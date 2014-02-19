@@ -118,7 +118,7 @@ module Onelogin
         validate_structure(soft)      &&
         validate_response_state(soft) &&
         validate_conditions(soft)     &&
-        document.validate(get_fingerprint, soft) && 
+        document.validate2(get_fingerprint, soft) &&
         success?
       end
 

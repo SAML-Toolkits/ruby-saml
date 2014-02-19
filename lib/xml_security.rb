@@ -44,7 +44,7 @@ module XMLSecurity
       extract_signed_element_id
     end
 
-    def validate(idp_cert_fingerprint, soft = true)
+    def validate2(idp_cert_fingerprint, soft = true)
       # get cert from response
       cert_element = REXML::XPath.first(self, "//ds:X509Certificate", { "ds"=>DSIG })
       raise Onelogin::Saml::ValidationError.new("Certificate element missing in response (ds:X509Certificate)") unless cert_element
@@ -59,10 +59,10 @@ module XMLSecurity
         return soft ? false : (raise Onelogin::Saml::ValidationError.new("Fingerprint mismatch"))
       end
 
-      validate_doc(base64_cert, soft)
+      validate_doc2(base64_cert, soft)
     end
 
-    def validate_doc(base64_cert, soft = true)
+    def validate_doc2(base64_cert, soft = true)
       # validate references
 
       # check for inclusive namespaces
