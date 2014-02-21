@@ -9,3 +9,4 @@ lib/Lib.iml
 test/Test.iml
 .rvmrc
 *.gem
+.bundle
