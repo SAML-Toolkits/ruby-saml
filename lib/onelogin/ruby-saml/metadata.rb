@@ -3,11 +3,11 @@ require "rexml/xpath"
 require "uri"
 
 # Class to return SP metadata based on the settings requested.
-# Return this XML in a controller, then give that URL to the the 
+# Return this XML in a controller, then give that URL to the the
 # IdP administrator.  The IdP will poll the URL and your settings
 # will be updated automatically
 module Onelogin
-  module Saml
+  module RubySaml
     include REXML
     class Metadata
       def generate(settings)

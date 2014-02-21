@@ -4,7 +4,7 @@ require "nokogiri"
 
 # Only supports SAML 2.0
 module Onelogin
-  module Saml
+  module RubySaml
 
     class Response
       ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion"

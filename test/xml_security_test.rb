@@ -15,7 +15,7 @@ class XmlSecurityTest < Test::Unit::TestCase
     end
 
     should "should run validate with throwing NS related exceptions" do
-      assert_raise(Onelogin::Saml::ValidationError) do
+      assert_raise(Onelogin::RubySaml::ValidationError) do
         @document.validate_signature(@base64cert, false)
       end
     end
@@ -27,14 +27,14 @@ class XmlSecurityTest < Test::Unit::TestCase
     end
 
     should "should raise Fingerprint mismatch" do
-      exception = assert_raise(Onelogin::Saml::ValidationError) do
+      exception = assert_raise(Onelogin::RubySaml::ValidationError) do
         @document.validate_document("no:fi:ng:er:pr:in:t", false)
       end
       assert_equal("Fingerprint mismatch", exception.message)
     end
 
     should "should raise Digest mismatch" do
-      exception = assert_raise(Onelogin::Saml::ValidationError) do
+      exception = assert_raise(Onelogin::RubySaml::ValidationError) do
         @document.validate_signature(@base64cert, false)
       end
       assert_equal("Digest mismatch", exception.message)
@@ -46,7 +46,7 @@ class XmlSecurityTest < Test::Unit::TestCase
                     "<ds:DigestValue>b9xsAXLsynugg3Wc1CI3kpWku+0=</ds:DigestValue>")
       document = XMLSecurity::SignedDocument.new(response)
       base64cert = document.elements["//ds:X509Certificate"].text
-      exception = assert_raise(Onelogin::Saml::ValidationError) do
+      exception = assert_raise(Onelogin::RubySaml::ValidationError) do
         document.validate_signature(base64cert, false)
       end
       assert_equal("Key validation error", exception.message)
@@ -56,7 +56,7 @@ class XmlSecurityTest < Test::Unit::TestCase
       response = Base64.decode64(response_document)
       response.sub!(/<ds:X509Certificate>.*<\/ds:X509Certificate>/, "")
       document = XMLSecurity::SignedDocument.new(response)
-      exception = assert_raise(Onelogin::Saml::ValidationError) do
+      exception = assert_raise(Onelogin::RubySaml::ValidationError) do
         document.validate_document("a fingerprint", false) # The fingerprint isn't relevant to this test
       end
       assert_equal("Certificate element missing in response (ds:X509Certificate)", exception.message)
@@ -106,10 +106,10 @@ class XmlSecurityTest < Test::Unit::TestCase
 
       should_eventually 'support inclusive canonicalization' do
 
-        response = Onelogin::Saml::Response.new(fixture("tdnf_response.xml"))
+        response = Onelogin::RubySaml::Response.new(fixture("tdnf_response.xml"))
         response.stubs(:conditions).returns(nil)
         assert !response.is_valid?
-        settings = Onelogin::Saml::Settings.new
+        settings = Onelogin::RubySaml::Settings.new
         assert !response.is_valid?
         response.settings = settings
         assert !response.is_valid?
@@ -130,8 +130,8 @@ class XmlSecurityTest < Test::Unit::TestCase
 
     context "StarfieldTMS" do
       setup do
-        @response = Onelogin::Saml::Response.new(fixture(:starfield_response))
-        @response.settings = Onelogin::Saml::Settings.new(
+        @response = Onelogin::RubySaml::Response.new(fixture(:starfield_response))
+        @response.settings = Onelogin::RubySaml::Settings.new(
                                                           :idp_cert_fingerprint => "8D:BA:53:8E:A3:B6:F9:F1:69:6C:BB:D9:D8:BD:41:B3:AC:4F:9D:4D"
                                                           )
       end
