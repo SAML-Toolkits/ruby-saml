@@ -118,6 +118,20 @@ to the IdP settings.
   end
 ```
 
+## Clock Drift
+
+Server clocks tend to drift naturally. If during validation of the response you get the error "Current time is earlier than NotBefore condition" then this may be due to clock differences between your system and that of the Identity Provider.
+
+First, ensure that both systems synchronize their clocks, using for example the industry standard [Network Time Protocol (NTP)](http://en.wikipedia.org/wiki/Network_Time_Protocol).
+
+Even then you may experience intermittent issues though, because the clock of the Identity Provider may drift slightly ahead of your system clocks. To allow for a small amount of clock drift you can initialize the response passing in an option named `:allowed_clock_drift`. Its value must be given in a number (and/or fraction) of seconds. The value given is added to the current time at which the response is validated before it's tested against the `NotBefore` assertion. For example:
+
+```ruby
+  response = Onelogin::Saml::Response.new(params[:SAMLResponse], :allowed_clock_drift => 1)
+```
+
+Make sure to keep the value as comfortably small as possible to keep security risks to a minimum.
+
 ## Note on Patches/Pull Requests
 
 * Fork the project.

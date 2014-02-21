@@ -78,7 +78,7 @@ module Onelogin
           parse_time(node, "SessionNotOnOrAfter")
         end
       end
-      
+
       # Checks the status of the response for a "Success" code
       def success?
         @status_code ||= begin
@@ -90,6 +90,14 @@ module Onelogin
       # Conditions (if any) for the assertion to run
       def conditions
         @conditions ||= xpath_first_from_signed_assertion('/a:Conditions')
+      end
+
+      def not_before
+        @not_before ||= parse_time(conditions, "NotBefore")
+      end
+
+      def not_on_or_after
+        @not_on_or_after ||= parse_time(conditions, "NotOnOrAfter")
       end
 
       def issuer
@@ -110,7 +118,7 @@ module Onelogin
         validate_structure(soft)      &&
         validate_response_state(soft) &&
         validate_conditions(soft)     &&
-        document.validate(get_fingerprint, soft) && 
+        document.validate_document(get_fingerprint, soft) &&
         success?
       end
 
@@ -161,16 +169,14 @@ module Onelogin
         return true if conditions.nil?
         return true if options[:skip_conditions]
 
-        if (not_before = parse_time(conditions, "NotBefore"))
-          if Time.now.utc < not_before
-            return soft ? false : validation_error("Current time is earlier than NotBefore condition")
-          end
+        now = Time.now.utc
+
+        if not_before && (now + (options[:allowed_clock_drift] || 0)) < not_before
+          return soft ? false : validation_error("Current time is earlier than NotBefore condition")
         end
 
-        if (not_on_or_after = parse_time(conditions, "NotOnOrAfter"))
-          if Time.now.utc >= not_on_or_after
-            return soft ? false : validation_error("Current time is on or after NotOnOrAfter condition")
-          end
+        if not_on_or_after && now >= not_on_or_after
+          return soft ? false : validation_error("Current time is on or after NotOnOrAfter condition")
         end
 
         true

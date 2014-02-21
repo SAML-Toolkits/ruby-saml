@@ -120,7 +120,7 @@ class RubySamlTest < Test::Unit::TestCase
         settings = Onelogin::Saml::Settings.new
         response.settings = settings
         settings.idp_cert_fingerprint = "28:74:9B:E8:1F:E8:10:9C:A8:7C:A9:C3:E3:C5:01:6C:92:1C:B4:BA"
-        XMLSecurity::SignedDocument.any_instance.expects(:validate_doc).returns(true)
+        XMLSecurity::SignedDocument.any_instance.expects(:validate_signature).returns(true)
         assert response.validate!
       end
 
@@ -184,6 +184,17 @@ class RubySamlTest < Test::Unit::TestCase
         response = Onelogin::Saml::Response.new(response_document_5)
         assert response.send(:validate_conditions, true)
       end
+
+      should "optionally allow for clock drift" do
+        # The NotBefore condition in the document is 2011-06-14T18:21:01.516Z
+        Time.stubs(:now).returns(Time.parse("2011-06-14T18:21:01Z"))
+        response = Onelogin::Saml::Response.new(response_document_5, :allowed_clock_drift => 0.515)
+        assert !response.send(:validate_conditions, true)
+
+        Time.stubs(:now).returns(Time.parse("2011-06-14T18:21:01Z"))
+        response = Onelogin::Saml::Response.new(response_document_5, :allowed_clock_drift => 0.516)
+        assert response.send(:validate_conditions, true)
+      end
     end
 
     context "#attributes" do
@@ -229,13 +240,13 @@ class RubySamlTest < Test::Unit::TestCase
         response = Onelogin::Saml::Response.new(response_document)
         assert_equal "https://app.onelogin.com/saml/metadata/13590", response.issuer
       end
-      
+
       should "return the issuer inside the response" do
         response = Onelogin::Saml::Response.new(response_document_2)
         assert_equal "wibble", response.issuer
       end
     end
-    
+
     context "#success" do
       should "find a status code that says success" do
         response = Onelogin::Saml::Response.new(response_document)
