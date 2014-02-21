@@ -8,7 +8,7 @@ group :test do
   gem "shoulda",    "~> 2.11"
   gem "rake",       "~> 10"
   gem "mocha",      "~> 0.14"
-  gem "nokogiri",   "~> 1.5"
+  gem "nokogiri",   "~> 1.5.0"
   gem "timecop",    "<= 0.6.0"
   gem "systemu",    "~> 2"
   gem "rspec",      "~> 2"
