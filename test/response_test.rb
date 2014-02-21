@@ -76,6 +76,25 @@ class RubySamlTest < Test::Unit::TestCase
         assert response.is_valid?
       end
 
+      should "should be idempotent when the response is initialized with invalid data" do
+        response = Onelogin::Saml::Response.new(response_document_4)
+        response.stubs(:conditions).returns(nil)
+        settings = Onelogin::Saml::Settings.new
+        response.settings = settings
+        assert !response.is_valid?
+        assert !response.is_valid?
+      end
+
+      should "should be idempotent when the response is initialized with valid data" do
+        response = Onelogin::Saml::Response.new(response_document_4)
+        response.stubs(:conditions).returns(nil)
+        settings = Onelogin::Saml::Settings.new
+        response.settings = settings
+        settings.idp_cert_fingerprint = signature_fingerprint_1
+        assert response.is_valid?
+        assert response.is_valid?
+      end
+
       should "return true when using certificate instead of fingerprint" do
         response = Onelogin::Saml::Response.new(response_document_4)
         response.stubs(:conditions).returns(nil)
@@ -101,7 +120,7 @@ class RubySamlTest < Test::Unit::TestCase
         settings = Onelogin::Saml::Settings.new
         response.settings = settings
         settings.idp_cert_fingerprint = "28:74:9B:E8:1F:E8:10:9C:A8:7C:A9:C3:E3:C5:01:6C:92:1C:B4:BA"
-        XMLSecurity::SignedDocument.any_instance.expects(:validate_doc).returns(true)
+        XMLSecurity::SignedDocument.any_instance.expects(:validate_signature).returns(true)
         assert response.validate!
       end
 
@@ -112,6 +131,25 @@ class RubySamlTest < Test::Unit::TestCase
         settings.idp_cert_fingerprint = "28:74:9B:E8:1F:E8:10:9C:A8:7C:A9:C3:E3:C5:01:6C:92:1C:B4:BA"
         response.settings = settings
         assert response.validate!
+      end
+
+      should "validate the digest" do
+        response = Onelogin::Saml::Response.new(r1_response_document_6)
+        response.stubs(:conditions).returns(nil)
+        settings = Onelogin::Saml::Settings.new
+        settings.idp_cert = Base64.decode64(r1_signature_2)
+        response.settings = settings
+        assert response.validate!
+      end
+
+      should "validate SAML 2.0 XML structure" do
+        resp_xml = Base64.decode64(response_document_4).gsub(/emailAddress/,'test')
+        response = Onelogin::Saml::Response.new(Base64.encode64(resp_xml))
+        response.stubs(:conditions).returns(nil)
+        settings = Onelogin::Saml::Settings.new
+        settings.idp_cert_fingerprint = signature_fingerprint_1
+        response.settings = settings
+        assert_raises(Onelogin::Saml::ValidationError, 'Digest mismatch'){ response.validate! }
       end
     end
 
@@ -144,6 +182,17 @@ class RubySamlTest < Test::Unit::TestCase
         time     = Time.parse("2011-06-14T18:25:01.516Z")
         Time.stubs(:now).returns(time)
         response = Onelogin::Saml::Response.new(response_document_5)
+        assert response.send(:validate_conditions, true)
+      end
+
+      should "optionally allow for clock drift" do
+        # The NotBefore condition in the document is 2011-06-14T18:21:01.516Z
+        Time.stubs(:now).returns(Time.parse("2011-06-14T18:21:01Z"))
+        response = Onelogin::Saml::Response.new(response_document_5, :allowed_clock_drift => 0.515)
+        assert !response.send(:validate_conditions, true)
+
+        Time.stubs(:now).returns(Time.parse("2011-06-14T18:21:01Z"))
+        response = Onelogin::Saml::Response.new(response_document_5, :allowed_clock_drift => 0.516)
         assert response.send(:validate_conditions, true)
       end
     end
@@ -187,9 +236,21 @@ class RubySamlTest < Test::Unit::TestCase
     end
 
     context "#issuer" do
-      should "return the issuer of the assertion" do
+      should "return the issuer inside the response assertion" do
+        response = Onelogin::Saml::Response.new(response_document)
+        assert_equal "https://app.onelogin.com/saml/metadata/13590", response.issuer
+      end
+
+      should "return the issuer inside the response" do
         response = Onelogin::Saml::Response.new(response_document_2)
         assert_equal "wibble", response.issuer
+      end
+    end
+
+    context "#success" do
+      should "find a status code that says success" do
+        response = Onelogin::Saml::Response.new(response_document)
+        response.success?
       end
     end
 

@@ -90,17 +90,19 @@ What's left at this point, is to wrap it all up in a controller and point the in
 If are using saml:AttributeStatement to transfare metadata, like the user name, you can access all the attributes through response.attributes. It
 contains all the saml:AttributeStatement with its 'Name' as a indifferent key and the one saml:AttributeValue as value.
 
+```ruby
   response          = Onelogin::Saml::Response.new(params[:SAMLResponse])
   response.settings = saml_settings
 
   response.attributes[:username]
+```
 
 ## Service Provider Metadata
 
 To form a trusted pair relationship with the IdP, the SP (you) need to provide metadata XML
-to the IdP for various good reasons.  (Caching, certificate lookups, relying party permissions, etc)
+to the IdP for various good reasons.  (Caching, certificate lookups, relaying party permissions, etc)
 
-The class Onelogin::Saml::Metdata takes care of this by reading the Settings and returning XML.  All
+The class Onelogin::Saml::Metadata takes care of this by reading the Settings and returning XML.  All
 you have to do is add a controller to return the data, then give this URL to the IdP administrator.
 The metdata will be polled by the IdP every few minutes, so updating your settings should propagate
 to the IdP settings.
@@ -115,6 +117,20 @@ to the IdP settings.
     end
   end
 ```
+
+## Clock Drift
+
+Server clocks tend to drift naturally. If during validation of the response you get the error "Current time is earlier than NotBefore condition" then this may be due to clock differences between your system and that of the Identity Provider.
+
+First, ensure that both systems synchronize their clocks, using for example the industry standard [Network Time Protocol (NTP)](http://en.wikipedia.org/wiki/Network_Time_Protocol).
+
+Even then you may experience intermittent issues though, because the clock of the Identity Provider may drift slightly ahead of your system clocks. To allow for a small amount of clock drift you can initialize the response passing in an option named `:allowed_clock_drift`. Its value must be given in a number (and/or fraction) of seconds. The value given is added to the current time at which the response is validated before it's tested against the `NotBefore` assertion. For example:
+
+```ruby
+  response = Onelogin::Saml::Response.new(params[:SAMLResponse], :allowed_clock_drift => 1)
+```
+
+Make sure to keep the value as comfortably small as possible to keep security risks to a minimum.
 
 ## Note on Patches/Pull Requests
 

@@ -26,7 +26,7 @@ require 'rubygems'
 require "rexml/document"
 require "rexml/xpath"
 require "openssl"
-require "xmlcanonicalizer"
+require 'nokogiri'
 require "digest/sha1"
 require "digest/sha2"
 require "onelogin/ruby-saml/validation_error"
@@ -34,6 +34,7 @@ require "onelogin/ruby-saml/validation_error"
 module XMLSecurity
 
   class SignedDocument < REXML::Document
+    C14N = "http://www.w3.org/2001/10/xml-exc-c14n#"
     DSIG = "http://www.w3.org/2000/09/xmldsig#"
 
     attr_accessor :signed_element_id
@@ -43,9 +44,10 @@ module XMLSecurity
       extract_signed_element_id
     end
 
-    def validate(idp_cert_fingerprint, soft = true)
+    def validate_document(idp_cert_fingerprint, soft = true)
       # get cert from response
       cert_element = REXML::XPath.first(self, "//ds:X509Certificate", { "ds"=>DSIG })
+      raise Onelogin::Saml::ValidationError.new("Certificate element missing in response (ds:X509Certificate)") unless cert_element
       base64_cert  = cert_element.text
       cert_text    = Base64.decode64(base64_cert)
       cert         = OpenSSL::X509::Certificate.new(cert_text)
@@ -57,34 +59,45 @@ module XMLSecurity
         return soft ? false : (raise Onelogin::Saml::ValidationError.new("Fingerprint mismatch"))
       end
 
-      validate_doc(base64_cert, soft)
+      validate_signature(base64_cert, soft)
     end
 
-    def validate_doc(base64_cert, soft = true)
+    def validate_signature(base64_cert, soft = true)
       # validate references
 
       # check for inclusive namespaces
+      inclusive_namespaces = extract_inclusive_namespaces
 
-      inclusive_namespaces            = []
-      inclusive_namespace_element     = REXML::XPath.first(self, "//ec:InclusiveNamespaces")
+      document = Nokogiri.parse(self.to_s)
 
-      if inclusive_namespace_element
-        prefix_list                   = inclusive_namespace_element.attributes.get_attribute('PrefixList').value
-        inclusive_namespaces          = prefix_list.split(" ")
+      # create a working copy so we don't modify the original
+      @working_copy ||= REXML::Document.new(self.to_s).root
+
+      # store and remove signature node
+      @sig_element ||= begin
+        element = REXML::XPath.first(@working_copy, "//ds:Signature", {"ds"=>DSIG})
+        element.remove
       end
 
-      # remove signature node
-      sig_element = REXML::XPath.first(self, "//ds:Signature", {"ds"=>DSIG})
-      sig_element.remove
+
+      # verify signature
+      signed_info_element     = REXML::XPath.first(@sig_element, "//ds:SignedInfo", {"ds"=>DSIG})
+      noko_sig_element = document.at_xpath('//ds:Signature', 'ds' => DSIG)
+      noko_signed_info_element = noko_sig_element.at_xpath('./ds:SignedInfo', 'ds' => DSIG)
+      canon_algorithm = canon_algorithm REXML::XPath.first(@sig_element, '//ds:CanonicalizationMethod', 'ds' => DSIG)
+      canon_string = noko_signed_info_element.canonicalize(canon_algorithm)
+      noko_sig_element.remove
 
       # check digests
-      REXML::XPath.each(sig_element, "//ds:Reference", {"ds"=>DSIG}) do |ref|
+      REXML::XPath.each(@sig_element, "//ds:Reference", {"ds"=>DSIG}) do |ref|
         uri                           = ref.attributes.get_attribute("URI").value
-        hashed_element                = REXML::XPath.first(self, "//[@ID='#{uri[1..-1]}']")
-        canoner                       = XML::Util::XmlCanonicalizer.new(false, true)
-        canoner.inclusive_namespaces  = inclusive_namespaces if canoner.respond_to?(:inclusive_namespaces) && !inclusive_namespaces.empty?
-        canon_hashed_element          = canoner.canonicalize(hashed_element).gsub('&','&amp;')
+
+        hashed_element                = document.at_xpath("//*[@ID='#{uri[1..-1]}']")
+        canon_algorithm               = canon_algorithm REXML::XPath.first(ref, '//ds:CanonicalizationMethod', 'ds' => DSIG)
+        canon_hashed_element          = hashed_element.canonicalize(canon_algorithm, inclusive_namespaces)
+
         digest_algorithm              = algorithm(REXML::XPath.first(ref, "//ds:DigestMethod"))
+
         hash                          = digest_algorithm.digest(canon_hashed_element)
         digest_value                  = Base64.decode64(REXML::XPath.first(ref, "//ds:DigestValue", {"ds"=>DSIG}).text)
 
@@ -93,12 +106,7 @@ module XMLSecurity
         end
       end
 
-      # verify signature
-      canoner                 = XML::Util::XmlCanonicalizer.new(false, true)
-      signed_info_element     = REXML::XPath.first(sig_element, "//ds:SignedInfo", {"ds"=>DSIG})
-      canon_string            = canoner.canonicalize(signed_info_element)
-
-      base64_signature        = REXML::XPath.first(sig_element, "//ds:SignatureValue", {"ds"=>DSIG}).text
+      base64_signature        = REXML::XPath.first(@sig_element, "//ds:SignatureValue", {"ds"=>DSIG}).text
       signature               = Base64.decode64(base64_signature)
 
       # get certificate object
@@ -126,6 +134,16 @@ module XMLSecurity
       self.signed_element_id  = reference_element.attribute("URI").value[1..-1] unless reference_element.nil?
     end
 
+    def canon_algorithm(element)
+      algorithm = element.attribute('Algorithm').value if element
+      case algorithm
+        when "http://www.w3.org/2001/10/xml-exc-c14n#"         then Nokogiri::XML::XML_C14N_EXCLUSIVE_1_0
+        when "http://www.w3.org/TR/2001/REC-xml-c14n-20010315" then Nokogiri::XML::XML_C14N_1_0
+        when "http://www.w3.org/2006/12/xml-c14n11"            then Nokogiri::XML::XML_C14N_1_1
+        else                                                        Nokogiri::XML::XML_C14N_EXCLUSIVE_1_0
+      end
+    end
+
     def algorithm(element)
       algorithm = element.attribute("Algorithm").value if element
       algorithm = algorithm && algorithm =~ /sha(.*?)$/i && $1.to_i
@@ -135,6 +153,15 @@ module XMLSecurity
       when 512 then OpenSSL::Digest::SHA512
       else
         OpenSSL::Digest::SHA1
+      end
+    end
+
+    def extract_inclusive_namespaces
+      if element = REXML::XPath.first(self, "//ec:InclusiveNamespaces", { "ec" => C14N })
+        prefix_list = element.attributes.get_attribute("PrefixList").value
+        prefix_list.split(" ")
+      else
+        []
       end
     end
 

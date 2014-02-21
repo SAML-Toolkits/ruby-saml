@@ -1,6 +1,8 @@
 require "xml_security"
 require "time"
+require "nokogiri"
 
+# Only supports SAML 2.0
 module Onelogin
   module Saml
 
@@ -9,38 +11,40 @@ module Onelogin
       PROTOCOL  = "urn:oasis:names:tc:SAML:2.0:protocol"
       DSIG      = "http://www.w3.org/2000/09/xmldsig#"
 
-      attr_accessor :options, :response, :document, :settings
+      # TODO: This should probably be ctor initialized too... WDYT?
+      attr_accessor :settings
+
+      attr_reader :options
+      attr_reader :response
+      attr_reader :document
 
       def initialize(response, options = {})
         raise ArgumentError.new("Response cannot be nil") if response.nil?
-        self.options  = options
-        self.response = response
-
-        begin
-          self.document = XMLSecurity::SignedDocument.new(Base64.decode64(response))
-        rescue REXML::ParseException => e
-          if response =~ /</
-            self.document = XMLSecurity::SignedDocument.new(response)
-          else
-            raise e
-          end
-        end
+        @options  = options
+        @response = (response =~ /^</) ? response : Base64.decode64(response)
+        @document = XMLSecurity::SignedDocument.new(@response)
       end
 
       def is_valid?
-        validate(soft = true)
+        validate
       end
 
       def validate!
-        validate(soft = false)
+        validate(false)
       end
 
       # The value of the user identifier as designated by the initialization request response
       def name_id
         @name_id ||= begin
-          node = REXML::XPath.first(document, "/p:Response/a:Assertion[@ID='#{document.signed_element_id}']/a:Subject/a:NameID", { "p" => PROTOCOL, "a" => ASSERTION })
-          node ||=  REXML::XPath.first(document, "/p:Response[@ID='#{document.signed_element_id}']/a:Assertion/a:Subject/a:NameID", { "p" => PROTOCOL, "a" => ASSERTION })
+          node = xpath_first_from_signed_assertion('/a:Subject/a:NameID')
           node.nil? ? nil : node.text
+        end
+      end
+
+      def sessionindex
+        @sessionindex ||= begin
+          node = xpath_first_from_signed_assertion('/a:AuthnStatement')
+          node.nil? ? nil : node.attributes['SessionIndex']
         end
       end
 
@@ -49,7 +53,7 @@ module Onelogin
         @attr_statements ||= begin
           result = {}
 
-          stmt_element = REXML::XPath.first(document, "/p:Response/a:Assertion/a:AttributeStatement", { "p" => PROTOCOL, "a" => ASSERTION })
+          stmt_element = xpath_first_from_signed_assertion('/a:AttributeStatement')
           return {} if stmt_element.nil?
 
           stmt_element.elements.each do |attr_element|
@@ -70,21 +74,36 @@ module Onelogin
       # When this user session should expire at latest
       def session_expires_at
         @expires_at ||= begin
-          node = REXML::XPath.first(document, "/p:Response/a:Assertion/a:AuthnStatement", { "p" => PROTOCOL, "a" => ASSERTION })
+          node = xpath_first_from_signed_assertion('/a:AuthnStatement')
           parse_time(node, "SessionNotOnOrAfter")
+        end
+      end
+
+      # Checks the status of the response for a "Success" code
+      def success?
+        @status_code ||= begin
+          node = REXML::XPath.first(document, "/p:Response/p:Status/p:StatusCode", { "p" => PROTOCOL, "a" => ASSERTION })
+          node.attributes["Value"] == "urn:oasis:names:tc:SAML:2.0:status:Success"
         end
       end
 
       # Conditions (if any) for the assertion to run
       def conditions
-        @conditions ||= begin
-          REXML::XPath.first(document, "/p:Response/a:Assertion[@ID='#{document.signed_element_id}']/a:Conditions", { "p" => PROTOCOL, "a" => ASSERTION })
-        end
+        @conditions ||= xpath_first_from_signed_assertion('/a:Conditions')
+      end
+
+      def not_before
+        @not_before ||= parse_time(conditions, "NotBefore")
+      end
+
+      def not_on_or_after
+        @not_on_or_after ||= parse_time(conditions, "NotOnOrAfter")
       end
 
       def issuer
         @issuer ||= begin
           node = REXML::XPath.first(document, "/p:Response/a:Issuer", { "p" => PROTOCOL, "a" => ASSERTION })
+          node ||= xpath_first_from_signed_assertion('/a:Issuer')
           node.nil? ? nil : node.text
         end
       end
@@ -96,9 +115,23 @@ module Onelogin
       end
 
       def validate(soft = true)
+        validate_structure(soft)      &&
         validate_response_state(soft) &&
         validate_conditions(soft)     &&
-        document.validate(get_fingerprint, soft)
+        document.validate_document(get_fingerprint, soft) &&
+        success?
+      end
+
+      def validate_structure(soft = true)
+        Dir.chdir(File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'schemas'))) do
+          @schema = Nokogiri::XML::Schema(IO.read('saml20protocol_schema.xsd'))
+          @xml = Nokogiri::XML(self.document.to_s)
+        end
+        if soft
+          @schema.validate(@xml).map{ return false }
+        else
+          @schema.validate(@xml).map{ |error| validation_error("#{error.message}\n\n#{@xml.to_s}") }
+        end
       end
 
       def validate_response_state(soft = true)
@@ -117,6 +150,12 @@ module Onelogin
         true
       end
 
+      def xpath_first_from_signed_assertion(subelt=nil)
+        node = REXML::XPath.first(document, "/p:Response/a:Assertion[@ID='#{document.signed_element_id}']#{subelt}", { "p" => PROTOCOL, "a" => ASSERTION })
+        node ||= REXML::XPath.first(document, "/p:Response[@ID='#{document.signed_element_id}']/a:Assertion#{subelt}", { "p" => PROTOCOL, "a" => ASSERTION })
+        node
+      end
+
       def get_fingerprint
         if settings.idp_cert
           cert = OpenSSL::X509::Certificate.new(settings.idp_cert)
@@ -130,16 +169,14 @@ module Onelogin
         return true if conditions.nil?
         return true if options[:skip_conditions]
 
-        if not_before = parse_time(conditions, "NotBefore")
-          if Time.now.utc < not_before
-            return soft ? false : validation_error("Current time is earlier than NotBefore condition")
-          end
+        now = Time.now.utc
+
+        if not_before && (now + (options[:allowed_clock_drift] || 0)) < not_before
+          return soft ? false : validation_error("Current time is earlier than NotBefore condition")
         end
 
-        if not_on_or_after = parse_time(conditions, "NotOnOrAfter")
-          if Time.now.utc >= not_on_or_after
-            return soft ? false : validation_error("Current time is on or after NotOnOrAfter condition")
-          end
+        if not_on_or_after && now >= not_on_or_after
+          return soft ? false : validation_error("Current time is on or after NotOnOrAfter condition")
         end
 
         true
