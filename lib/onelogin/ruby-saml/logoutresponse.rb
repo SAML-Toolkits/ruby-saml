@@ -4,7 +4,7 @@ require "base64"
 require "zlib"
 
 module Onelogin
-  module Saml
+  module RubySaml
     class Logoutresponse
 
       ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion"
