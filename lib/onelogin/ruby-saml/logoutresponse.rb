@@ -3,7 +3,7 @@ require "time"
 require "base64"
 require "zlib"
 
-module Onelogin
+module OneLogin
   module RubySaml
     class Logoutresponse
 

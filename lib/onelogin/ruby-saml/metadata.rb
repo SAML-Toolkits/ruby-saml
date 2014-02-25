@@ -6,7 +6,7 @@ require "uri"
 # Return this XML in a controller, then give that URL to the the
 # IdP administrator.  The IdP will poll the URL and your settings
 # will be updated automatically
-module Onelogin
+module OneLogin
   module RubySaml
     include REXML
     class Metadata
