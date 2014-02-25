@@ -3,13 +3,13 @@ require File.expand_path(File.join(File.dirname(__FILE__), "test_helper"))
 class RequestTest < Test::Unit::TestCase
 
   context "Logoutrequest" do
-    settings = Onelogin::RubySaml::Settings.new
+    settings = OneLogin::RubySaml::Settings.new
 
     should "create the deflated SAMLRequest URL parameter" do
       settings.idp_slo_target_url = "http://unauth.com/logout"
       settings.name_identifier_value = "f00f00"
 
-      unauth_url = Onelogin::RubySaml::Logoutrequest.new.create(settings)
+      unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings)
       assert unauth_url =~ /^http:\/\/unauth\.com\/logout\?SAMLRequest=/
 
       inflated = decode_saml_request_payload(unauth_url)
@@ -19,10 +19,10 @@ class RequestTest < Test::Unit::TestCase
 
     should "support additional params" do
 
-      unauth_url = Onelogin::RubySaml::Logoutrequest.new.create(settings, { :hello => nil })
+      unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings, { :hello => nil })
       assert unauth_url =~ /&hello=$/
 
-      unauth_url = Onelogin::RubySaml::Logoutrequest.new.create(settings, { :foo => "bar" })
+      unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings, { :foo => "bar" })
       assert unauth_url =~ /&foo=bar$/
     end
 
@@ -31,7 +31,7 @@ class RequestTest < Test::Unit::TestCase
       sessionidx = UUID.new.generate
       settings.sessionindex = sessionidx
 
-      unauth_url = Onelogin::RubySaml::Logoutrequest.new.create(settings, { :name_id => "there" })
+      unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings, { :name_id => "there" })
       inflated = decode_saml_request_payload(unauth_url)
 
       assert_match /<samlp:SessionIndex/, inflated
@@ -39,13 +39,13 @@ class RequestTest < Test::Unit::TestCase
     end
 
     should "set name_identifier_value" do
-      settings = Onelogin::RubySaml::Settings.new
+      settings = OneLogin::RubySaml::Settings.new
       settings.idp_slo_target_url = "http://example.com"
       settings.name_identifier_format = "transient"
       name_identifier_value = "abc123"
       settings.name_identifier_value = name_identifier_value
 
-      unauth_url = Onelogin::RubySaml::Logoutrequest.new.create(settings, { :name_id => "there" })
+      unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings, { :name_id => "there" })
       inflated = decode_saml_request_payload(unauth_url)
 
       assert_match /<saml:NameID/, inflated
@@ -53,42 +53,42 @@ class RequestTest < Test::Unit::TestCase
     end
 
     should "require name_identifier_value" do
-      settings = Onelogin::RubySaml::Settings.new
+      settings = OneLogin::RubySaml::Settings.new
       settings.idp_slo_target_url = "http://example.com"
       settings.name_identifier_format = nil
 
-      assert_raises(Onelogin::RubySaml::ValidationError) { Onelogin::RubySaml::Logoutrequest.new.create(settings) }
+      assert_raises(OneLogin::RubySaml::ValidationError) { OneLogin::RubySaml::Logoutrequest.new.create(settings) }
     end
 
     context "when the target url doesn't contain a query string" do
       should "create the SAMLRequest parameter correctly" do
-        settings = Onelogin::RubySaml::Settings.new
+        settings = OneLogin::RubySaml::Settings.new
         settings.idp_slo_target_url = "http://example.com"
         settings.name_identifier_value = "f00f00"
 
-        unauth_url = Onelogin::RubySaml::Logoutrequest.new.create(settings)
+        unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings)
         assert unauth_url =~ /^http:\/\/example.com\?SAMLRequest/
       end
     end
 
     context "when the target url contains a query string" do
       should "create the SAMLRequest parameter correctly" do
-        settings = Onelogin::RubySaml::Settings.new
+        settings = OneLogin::RubySaml::Settings.new
         settings.idp_slo_target_url = "http://example.com?field=value"
         settings.name_identifier_value = "f00f00"
 
-        unauth_url = Onelogin::RubySaml::Logoutrequest.new.create(settings)
+        unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings)
         assert unauth_url =~ /^http:\/\/example.com\?field=value&SAMLRequest/
       end
     end
 
     context "consumation of logout may need to track the transaction" do
       should "have access to the request uuid" do
-        settings = Onelogin::RubySaml::Settings.new
+        settings = OneLogin::RubySaml::Settings.new
         settings.idp_slo_target_url = "http://example.com?field=value"
         settings.name_identifier_value = "f00f00"
 
-        unauth_req = Onelogin::RubySaml::Logoutrequest.new
+        unauth_req = OneLogin::RubySaml::Logoutrequest.new
         unauth_url = unauth_req.create(settings)
 
         inflated = decode_saml_request_payload(unauth_url)

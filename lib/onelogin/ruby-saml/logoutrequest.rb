@@ -3,7 +3,7 @@ require "uuid"
 require "zlib"
 require "cgi"
 
-module Onelogin
+module OneLogin
   module RubySaml
     include REXML
     class Logoutrequest

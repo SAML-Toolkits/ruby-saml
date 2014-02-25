@@ -3,7 +3,7 @@ require "time"
 require "nokogiri"
 
 # Only supports SAML 2.0
-module Onelogin
+module OneLogin
   module RubySaml
 
     class Response

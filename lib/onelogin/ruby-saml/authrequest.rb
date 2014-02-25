@@ -5,7 +5,7 @@ require "cgi"
 require "rexml/document"
 require "rexml/xpath"
 
-module Onelogin
+module OneLogin
   module RubySaml
   include REXML
     class Authrequest

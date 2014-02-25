@@ -1,7 +1,7 @@
 # Ruby SAML [![Build Status](https://secure.travis-ci.org/onelogin/ruby-saml.png)](http://travis-ci.org/onelogin/ruby-saml)
 
 ## Updating from 0.7.x to 0.8.x
-Version `0.8.0` changes the namespace of the gem from `Onelogin::Saml` to `Onelogin::RubySaml`.  Please update your implementations of the gem accordingly.
+Version `0.8.x` changes the namespace of the gem from `OneLogin::Saml` to `OneLogin::RubySaml`.  Please update your implementations of the gem accordingly.
 
 ## Overview
 
@@ -15,7 +15,7 @@ This is the first request you will get from the identity provider. It will hit y
 
 ```ruby
 def init
-  request = Onelogin::RubySaml::Authrequest.new
+  request = OneLogin::RubySaml::Authrequest.new
   redirect_to(request.create(saml_settings))
 end
 ```
@@ -24,7 +24,7 @@ Once you've redirected back to the identity provider, it will ensure that the us
 
 ```ruby
 def consume
-  response          = Onelogin::RubySaml::Response.new(params[:SAMLResponse])
+  response          = OneLogin::RubySaml::Response.new(params[:SAMLResponse])
   response.settings = saml_settings
 
   if response.is_valid? && user = current_account.users.find_by_email(response.name_id)
@@ -39,7 +39,7 @@ In the above there are a few assumptions in place, one being that the response.n
 
 ```ruby
 def saml_settings
-  settings = Onelogin::RubySaml::Settings.new
+  settings = OneLogin::RubySaml::Settings.new
 
   settings.assertion_consumer_service_url = "http://#{request.host}/saml/finalize"
   settings.issuer                         = request.host
@@ -59,12 +59,12 @@ What's left at this point, is to wrap it all up in a controller and point the in
 # This controller expects you to use the URLs /saml/init and /saml/consume in your OneLogin application.
 class SamlController < ApplicationController
   def init
-    request = Onelogin::RubySaml::Authrequest.new
+    request = OneLogin::RubySaml::Authrequest.new
     redirect_to(request.create(saml_settings))
   end
 
   def consume
-    response          = Onelogin::RubySaml::Response.new(params[:SAMLResponse])
+    response          = OneLogin::RubySaml::Response.new(params[:SAMLResponse])
     response.settings = saml_settings
 
     if response.is_valid? && user = current_account.users.find_by_email(response.name_id)
@@ -77,7 +77,7 @@ class SamlController < ApplicationController
   private
 
   def saml_settings
-    settings = Onelogin::RubySaml::Settings.new
+    settings = OneLogin::RubySaml::Settings.new
 
     settings.assertion_consumer_service_url = "http://#{request.host}/saml/consume"
     settings.issuer                         = request.host
@@ -96,7 +96,7 @@ If are using saml:AttributeStatement to transfare metadata, like the user name, 
 contains all the saml:AttributeStatement with its 'Name' as a indifferent key and the one saml:AttributeValue as value.
 
 ```ruby
-response          = Onelogin::RubySaml::Response.new(params[:SAMLResponse])
+response          = OneLogin::RubySaml::Response.new(params[:SAMLResponse])
 response.settings = saml_settings
 
 response.attributes[:username]
@@ -107,7 +107,7 @@ response.attributes[:username]
 To form a trusted pair relationship with the IdP, the SP (you) need to provide metadata XML
 to the IdP for various good reasons.  (Caching, certificate lookups, relaying party permissions, etc)
 
-The class Onelogin::RubySaml::Metadata takes care of this by reading the Settings and returning XML.  All
+The class OneLogin::RubySaml::Metadata takes care of this by reading the Settings and returning XML.  All
 you have to do is add a controller to return the data, then give this URL to the IdP administrator.
 The metdata will be polled by the IdP every few minutes, so updating your settings should propagate
 to the IdP settings.
@@ -117,7 +117,7 @@ class SamlController < ApplicationController
   # ... the rest of your controller definitions ...
   def metadata
     settings = Account.get_saml_settings
-    meta = Onelogin::RubySaml::Metadata.new
+    meta = OneLogin::RubySaml::Metadata.new
     render :xml => meta.generate(settings)
   end
 end
@@ -132,7 +132,7 @@ First, ensure that both systems synchronize their clocks, using for example the 
 Even then you may experience intermittent issues though, because the clock of the Identity Provider may drift slightly ahead of your system clocks. To allow for a small amount of clock drift you can initialize the response passing in an option named `:allowed_clock_drift`. Its value must be given in a number (and/or fraction) of seconds. The value given is added to the current time at which the response is validated before it's tested against the `NotBefore` assertion. For example:
 
 ```ruby
-response = Onelogin::RubySaml::Response.new(params[:SAMLResponse], :allowed_clock_drift => 1)
+response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], :allowed_clock_drift => 1)
 ```
 
 Make sure to keep the value as comfortably small as possible to keep security risks to a minimum.
