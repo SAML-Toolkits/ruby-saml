@@ -64,10 +64,10 @@ class RequestTest < Test::Unit::TestCase
     end
 
     should "create the SAMLRequest URL parameter with ProtocolBinding" do
-      settings = Onelogin::Saml::Settings.new
+      settings = OneLogin::RubySaml::Settings.new
       settings.idp_sso_target_url = "http://example.com"
       settings.protocol_binding = 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'
-      auth_url = Onelogin::Saml::Authrequest.new.create(settings)
+      auth_url = OneLogin::RubySaml::Authrequest.new.create(settings)
       assert auth_url =~ /^http:\/\/example\.com\?SAMLRequest=/
       payload  = CGI.unescape(auth_url.split("=").last)
       decoded  = Base64.decode64(payload)
