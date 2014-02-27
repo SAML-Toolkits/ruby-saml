@@ -49,6 +49,10 @@ class Test::Unit::TestCase
     @ampersands_resposne ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'response_with_ampersands.xml.base64'))
   end
 
+  def response_with_multiple_roles
+    @response_with_multiple_roles ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'response_with_multiple_roles.xml.base64'))
+  end
+
   def response_document_6
     doc = Base64.decode64(response_document)
     doc.gsub!(/NotBefore=\"(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z\"/, "NotBefore=\"#{(Time.now-300).getutc.strftime("%Y-%m-%dT%XZ")}\"")

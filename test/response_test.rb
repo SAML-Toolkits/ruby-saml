@@ -223,6 +223,14 @@ class RubySamlTest < Test::Unit::TestCase
         response = OneLogin::RubySaml::Response.new(response_document_4)
         assert_equal Hash.new, response.attributes
       end
+
+      should "be able to story multiple attribute values in an array" do
+        response = OneLogin::RubySaml::Response.new(response_with_multiple_roles)
+        assert response.attributes[:Role].is_a? Array
+        assert_equal response.attributes[:Role].size, 2
+        assert_equal response.attributes[:Role][0], "customersupport"
+        assert_equal response.attributes[:Role][1], "supervisor"
+      end
     end
 
     context "#session_expires_at" do
