@@ -60,8 +60,13 @@ module OneLogin
             name  = attr_element.attributes["Name"]
             value = attr_element.elements.first.text
 
-            result[name] = value
-          end
+            result[name] =
+              if result[name]
+                [*result[name]] << value
+              else
+                value
+              end
+	  end
 
           result.keys.each do |key|
             result[key.intern] = result[key]
