@@ -110,5 +110,21 @@ class RequestTest < Test::Unit::TestCase
         assert auth_url =~ /^http:\/\/example.com\?field=value&SAMLRequest/
       end
     end
+
+    should "create the saml:AuthnContextDeclRef element correctly" do
+      settings = OneLogin::RubySaml::Settings.new
+      settings.idp_sso_target_url = "http://example.com"
+      settings.authn_context_decl_ref = 'suse'
+      auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+      assert auth_doc.to_s =~ /<saml:AuthnContextDeclRef[\S ]+>suse<\/saml:AuthnContextDeclRef>/
+    end
+
+    should "create the saml:AuthnContextClassRef element correctly" do
+      settings = OneLogin::RubySaml::Settings.new
+      settings.idp_sso_target_url = "http://example.com"
+      settings.authn_context = 'suse'
+      auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+      assert auth_doc.to_s =~ /<saml:AuthnContextClassRef[\S ]+>suse<\/saml:AuthnContextClassRef>/
+    end
   end
 end
