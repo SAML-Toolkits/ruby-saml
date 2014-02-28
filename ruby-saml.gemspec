@@ -3,7 +3,7 @@ require 'onelogin/ruby-saml/version'
 
 Gem::Specification.new do |s|
   s.name = 'ruby-saml'
-  s.version = Onelogin::Saml::VERSION
+  s.version = OneLogin::RubySaml::VERSION
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["OneLogin LLC"]
@@ -23,7 +23,6 @@ Gem::Specification.new do |s|
   s.summary = %q{SAML Ruby Tookit}
   s.test_files = `git ls-files test/*`.split("\n")
 
-  s.add_runtime_dependency("canonix", ["0.1.1"])
   s.add_runtime_dependency("uuid", ["~> 2.3"])
   s.add_runtime_dependency("nokogiri", [">= 1.5.0"])
 end

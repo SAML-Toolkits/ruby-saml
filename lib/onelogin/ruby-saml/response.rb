@@ -3,8 +3,8 @@ require "time"
 require "nokogiri"
 
 # Only supports SAML 2.0
-module Onelogin
-  module Saml
+module OneLogin
+  module RubySaml
 
     class Response
       ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion"
@@ -78,7 +78,7 @@ module Onelogin
           parse_time(node, "SessionNotOnOrAfter")
         end
       end
-      
+
       # Checks the status of the response for a "Success" code
       def success?
         @status_code ||= begin
@@ -118,7 +118,7 @@ module Onelogin
         validate_structure(soft)      &&
         validate_response_state(soft) &&
         validate_conditions(soft)     &&
-        document.validate(get_fingerprint, soft) && 
+        document.validate_document(get_fingerprint, soft) &&
         success?
       end
 

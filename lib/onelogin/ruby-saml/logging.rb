@@ -1,6 +1,6 @@
 # Simplistic log class when we're running in Rails
-module Onelogin
-  module Saml
+module OneLogin
+  module RubySaml
     class Logging
       def self.debug(message)
         return if !!ENV["ruby-saml/testing"]

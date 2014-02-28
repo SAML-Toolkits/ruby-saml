@@ -52,7 +52,7 @@ def invalid_xml_response
 end
 
 def settings
-  @settings ||= Onelogin::Saml::Settings.new(
+  @settings ||= OneLogin::RubySaml::Settings.new(
       {
           :assertion_consumer_service_url => "http://app.muda.no/sso/consume",
           :assertion_consumer_logout_service_url => "http://app.muda.no/sso/consume_logout",

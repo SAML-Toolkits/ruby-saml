@@ -44,10 +44,10 @@ module XMLSecurity
       extract_signed_element_id
     end
 
-    def validate(idp_cert_fingerprint, soft = true)
+    def validate_document(idp_cert_fingerprint, soft = true)
       # get cert from response
       cert_element = REXML::XPath.first(self, "//ds:X509Certificate", { "ds"=>DSIG })
-      raise Onelogin::Saml::ValidationError.new("Certificate element missing in response (ds:X509Certificate)") unless cert_element
+      raise OneLogin::RubySaml::ValidationError.new("Certificate element missing in response (ds:X509Certificate)") unless cert_element
       base64_cert  = cert_element.text
       cert_text    = Base64.decode64(base64_cert)
       cert         = OpenSSL::X509::Certificate.new(cert_text)
@@ -56,13 +56,13 @@ module XMLSecurity
       fingerprint = Digest::SHA1.hexdigest(cert.to_der)
 
       if fingerprint != idp_cert_fingerprint.gsub(/[^a-zA-Z0-9]/,"").downcase
-        return soft ? false : (raise Onelogin::Saml::ValidationError.new("Fingerprint mismatch"))
+        return soft ? false : (raise OneLogin::RubySaml::ValidationError.new("Fingerprint mismatch"))
       end
 
-      validate_doc(base64_cert, soft)
+      validate_signature(base64_cert, soft)
     end
 
-    def validate_doc(base64_cert, soft = true)
+    def validate_signature(base64_cert, soft = true)
       # validate references
 
       # check for inclusive namespaces
@@ -102,7 +102,7 @@ module XMLSecurity
         digest_value                  = Base64.decode64(REXML::XPath.first(ref, "//ds:DigestValue", {"ds"=>DSIG}).text)
 
         unless digests_match?(hash, digest_value)
-          return soft ? false : (raise Onelogin::Saml::ValidationError.new("Digest mismatch"))
+          return soft ? false : (raise OneLogin::RubySaml::ValidationError.new("Digest mismatch"))
         end
       end
 
@@ -117,7 +117,7 @@ module XMLSecurity
       signature_algorithm     = algorithm(REXML::XPath.first(signed_info_element, "//ds:SignatureMethod", {"ds"=>DSIG}))
 
       unless cert.public_key.verify(signature_algorithm.new, signature, canon_string)
-        return soft ? false : (raise Onelogin::Saml::ValidationError.new("Key validation error"))
+        return soft ? false : (raise OneLogin::RubySaml::ValidationError.new("Key validation error"))
       end
 
       return true

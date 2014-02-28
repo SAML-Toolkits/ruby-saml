@@ -1,5 +1,5 @@
-module Onelogin
-  module Saml
+module OneLogin
+  module RubySaml
     class Settings
       def initialize(overrides = {})
         config = DEFAULTS.merge(overrides)

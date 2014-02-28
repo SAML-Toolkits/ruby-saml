@@ -4,7 +4,7 @@ class SettingsTest < Test::Unit::TestCase
 
   context "Settings" do
     setup do
-      @settings = Onelogin::Saml::Settings.new
+      @settings = OneLogin::RubySaml::Settings.new
     end
     should "should provide getters and settings" do
       accessors = [
@@ -35,7 +35,7 @@ class SettingsTest < Test::Unit::TestCase
           :passive => true,
           :protocol_binding => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'
       }
-      @settings = Onelogin::Saml::Settings.new(config)
+      @settings = OneLogin::RubySaml::Settings.new(config)
 
       config.each do |k,v|
         assert_equal v, @settings.send(k)

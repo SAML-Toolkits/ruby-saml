@@ -2,10 +2,9 @@ require "xml_security"
 require "time"
 require "base64"
 require "zlib"
-require "open-uri"
 
-module Onelogin
-  module Saml
+module OneLogin
+  module RubySaml
     class Logoutresponse
 
       ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion"
