@@ -1,5 +1,29 @@
 require File.expand_path(File.join(File.dirname(__FILE__), "test_helper"))
 
+class FailingAssertionIdValidator
+  def valid?(id)
+    false
+  end
+end
+
+class FailingTimeRangeValidator
+  def valid?(begin_time, end_time)
+    false
+  end
+end
+
+class FailingRecipientValidator
+  def valid?(recipient_url, assertion_consumer_url)
+    false
+  end
+end
+
+class FailingDestinationValidator
+  def valid?(destination_url, assertion_consumer_url)
+    false
+  end
+end
+
 class RubySamlTest < Test::Unit::TestCase
 
   context "Response" do
@@ -150,6 +174,45 @@ class RubySamlTest < Test::Unit::TestCase
         settings.idp_cert_fingerprint = signature_fingerprint_1
         response.settings = settings
         assert_raises(OneLogin::RubySaml::ValidationError, 'Digest mismatch'){ response.validate! }
+      end
+
+      context "with custom validators" do
+        setup do
+          @response = Onelogin::Saml::Response.new(fixture("no_signature_ns.xml"))
+          @response.stubs(:conditions).returns(nil)
+          @settings = Onelogin::Saml::Settings.new
+          @response.settings = @settings
+          @settings.idp_cert_fingerprint = "28:74:9B:E8:1F:E8:10:9C:A8:7C:A9:C3:E3:C5:01:6C:92:1C:B4:BA"
+          XMLSecurity::SignedDocument.any_instance.stubs(:validate_doc).returns(true)
+        end
+
+        should "fail assertion id validation appropriately" do
+          @settings.assertion_id_validator = FailingAssertionIdValidator.new
+          assert_raises(Onelogin::Saml::ValidationError, 'Assertion ID can be use only once') do
+            @response.validate!
+          end
+        end
+
+        should "fail time range validation appropriately" do
+          @settings.time_range_validator = FailingTimeRangeValidator.new
+          assert_raises(Onelogin::Saml::ValidationError, 'Time range validation failed') do
+            @response.validate!
+          end
+        end
+
+        should "fail recipient validation appropriately" do
+          @settings.recipient_validator = FailingRecipientValidator.new
+          assert_raises(Onelogin::Saml::ValidationError, 'Recipient and assertion consumer URL must match') do
+            @response.validate!
+          end
+        end
+
+        should "fail destination validation appropriately" do
+          @settings.destination_validator = FailingDestinationValidator.new
+          assert_raises(Onelogin::Saml::ValidationError, 'Destination and assertion consumer URL must match') do
+            @response.validate!
+          end
+        end
       end
     end
 

@@ -41,6 +41,20 @@ module OneLogin
         end
       end
 
+      def recipient
+        @recipient ||= begin
+          node = xpath_first_from_signed_assertion('/a:Subject/a:SubjectConfirmation/a:SubjectConfirmationData')
+          node.nil? ? nil : node.attributes['Recipient']
+        end
+      end
+
+      def destination
+        @destination ||= begin
+          node = REXML::XPath.first(document, "/p:Response", { "p" => PROTOCOL })
+          node.nil? ? nil : node.attributes['Destination']
+        end
+      end
+
       def sessionindex
         @sessionindex ||= begin
           node = xpath_first_from_signed_assertion('/a:AuthnStatement')
@@ -115,11 +129,43 @@ module OneLogin
       end
 
       def validate(soft = true)
-        validate_structure(soft)      &&
-        validate_response_state(soft) &&
-        validate_conditions(soft)     &&
+        validate_structure(soft)        &&
+        validate_response_state(soft)   &&
+        validate_conditions(soft)       &&
+        validate_recipient(soft)        &&
+        validate_destination(soft)      &&
+        validate_new_assertion_id(soft) &&
+        validate_time_range(soft)       &&
         document.validate_document(get_fingerprint, soft) &&
+        document.validate(get_fingerprint, soft) &&
         success?
+      end
+
+      def validate_recipient(soft = true)
+        valid = settings.recipient_validator.valid?(recipient, settings.assertion_consumer_service_url)
+        unless valid
+          return soft ? false : validation_error('Recipient and assertion consumer URL must match')
+        end
+        true
+      end
+
+      def validate_destination(soft = true)
+        valid = settings.destination_validator.valid?(destination, settings.assertion_consumer_service_url)
+        unless valid
+          return soft ? false : validation_error('Destination and assertion consumer URL must match')
+        end
+        true
+      end
+
+      # validate the time range using the validator (settings)
+      def validate_time_range(soft = true)
+        begin_time = parse_time(conditions, "NotBefore")
+        end_time = parse_time(conditions, "NotOnOrAfter")
+        valid = settings.time_range_validator.valid?(begin_time, end_time)
+        unless valid
+          return soft ? false : validation_error("Time range validation failed")
+        end
+        true
       end
 
       def validate_structure(soft = true)
@@ -154,6 +200,19 @@ module OneLogin
         node = REXML::XPath.first(document, "/p:Response/a:Assertion[@ID='#{document.signed_element_id}']#{subelt}", { "p" => PROTOCOL, "a" => ASSERTION })
         node ||= REXML::XPath.first(document, "/p:Response[@ID='#{document.signed_element_id}']/a:Assertion#{subelt}", { "p" => PROTOCOL, "a" => ASSERTION })
         node
+      end
+
+      def assertion_id
+        document.signed_element_id
+      end
+
+      # validate that we use the assertion id only once
+      def validate_new_assertion_id(soft = true)
+        valid = settings.assertion_id_validator.valid?(assertion_id)
+        unless valid
+          return soft ? false : validation_error("Assertion ID can be use only once")
+        end
+        true
       end
 
       def get_fingerprint
