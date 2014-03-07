@@ -31,7 +31,7 @@ module OneLogin
 
         @options = options
         @response = decode_raw_response(response)
-        @document = XMLSecurity::SignedDocument.new(response)
+        @document = XMLSecurity::SignedDocument.new(@response)
       end
 
       def validate!
