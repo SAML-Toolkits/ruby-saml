@@ -41,7 +41,7 @@ module OneLogin
       def validate(soft = true)
         return false unless valid_saml?(soft) && valid_state?(soft)
 
-        valid_in_response_to?(soft) && valid_issuer?(soft) && success?(soft)
+        valid_in_response_to?(soft) && success?(soft)
       end
 
       def success?(soft = true)
@@ -135,13 +135,6 @@ module OneLogin
           return soft ? false : validation_error("Response does not match the request ID, expected: <#{self.options[:matches_request_id]}>, but was: <#{in_response_to}>")
         end
 
-        true
-      end
-
-      def valid_issuer?(soft = true)
-        unless URI.parse(issuer) == URI.parse(self.settings.issuer)
-          return soft ? false : validation_error("Doesn't match the issuer, expected: <#{self.settings.issuer}>, but was: <#{issuer}>")
-        end
         true
       end
 
