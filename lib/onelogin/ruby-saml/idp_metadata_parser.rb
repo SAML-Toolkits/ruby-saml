@@ -9,11 +9,10 @@ module OneLogin
   module RubySaml
     include REXML
 
-    METADATA = "urn:oasis:names:tc:SAML:2.0:metadata"
-    PROTOCOL = "urn:oasis:names:tc:SAML:2.0:protocol"
-    DSIG     = "http://www.w3.org/2000/09/xmldsig#"
-
     class IdpMetadataParser
+
+      METADATA = "urn:oasis:names:tc:SAML:2.0:metadata"
+      DSIG     = "http://www.w3.org/2000/09/xmldsig#"
 
       attr_reader :document
 
@@ -31,18 +30,18 @@ module OneLogin
       private
 
       def single_signon_service_url
-        node = REXML::XPath.first(document, "md:EntityDescriptor/md:IDPSSODescriptor/md:SingleSignOnService/@Location", { "md" => METADATA })
+        node = REXML::XPath.first(document, "/md:EntityDescriptor/md:IDPSSODescriptor/md:SingleSignOnService/@Location", { "md" => METADATA })
         node.value if node
       end
 
       def single_logout_service_url
-        node = REXML::XPath.first(document, "md:EntityDescriptor/md:IDPSSODescriptor/md:SingleLogoutService/@Location", { "md" => METADATA })
+        node = REXML::XPath.first(document, "/md:EntityDescriptor/md:IDPSSODescriptor/md:SingleLogoutService/@Location", { "md" => METADATA })
         node.value if node
       end
 
       def certificate
         @certificate ||= begin
-          node = REXML::XPath.first(document, "md:EntityDescriptor/md:IDPSSODescriptor/md:KeyDescriptor[@use='signing']/ds:KeyInfo/ds:X509Data/ds:X509Certificate", { "md" => METADATA, "ds" => DSIG })
+          node = REXML::XPath.first(document, "/md:EntityDescriptor/md:IDPSSODescriptor/md:KeyDescriptor[@use='signing']/ds:KeyInfo/ds:X509Data/ds:X509Certificate", { "md" => METADATA, "ds" => DSIG })
           Base64.decode64(node.text) if node
         end
       end
