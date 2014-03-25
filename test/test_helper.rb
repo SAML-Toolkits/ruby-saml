@@ -81,7 +81,12 @@ class Test::Unit::TestCase
   end
 
   def logout_request_document
-    @response_document ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'slo_request.xml.zip.base64'))
+    unless @logout_request_document
+      xml = File.read(File.join(File.dirname(__FILE__), 'responses', 'slo_request.xml'))
+      deflated = Zlib::Deflate.deflate(xml, 9)[2..-5]
+      @logout_request_document = Base64.encode64(deflated)
+    end
+    @logout_request_document
   end
 
 end
