@@ -6,7 +6,7 @@ require "nokogiri"
 module OneLogin
   module RubySaml
 
-    class Response
+    class Response < SamlMessage
       ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion"
       PROTOCOL  = "urn:oasis:names:tc:SAML:2.0:protocol"
       DSIG      = "http://www.w3.org/2000/09/xmldsig#"
@@ -21,7 +21,7 @@ module OneLogin
       def initialize(response, options = {})
         raise ArgumentError.new("Response cannot be nil") if response.nil?
         @options  = options
-        @response = (response =~ /^</) ? response : Base64.decode64(response)
+        @response = decode_raw_saml(response)
         @document = XMLSecurity::SignedDocument.new(@response)
       end
 
@@ -119,28 +119,12 @@ module OneLogin
 
       private
 
-      def validation_error(message)
-        raise ValidationError.new(message)
-      end
-
       def validate(soft = true)
-        validate_structure(soft)      &&
+        valid_saml?(document, soft)      &&
         validate_response_state(soft) &&
         validate_conditions(soft)     &&
         document.validate_document(get_fingerprint, soft) &&
         success?
-      end
-
-      def validate_structure(soft = true)
-        Dir.chdir(File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'schemas'))) do
-          @schema = Nokogiri::XML::Schema(IO.read('saml20protocol_schema.xsd'))
-          @xml = Nokogiri::XML(self.document.to_s)
-        end
-        if soft
-          @schema.validate(@xml).map{ return false }
-        else
-          @schema.validate(@xml).map{ |error| validation_error("#{error.message}\n\n#{@xml.to_s}") }
-        end
       end
 
       def validate_response_state(soft = true)
