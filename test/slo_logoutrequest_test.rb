@@ -40,14 +40,14 @@ class RubySamlTest < Test::Unit::TestCase
     context "#name_id" do
       should "extract the value of the name id element" do
         request = OneLogin::RubySaml::SloLogoutrequest.new(logout_request_document)
-        assert_equal "buffy@imagerelay.com", request.name_id
+        assert_equal "someone@example.org", request.name_id
       end
     end
 
     context "#issuer" do
       should "return the issuer inside the request" do
         request = OneLogin::RubySaml::SloLogoutrequest.new(logout_request_document)
-        assert_equal "https://app.onelogin.com/saml/metadata/360703", request.issuer
+        assert_equal "https://app.onelogin.com/saml/metadata/SOMEACCOUNT", request.issuer
       end
     end
 
