@@ -72,4 +72,8 @@ class Test::Unit::TestCase
     @signature2 ||= File.read(File.join(File.dirname(__FILE__), 'certificates', 'r1_certificate2_base64'))
   end
 
+  def logout_request_document
+    @response_document ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'slo_request.xml.zip.base64'))
+  end
+
 end
