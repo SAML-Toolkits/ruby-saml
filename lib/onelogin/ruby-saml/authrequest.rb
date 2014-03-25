@@ -1,16 +1,11 @@
-require "base64"
 require "uuid"
-require "zlib"
-require "cgi"
-require "rexml/document"
-require "rexml/xpath"
 
 require "onelogin/ruby-saml/logging"
 
 module OneLogin
   module RubySaml
   include REXML
-    class Authrequest
+    class Authrequest < SamlMessage
       def create(settings, params = {})
         params = {} if params.nil?
 
@@ -22,9 +17,9 @@ module OneLogin
 
         Logging.debug "Created AuthnRequest: #{request}"
 
-        request           = Zlib::Deflate.deflate(request, 9)[2..-5] if settings.compress_request
-        base64_request    = Base64.encode64(request)
-        encoded_request   = CGI.escape(base64_request)
+        request           = deflate(request) if settings.compress_request
+        base64_request    = encode(request)
+        encoded_request   = escape(base64_request)
         params_prefix     = (settings.idp_sso_target_url =~ /\?/) ? '&' : '?'
         request_params    = "#{params_prefix}SAMLRequest=#{encoded_request}"
 

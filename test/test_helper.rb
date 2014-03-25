@@ -80,4 +80,8 @@ class Test::Unit::TestCase
     @idp_metadata ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'idp_descriptor.xml'))
   end
 
+  def logout_request_document
+    @response_document ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'slo_request.xml.zip.base64'))
+  end
+
 end
