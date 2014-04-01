@@ -223,6 +223,33 @@ class RubySamlTest < Test::Unit::TestCase
         response = OneLogin::RubySaml::Response.new(response_document_4)
         assert_equal Hash.new, response.attributes
       end
+
+      context "#multiple values" do
+        should "extract single value as string" do
+          response = OneLogin::RubySaml::Response.new(fixture(:response_with_multiple_attribute_values))
+          assert_equal "demo", response.attributes[:uid]
+        end
+
+        should "extract first of multiple values as string for b/w compatibility" do
+          response = OneLogin::RubySaml::Response.new(fixture(:response_with_multiple_attribute_values))
+          assert_equal 'value1', response.attributes[:another_value]
+        end
+
+        should "return array with all attributes when asked" do
+          response = OneLogin::RubySaml::Response.new(fixture(:response_with_multiple_attribute_values))
+          assert_equal ['value2', 'value1'], response.attributes[:another_value].values
+        end
+
+        should "return last of multiple values when multiple Attribute tags in XML" do
+          response = OneLogin::RubySaml::Response.new(fixture(:response_with_multiple_attribute_values))
+          assert_equal 'role2', response.attributes[:role]
+        end
+
+        should "return all of multiple values in reverse order when multiple Attribute tags in XML" do
+          response = OneLogin::RubySaml::Response.new(fixture(:response_with_multiple_attribute_values))
+          assert_equal ['role2', 'role1'], response.attributes[:role].values
+        end
+      end
     end
 
     context "#session_expires_at" do

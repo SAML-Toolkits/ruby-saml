@@ -48,7 +48,9 @@ module OneLogin
         end
       end
 
-      # A hash of alle the attributes with the response. Assuming there is only one value for each key
+      # A hash of all the attributes with the response.
+      # Multiple values will be returned in the AttributeValue#values array
+      # in reverse order, when compared to XML
       def attributes
         @attr_statements ||= begin
           result = {}
@@ -58,9 +60,16 @@ module OneLogin
 
           stmt_element.elements.each do |attr_element|
             name  = attr_element.attributes["Name"]
-            value = attr_element.elements.first.text
+            values = attr_element.elements.collect(&:text)
 
-            result[name] = value
+            # Set up a string-like wrapper for the values array
+            attr_value = AttributeValue.new(values.first, values.reverse)
+            # Merge values if the Attribute has already been seen
+            if result[name]
+              attr_value.values += result[name].values
+            end
+
+            result[name] = attr_value
           end
 
           result.keys.each do |key|
