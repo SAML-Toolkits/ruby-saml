@@ -223,6 +223,23 @@ class RubySamlTest < Test::Unit::TestCase
         response = OneLogin::RubySaml::Response.new(response_document_4)
         assert_equal Hash.new, response.attributes
       end
+
+      context "#multiple values" do
+        should "extract single value as string" do
+          response = OneLogin::RubySaml::Response.new(fixture(:response_with_multiple_attribute_values))
+          assert_equal "demo", response.attributes[:uid]
+        end
+
+        should "extract first of multiple values as string for b/w compatibility" do
+          response = OneLogin::RubySaml::Response.new(fixture(:response_with_multiple_attribute_values))
+          assert_equal 'value1', response.attributes[:another_value]
+        end
+
+        should "return array with all attributes when asked" do
+          response = OneLogin::RubySaml::Response.new(fixture(:response_with_multiple_attribute_values))
+          assert_equal ['value1', 'value2'], response.attributes[:another_value].values
+        end
+      end
     end
 
     context "#session_expires_at" do

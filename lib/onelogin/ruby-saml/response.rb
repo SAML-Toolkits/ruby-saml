@@ -1,6 +1,7 @@
 require "xml_security"
 require "time"
 require "nokogiri"
+require File.expand_path(File.join(File.dirname(__FILE__), 'attribute_value.rb'))
 
 # Only supports SAML 2.0
 module OneLogin
@@ -58,9 +59,11 @@ module OneLogin
 
           stmt_element.elements.each do |attr_element|
             name  = attr_element.attributes["Name"]
-            value = attr_element.elements.first.text
+            values = attr_element.elements.collect(&:text)
 
-            result[name] = value
+            # Set up a string-like wrapper for the values array
+            attr_value = AttributeValue.new(values.first, values)
+            result[name] = attr_value
           end
 
           result.keys.each do |key|
