@@ -1,7 +1,6 @@
 require "xml_security"
 require "time"
 require "nokogiri"
-require File.expand_path(File.join(File.dirname(__FILE__), 'attribute_value.rb'))
 
 # Only supports SAML 2.0
 module OneLogin
