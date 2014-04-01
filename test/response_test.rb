@@ -237,7 +237,7 @@ class RubySamlTest < Test::Unit::TestCase
 
         should "return array with all attributes when asked" do
           response = OneLogin::RubySaml::Response.new(fixture(:response_with_multiple_attribute_values))
-          assert_equal ['value1', 'value2'], response.attributes[:another_value].values
+          assert_equal ['value2', 'value1'], response.attributes[:another_value].values
         end
 
         should "return last of multiple values when multiple Attribute tags in XML" do

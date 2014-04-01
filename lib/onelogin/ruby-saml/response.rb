@@ -50,6 +50,7 @@ module OneLogin
 
       # A hash of all the attributes with the response.
       # Multiple values will be returned in the AttributeValue#values array
+      # in reverse order, when compared to XML
       def attributes
         @attr_statements ||= begin
           result = {}
@@ -62,7 +63,7 @@ module OneLogin
             values = attr_element.elements.collect(&:text)
 
             # Set up a string-like wrapper for the values array
-            attr_value = AttributeValue.new(values.first, values)
+            attr_value = AttributeValue.new(values.first, values.reverse)
             # Merge values if the Attribute has already been seen
             if result[name]
               attr_value.values += result[name].values
