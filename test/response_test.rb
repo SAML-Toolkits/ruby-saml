@@ -239,6 +239,16 @@ class RubySamlTest < Test::Unit::TestCase
           response = OneLogin::RubySaml::Response.new(fixture(:response_with_multiple_attribute_values))
           assert_equal ['value1', 'value2'], response.attributes[:another_value].values
         end
+
+        should "return last of multiple values when multiple Attribute tags in XML" do
+          response = OneLogin::RubySaml::Response.new(fixture(:response_with_multiple_attribute_values))
+          assert_equal 'role2', response.attributes[:role]
+        end
+
+        should "return all of multiple values in reverse order when multiple Attribute tags in XML" do
+          response = OneLogin::RubySaml::Response.new(fixture(:response_with_multiple_attribute_values))
+          assert_equal ['role2', 'role1'], response.attributes[:role].values
+        end
       end
     end
 

@@ -49,7 +49,8 @@ module OneLogin
         end
       end
 
-      # A hash of alle the attributes with the response. Assuming there is only one value for each key
+      # A hash of all the attributes with the response.
+      # Multiple values will be returned in the AttributeValue#values array
       def attributes
         @attr_statements ||= begin
           result = {}
@@ -63,6 +64,11 @@ module OneLogin
 
             # Set up a string-like wrapper for the values array
             attr_value = AttributeValue.new(values.first, values)
+            # Merge values if the Attribute has already been seen
+            if result[name]
+              attr_value.values += result[name].values
+            end
+
             result[name] = attr_value
           end
 
