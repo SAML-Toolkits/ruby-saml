@@ -46,7 +46,7 @@ class SloLogoutresponseTest < Test::Unit::TestCase
 
       inflated = decode_saml_response_payload(unauth_url)
 
-      assert_match inflated, /InResponseTo='_c0348950-935b-0131-1060-782bcb56fcaa'/
+      assert_match /InResponseTo='_c0348950-935b-0131-1060-782bcb56fcaa'/, inflated
     end
 
     should "set a custom successful logout message on the response" do
@@ -59,7 +59,7 @@ class SloLogoutresponseTest < Test::Unit::TestCase
 
       inflated = decode_saml_response_payload(unauth_url)
 
-      assert_match inflated, /<samlp:StatusMessage>Custom Logout Message<\/samlp:StatusMessage>/
+      assert_match /<samlp:StatusMessage>Custom Logout Message<\/samlp:StatusMessage>/, inflated
     end
 
   end
