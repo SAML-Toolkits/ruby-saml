@@ -17,6 +17,7 @@ class RubySamlTest < Test::Unit::TestCase
       should "return true when the request is initialized with valid data" do
         request = OneLogin::RubySaml::SloLogoutrequest.new(logout_request_document)
         assert request.is_valid?
+        assert_equal 'someone@example.org', request.name_id
       end
 
       should "should be idempotent when the response is initialized with invalid data" do
