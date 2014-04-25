@@ -20,10 +20,11 @@ module OneLogin
       attr_accessor :passive
       attr_accessor :protocol_binding
       attr_accessor :attributes_index
+      attr_accessor :sign_request, :certificate, :private_key, :digest_method, :signature_method
 
       private
 
-      DEFAULTS = {:compress_request => true, :double_quote_xml_attribute_values => false}
+      DEFAULTS = {:compress_request => true, :sign_request => false, :double_quote_xml_attribute_values => false, :digest_method => "SHA1", :signature_method => "SHA1"}
     end
   end
 end

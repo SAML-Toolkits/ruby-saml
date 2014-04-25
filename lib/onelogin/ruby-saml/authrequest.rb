@@ -48,7 +48,8 @@ module OneLogin
         uuid = "_" + UUID.new.generate
         time = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
         # Create AuthnRequest root element using REXML
-        request_doc = REXML::Document.new
+        request_doc = XMLSecurity::RequestDocument.new
+        request_doc.uuid = uuid
 
         root = request_doc.add_element "samlp:AuthnRequest", { "xmlns:samlp" => "urn:oasis:names:tc:SAML:2.0:protocol" }
         root.attributes['ID'] = uuid
@@ -89,6 +90,11 @@ module OneLogin
           }
           class_ref.text = settings.authn_context
         end
+
+        if settings.sign_request && settings.private_key && settings.certificate
+          request_doc.sign_document(settings.private_key, settings.certificate, settings.signature_method, settings.digest_method)
+        end
+
         request_doc
       end
 
