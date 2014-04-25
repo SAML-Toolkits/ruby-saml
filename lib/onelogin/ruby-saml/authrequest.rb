@@ -9,7 +9,19 @@ module OneLogin
   module RubySaml
   include REXML
     class Authrequest
+
       def create(settings, params = {})
+        params = create_params(settings, params)
+        request_params = ""
+        params_prefix     = (settings.idp_sso_target_url =~ /\?/) ? '&' : '?'
+        params.each_pair do |key, value|
+          request_params << "#{params_prefix}#{key.to_s}=#{CGI.escape(value.to_s)}"
+          params_prefix = "&"
+        end
+        settings.idp_sso_target_url + request_params
+      end
+
+      def create_params(settings, params={})
         params = {} if params.nil?
 
         request_doc = create_authentication_xml_doc(settings)
@@ -22,15 +34,14 @@ module OneLogin
 
         request           = Zlib::Deflate.deflate(request, 9)[2..-5] if settings.compress_request
         base64_request    = Base64.encode64(request)
-        encoded_request   = CGI.escape(base64_request)
-        params_prefix     = (settings.idp_sso_target_url =~ /\?/) ? '&' : '?'
-        request_params    = "#{params_prefix}SAMLRequest=#{encoded_request}"
+        encoded_request   = base64_request
+        request_params    = {"SAMLRequest" => encoded_request}
 
         params.each_pair do |key, value|
-          request_params << "&#{key.to_s}=#{CGI.escape(value.to_s)}"
+          request_params[key] = value.to_s
         end
 
-        settings.idp_sso_target_url + request_params
+        request_params
       end
 
       def create_authentication_xml_doc(settings)
