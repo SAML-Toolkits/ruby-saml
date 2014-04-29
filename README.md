@@ -102,6 +102,19 @@ response.settings = saml_settings
 response.attributes[:username]
 ```
 
+## Request Signing
+
+XML Dsig request signing is supported. Use the following settings to preform request signing:
+
+```ruby
+  settings = OneLogin::RubySaml::Settings.new
+  settings.sign_request = true
+  settings.certificate = X509::Certificate.new("CERTIFICATE TEXT")
+  settings.private_key = X509::PKey::RSA.new("PRIVATE KEY")
+
+  signed_request = request.create(settings)
+```
+
 ## Service Provider Metadata
 
 To form a trusted pair relationship with the IdP, the SP (you) need to provide metadata XML
