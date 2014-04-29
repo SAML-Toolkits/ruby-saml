@@ -12,11 +12,11 @@ module OneLogin
 
       def create(settings, params = {})
         params = create_params(settings, params)
-        request_params = ""
         params_prefix     = (settings.idp_sso_target_url =~ /\?/) ? '&' : '?'
+        saml_request = params.delete("SAMLRequest")
+        request_params = "#{params_prefix}SAMLRequest=#{saml_request}"
         params.each_pair do |key, value|
-          request_params << "#{params_prefix}#{key.to_s}=#{CGI.escape(value.to_s)}"
-          params_prefix = "&"
+          request_params << "&#{key.to_s}=#{CGI.escape(value.to_s)}"
         end
         settings.idp_sso_target_url + request_params
       end
