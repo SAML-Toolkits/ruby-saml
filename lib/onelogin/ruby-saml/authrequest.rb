@@ -13,7 +13,7 @@ module OneLogin
       def create(settings, params = {})
         params = create_params(settings, params)
         params_prefix     = (settings.idp_sso_target_url =~ /\?/) ? '&' : '?'
-        saml_request = params.delete("SAMLRequest")
+        saml_request = CGI.escape(params.delete("SAMLRequest"))
         request_params = "#{params_prefix}SAMLRequest=#{saml_request}"
         params.each_pair do |key, value|
           request_params << "&#{key.to_s}=#{CGI.escape(value.to_s)}"
@@ -34,8 +34,7 @@ module OneLogin
 
         request           = Zlib::Deflate.deflate(request, 9)[2..-5] if settings.compress_request
         base64_request    = Base64.encode64(request)
-        encoded_request   = base64_request
-        request_params    = {"SAMLRequest" => encoded_request}
+        request_params    = {"SAMLRequest" => base64_request}
 
         params.each_pair do |key, value|
           request_params[key] = value.to_s
