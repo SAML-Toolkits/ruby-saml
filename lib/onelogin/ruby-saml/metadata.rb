@@ -26,8 +26,7 @@ module OneLogin
         end
         if settings.assertion_consumer_logout_service_url != nil
           sp_sso.add_element "md:SingleLogoutService", {
-              # Add this as a setting to create different bindings?
-              "Binding" => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
+              "Binding" => settings.assertion_consumer_logout_service_binding,
               "Location" => settings.assertion_consumer_logout_service_url,
               "ResponseLocation" => settings.assertion_consumer_logout_service_url,
               "isDefault" => true,
@@ -40,8 +39,7 @@ module OneLogin
         end
         if settings.assertion_consumer_service_url != nil
           sp_sso.add_element "md:AssertionConsumerService", {
-              # Add this as a setting to create different bindings?
-              "Binding" => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
+              "Binding" => settings.assertion_consumer_service_binding,
               "Location" => settings.assertion_consumer_service_url,
               "isDefault" => true,
               "index" => 0
