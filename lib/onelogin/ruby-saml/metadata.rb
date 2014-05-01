@@ -17,8 +17,7 @@ module OneLogin
         }
         sp_sso = root.add_element "md:SPSSODescriptor", {
             "protocolSupportEnumeration" => "urn:oasis:names:tc:SAML:2.0:protocol",
-            # Metadata request need not be signed (as we don't publish our cert)
-            "AuthnRequestsSigned" => false,
+            "AuthnRequestsSigned" => settings.sign_request,
             # However we would like assertions signed if idp_cert_fingerprint or idp_cert is set
             "WantAssertionsSigned" => (!settings.idp_cert_fingerprint.nil? || !settings.idp_cert.nil?)
         }
@@ -48,6 +47,16 @@ module OneLogin
               "index" => 0
           }
         end
+
+        # Add KeyDescriptor if requests are signed
+        if settings.sign_request && !settings.certificate.nil?
+          kd = sp_sso.add_element "md:KeyDescriptor", { "use" => "signing" }
+          ki = kd.add_element "ds:KeyInfo", {"xmlns:ds" => "http://www.w3.org/2000/09/xmldsig#"}
+          xd = ki.add_element "ds:X509Data"
+          xc = xd.add_element "ds:X509Certificate"
+          xc.text = Base64.encode64(settings.certificate.to_der)
+        end
+
         # With OpenSSO, it might be required to also include
         #  <md:RoleDescriptor xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:query="urn:oasis:names:tc:SAML:metadata:ext:query" xsi:type="query:AttributeQueryDescriptorType" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol"/>
         #  <md:XACMLAuthzDecisionQueryDescriptor WantAssertionsSigned="false" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol"/>
