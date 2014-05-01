@@ -1,14 +1,14 @@
-require 'test_helper'
+require File.expand_path(File.join(File.dirname(__FILE__), "test_helper"))
 
 class MetadataTest < Test::Unit::TestCase
 
   should "should generate Service Provider Metadata" do
-    settings = Onelogin::Saml::Settings.new
+    settings = OneLogin::RubySaml::Settings.new
     settings.issuer = "https://example.com"
     settings.name_identifier_format = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
     settings.assertion_consumer_service_url = "https://foo.example/saml/consume"
 
-    xml_text = Onelogin::Saml::Metadata.new.generate(settings)
+    xml_text = OneLogin::RubySaml::Metadata.new.generate(settings)
 
     # assert correct xml declaration
     start = "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n<md:EntityDescriptor"
