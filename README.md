@@ -113,12 +113,13 @@ The metdata will be polled by the IdP every few minutes, so updating your settin
 to the IdP settings.
 
 ```ruby
-class SamlController < ApplicationController
-  # ... the rest of your controller definitions ...
-  def metadata
-    settings = Account.get_saml_settings
-    meta = OneLogin::RubySaml::Metadata.new
-    render :xml => meta.generate(settings)
+  class SamlController < ApplicationController
+    # ... the rest of your controller definitions ...
+    def metadata
+      settings = Account.get_saml_settings
+      meta = Onelogin::Saml::Metadata.new
+      render :xml => meta.generate(settings), :content_type => "application/samlmetadata+xml"
+    end
   end
 end
 ```
