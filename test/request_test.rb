@@ -110,5 +110,21 @@ class RequestTest < Test::Unit::TestCase
         assert auth_url =~ /^http:\/\/example.com\?field=value&SAMLRequest/
       end
     end
+
+    context "when the settings indicate to sign the request" do
+      should "create a signed request" do
+        settings = OneLogin::RubySaml::Settings.new
+        settings.compress_request = false
+        settings.idp_sso_target_url = "http://example.com?field=value"
+        settings.sign_request = true
+        settings.certificate  = ruby_saml_cert
+        settings.private_key = ruby_saml_key
+
+        params = OneLogin::RubySaml::Authrequest.new.create_params(settings)
+        request_xml = Base64.decode64(params["SAMLRequest"])
+        assert_match %r[<SignatureValue>([a-zA-Z0-9/+=]+)</SignatureValue>], request_xml
+      end
+
+    end
   end
 end

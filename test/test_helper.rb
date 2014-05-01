@@ -4,6 +4,7 @@ require 'shoulda'
 require 'ruby-debug'
 require 'mocha/setup'
 require 'timecop'
+require 'openssl'
 
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 $LOAD_PATH.unshift(File.dirname(__FILE__))
@@ -74,6 +75,26 @@ class Test::Unit::TestCase
 
   def idp_metadata
     @idp_metadata ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'idp_descriptor.xml'))
+  end
+
+  def ruby_saml_cert
+    @ruby_saml_cert ||= OpenSSL::X509::Certificate.new(ruby_saml_cert_text)
+  end
+
+  def ruby_saml_cert_fingerprint
+    @ruby_saml_cert_fingerprint ||= Digest::SHA1.hexdigest(ruby_saml_cert.to_der).scan(/../).join(":")
+  end
+
+  def ruby_saml_cert_text
+    File.read(File.join(File.dirname(__FILE__), 'certificates', 'ruby-saml.crt'))
+  end
+
+  def ruby_saml_key
+    @ruby_saml_key ||= OpenSSL::PKey::RSA.new(ruby_saml_key_text)
+  end
+
+  def ruby_saml_key_text
+    File.read(File.join(File.dirname(__FILE__), 'certificates', 'ruby-saml.key'))
   end
 
 end
