@@ -102,9 +102,9 @@ module OneLogin
           @xml = Nokogiri::XML(self.document.to_s)
         end
         if soft
-          @schema.validate(@xml).map{ return false }
+          @schema.validate(@xml).map{ return false }.empty?
         else
-          @schema.validate(@xml).map{ |error| validation_error("#{error.message}\n\n#{@xml.to_s}") }
+          @schema.validate(@xml).map{ |error| validation_error("#{error.message}\n\n#{@xml.to_s}") }.empty?
         end
       end
 
