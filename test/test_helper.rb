@@ -1,8 +1,9 @@
 require 'rubygems'
+require 'bundler'
 require 'test/unit'
-require 'shoulda'
 require 'mocha/setup'
-require 'timecop'
+
+Bundler.require :default, :test
 
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 $LOAD_PATH.unshift(File.dirname(__FILE__))
