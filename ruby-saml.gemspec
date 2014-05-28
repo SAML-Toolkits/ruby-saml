@@ -10,6 +10,7 @@ Gem::Specification.new do |s|
   s.date = Time.now.strftime("%Y-%m-%d")
   s.description = %q{SAML toolkit for Ruby on Rails}
   s.email = %q{support@onelogin.com}
+  s.license = 'MIT'
   s.extra_rdoc_files = [
     "LICENSE",
      "README.md"
