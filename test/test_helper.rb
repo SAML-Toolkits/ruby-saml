@@ -1,7 +1,6 @@
 require 'rubygems'
 require 'test/unit'
 require 'shoulda'
-require 'ruby-debug'
 require 'mocha/setup'
 require 'timecop'
 
