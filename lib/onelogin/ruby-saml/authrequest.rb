@@ -5,6 +5,8 @@ require "cgi"
 require "rexml/document"
 require "rexml/xpath"
 
+require "onelogin/ruby-saml/logging"
+
 module OneLogin
   module RubySaml
   include REXML
