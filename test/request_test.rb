@@ -142,5 +142,21 @@ class RequestTest < Test::Unit::TestCase
       end
 
     end
+
+    context "when the settings indicate to simple sign the request" do
+      should "create a signature parameter" do
+        settings = OneLogin::RubySaml::Settings.new
+        settings.compress_request = false
+        settings.idp_sso_target_url = "http://example.com?field=value"
+        settings.assertion_consumer_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST-SimpleSign"
+        settings.certificate  = ruby_saml_cert
+        settings.private_key = ruby_saml_key
+
+        params = OneLogin::RubySaml::Authrequest.new.create_params(settings)
+        assert params['Signature']
+        assert params['SigAlg'] == 'http://www.w3.org/2000/09/xmldsig#rsa-sha1'
+      end
+
+    end
   end
 end
