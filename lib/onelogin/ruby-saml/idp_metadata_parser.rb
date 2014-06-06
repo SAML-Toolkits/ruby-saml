@@ -22,6 +22,7 @@ module OneLogin
         OneLogin::RubySaml::Settings.new.tap do |settings|
           settings.entity_id = entity_id
           settings.idp_sso_target_url = single_signon_service_url
+          settings.sign_request = sign_request
           settings.idp_slo_target_url = single_logout_service_url
           settings.idp_cert = certificate
           settings.idp_cert_fingerprint = fingerprint
@@ -54,6 +55,13 @@ module OneLogin
         @certificate ||= begin
           node = REXML::XPath.first(document, "/md:EntityDescriptor/md:IDPSSODescriptor/md:KeyDescriptor[@use='signing']/ds:KeyInfo/ds:X509Data/ds:X509Certificate", { "md" => METADATA, "ds" => DSIG })
           OpenSSL::X509::Certificate.new(Base64.decode64(node.text)) if node
+        end
+      end
+
+      def sign_request
+        @sign_request ||= begin
+          node = REXML::XPath.first(document, "/md:IDPSSODescriptor", { "md" => METADATA })
+          (node.attributes["WantAuthnRequestsSigned"] || false) if node
         end
       end
 
