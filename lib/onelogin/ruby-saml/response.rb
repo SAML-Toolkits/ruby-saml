@@ -60,10 +60,17 @@ module OneLogin
 
           stmt_element.elements.each do |attr_element|
             name  = attr_element.attributes["Name"]
-            values = attr_element.elements.collect(&:text)
+            values = attr_element.elements.collect{|e|
+              # SAMLCore requires that nil AttributeValues MUST contain xsi:nil XML attribute set to "true" or "1"
+              # otherwise the value is to be regarded as empty.
+              ["true", "1"].include?(e.attributes['xsi:nil']) ? nil : e.text.to_s
+            }
 
-            # Set up a string-like wrapper for the values array
-            attr_value = AttributeValue.new(values.first, values.reverse)
+            # Monkey-patch first value to contain all values (so that the type is retained)
+            attr_value = values.first
+            attr_value.extend AttributeValue
+            attr_value.values = values.reverse # retain XML order
+
             # Merge values if the Attribute has already been seen
             if result[name]
               attr_value.values += result[name].values

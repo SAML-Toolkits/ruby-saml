@@ -52,6 +52,15 @@
       <saml:Attribute Name="role">
         <saml:AttributeValue xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xs:string">role2</saml:AttributeValue>
       </saml:Attribute>
+      <saml:Attribute Name="attribute_with_nil_value">
+        <saml:AttributeValue xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
+      </saml:Attribute>
+      <saml:Attribute Name="attribute_with_nils_and_empty_strings">
+        <saml:AttributeValue/>
+        <saml:AttributeValue>valuePresent</saml:AttributeValue>
+        <saml:AttributeValue xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
+        <saml:AttributeValue xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="1"/>
+      </saml:Attribute>
     </saml:AttributeStatement>
   </saml:Assertion>
 </samlp:Response>
