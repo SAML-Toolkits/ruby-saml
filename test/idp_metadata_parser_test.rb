@@ -1,5 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__), "test_helper"))
 require 'net/http'
+require 'net/https'
 
 class IdpMetadataParserTest < Test::Unit::TestCase
 
