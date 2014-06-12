@@ -38,6 +38,13 @@ module XMLSecurity
     C14N = "http://www.w3.org/2001/10/xml-exc-c14n#"
     DSIG = "http://www.w3.org/2000/09/xmldsig#"
 
+    def initialize(source = nil)
+      super(source)
+      xml_delc = REXML::XMLDecl.new
+      xml_delc.encoding = "UTF-8"
+      self << xml_delc
+    end
+
     def canon_algorithm(element)
       algorithm = element
       if algorithm.is_a?(REXML::Element)
