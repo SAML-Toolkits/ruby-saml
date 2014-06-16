@@ -6,9 +6,9 @@ module OneLogin
     # Use AttributeValue#values to get all values as an array
     class AttributeValue < String
       attr_accessor :values
-      def initialize(str="", values=[])
+      def initialize(str=nil, values=[])
         @values = values
-        super(str)
+        super(str || "")
       end
     end
   end
