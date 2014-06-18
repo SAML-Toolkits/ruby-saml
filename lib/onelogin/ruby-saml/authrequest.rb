@@ -67,12 +67,15 @@ module OneLogin
           issuer.text = settings.issuer
         end
         if settings.name_identifier_format != nil
-          root.add_element "samlp:NameIDPolicy", {
+          formats = settings.name_identifier_format.is_a?(Array) ? settings.name_identifier_format : [settings.name_identifier_format]
+          formats.each do |format|
+            root.add_element "samlp:NameIDPolicy", {
               "xmlns:samlp" => "urn:oasis:names:tc:SAML:2.0:protocol",
               # Might want to make AllowCreate a setting?
               "AllowCreate" => "true",
-              "Format" => settings.name_identifier_format
-          }
+              "Format" => format
+            }
+          end
         end
 
         # BUG fix here -- if an authn_context is defined, add the tags with an "exact"

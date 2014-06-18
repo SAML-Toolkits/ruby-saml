@@ -69,9 +69,6 @@ module OneLogin
           xc.text = Base64.encode64(settings.certificate.to_der)
         end
 
-        if settings.name_identifier_format.is_a?(Array)
-        end
-
         # With OpenSSO, it might be required to also include
         #  <md:RoleDescriptor xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:query="urn:oasis:names:tc:SAML:metadata:ext:query" xsi:type="query:AttributeQueryDescriptorType" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol"/>
         #  <md:XACMLAuthzDecisionQueryDescriptor WantAssertionsSigned="false" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol"/>
