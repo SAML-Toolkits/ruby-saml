@@ -10,7 +10,7 @@ class MetadataTest < Test::Unit::TestCase
   end
 
   should "should generate Service Provider Metadata" do
-    xml_text = OneLogin::RubySaml::Metadata.new.generate(settings)
+    xml_text = OneLogin::RubySaml::Metadata.new.generate(@settings)
 
     # assert correct xml declaration
     start = "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n<md:EntityDescriptor"
@@ -35,6 +35,20 @@ class MetadataTest < Test::Unit::TestCase
     cert_text = cert_node.text
     cert = OpenSSL::X509::Certificate.new(Base64.decode64(cert_text))
     assert_equal ruby_saml_cert.to_der, cert.to_der
+  end
+
+  should "generate Service Provider Metadata with a list of supported NameIdFormats" do
+    @settings.name_identifier_format = [
+      "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress",
+      "urn:oasis:names:tc:SAML:1.1:nameid-format:persistant",
+    ]
+    xml_text = OneLogin::RubySaml::Metadata.new.generate(@settings)
+
+    # assert xml_text can be parsed into an xml doc
+    xml_doc = REXML::Document.new(xml_text)
+
+    name_id_nodes = REXML::XPath.match(xml_doc, "//md:NameIDFormat")
+    assert_equal 2, name_id_nodes.length, "2 NameIDFormat nodes found"
   end
 
 end

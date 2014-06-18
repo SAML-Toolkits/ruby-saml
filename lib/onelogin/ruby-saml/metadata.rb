@@ -33,9 +33,15 @@ module OneLogin
               "index" => 0
           }
         end
-        if settings.name_identifier_format != nil
-          name_id = sp_sso.add_element "md:NameIDFormat"
-          name_id.text = settings.name_identifier_format
+        if settings.name_identifier_format
+          formats = settings.name_identifier_format
+          if !formats.is_a?(Array)
+            formats = [formats]
+          end
+          formats.each do |format|
+            nf = sp_sso.add_element "md:NameIDFormat"
+            nf.text = format
+          end
         end
         if settings.assertion_consumer_service_url != nil
           sp_sso.add_element "md:AssertionConsumerService", {
@@ -47,12 +53,23 @@ module OneLogin
         end
 
         # Add KeyDescriptor if requests are signed
-        if settings.sign_request && !settings.certificate.nil?
+        if !settings.certificate.nil?
+          # Add signing Cert
           kd = sp_sso.add_element "md:KeyDescriptor", { "use" => "signing" }
           ki = kd.add_element "ds:KeyInfo", {"xmlns:ds" => "http://www.w3.org/2000/09/xmldsig#"}
           xd = ki.add_element "ds:X509Data"
           xc = xd.add_element "ds:X509Certificate"
           xc.text = Base64.encode64(settings.certificate.to_der)
+
+          # Add encryption Cert
+          kd = sp_sso.add_element "md:KeyDescriptor", { "use" => "encryption" }
+          ki = kd.add_element "ds:KeyInfo", {"xmlns:ds" => "http://www.w3.org/2000/09/xmldsig#"}
+          xd = ki.add_element "ds:X509Data"
+          xc = xd.add_element "ds:X509Certificate"
+          xc.text = Base64.encode64(settings.certificate.to_der)
+        end
+
+        if settings.name_identifier_format.is_a?(Array)
         end
 
         # With OpenSSO, it might be required to also include
