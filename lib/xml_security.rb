@@ -40,9 +40,7 @@ module XMLSecurity
 
     def initialize(source = nil)
       super(source)
-      xml_delc = REXML::XMLDecl.new
-      xml_delc.encoding = "UTF-8"
-      self << xml_delc
+      self << REXML::XMLDecl.new("1.0", "UTF-8")
     end
 
     def canon_algorithm(element)

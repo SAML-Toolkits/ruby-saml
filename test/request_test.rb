@@ -16,7 +16,8 @@ class RequestTest < Test::Unit::TestCase
       zstream.finish
       zstream.close
 
-      assert_match /^<samlp:AuthnRequest/, inflated
+      assert_match /^<\?xml version='1.0' encoding='UTF-8'\?>/,  inflated
+      assert_match /<samlp:AuthnRequest/, inflated
     end
 
     should "create the deflated SAMLRequest URL parameter including the Destination" do
@@ -31,6 +32,7 @@ class RequestTest < Test::Unit::TestCase
       zstream.finish
       zstream.close
 
+      assert_match /^<\?xml version='1.0' encoding='UTF-8'\?>/, inflated
       assert_match /<samlp:AuthnRequest[^<]* Destination='http:\/\/example.com'/, inflated
     end
 
@@ -43,7 +45,8 @@ class RequestTest < Test::Unit::TestCase
       payload  = CGI.unescape(auth_url.split("=").last)
       decoded  = Base64.decode64(payload)
 
-      assert_match /^<samlp:AuthnRequest/, decoded
+      assert_match /^<\?xml version='1.0' encoding='UTF-8'\?>/, decoded
+      assert_match /<samlp:AuthnRequest/, decoded
     end
 
     should "create the SAMLRequest URL parameter with IsPassive" do
@@ -60,6 +63,7 @@ class RequestTest < Test::Unit::TestCase
       zstream.finish
       zstream.close
 
+      assert_match /^<\?xml version='1.0' encoding='UTF-8'\?>/, inflated
       assert_match /<samlp:AuthnRequest[^<]* IsPassive='true'/, inflated
     end
 

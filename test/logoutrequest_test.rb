@@ -14,7 +14,8 @@ class RequestTest < Test::Unit::TestCase
 
       inflated = decode_saml_request_payload(unauth_url)
 
-      assert_match /^<samlp:LogoutRequest/, inflated
+      assert_match /^<\?xml version='1.0' encoding='UTF-8'\?>/,  inflated
+      assert_match /<samlp:LogoutRequest/, inflated
     end
 
     should "support additional params" do
