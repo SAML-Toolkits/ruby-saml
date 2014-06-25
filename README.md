@@ -86,6 +86,8 @@ class SamlController < ApplicationController
     settings.name_identifier_format         = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
     # Optional for most SAML IdPs
     settings.authn_context = "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport"
+    # Optional. Describe according to IdP specification (if supported) which attributes the SP desires to receive in SAMLResponse.
+    settings.attributes_index = 30
 
     settings
   end

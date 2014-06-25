@@ -19,6 +19,7 @@ module OneLogin
       attr_accessor :double_quote_xml_attribute_values
       attr_accessor :passive
       attr_accessor :protocol_binding
+      attr_accessor :attributes_index
 
       private
 
