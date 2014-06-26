@@ -95,6 +95,24 @@ class RequestTest < Test::Unit::TestCase
         assert_match %r[ID='#{unauth_req.uuid}'], inflated
       end
     end
+
+    context "when the settings indicate to sign the request" do
+      should "created a signed request" do
+        settings = OneLogin::RubySaml::Settings.new
+        settings.idp_slo_target_url = "http://example.com?field=value"
+        settings.name_identifier_value = "f00f00"
+        # sign the request
+        settings.sign_request = true
+        settings.certificate = ruby_saml_cert
+        settings.private_key = ruby_saml_key
+
+        unauth_req = OneLogin::RubySaml::Logoutrequest.new
+        unauth_url = unauth_req.create(settings)
+
+        inflated = decode_saml_request_payload(unauth_url)
+        assert_match %r[<SignatureValue>([a-zA-Z0-9/+=]+)</SignatureValue>], inflated
+      end
+    end
   end
 
   def decode_saml_request_payload(unauth_url)
