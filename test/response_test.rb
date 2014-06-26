@@ -214,6 +214,12 @@ class RubySamlTest < Test::Unit::TestCase
         assert_equal "value", response.attributes[:another_value]
       end
 
+      should "handle attributes with empty values" do
+        response = OneLogin::RubySaml::Response.new(response_with_empty_attr)
+        assert_equal "demo", response.attributes[:uid]
+        assert_equal "", response.attributes[:empty_field]
+      end
+
       should "work for implicit namespaces" do
         response = OneLogin::RubySaml::Response.new(response_document_3)
         assert_equal "someone@example.com", response.attributes["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"]
