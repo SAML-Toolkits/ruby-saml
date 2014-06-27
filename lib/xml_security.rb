@@ -81,7 +81,7 @@ module XMLSecurity
 
 
       # verify signature
-      signed_info_element     = REXML::XPath.first(@sig_element, "//ds:SignedInfo", {"ds"=>DSIG})
+      signed_info_element     = REXML::XPath.first(@sig_element, "//ds:SignedInfo")
       noko_sig_element = document.at_xpath('//ds:Signature', 'ds' => DSIG)
       noko_signed_info_element = noko_sig_element.at_xpath('./ds:SignedInfo', 'ds' => DSIG)
       canon_algorithm = canon_algorithm REXML::XPath.first(@sig_element, '//ds:CanonicalizationMethod', 'ds' => DSIG)
@@ -106,7 +106,7 @@ module XMLSecurity
         end
       end
 
-      base64_signature        = REXML::XPath.first(@sig_element, "//ds:SignatureValue", {"ds"=>DSIG}).text
+      base64_signature        = REXML::XPath.first(@sig_element, "//ds:SignatureValue").text
       signature               = Base64.decode64(base64_signature)
 
       # get certificate object
@@ -114,7 +114,7 @@ module XMLSecurity
       cert                    = OpenSSL::X509::Certificate.new(cert_text)
 
       # signature method
-      signature_algorithm     = algorithm(REXML::XPath.first(signed_info_element, "//ds:SignatureMethod", {"ds"=>DSIG}))
+      signature_algorithm     = algorithm(REXML::XPath.first(signed_info_element, "//ds:SignatureMethod"))
 
       unless cert.public_key.verify(signature_algorithm.new, signature, canon_string)
         return soft ? false : (raise OneLogin::RubySaml::ValidationError.new("Key validation error"))
