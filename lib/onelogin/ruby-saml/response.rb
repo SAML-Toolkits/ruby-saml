@@ -48,15 +48,23 @@ module OneLogin
         end
       end
 
-      # A hash of all the attributes with the response.
-      # Multiple values will be returned in the AttributeValue#values array
-      # in reverse order, when compared to XML
+      # Returns OneLogin::RubySaml::Attributes enumerable collection.
+      # All attributes can be iterated over +attributes.each+ or returned as array by +attributes.all+
+      #
+      # For backwards compatibility ruby-saml returns by default only the first value for a given attribute with
+      #    attributes['name']
+      # To get all of the attributes, use:
+      #    attributes.multi('name')
+      # Or turn off the compatibility:
+      #    OneLogin::RubySaml::Attributes.single_value_compatibility = false
+      # Now this will return an array:
+      #    attributes['name']
       def attributes
         @attr_statements ||= begin
-          result = {}
+          attributes = Attributes.new
 
           stmt_element = xpath_first_from_signed_assertion('/a:AttributeStatement')
-          return {} if stmt_element.nil?
+          return attributes if stmt_element.nil?
 
           stmt_element.elements.each do |attr_element|
             name  = attr_element.attributes["Name"]
@@ -66,24 +74,10 @@ module OneLogin
               ["true", "1"].include?(e.attributes['xsi:nil']) ? nil : e.text.to_s
             }
 
-            # Monkey-patch first value to contain all values (so that the type is retained)
-            attr_value = values.first
-            attr_value.extend AttributeValue
-            attr_value.values = values.reverse # retain XML order
-
-            # Merge values if the Attribute has already been seen
-            if result[name]
-              attr_value.values += result[name].values
-            end
-
-            result[name] = attr_value
+            attributes.add(name, values)
           end
 
-          result.keys.each do |key|
-            result[key.intern] = result[key]
-          end
-
-          result
+          attributes
         end
       end
 

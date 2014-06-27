@@ -221,7 +221,7 @@ class RubySamlTest < Test::Unit::TestCase
 
       should "not raise on responses without attributes" do
         response = OneLogin::RubySaml::Response.new(response_document_4)
-        assert_equal Hash.new, response.attributes
+        assert_equal OneLogin::RubySaml::Attributes.new, response.attributes
       end
 
       context "#multiple values" do
@@ -235,19 +235,19 @@ class RubySamlTest < Test::Unit::TestCase
           assert_equal 'value1', response.attributes[:another_value]
         end
 
-        should "return array with all attributes when asked" do
+        should "return array with all attributes when asked in XML order" do
           response = OneLogin::RubySaml::Response.new(fixture(:response_with_multiple_attribute_values))
-          assert_equal ['value2', 'value1'], response.attributes[:another_value].values
+          assert_equal ['value1', 'value2'], response.attributes.multi(:another_value)
         end
 
-        should "return last of multiple values when multiple Attribute tags in XML" do
+        should "return first of multiple values when multiple Attribute tags in XML" do
           response = OneLogin::RubySaml::Response.new(fixture(:response_with_multiple_attribute_values))
-          assert_equal 'role2', response.attributes[:role]
+          assert_equal 'role1', response.attributes[:role]
         end
 
         should "return all of multiple values in reverse order when multiple Attribute tags in XML" do
           response = OneLogin::RubySaml::Response.new(fixture(:response_with_multiple_attribute_values))
-          assert_equal ['role2', 'role1'], response.attributes[:role].values
+          assert_equal ['role1', 'role2', 'role3'], response.attributes.multi(:role)
         end
 
         should "return nil value correctly" do
@@ -257,7 +257,15 @@ class RubySamlTest < Test::Unit::TestCase
 
         should "return multiple values including nil and empty string" do
           response = OneLogin::RubySaml::Response.new(fixture(:response_with_multiple_attribute_values))
-          assert_equal [nil, nil, "valuePresent", ""], response.attributes[:attribute_with_nils_and_empty_strings].values
+          assert_equal ["", "valuePresent", nil, nil], response.attributes.multi(:attribute_with_nils_and_empty_strings)
+        end
+
+        should "return multiple values from [] when not in compatibility mode" do
+          response = OneLogin::RubySaml::Response.new(fixture(:response_with_multiple_attribute_values))
+          OneLogin::RubySaml::Attributes.single_value_compatibility = false
+          assert_equal ["", "valuePresent", nil, nil], response.attributes[:attribute_with_nils_and_empty_strings]
+          # classes are not reloaded between tests so restore default
+          OneLogin::RubySaml::Attributes.single_value_compatibility = true
         end
       end
     end
