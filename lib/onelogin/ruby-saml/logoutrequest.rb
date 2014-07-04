@@ -1,12 +1,6 @@
-require "base64"
-require "uuid"
-require "zlib"
-require "cgi"
-
 module OneLogin
   module RubySaml
-    include REXML
-    class Logoutrequest
+    class Logoutrequest < SamlMessage
 
       attr_reader :uuid # Can be obtained if neccessary
 
