@@ -26,6 +26,15 @@ class XmlSecurityTest < Test::Unit::TestCase
       end
     end
 
+    should "not raise an error when softly validating the document and the X509Certificate is missing" do
+      response = Base64.decode64(response_document)
+      response.sub!(/<ds:X509Certificate>.*<\/ds:X509Certificate>/, "")
+      document = XMLSecurity::SignedDocument.new(response)
+      assert_nothing_raised do
+        assert !document.validate_document("a fingerprint", true) # The fingerprint isn't relevant to this test
+      end
+    end
+
     should "should raise Fingerprint mismatch" do
       exception = assert_raise(OneLogin::RubySaml::ValidationError) do
         @document.validate_document("no:fi:ng:er:pr:in:t", false)
