@@ -46,7 +46,7 @@ class Test::Unit::TestCase
   end
 
   def ampersands_response
-    @ampersands_resposne ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'response_with_ampersands.xml.base64'))
+    @ampersands_response ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'response_with_ampersands.xml.base64'))
   end
 
   def response_document_6
