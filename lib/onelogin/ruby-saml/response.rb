@@ -98,6 +98,13 @@ module OneLogin
         end
       end
 
+      def status_message
+        @status_message ||= begin
+          node = REXML::XPath.first(document, "/p:Response/p:Status/p:StatusMessage", { "p" => PROTOCOL, "a" => ASSERTION })
+          node.text if node
+        end
+      end
+
       # Conditions (if any) for the assertion to run
       def conditions
         @conditions ||= xpath_first_from_signed_assertion('/a:Conditions')
@@ -130,7 +137,15 @@ module OneLogin
         validate_response_state(soft) &&
         validate_conditions(soft)     &&
         document.validate_document(get_fingerprint, soft) &&
-        success?
+        validate_success_status(soft)
+      end
+
+      def validate_success_status(soft = true)
+        if success?
+          true
+        else
+          soft ? false : validation_error(status_message)
+        end
       end
 
       def validate_structure(soft = true)
