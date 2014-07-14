@@ -219,6 +219,11 @@ class RubySamlTest < Test::Unit::TestCase
         assert_equal "someone@example.com", response.attributes["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"]
       end
 
+      should "not raise errors about nil/empty attributes for EncryptedAttributes" do
+        response = OneLogin::RubySaml::Response.new(response_document_7)
+        assert_equal 'Demo', response.attributes["first_name"]
+      end
+
       should "not raise on responses without attributes" do
         response = OneLogin::RubySaml::Response.new(response_document_4)
         assert_equal Hash.new, response.attributes

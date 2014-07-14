@@ -62,6 +62,8 @@ module OneLogin
             name  = attr_element.attributes["Name"]
             values = attr_element.elements.collect(&:text)
 
+            next unless name && name.size > 0
+
             # Set up a string-like wrapper for the values array
             attr_value = AttributeValue.new(values.first, values.reverse)
             # Merge values if the Attribute has already been seen
