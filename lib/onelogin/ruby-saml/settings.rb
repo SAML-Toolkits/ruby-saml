@@ -20,6 +20,10 @@ module OneLogin
       attr_accessor :passive
       attr_accessor :protocol_binding
       attr_accessor :attributes_index
+      attr_accessor :private_key
+      attr_accessor :private_key_pass
+      attr_accessor :certificate
+
 
       private
 
