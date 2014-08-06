@@ -52,6 +52,12 @@ class XmlSecurityTest < Test::Unit::TestCase
       assert_equal("Key validation error", exception.message)
     end
 
+    should "correctly obtain the digest method with alternate namespace declaration" do
+      document = XMLSecurity::SignedDocument.new(fixture(:adfs_response_xmlns, false))
+      base64cert = document.elements["//X509Certificate"].text
+      document.validate_signature(base64cert, false)
+    end
+
     should "raise validation error when the X509Certificate is missing" do
       response = Base64.decode64(response_document)
       response.sub!(/<ds:X509Certificate>.*<\/ds:X509Certificate>/, "")
