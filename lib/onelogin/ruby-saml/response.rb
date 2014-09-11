@@ -194,7 +194,7 @@ module OneLogin
       end
 
       def validate_issuer(soft = true)
-        return true unless not self.settings.idp_entity_id.nil?
+        return true if settings.idp_entity_id.nil?
 
         unless URI.parse(issuer) == URI.parse(settings.idp_entity_id)
           return soft ? false : validation_error("Doesn't match the issuer, expected: <#{settings.idp_entity_id}>, but was: <#{issuer}>")
