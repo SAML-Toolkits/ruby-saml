@@ -128,6 +128,7 @@ module OneLogin
         validate_structure(soft)      &&
         validate_response_state(soft) &&
         validate_conditions(soft)     &&
+        validate_issuer(soft)         &&
         document.validate_document(get_fingerprint, soft) &&
         success?
       end
@@ -189,6 +190,15 @@ module OneLogin
           return soft ? false : validation_error("Current time is on or after NotOnOrAfter condition")
         end
 
+        true
+      end
+
+      def validate_issuer(soft = true)
+        return true unless not self.settings.idp_entity_id.nil?
+
+        unless URI.parse(issuer) == URI.parse(settings.idp_entity_id)
+          return soft ? false : validation_error("Doesn't match the issuer, expected: <#{settings.idp_entity_id}>, but was: <#{issuer}>")
+        end
         true
       end
 
