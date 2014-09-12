@@ -133,21 +133,21 @@ Imagine this saml:AttributeStatement
 ```ruby
 
 response.attributes   # is an OneLogin::RubySaml::Attributes object
-#output# {"username"=>["jhonsmith"], "phone"=>[], "memberOf"=>["admin", "user"]}
+# => {"username"=>["jhonsmith"], "phone"=>[], "memberOf"=>["admin", "user"]}
 
 response.attributes[:username]
-#output# "jhonsmith"
+# => "jhonsmith"
 
 response.attributes[:memberOf]
-#output# "admin"
+# => "admin"
 
 response.attributes[:phone]
-#output# nil
+# => nil
 
 response.attributes.single(:memberOf)
-#output# "user"
-(byebug) response.attributes.multi(:memberOf)
-#output# ["user", "admin"]
+# =>  "user"
+response.attributes.multi(:memberOf)
+# => ["user", "admin"]
 
 ```
 
