@@ -73,11 +73,11 @@ class SamlController < ApplicationController
 
     # We validate the SAML Response and check if the user already exists in the system
     if response.is_valid? 
-      #  session[:userid] = response.name_id
-      #  session[:attributes] = response.attributes
-      authorize_success  # Log the user
+      # authorize_success, log the user
+      session[:userid] = response.name_id
+      session[:attributes] = response.attributes
     else
-      authorize_failure  # This method show an error message
+      authorize_failure  # This method shows an error message
     end
   end
 
@@ -98,6 +98,7 @@ class SamlController < ApplicationController
     settings.attributes_index = 30
 
     settings
+  end
 
 end
 ```
@@ -108,7 +109,7 @@ The value returned is always an array of a single value or multiple values.
 
 Imagine this saml:AttributeStatement
 
-```
+```xml
 <saml:AttributeStatement>
     <saml:Attribute Name="username"
                     NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic"
@@ -132,21 +133,21 @@ Imagine this saml:AttributeStatement
 ```ruby
 
 response.attributes   # is an OneLogin::RubySaml::Attributes object
-#{"username"=>["jhonsmith"], "phone"=>[], "memberOf"=>["admin", "user"]}
+#output# {"username"=>["jhonsmith"], "phone"=>[], "memberOf"=>["admin", "user"]}
 
 response.attributes[:username]
-# "jhonsmith"
+#output# "jhonsmith"
 
 response.attributes[:memberOf]
-# "admin"
+#output# "admin"
 
 response.attributes[:phone]
-# nil
+#output# nil
 
 response.attributes.single(:memberOf)
-"user"
+#output# "user"
 (byebug) response.attributes.multi(:memberOf)
-["user", "admin"]
+#output# ["user", "admin"]
 
 ```
 
