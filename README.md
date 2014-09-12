@@ -81,6 +81,24 @@ class SamlController < ApplicationController
     end
   end
 
+
+  private
+
+  def saml_settings
+    settings = OneLogin::RubySaml::Settings.new
+
+    settings.assertion_consumer_service_url = "http://#{request.host}/saml/consume"
+    settings.issuer                         = request.host
+    settings.idp_sso_target_url             = "https://app.onelogin.com/saml/signon/#{OneLoginAppId}"
+    settings.idp_cert_fingerprint           = OneLoginAppCertFingerPrint
+    settings.name_identifier_format         = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+    # Optional for most SAML IdPs
+    settings.authn_context = "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport"
+    # Optional. Describe according to IdP specification (if supported) which attributes the SP desires to receive in SAMLResponse.
+    settings.attributes_index = 30
+
+    settings
+
 end
 ```
 
