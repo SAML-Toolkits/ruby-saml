@@ -55,7 +55,7 @@ class XmlSecurityTest < Test::Unit::TestCase
     should "correctly obtain the digest method with alternate namespace declaration" do
       document = XMLSecurity::SignedDocument.new(fixture(:adfs_response_xmlns, false))
       base64cert = document.elements["//X509Certificate"].text
-      document.validate_signature(base64cert, false)
+      assert document.validate_signature(base64cert, false)
     end
 
     should "raise validation error when the X509Certificate is missing" do
