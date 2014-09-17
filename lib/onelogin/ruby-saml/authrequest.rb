@@ -47,6 +47,7 @@ module OneLogin
         root.attributes['IsPassive'] = settings.passive unless settings.passive.nil?
         root.attributes['ProtocolBinding'] = settings.protocol_binding unless settings.protocol_binding.nil?
         root.attributes["AttributeConsumingServiceIndex"] = settings.attributes_index unless settings.attributes_index.nil?
+        root.attributes['ForceAuthn'] = settings.force_authn unless settings.force_authn.nil?
 
         # Conditionally defined elements based on settings
         if settings.assertion_consumer_service_url != nil
