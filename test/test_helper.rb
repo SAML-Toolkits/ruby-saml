@@ -56,6 +56,10 @@ class Test::Unit::TestCase
     Base64.encode64(doc)
   end
 
+  def response_document_7
+    @response_document7 ||= Base64.encode64(File.read(File.join(File.dirname(__FILE__), 'responses', 'response_no_cert_and_encrypted_attrs.xml')))
+  end
+
   def wrapped_response_2
     @wrapped_response_2 ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'wrapped_response_2.xml.base64'))
   end
