@@ -67,6 +67,13 @@ class XmlSecurityTest < Test::Unit::TestCase
       end
       assert_equal("Certificate element missing in response (ds:X509Certificate)", exception.message)
     end
+
+    should "fail soft validation without throwing error when the X509Certificate is missing" do
+      response = Base64.decode64(response_document)
+      response.sub!(/<ds:X509Certificate>.*<\/ds:X509Certificate>/, "")
+      document = XMLSecurity::SignedDocument.new(response)
+      document.validate_document("a fingerprint", true) # The fingerprint isn't relevant to this test
+    end
   end
 
   context "Algorithms" do

@@ -47,7 +47,12 @@ module XMLSecurity
     def validate_document(idp_cert_fingerprint, soft = true)
       # get cert from response
       cert_element = REXML::XPath.first(self, "//ds:X509Certificate", { "ds"=>DSIG })
-      raise OneLogin::RubySaml::ValidationError.new("Certificate element missing in response (ds:X509Certificate)") unless cert_element
+
+      unless cert_element
+        return soft ? false : raise(OneLogin::RubySaml::ValidationError.new("Certificate element missing in response (ds:X509Certificate)"))
+      end
+
+      # get info from cert
       base64_cert  = cert_element.text
       cert_text    = Base64.decode64(base64_cert)
       cert         = OpenSSL::X509::Certificate.new(cert_text)
