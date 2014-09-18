@@ -31,4 +31,26 @@ class MetadataTest < Test::Unit::TestCase
     assert_equal "https://foo.example/saml/consume", acs.attribute("Location").value
   end
 
+  should "generate attribute service if configured" do
+    settings = OneLogin::RubySaml::Settings.new
+    settings.issuer = "https://example.com"
+    settings.name_identifier_format = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+    settings.assertion_consumer_service_url = "https://foo.example/saml/consume"
+    settings.attribute_consuming_service.configure do
+      service_name "Test Service"
+      add_attribute(:name => "Name", :name_format => "Name Format", :friendly_name => "Friendly Name")
+    end
+
+    xml_text = OneLogin::RubySaml::Metadata.new.generate(settings)
+    xml_doc = REXML::Document.new(xml_text)
+    acs = REXML::XPath.first(xml_doc, "//md:AttributeConsumingService")
+    assert_equal "true", acs.attribute("isDefault").value
+    assert_equal "1", acs.attribute("index").value
+    assert_equal REXML::XPath.first(xml_doc, "//md:ServiceName").text.strip, "Test Service"
+    req_attr = REXML::XPath.first(xml_doc, "//md:RequestedAttribute")
+    assert_equal "Name", req_attr.attribute("Name").value
+    assert_equal "Name Format", req_attr.attribute("NameFormat").value
+    assert_equal "Friendly Name", req_attr.attribute("FriendlyName").value
+  end
+
 end
