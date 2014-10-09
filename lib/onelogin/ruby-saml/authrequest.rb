@@ -66,19 +66,34 @@ module OneLogin
           }
         end
 
-        # BUG fix here -- if an authn_context is defined, add the tags with an "exact"
-        # match required for authentication to succeed.  If this is not defined,
-        # the IdP will choose default rules for authentication.  (Shibboleth IdP)
-        if settings.authn_context != nil
+        if settings.authn_context || settings.authn_context_decl_ref
+
+          if settings.authn_context_comparison != nil
+            comparison = settings.authn_context_comparison
+          else
+            comparison = 'exact'
+          end
+
           requested_context = root.add_element "samlp:RequestedAuthnContext", {
             "xmlns:samlp" => "urn:oasis:names:tc:SAML:2.0:protocol",
-            "Comparison" => "exact",
+            "Comparison" => comparison,
           }
-          class_ref = requested_context.add_element "saml:AuthnContextClassRef", {
-            "xmlns:saml" => "urn:oasis:names:tc:SAML:2.0:assertion",
-          }
-          class_ref.text = settings.authn_context
+
+          if settings.authn_context != nil
+            class_ref = requested_context.add_element "saml:AuthnContextClassRef", {
+              "xmlns:saml" => "urn:oasis:names:tc:SAML:2.0:assertion",
+            }
+            class_ref.text = settings.authn_context
+          end
+          # add saml:AuthnContextDeclRef element
+          if settings.authn_context_decl_ref != nil
+            class_ref = requested_context.add_element "saml:AuthnContextDeclRef", {
+              "xmlns:saml" => "urn:oasis:names:tc:SAML:2.0:assertion",
+            }
+            class_ref.text = settings.authn_context_decl_ref
+          end
         end
+
         request_doc
       end
 
