@@ -38,9 +38,11 @@ module XMLSecurity
     DSIG = "http://www.w3.org/2000/09/xmldsig#"
 
     attr_accessor :signed_element_id
+    attr_accessor :errors
 
-    def initialize(response)
+    def initialize(response, errors = [])
       super(response)
+      @errors = errors
       extract_signed_element_id
     end
 
@@ -62,6 +64,7 @@ module XMLSecurity
       fingerprint = Digest::SHA1.hexdigest(cert.to_der)
 
       if fingerprint != idp_cert_fingerprint.gsub(/[^a-zA-Z0-9]/,"").downcase
+        @errors << "Fingerprint mismatch"
         return soft ? false : (raise OneLogin::RubySaml::ValidationError.new("Fingerprint mismatch"))
       end
 
@@ -108,6 +111,7 @@ module XMLSecurity
         digest_value                  = Base64.decode64(REXML::XPath.first(ref, "//ds:DigestValue", {"ds"=>DSIG}).text)
 
         unless digests_match?(hash, digest_value)
+          @errors << "Digest mismatch"
           return soft ? false : (raise OneLogin::RubySaml::ValidationError.new("Digest mismatch"))
         end
       end
@@ -123,6 +127,7 @@ module XMLSecurity
       signature_algorithm     = algorithm(REXML::XPath.first(signed_info_element, "//ds:SignatureMethod", {"ds"=>DSIG}))
 
       unless cert.public_key.verify(signature_algorithm.new, signature, canon_string)
+        @errors << "Key validation error"
         return soft ? false : (raise OneLogin::RubySaml::ValidationError.new("Key validation error"))
       end
 

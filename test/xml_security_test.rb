@@ -40,6 +40,7 @@ class XmlSecurityTest < Test::Unit::TestCase
         @document.validate_document("no:fi:ng:er:pr:in:t", false)
       end
       assert_equal("Fingerprint mismatch", exception.message)
+      assert @document.errors.include? "Fingerprint mismatch"
     end
 
     should "should raise Digest mismatch" do
@@ -47,6 +48,7 @@ class XmlSecurityTest < Test::Unit::TestCase
         @document.validate_signature(@base64cert, false)
       end
       assert_equal("Digest mismatch", exception.message)
+      assert @document.errors.include? "Digest mismatch"
     end
 
     should "should raise Key validation error" do
@@ -59,6 +61,7 @@ class XmlSecurityTest < Test::Unit::TestCase
         document.validate_signature(base64cert, false)
       end
       assert_equal("Key validation error", exception.message)
+      assert document.errors.include? "Key validation error"
     end
 
     should "correctly obtain the digest method with alternate namespace declaration" do
