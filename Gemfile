@@ -4,6 +4,7 @@ gemspec
 
 group :test do
   if RUBY_VERSION < "1.9"
+    gem "nokogiri",   "~> 1.5.0"
     gem "ruby-debug", "~> 0.10.4"
   else
     gem "debugger",   "~> 1.1"
@@ -11,7 +12,6 @@ group :test do
   gem "shoulda",    "~> 2.11"
   gem "rake",       "~> 10"
   gem "mocha",      "~> 0.14",  :require => false
-  gem "nokogiri",   "~> 1.5.0"
   gem "timecop",    "<= 0.6.0"
   gem "systemu",    "~> 2"
   gem "rspec",      "~> 2"

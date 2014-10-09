@@ -53,6 +53,14 @@ class RubySamlTest < Test::Unit::TestCase
       end
     end
 
+    context "#validate_structure" do
+      should "raise when encountering a condition that prevents the document from being valid" do
+        response = OneLogin::RubySaml::Response.new(response_document_2)
+        response.send(:validate_structure)
+        assert response.errors.include? "Schema validation failed"
+      end
+    end
+
     context "#is_valid?" do
       should "return false when response is initialized with blank data" do
         response = OneLogin::RubySaml::Response.new('')
@@ -217,6 +225,11 @@ class RubySamlTest < Test::Unit::TestCase
       should "work for implicit namespaces" do
         response = OneLogin::RubySaml::Response.new(response_document_3)
         assert_equal "someone@example.com", response.attributes["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"]
+      end
+
+      should "not raise errors about nil/empty attributes for EncryptedAttributes" do
+        response = OneLogin::RubySaml::Response.new(response_document_7)
+        assert_equal 'Demo', response.attributes["first_name"]
       end
 
       should "not raise on responses without attributes" do

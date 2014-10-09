@@ -26,11 +26,21 @@ class XmlSecurityTest < Test::Unit::TestCase
       end
     end
 
+    should "not raise an error when softly validating the document and the X509Certificate is missing" do
+      response = Base64.decode64(response_document)
+      response.sub!(/<ds:X509Certificate>.*<\/ds:X509Certificate>/, "")
+      document = XMLSecurity::SignedDocument.new(response)
+      assert_nothing_raised do
+        assert !document.validate_document("a fingerprint", true) # The fingerprint isn't relevant to this test
+      end
+    end
+
     should "should raise Fingerprint mismatch" do
       exception = assert_raise(OneLogin::RubySaml::ValidationError) do
         @document.validate_document("no:fi:ng:er:pr:in:t", false)
       end
       assert_equal("Fingerprint mismatch", exception.message)
+      assert @document.errors.include? "Fingerprint mismatch"
     end
 
     should "should raise Digest mismatch" do
@@ -38,6 +48,7 @@ class XmlSecurityTest < Test::Unit::TestCase
         @document.validate_signature(@base64cert, false)
       end
       assert_equal("Digest mismatch", exception.message)
+      assert @document.errors.include? "Digest mismatch"
     end
 
     should "should raise Key validation error" do
@@ -50,6 +61,13 @@ class XmlSecurityTest < Test::Unit::TestCase
         document.validate_signature(base64cert, false)
       end
       assert_equal("Key validation error", exception.message)
+      assert document.errors.include? "Key validation error"
+    end
+
+    should "correctly obtain the digest method with alternate namespace declaration" do
+      document = XMLSecurity::SignedDocument.new(fixture(:adfs_response_xmlns, false))
+      base64cert = document.elements["//X509Certificate"].text
+      assert document.validate_signature(base64cert, false)
     end
 
     should "raise validation error when the X509Certificate is missing" do

@@ -20,6 +20,7 @@ module OneLogin
       attr_accessor :passive
       attr_accessor :protocol_binding
       attr_accessor :attributes_index
+      attr_accessor :force_authn
 
       private
 

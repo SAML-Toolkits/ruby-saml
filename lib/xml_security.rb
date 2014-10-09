@@ -38,16 +38,24 @@ module XMLSecurity
     DSIG = "http://www.w3.org/2000/09/xmldsig#"
 
     attr_accessor :signed_element_id
+    attr_accessor :errors
 
-    def initialize(response)
+    def initialize(response, errors = [])
       super(response)
+      @errors = errors
       extract_signed_element_id
     end
 
     def validate_document(idp_cert_fingerprint, soft = true)
       # get cert from response
       cert_element = REXML::XPath.first(self, "//ds:X509Certificate", { "ds"=>DSIG })
-      raise OneLogin::RubySaml::ValidationError.new("Certificate element missing in response (ds:X509Certificate)") unless cert_element
+      unless cert_element
+        if soft
+          return false
+        else
+          raise OneLogin::RubySaml::ValidationError.new("Certificate element missing in response (ds:X509Certificate)")
+        end
+      end
       base64_cert  = cert_element.text
       cert_text    = Base64.decode64(base64_cert)
       cert         = OpenSSL::X509::Certificate.new(cert_text)
@@ -56,6 +64,7 @@ module XMLSecurity
       fingerprint = Digest::SHA1.hexdigest(cert.to_der)
 
       if fingerprint != idp_cert_fingerprint.gsub(/[^a-zA-Z0-9]/,"").downcase
+        @errors << "Fingerprint mismatch"
         return soft ? false : (raise OneLogin::RubySaml::ValidationError.new("Fingerprint mismatch"))
       end
 
@@ -96,12 +105,13 @@ module XMLSecurity
         canon_algorithm               = canon_algorithm REXML::XPath.first(ref, '//ds:CanonicalizationMethod', 'ds' => DSIG)
         canon_hashed_element          = hashed_element.canonicalize(canon_algorithm, inclusive_namespaces)
 
-        digest_algorithm              = algorithm(REXML::XPath.first(ref, "//ds:DigestMethod"))
+        digest_algorithm              = algorithm(REXML::XPath.first(ref, "//ds:DigestMethod", 'ds' => DSIG))
 
         hash                          = digest_algorithm.digest(canon_hashed_element)
         digest_value                  = Base64.decode64(REXML::XPath.first(ref, "//ds:DigestValue", {"ds"=>DSIG}).text)
 
         unless digests_match?(hash, digest_value)
+          @errors << "Digest mismatch"
           return soft ? false : (raise OneLogin::RubySaml::ValidationError.new("Digest mismatch"))
         end
       end
@@ -117,6 +127,7 @@ module XMLSecurity
       signature_algorithm     = algorithm(REXML::XPath.first(signed_info_element, "//ds:SignatureMethod", {"ds"=>DSIG}))
 
       unless cert.public_key.verify(signature_algorithm.new, signature, canon_string)
+        @errors << "Key validation error"
         return soft ? false : (raise OneLogin::RubySaml::ValidationError.new("Key validation error"))
       end
 
