@@ -9,7 +9,37 @@ The Ruby SAML library is for implementing the client side of a SAML authorizatio
 
 SAML authorization is a two step process and you are expected to implement support for both.
 
-## The initialization phase
+## Getting Started
+In order to use the toolkit you will need to install the gem (either manually or using Bundler), and require the library in your Ruby application:
+
+Using `Gemfile`
+
+```ruby
+# latest stable
+gem 'ruby-saml', '~> 0.8.1'
+
+# or track master for bleeding-edge
+gem 'ruby-saml', git: 'onelogin/ruby-saml'
+```
+
+Using Bundler
+
+```sh
+gem install ruby-saml
+```
+
+When requiring the gem, you can add the whole toolkit
+```ruby
+require 'onelogin/ruby-saml'
+```
+
+or just the required components individually:
+
+```ruby
+require 'onelogin/ruby-saml/authrequest'
+```
+
+## The Initialization Phase
 
 This is the first request you will get from the identity provider. It will hit your application at a specific URL (that you've announced as being your SAML initialization point). The response to this initialization, is a redirect back to the identity provider, which can look something like this (ignore the saml_settings method call for now):
 
@@ -46,6 +76,7 @@ def saml_settings
   settings.idp_sso_target_url             = "https://app.onelogin.com/saml/signon/#{OneLoginAppId}"
   settings.idp_cert_fingerprint           = OneLoginAppCertFingerPrint
   settings.name_identifier_format         = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+
   # Optional for most SAML IdPs
   settings.authn_context = "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport"
 
@@ -84,8 +115,10 @@ class SamlController < ApplicationController
     settings.idp_sso_target_url             = "https://app.onelogin.com/saml/signon/#{OneLoginAppId}"
     settings.idp_cert_fingerprint           = OneLoginAppCertFingerPrint
     settings.name_identifier_format         = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+
     # Optional for most SAML IdPs
     settings.authn_context = "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport"
+
     # Optional. Describe according to IdP specification (if supported) which attributes the SP desires to receive in SAMLResponse.
     settings.attributes_index = 30
 
@@ -94,7 +127,7 @@ class SamlController < ApplicationController
 end
 ```
 
-If are using saml:AttributeStatement to transfare metadata, like the user name, you can access all the attributes through response.attributes. It
+If are using saml:AttributeStatement to transfer metadata, like the user name, you can access all the attributes through response.attributes. It
 contains all the saml:AttributeStatement with its 'Name' as a indifferent key and the one saml:AttributeValue as value.
 
 ```ruby
@@ -109,8 +142,8 @@ response.attributes[:username]
 To form a trusted pair relationship with the IdP, the SP (you) need to provide metadata XML
 to the IdP for various good reasons.  (Caching, certificate lookups, relaying party permissions, etc)
 
-The class OneLogin::RubySaml::Metadata takes care of this by reading the Settings and returning XML.  All
-you have to do is add a controller to return the data, then give this URL to the IdP administrator.
+The class `OneLogin::RubySaml::Metadata` takes care of this by reading the Settings and returning XML.  All you have to do is add a controller to return the data, then give this URL to the IdP administrator.
+
 The metdata will be polled by the IdP every few minutes, so updating your settings should propagate
 to the IdP settings.
 
@@ -139,11 +172,11 @@ response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], :allowed_cloc
 
 Make sure to keep the value as comfortably small as possible to keep security risks to a minimum.
 
-## Note on Patches/Pull Requests
+## Adding Features, Pull Requests
 
-* Fork the project.
-* Make your feature addition or bug fix.
-* Add tests for it. This is important so I don't break it in a
-  future version unintentionally.
-* Commit, do not mess with rakefile, version, or history. (if you want to have your own version, that is fine but bump version in a commit by itself I can ignore when I pull)
-* Send me a pull request. Bonus points for topic branches.
+* Fork the repository
+* Make your feature addition or bug fix
+* Add tests for your new features. This is important so we don't break any features in a future version unintentionally.
+* Ensure all tests pass.
+* Do not change rakefile, version, or history.
+* Open a pull request, following [this template](https://gist.github.com/Lordnibbler/11002759).
