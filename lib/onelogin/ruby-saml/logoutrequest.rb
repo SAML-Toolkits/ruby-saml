@@ -35,12 +35,12 @@ module OneLogin
 
       def create_unauth_xml_doc(settings, params)
 
-        time = Time.new().strftime("%Y-%m-%dT%H:%M:%S")
+        time = Time.new().strftime("%Y-%m-%dT%H:%M:%S")+"Z"
 
         request_doc = XMLSecurity::RequestDocument.new
         root = request_doc.add_element "samlp:LogoutRequest", { "xmlns:samlp" => "urn:oasis:names:tc:SAML:2.0:protocol" }
         root.attributes['ID'] = @uuid
-        root.attributes['IssueInstant'] = time
+        root.attributes['IssueInstant'] =   time
         root.attributes['Version'] = "2.0"
 
         if settings.issuer
