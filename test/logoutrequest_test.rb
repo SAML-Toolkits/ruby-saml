@@ -94,7 +94,6 @@ class RequestTest < Test::Unit::TestCase
 
         inflated = decode_saml_request_payload(unauth_url)
 
-        puts "  \n\n#{inflated} \n\n #{unauth_req.request}"
 
 
         assert_match %r[ID='#{unauth_req.uuid}'], inflated

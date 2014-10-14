@@ -11,7 +11,7 @@ module OneLogin
         if defined? Rails
           Rails.logger.debug message
         else
-          @logger.debug(message)
+          @logger.debug(message) unless @logger.nil?
         end
       end
 
@@ -21,7 +21,7 @@ module OneLogin
         if defined? Rails
           Rails.logger.info message
         else
-          @logger.info(message)
+          @logger.info(message) unless @logger.nil?
         end
       end
     end
