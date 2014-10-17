@@ -19,7 +19,7 @@ Using `Gemfile`
 gem 'ruby-saml', '~> 0.8.1'
 
 # or track master for bleeding-edge
-gem 'ruby-saml', git: 'onelogin/ruby-saml'
+gem 'ruby-saml', :github => 'onelogin/ruby-saml'
 ```
 
 Using Bundler
