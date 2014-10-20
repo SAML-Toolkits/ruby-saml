@@ -131,6 +131,14 @@ module OneLogin
         end
       end
 
+      def session_index
+        @session_index ||= begin
+          node = REXML::XPath.first(@document, "/p:LogoutRequest/p:SessionIndex", { "p" => PROTOCOL, "a" => ASSERTION})
+          node.nil? ? nil : node.text
+        end
+      end
+
+
       def name_id
         @name_id ||= begin
           node = REXML::XPath.first(@document, "/p:LogoutRequest/a:NameID", { "p" => PROTOCOL, "a" => ASSERTION })

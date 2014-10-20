@@ -44,7 +44,7 @@ module OneLogin
       end
 
 
-      def encode_message
+      def encoded_message
         resp = @response
 
         deflated_resp  = Zlib::Deflate.deflate(resp, 9)[2..-5]
@@ -55,12 +55,13 @@ module OneLogin
 
 
       def logout_url
-        params_prefix     = (@settings.idp_slo_target_url =~ /\?/) ? '&' : '?'
+        params_prefix     = (@settings.assertion_consumer_service_url =~ /\?/) ? '&' : '?'
         request_params    = "#{params_prefix}SAMLResponse=#{encoded_message}"
 
-        params.each_pair do |key, value|
-          request_params << "&#{key}=#{CGI.escape(value.to_s)}"
-        end
+        # TODO support request_params like such
+        # params.each_pair do |key, value|
+        # request_params << "&#{key}=#{CGI.escape(value.to_s)}"
+        # end
         @settings.idp_slo_target_url + request_params
       end
 
@@ -69,7 +70,7 @@ module OneLogin
        resp = ""
        doc.write(resp)
 
-       newl(resp, doc, settings, params)
+       new(resp, doc, settings, params)
       end
 
       def self.create_unauth_xml_doc(settings, params={}, status_code = STATUS_SUCCESS, status_message="Logout Successful")
@@ -84,7 +85,7 @@ module OneLogin
         root.attributes['Version'] = "2.0"
 
         if settings.idp_slo_target_url
-          root.attributes['Destination'] = idp_slo_target_url
+          root.attributes['Destination'] = settings.idp_slo_target_url
         end
 
         if params.key? :in_response_to
@@ -99,13 +100,9 @@ module OneLogin
           fail ArgumentError, "No issuer supplied"
         end
 
-        if success
-          status = root.add_element "samlp:Status", { "xmlns:samlp" => PROTOCOL}
-          status.add_element "samlp:StatusCode", { "xmlns:samlp" => PROTOCOL, "Value" => status_code}
-          status.add_element "samlp:Message", { "xmlns:samlp" => PROTOCOL, "Value" => status_message}
-        else
-
-        end
+        status_el = root.add_element "samlp:Status", { "xmlns:samlp" => PROTOCOL}
+        status_el.add_element "samlp:StatusCode", { "xmlns:samlp" => PROTOCOL, "Value" => status_code}
+        status_el.add_element "samlp:Message", { "xmlns:samlp" => PROTOCOL, "Value" => status_message}
 
 
       end
