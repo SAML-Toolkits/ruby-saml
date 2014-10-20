@@ -13,8 +13,8 @@ module OneLogin
       STATUS_SUCCESS = "urn:oasis:names:tc:SAML:2.0:status:Success"
 
 
-      attr_reader  :request # Can be obtained if neccessary
-      attr_accessor :params
+      attr_reader  :request, :document # Can be obtained if neccessary
+      attr_accessor :params, :settings
 
       def initialize(request, doc, settings)
         @request = request
@@ -49,16 +49,16 @@ module OneLogin
 
       end
 
-      def decode(encoded)
+      def self.decode(encoded)
         Base64.decode64(encoded)
       end
 
-      def inflate(deflated)
+      def self.inflate(deflated)
         zlib = Zlib::Inflate.new(-Zlib::MAX_WBITS)
         zlib.inflate(deflated)
       end
 
-      def decode_raw_request(request)
+      def self.decode_raw_request(request)
         if request =~ /^</
           return request
         elsif (decoded  = decode(request)) =~ /^</
@@ -106,19 +106,6 @@ module OneLogin
           sessionindex.text = settings.sessionindex
         end
 
-        # BUG fix here -- if an authn_context is defined, add the tags with an "exact"
-        # match required for authentication to succeed.  If this is not defined,
-        # the IdP will choose default rules for authentication.  (Shibboleth IdP)
-        if settings.authn_context != nil
-          requested_context = root.add_element "samlp:RequestedAuthnContext", {
-              "xmlns:samlp" => "urn:oasis:names:tc:SAML:2.0:protocol",
-              "Comparison" => "exact",
-          }
-          class_ref = requested_context.add_element "saml:AuthnContextClassRef", {
-              "xmlns:saml" => "urn:oasis:names:tc:SAML:2.0:assertion",
-          }
-          class_ref.text = settings.authn_context
-        end
 
         if settings.sign_request && settings.private_key && settings.certificate
           request_doc.sign_document(settings.private_key, settings.certificate, settings.signature_method, settings.digest_method)
@@ -127,6 +114,15 @@ module OneLogin
         request_doc
       end
 
+      def issuer
+        @issuer ||= begin
+          node = REXML::XPath.first(@document, "/p:LogoutRequest/a:Issuer", { "p" => PROTOCOL, "a" => ASSERTION })
+          node ||= REXML::XPath.first(@document, "/p:LogoutRequest/a:Assertion/a:Issuer", { "p" => PROTOCOL, "a" => ASSERTION })
+          node.nil? ? nil : node.text
+        end
+      end
+
+
 
       def uuid
         @uuid ||= begin
@@ -134,6 +130,43 @@ module OneLogin
           node.nil? ? nil : node.attributes['ID']
         end
       end
+
+      def name_id
+        @name_id ||= begin
+          node = REXML::XPath.first(@document, "/p:LogoutRequest/a:NameID", { "p" => PROTOCOL, "a" => ASSERTION })
+          node ||= REXML::XPath.first(@document, "/p:LogoutRequest/a:Assertion/a:NameID", { "p" => PROTOCOL, "a" => ASSERTION })
+          node.nil? ? nil : node.text
+        end
+      end
+
+
+      def attributes
+        {}
+      end
+
+      def validate!
+        validate(false)
+      end
+
+      def validate(soft = true)
+        return false unless valid_saml?(soft)
+      end
+
+      def valid_saml?(soft = true)
+        Dir.chdir(File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'schemas'))) do
+          @schema = Nokogiri::XML::Schema(IO.read('saml20protocol_schema.xsd'))
+          @xml = Nokogiri::XML(@document.to_s)
+        end
+        if soft
+          @schema.validate(@xml).map{ return false }
+        else
+          @schema.validate(@xml).map{ |error| validation_error("#{error.message}\n\n#{@xml.to_s}") }
+        end
+      end
+
+
+
+
 
     end
   end

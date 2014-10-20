@@ -37,12 +37,8 @@ module OneLogin
 
       def self.parse(response, settings  = nil, options = {})
         raise ArgumentError.new("Logoutresponse cannot be nil") if response.nil?
-        settings = settings
-
-        options = options
         resp = decode_raw_response(response)
         document = XMLSecurity::SignedDocument.new(resp)
-
 
         new(resp, document, settings, options)
       end
