@@ -47,7 +47,7 @@ module OneLogin
       
       # Return first value for an attribute
       def single(name)
-        attributes[canonize_name(name)].first if attributes[canonize_name(name)]
+        attributes[canonize_name(name)].first if self.include?(name)
       end
 
       # Return all values for an attribute
