@@ -94,7 +94,7 @@ class SamlController < ApplicationController
 end
 ```
 
-If are using saml:AttributeStatement to transfare metadata, like the user name, you can access all the attributes through response.attributes. It
+If are using saml:AttributeStatement to transfare metadata, like the user name, you can access all the attributes through `response.attributes`. It
 contains all the saml:AttributeStatement with its 'Name' as a indifferent key and the one saml:AttributeValue as value.
 
 ```ruby
@@ -104,8 +104,8 @@ response.settings = saml_settings
 response.attributes[:username]
 ```
 
-The saml:AuthnContextClassRef of the AuthNRequest can be provided by settings.authn_context , possible values are described at [SAMLAuthnCxt]. The comparison method can be set using the parameter settings.authn_context_comparison (the possible values are: 'exact', 'better', 'maximum' and 'minimum'), 'exact' is the default value.
-If we want to add a saml:AuthnContextDeclRef, define a settings.authn_context_decl_ref
+The saml:AuthnContextClassRef of the AuthNRequest can be provided by `settings.authn_context` , possible values are described at [SAMLAuthnCxt]. The comparison method can be set using the parameter `settings.authn_context_comparison` (the possible values are: 'exact', 'better', 'maximum' and 'minimum'), 'exact' is the default value.
+If we want to add a saml:AuthnContextDeclRef, define a `settings.authn_context_decl_ref`.
 
 
 ## Service Provider Metadata
