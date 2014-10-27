@@ -156,7 +156,7 @@ class RequestTest < Test::Unit::TestCase
       settings.idp_sso_target_url = "http://example.com"
       settings.authn_context = 'secure/name/password/uri'
       auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
-      assert auth_doc.to_s =~ /<samlp:RequestedAuthnContext Comparison='exact'/
+      assert auth_doc.to_s =~ /<samlp:RequestedAuthnContext[\S ]+Comparison='exact'/
       assert auth_doc.to_s =~ /<saml:AuthnContextClassRef[\S ]+>secure\/name\/password\/uri<\/saml:AuthnContextClassRef>/
     end
 
@@ -166,7 +166,7 @@ class RequestTest < Test::Unit::TestCase
       settings.authn_context = 'secure/name/password/uri'
       settings.authn_context_comparison = 'minimun'
       auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
-      assert auth_doc.to_s =~ /<samlp:RequestedAuthnContext Comparison='minimun'/
+      assert auth_doc.to_s =~ /<samlp:RequestedAuthnContext[\S ]+Comparison='minimun'/
       assert auth_doc.to_s =~ /<saml:AuthnContextClassRef[\S ]+>secure\/name\/password\/uri<\/saml:AuthnContextClassRef>/
     end
 
