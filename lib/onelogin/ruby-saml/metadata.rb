@@ -19,8 +19,7 @@ module OneLogin
         }
         sp_sso = root.add_element "md:SPSSODescriptor", {
             "protocolSupportEnumeration" => "urn:oasis:names:tc:SAML:2.0:protocol",
-            # Metadata request need not be signed (as we don't publish our cert)
-            "AuthnRequestsSigned" => false,
+            "AuthnRequestsSigned" => settings.sign_request,
             # However we would like assertions signed if idp_cert_fingerprint or idp_cert is set
             "WantAssertionsSigned" => (!settings.idp_cert_fingerprint.nil? || !settings.idp_cert.nil?)
         }
@@ -29,8 +28,7 @@ module OneLogin
         end
         if settings.assertion_consumer_logout_service_url != nil
           sp_sso.add_element "md:SingleLogoutService", {
-              # Add this as a setting to create different bindings?
-              "Binding" => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
+              "Binding" => settings.assertion_consumer_logout_service_binding,
               "Location" => settings.assertion_consumer_logout_service_url,
               "ResponseLocation" => settings.assertion_consumer_logout_service_url,
               "isDefault" => true,
@@ -43,12 +41,20 @@ module OneLogin
         end
         if settings.assertion_consumer_service_url != nil
           sp_sso.add_element "md:AssertionConsumerService", {
-              # Add this as a setting to create different bindings?
-              "Binding" => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
+              "Binding" => settings.assertion_consumer_service_binding,
               "Location" => settings.assertion_consumer_service_url,
               "isDefault" => true,
               "index" => 0
           }
+        end
+
+        # Add KeyDescriptor if requests are signed
+        if settings.sign_request && !settings.certificate.nil?
+          kd = sp_sso.add_element "md:KeyDescriptor", { "use" => "signing" }
+          ki = kd.add_element "ds:KeyInfo", {"xmlns:ds" => "http://www.w3.org/2000/09/xmldsig#"}
+          xd = ki.add_element "ds:X509Data"
+          xc = xd.add_element "ds:X509Certificate"
+          xc.text = Base64.encode64(settings.certificate.to_der)
         end
 
         # With OpenSSO, it might be required to also include
