@@ -53,6 +53,14 @@ class RubySamlTest < Test::Unit::TestCase
       end
     end
 
+    context "#validate_structure" do
+      should "raise when encountering a condition that prevents the document from being valid" do
+        response = OneLogin::RubySaml::Response.new(response_document_2)
+        response.send(:validate_structure)
+        assert response.errors.include? "Schema validation failed"
+      end
+    end
+
     context "#is_valid?" do
       should "return false when response is initialized with blank data" do
         response = OneLogin::RubySaml::Response.new('')
