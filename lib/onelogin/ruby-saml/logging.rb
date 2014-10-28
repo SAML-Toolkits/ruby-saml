@@ -2,13 +2,16 @@
 module OneLogin
   module RubySaml
     class Logging
+      def self.logger=(logger)
+        @logger = logger
+      end
       def self.debug(message)
         return if !!ENV["ruby-saml/testing"]
 
         if defined? Rails
           Rails.logger.debug message
         else
-          puts message
+          @logger.debug(message) unless @logger.nil?
         end
       end
 
@@ -18,7 +21,7 @@ module OneLogin
         if defined? Rails
           Rails.logger.info message
         else
-          puts message
+          @logger.info(message) unless @logger.nil?
         end
       end
     end
