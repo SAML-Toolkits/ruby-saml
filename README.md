@@ -52,7 +52,7 @@ def saml_settings
   settings
 end
 ```
-
+What's left at this point, is to wrap it all up in a controller and point the initialization and consumption URLs in OneLogin at that. A full controller example could look like this:
 ```ruby
 # This controller expects you to use the URLs /saml/init and /saml/consume in your OneLogin application.
 class SamlController < ApplicationController
