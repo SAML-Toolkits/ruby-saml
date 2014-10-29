@@ -49,6 +49,8 @@ module OneLogin
 
       end
 
+
+
       def self.decode(encoded)
         Base64.decode64(encoded)
       end
@@ -112,6 +114,21 @@ module OneLogin
         end
 
         request_doc
+      end
+
+
+      def create_params(settings, params={})
+        params = {} if params.nil?
+
+        Logging.debug "Created Logoutrequest: #{request}"
+
+        request_params    = {"SAMLRequest" => encoded_message}
+
+        params.each_pair do |key, value|
+          request_params[key] = value.to_s
+        end
+
+        request_params
       end
 
       def issuer
