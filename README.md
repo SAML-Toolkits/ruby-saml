@@ -73,7 +73,7 @@ def saml_settings
 
   settings.assertion_consumer_service_url = "http://#{request.host}/saml/finalize"
   settings.issuer                         = request.host
-  settings.idp_sso_target_url             = "https://app.onelogin.com/saml/signon/#{OneLoginAppId}"
+  settings.idp_sso_target_url             = "https://app.onelogin.com/trust/saml2/http-post/sso/#{OneLoginAppId}"
   settings.idp_cert_fingerprint           = OneLoginAppCertFingerPrint
   settings.name_identifier_format         = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
 
@@ -126,6 +126,33 @@ class SamlController < ApplicationController
   end
 end
 ```
+## Metadata Based Configuration
+
+The method above requires a little extra work to manually specify attributes about the IdP.  (And your SP application)  There's an easier method -- use a metadata exchange.  Metadata is just an XML file that defines the capabilities of both the IdP and the SP application.  It also contains the X.509 public
+key certificates which add to the trusted relationship.  The IdP administrator can also configure custom settings for an SP based on the metadata.
+
+Using ```idp_metadata_parser.parse_remote``` IdP metadata will be added to the settings withouth further ado.
+
+```ruby
+def saml_settings
+
+  idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+  # Returns OneLogin::RubySaml::Settings prepopulated with idp metadata
+  settings = idp_metadata_parser.parse_remote("https://example.com/auth/saml2/idp/metadata")
+
+  settings.assertion_consumer_service_url = "http://#{request.host}/saml/consume"
+  settings.issuer                         = request.host
+  settings.name_identifier_format         = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+  # Optional for most SAML IdPs
+  settings.authn_context = "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport"
+
+  settings
+end
+```
+The following attributes are set:
+  * id_sso_target_url
+  * idp_slo_target_url
+  * id_cert_fingerpint
 
 If are using saml:AttributeStatement to transfer metadata, like the user name, you can access all the attributes through response.attributes. It
 contains all the saml:AttributeStatement with its 'Name' as a indifferent key and the one saml:AttributeValue as value.
