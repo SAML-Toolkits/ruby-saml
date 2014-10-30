@@ -31,9 +31,10 @@ module OneLogin
         return req
       end
 
-      def encoded_message
-        deflated_request  = Zlib::Deflate.deflate(@request, 9)[2..-5]
-        msg = Base64.encode64(deflated_request)
+      def encoded_message(compress = true)
+        encoding_request = request
+        encoding_request = Zlib::Deflate.deflate(encoding_request, 9)[2..-5] if (settings.compress_request && compress)
+        msg = Base64.encode64(encoding_request)
         msg
       end
 
@@ -117,12 +118,12 @@ module OneLogin
       end
 
 
-      def create_params(settings, params={})
+      def create_params(settings, params={}, compress=true)
         params = {} if params.nil?
 
         Logging.debug "Created Logoutrequest: #{request}"
 
-        request_params    = {"SAMLRequest" => encoded_message}
+        request_params    = {"SAMLRequest" => encoded_message(compress)}
 
         params.each_pair do |key, value|
           request_params[key] = value.to_s
