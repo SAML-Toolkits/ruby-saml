@@ -52,14 +52,6 @@ class RequestTest < Test::Unit::TestCase
       assert_match %r(#{name_identifier_value}</saml:NameID>), inflated
     end
 
-    should "require name_identifier_value" do
-      settings = OneLogin::RubySaml::Settings.new
-      settings.idp_slo_target_url = "http://example.com"
-      settings.name_identifier_format = nil
-
-      assert_raises(OneLogin::RubySaml::ValidationError) { OneLogin::RubySaml::Logoutrequest.new.create(settings) }
-    end
-
     context "when the target url doesn't contain a query string" do
       should "create the SAMLRequest parameter correctly" do
         settings = OneLogin::RubySaml::Settings.new
