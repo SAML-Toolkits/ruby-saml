@@ -48,7 +48,9 @@ module OneLogin
           name_id.attributes['Format'] = settings.name_identifier_format if settings.name_identifier_format
           name_id.text = settings.name_identifier_value
         else
-          raise ValidationError.new("Missing required name identifier")
+          # If no NameID is present in the settings we generate one
+          name_id.text = "_" + UUID.new.generate
+          name_id.attributes['Format'] = 'urn:oasis:names:tc:SAML:2.0:nameid-format:transient'
         end
 
         if settings.sessionindex
@@ -56,9 +58,6 @@ module OneLogin
           sessionindex.text = settings.sessionindex
         end
 
-        # BUG fix here -- if an authn_context is defined, add the tags with an "exact"
-        # match required for authentication to succeed.  If this is not defined,
-        # the IdP will choose default rules for authentication.  (Shibboleth IdP)
         if settings.authn_context != nil
           requested_context = root.add_element "samlp:RequestedAuthnContext", {
               "xmlns:samlp" => "urn:oasis:names:tc:SAML:2.0:protocol",
