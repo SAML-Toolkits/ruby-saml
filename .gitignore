@@ -10,3 +10,4 @@ test/Test.iml
 .rvmrc
 *.gem
 .bundle
+*.patch
