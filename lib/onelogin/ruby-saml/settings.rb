@@ -7,6 +7,7 @@ module OneLogin
           acc = "#{k.to_s}=".to_sym
           self.send(acc, v) if self.respond_to? acc
         end
+        @attribute_consuming_service = AttributeService.new
       end
 
       attr_accessor :assertion_consumer_service_url
@@ -38,6 +39,7 @@ module OneLogin
       attr_accessor :authn_context
       attr_accessor :authn_context_comparison
       attr_accessor :authn_context_decl_ref
+      attr_reader :attribute_consuming_service
 
       def simple_sign_request
         assertion_consumer_service_binding == 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST-SimpleSign'

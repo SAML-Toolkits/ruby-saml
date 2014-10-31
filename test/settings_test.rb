@@ -44,6 +44,18 @@ class SettingsTest < Test::Unit::TestCase
       end
     end
 
+    should "configure attribute service attributes correctly" do
+      @settings = OneLogin::RubySaml::Settings.new
+      @settings.attribute_consuming_service.configure do
+        service_name "Test Service"
+        add_attribute :name => "Name", :name_format => "Name Format", :friendly_name => "Friendly Name" 
+      end
+
+      assert_equal @settings.attribute_consuming_service.configured?, true
+      assert_equal @settings.attribute_consuming_service.name, "Test Service"
+      assert_equal @settings.attribute_consuming_service.attributes, [{:name => "Name", :name_format => "Name Format", :friendly_name => "Friendly Name" }]
+    end
+
   end
 
 end

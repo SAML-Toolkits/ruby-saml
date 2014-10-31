@@ -48,13 +48,35 @@ module OneLogin
           }
         end
 
-        # Add KeyDescriptor if requests are signed
+        # Add KeyDescriptor if messages will be signed
         if settings.sign_request && !settings.certificate.nil?
           kd = sp_sso.add_element "md:KeyDescriptor", { "use" => "signing" }
           ki = kd.add_element "ds:KeyInfo", {"xmlns:ds" => "http://www.w3.org/2000/09/xmldsig#"}
           xd = ki.add_element "ds:X509Data"
           xc = xd.add_element "ds:X509Certificate"
           xc.text = Base64.encode64(settings.certificate.to_der)
+        end
+
+        if settings.attribute_consuming_service.configured?
+          sp_acs = sp_sso.add_element "md:AttributeConsumingService", {
+            "isDefault" => "true",
+            "index" => settings.attribute_consuming_service.index 
+          }
+          srv_name = sp_acs.add_element "md:ServiceName", {
+            "xml:lang" => "en"
+          }
+          srv_name.text = settings.attribute_consuming_service.name
+          settings.attribute_consuming_service.attributes.each do |attribute|
+            sp_req_attr = sp_acs.add_element "md:RequestedAttribute", {
+              "NameFormat" => attribute[:name_format],
+              "Name" => attribute[:name], 
+              "FriendlyName" => attribute[:friendly_name]
+            }
+            unless attribute[:attribute_value].nil?
+              sp_attr_val = sp_req_attr.add_element "md:AttributeValue"
+              sp_attr_val.text = attribute[:attribute_value]
+            end
+          end
         end
 
         # With OpenSSO, it might be required to also include
