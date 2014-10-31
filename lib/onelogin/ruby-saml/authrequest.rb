@@ -1,17 +1,23 @@
-require "base64"
 require "uuid"
-require "zlib"
-require "cgi"
-require "rexml/document"
-require "rexml/xpath"
 
 require "onelogin/ruby-saml/logging"
 
 module OneLogin
   module RubySaml
   include REXML
-    class Authrequest
+    class Authrequest < SamlMessage
       def create(settings, params = {})
+        params = create_params(settings, params)
+        params_prefix     = (settings.idp_sso_target_url =~ /\?/) ? '&' : '?'
+        saml_request = CGI.escape(params.delete("SAMLRequest"))
+        request_params = "#{params_prefix}SAMLRequest=#{saml_request}"
+        params.each_pair do |key, value|
+          request_params << "&#{key.to_s}=#{CGI.escape(value.to_s)}"
+        end
+        settings.idp_sso_target_url + request_params
+      end
+
+      def create_params(settings, params={})
         params = {} if params.nil?
 
         request_doc = create_authentication_xml_doc(settings)
@@ -22,24 +28,32 @@ module OneLogin
 
         Logging.debug "Created AuthnRequest: #{request}"
 
-        request           = Zlib::Deflate.deflate(request, 9)[2..-5] if settings.compress_request
-        base64_request    = Base64.encode64(request)
-        encoded_request   = CGI.escape(base64_request)
-        params_prefix     = (settings.idp_sso_target_url =~ /\?/) ? '&' : '?'
-        request_params    = "#{params_prefix}SAMLRequest=#{encoded_request}"
+        request           = deflate(request) if settings.compress_request
+        base64_request    = encode(request)
+        request_params    = {"SAMLRequest" => base64_request}
 
-        params.each_pair do |key, value|
-          request_params << "&#{key.to_s}=#{CGI.escape(value.to_s)}"
+        if settings.simple_sign_request && settings.private_key
+          params['SigAlg']    = 'http://www.w3.org/2000/09/xmldsig#rsa-sha1'
+          url_string          = "SAMLRequest=#{CGI.escape(base64_request)}"
+          url_string         += "&RelayState=#{CGI.escape(params['RelayState'])}" if params['RelayState']
+          url_string         += "&SigAlg=#{CGI.escape(params['SigAlg'])}"
+          signature           = settings.private_key.sign(OpenSSL::Digest::SHA1.new, url_string)
+          params['Signature'] = encode(signature)
         end
 
-        settings.idp_sso_target_url + request_params
+        params.each_pair do |key, value|
+          request_params[key] = value.to_s
+        end
+
+        request_params
       end
 
       def create_authentication_xml_doc(settings)
         uuid = "_" + UUID.new.generate
         time = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
         # Create AuthnRequest root element using REXML
-        request_doc = REXML::Document.new
+        request_doc = XMLSecurity::RequestDocument.new
+        request_doc.uuid = uuid
 
         root = request_doc.add_element "samlp:AuthnRequest", { "xmlns:samlp" => "urn:oasis:names:tc:SAML:2.0:protocol" }
         root.attributes['ID'] = uuid
@@ -94,6 +108,10 @@ module OneLogin
             }
             class_ref.text = settings.authn_context_decl_ref
           end
+        end
+
+        if settings.sign_request && settings.private_key && settings.certificate
+          request_doc.sign_document(settings.private_key, settings.certificate, settings.signature_method, settings.digest_method)
         end
 
         request_doc
