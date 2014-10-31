@@ -88,6 +88,10 @@ def saml_settings
   # Optional for most SAML IdPs
   settings.authn_context = "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport"
 
+  # Optional bindings (defaults to Redirect for logout POST for acs)
+  settings.assertion_consumer_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+  settings.assertion_consumer_logout_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+
   settings
 end
 ```
@@ -173,6 +177,19 @@ response          = OneLogin::RubySaml::Response.new(params[:SAMLResponse])
 response.settings = saml_settings
 
 response.attributes[:username]
+```
+
+## Request Signing
+
+XML Dsig request signing is supported. Use the following settings to preform request signing:
+
+```ruby
+  settings = OneLogin::RubySaml::Settings.new
+  settings.sign_request = true
+  settings.certificate = X509::Certificate.new("CERTIFICATE TEXT")
+  settings.private_key = X509::PKey::RSA.new("PRIVATE KEY")
+
+  signed_request = request.create(settings)
 ```
 
 Imagine this saml:AttributeStatement
@@ -325,7 +342,7 @@ and this method process the SAML Logout Response sent by the IdP as reply of the
 
     if session.has_key? :transation_id
       logout_response = OneLogin::RubySaml::Logoutresponse.new(params[:SAMLResponse], settings, :matches_request_id => session[:transation_id])
-    else 
+    else
       logout_response = OneLogin::RubySaml::Logoutresponse.new(params[:SAMLResponse], settings)
     end
 
@@ -350,7 +367,6 @@ and this method process the SAML Logout Response sent by the IdP as reply of the
   end
 
 ```
-
 
 ## Service Provider Metadata
 

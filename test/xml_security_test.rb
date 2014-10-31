@@ -146,6 +146,24 @@ class XmlSecurityTest < Test::Unit::TestCase
       end
     end
 
+    context "XMLSecurity::DSIG" do
+      should "sign an xml document" do
+        settings = OneLogin::RubySaml::Settings.new({
+          :idp_sso_target_url => "https://idp.example.com/sso",
+          :protocol_binding => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
+          :issuer => "https://sp.exmapl.com/saml2",
+          :assertion_consumer_service_url => "https://sp.example.com/acs"
+        })
+
+        request = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+        request.sign_document(ruby_saml_key, ruby_saml_cert)
+
+        # verify our signature
+        signed_doc = XMLSecurity::SignedDocument.new(request.to_s)
+        signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
+      end
+    end
+
     context "StarfieldTMS" do
       setup do
         @response = OneLogin::RubySaml::Response.new(fixture(:starfield_response))

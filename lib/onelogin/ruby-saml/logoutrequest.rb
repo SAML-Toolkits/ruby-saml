@@ -31,7 +31,7 @@ module OneLogin
 
         time = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-        request_doc = REXML::Document.new
+        request_doc = XMLSecurity::RequestDocument.new
         root = request_doc.add_element "samlp:LogoutRequest", { "xmlns:samlp" => "urn:oasis:names:tc:SAML:2.0:protocol" }
         root.attributes['ID'] = @uuid
         root.attributes['IssueInstant'] = time
@@ -54,6 +54,24 @@ module OneLogin
         if settings.sessionindex
           sessionindex = root.add_element "samlp:SessionIndex", { "xmlns:samlp" => "urn:oasis:names:tc:SAML:2.0:protocol" }
           sessionindex.text = settings.sessionindex
+        end
+
+        # BUG fix here -- if an authn_context is defined, add the tags with an "exact"
+        # match required for authentication to succeed.  If this is not defined,
+        # the IdP will choose default rules for authentication.  (Shibboleth IdP)
+        if settings.authn_context != nil
+          requested_context = root.add_element "samlp:RequestedAuthnContext", {
+              "xmlns:samlp" => "urn:oasis:names:tc:SAML:2.0:protocol",
+              "Comparison" => "exact",
+          }
+          class_ref = requested_context.add_element "saml:AuthnContextClassRef", {
+              "xmlns:saml" => "urn:oasis:names:tc:SAML:2.0:assertion",
+          }
+          class_ref.text = settings.authn_context
+        end
+
+        if settings.sign_request && settings.private_key && settings.certificate
+          request_doc.sign_document(settings.private_key, settings.certificate, settings.signature_method, settings.digest_method)
         end
 
         request_doc
