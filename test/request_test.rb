@@ -174,5 +174,40 @@ class RequestTest < Test::Unit::TestCase
       end
 
     end
+
+    should "create the saml:AuthnContextClassRef element correctly" do
+      settings = OneLogin::RubySaml::Settings.new
+      settings.idp_sso_target_url = "http://example.com"
+      settings.authn_context = 'secure/name/password/uri'
+      auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+      assert auth_doc.to_s =~ /<saml:AuthnContextClassRef[\S ]+>secure\/name\/password\/uri<\/saml:AuthnContextClassRef>/
+    end
+
+    should "create the saml:AuthnContextClassRef with comparison exact" do
+      settings = OneLogin::RubySaml::Settings.new
+      settings.idp_sso_target_url = "http://example.com"
+      settings.authn_context = 'secure/name/password/uri'
+      auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+      assert auth_doc.to_s =~ /<samlp:RequestedAuthnContext[\S ]+Comparison='exact'/
+      assert auth_doc.to_s =~ /<saml:AuthnContextClassRef[\S ]+>secure\/name\/password\/uri<\/saml:AuthnContextClassRef>/
+    end
+
+    should "create the saml:AuthnContextClassRef with comparison minimun" do
+      settings = OneLogin::RubySaml::Settings.new
+      settings.idp_sso_target_url = "http://example.com"
+      settings.authn_context = 'secure/name/password/uri'
+      settings.authn_context_comparison = 'minimun'
+      auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+      assert auth_doc.to_s =~ /<samlp:RequestedAuthnContext[\S ]+Comparison='minimun'/
+      assert auth_doc.to_s =~ /<saml:AuthnContextClassRef[\S ]+>secure\/name\/password\/uri<\/saml:AuthnContextClassRef>/
+    end
+
+    should "create the saml:AuthnContextDeclRef element correctly" do
+      settings = OneLogin::RubySaml::Settings.new
+      settings.idp_sso_target_url = "http://example.com"
+      settings.authn_context_decl_ref = 'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport'
+      auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+      assert auth_doc.to_s =~ /<saml:AuthnContextDeclRef[\S ]+>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport<\/saml:AuthnContextDeclRef>/
+    end
   end
 end
