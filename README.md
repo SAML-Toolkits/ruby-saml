@@ -9,6 +9,8 @@ The Ruby SAML library is for implementing the client side of a SAML authorizatio
 
 SAML authorization is a two step process and you are expected to implement support for both.
 
+We created a demo project for Rails4 that uses the latest version of this library: [ruby-saml-example](https://github.com/onelogin/ruby-saml-example)
+
 ## Getting Started
 In order to use the toolkit you will need to install the gem (either manually or using Bundler), and require the library in your Ruby application:
 
@@ -57,10 +59,13 @@ def consume
   response          = OneLogin::RubySaml::Response.new(params[:SAMLResponse])
   response.settings = saml_settings
 
-  if response.is_valid? && user = current_account.users.find_by_email(response.name_id)
-    authorize_success(user)
+  # We validate the SAML Response and check if the user already exists in the system
+  if response.is_valid?
+     # authorize_success, log the user
+     session[:userid] = response.name_id
+     session[:attributes] = response.attributes
   else
-    authorize_failure(user)
+    authorize_failure  # This method shows an error message
   end
 end
 ```
@@ -73,7 +78,10 @@ def saml_settings
 
   settings.assertion_consumer_service_url = "http://#{request.host}/saml/finalize"
   settings.issuer                         = request.host
+  settings.idp_sso_target_url             = "https://app.onelogin.com/saml/metadata/#{OneLoginAppId}"
+  settings.idp_entity_id                  = "https://app.onelogin.com/saml/metadata/#{OneLoginAppId}"
   settings.idp_sso_target_url             = "https://app.onelogin.com/trust/saml2/http-post/sso/#{OneLoginAppId}"
+  settings.idp_slo_target_url             = "https://app.onelogin.com/trust/saml2/http-redirect/slo/#{OneLoginAppId}"
   settings.idp_cert_fingerprint           = OneLoginAppCertFingerPrint
   settings.name_identifier_format         = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
 
@@ -98,10 +106,13 @@ class SamlController < ApplicationController
     response          = OneLogin::RubySaml::Response.new(params[:SAMLResponse])
     response.settings = saml_settings
 
-    if response.is_valid? && user = current_account.users.find_by_email(response.name_id)
-      authorize_success(user)
+    # We validate the SAML Response and check if the user already exists in the system
+    if response.is_valid?
+       # authorize_success, log the user
+       session[:userid] = response.name_id
+       session[:attributes] = response.attributes
     else
-      authorize_failure(user)
+      authorize_failure  # This method shows an error message
     end
   end
 
@@ -154,7 +165,8 @@ The following attributes are set:
   * idp_slo_target_url
   * id_cert_fingerpint
 
-If are using saml:AttributeStatement to transfer metadata, like the user name, you can access all the attributes through `response.attributes`. It contains all the saml:AttributeStatement with its 'Name' as a indifferent key and the one saml:AttributeValue as value.
+If are using saml:AttributeStatement to transfer metadata, like the user name, you can access all the attributes through response.attributes. It contains all the saml:AttributeStatement with its 'Name' as a indifferent key the one/more saml:AttributeValue as value. The value returned depends on the value of the
+`single_value_compatibility` (when activate, only one value returned, the first one)
 
 ```ruby
 response          = OneLogin::RubySaml::Response.new(params[:SAMLResponse])
@@ -264,7 +276,81 @@ pp(response.attributes.multi(:not_exists))
 ```
 
 The saml:AuthnContextClassRef of the AuthNRequest can be provided by `settings.authn_context` , possible values are described at [SAMLAuthnCxt]. The comparison method can be set using the parameter `settings.authn_context_comparison` (the possible values are: 'exact', 'better', 'maximum' and 'minimum'), 'exact' is the default value.
-+If we want to add a saml:AuthnContextDeclRef, define a `settings.authn_context_decl_ref`.
+If we want to add a saml:AuthnContextDeclRef, define a `settings.authn_context_decl_ref`.
+
+
+## Single Log Out
+
+Right now the Ruby Toolkit only supports SP-initiated Single Logout (The IdP-Initiated SLO will be supported soon).
+
+Here is an example that we could add to our previous controller to generate and send a SAML Logout Request to the IdP
+
+```ruby
+
+  # Create an SP initiated SLO
+  def sp_logout_request
+    # LogoutRequest accepts plain browser requests w/o paramters
+    settings = saml_settings
+
+    if settings.idp_slo_target_url.nil?
+      logger.info "SLO IdP Endpoint not found in settings, executing then a normal logout'"
+      delete_session
+    else
+
+      # Since we created a new SAML request, save the transaction_id
+      # to compare it with the response we get back
+      logout_request = OneLogin::RubySaml::Logoutrequest.new()
+      session[:transaction_id] = logout_request.uuid
+      logger.info "New SP SLO for userid '#{session[:userid]}' transactionid '#{session[:transaction_id]}'"
+
+      if settings.name_identifier_value.nil?
+        settings.name_identifier_value = session[:userid]
+      end
+
+      relayState =  url_for controller: 'saml', action: 'index'
+      redirect_to(logout_request.create(settings, :RelayState => relayState))
+    end
+  end
+
+```
+
+and this method process the SAML Logout Response sent by the IdP as reply of the SAML Logout Request
+
+```ruby
+
+  # After sending an SP initiated LogoutRequest to the IdP, we need to accept
+  # the LogoutResponse, verify it, then actually delete our session.
+  def logout_response
+    settings = Account.get_saml_settings
+
+    if session.has_key? :transation_id
+      logout_response = OneLogin::RubySaml::Logoutresponse.new(params[:SAMLResponse], settings, :matches_request_id => session[:transation_id])
+    else 
+      logout_response = OneLogin::RubySaml::Logoutresponse.new(params[:SAMLResponse], settings)
+    end
+
+    logger.info "LogoutResponse is: #{logout_response.to_s}"
+
+    # Validate the SAML Logout Response
+    if not logout_response.validate
+      logger.error "The SAML Logout Response is invalid"
+    else
+      # Actually log out this session
+      if logout_response.success?
+        logger.info "Delete session for '#{session[:userid]}'"
+        delete_session
+      end
+    end
+  end
+
+  # Delete a user's session.
+  def delete_session
+    session[:userid] = nil
+    session[:attributes] = nil
+  end
+
+```
+
 
 ## Service Provider Metadata
 
