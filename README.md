@@ -131,7 +131,13 @@ class SamlController < ApplicationController
     settings.authn_context = "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport"
 
     # Optional. Describe according to IdP specification (if supported) which attributes the SP desires to receive in SAMLResponse.
-    settings.attributes_index = 30
+    settings.attributes_index = 5
+    # Optional. Describe an attribute consuming service for support of additional attributes.
+    settings.attribute_consuming_service.configure do
+      service_name "Service"
+      service_index 5
+      add_attribute :name => "Name", :name_format => "Name Format", :friendly_name => "Friendly Name" 
+    end
 
     settings
   end
@@ -387,8 +393,23 @@ response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], :allowed_cloc
 
 Make sure to keep the value as comfortably small as possible to keep security risks to a minimum.
 
-## Adding Features, Pull Requests
+## Attribute Service
 
+To request attributes from the IdP the SP needs to provide an attribute service within it's metadata and reference the index in the assertion.
+
+```ruby
+settings = OneLogin::RubySaml::Settings.new
+
+settings.attributes_index = 5
+settings.attribute_consuming_service.configure do
+  service_name "Service"
+  service_index 5
+  add_attribute :name => "Name", :name_format => "Name Format", :friendly_name => "Friendly Name"
+  add_attribute :name => "Another Attribute", :name_format => "Name Format", :friendly_name => "Friendly Name", :attribute_value => "Attribute Value" 
+end
+```
+
+## Adding Features, Pull Requests
 * Fork the repository
 * Make your feature addition or bug fix
 * Add tests for your new features. This is important so we don't break any features in a future version unintentionally.

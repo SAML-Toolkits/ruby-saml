@@ -51,6 +51,28 @@ module OneLogin
           }
         end
 
+        if settings.attribute_consuming_service.configured?
+          sp_acs = sp_sso.add_element "md:AttributeConsumingService", {
+            "isDefault" => "true",
+            "index" => settings.attribute_consuming_service.index 
+          }
+          srv_name = sp_acs.add_element "md:ServiceName", {
+            "xml:lang" => "en"
+          }
+          srv_name.text = settings.attribute_consuming_service.name
+          settings.attribute_consuming_service.attributes.each do |attribute|
+            sp_req_attr = sp_acs.add_element "md:RequestedAttribute", {
+              "NameFormat" => attribute[:name_format],
+              "Name" => attribute[:name], 
+              "FriendlyName" => attribute[:friendly_name]
+            }
+            unless attribute[:attribute_value].nil?
+              sp_attr_val = sp_req_attr.add_element "md:AttributeValue"
+              sp_attr_val.text = attribute[:attribute_value]
+            end
+          end
+        end
+
         # With OpenSSO, it might be required to also include
         #  <md:RoleDescriptor xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:query="urn:oasis:names:tc:SAML:metadata:ext:query" xsi:type="query:AttributeQueryDescriptorType" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol"/>
         #  <md:XACMLAuthzDecisionQueryDescriptor WantAssertionsSigned="false" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol"/>
