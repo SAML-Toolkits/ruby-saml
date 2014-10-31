@@ -10,7 +10,6 @@ module OneLogin
       end
       attr_accessor :assertion_consumer_service_url, :issuer, :sp_name_qualifier
       attr_accessor :idp_entity_id, :idp_sso_target_url, :idp_cert_fingerprint, :idp_cert, :name_identifier_format
-      attr_accessor :authn_context
       attr_accessor :idp_slo_target_url
       attr_accessor :name_identifier_value
       attr_accessor :sessionindex
@@ -21,6 +20,9 @@ module OneLogin
       attr_accessor :protocol_binding
       attr_accessor :attributes_index
       attr_accessor :force_authn
+      attr_accessor :authn_context
+      attr_accessor :authn_context_comparison
+      attr_accessor :authn_context_decl_ref
 
       private
 

@@ -61,9 +61,9 @@ def consume
 
   # We validate the SAML Response and check if the user already exists in the system
   if response.is_valid?
-    # authorize_success, log the user
-    session[:userid] = response.name_id
-    session[:attributes] = response.attributes
+     # authorize_success, log the user
+     session[:userid] = response.name_id
+     session[:attributes] = response.attributes
   else
     authorize_failure  # This method shows an error message
   end
@@ -108,9 +108,9 @@ class SamlController < ApplicationController
 
     # We validate the SAML Response and check if the user already exists in the system
     if response.is_valid?
-      # authorize_success, log the user
-      session[:userid] = response.name_id
-      session[:attributes] = response.attributes
+       # authorize_success, log the user
+       session[:userid] = response.name_id
+       session[:attributes] = response.attributes
     else
       authorize_failure  # This method shows an error message
     end
@@ -137,10 +137,36 @@ class SamlController < ApplicationController
   end
 end
 ```
+## Metadata Based Configuration
+
+The method above requires a little extra work to manually specify attributes about the IdP.  (And your SP application)  There's an easier method -- use a metadata exchange.  Metadata is just an XML file that defines the capabilities of both the IdP and the SP application.  It also contains the X.509 public
+key certificates which add to the trusted relationship.  The IdP administrator can also configure custom settings for an SP based on the metadata.
+
+Using ```idp_metadata_parser.parse_remote``` IdP metadata will be added to the settings withouth further ado.
+
+```ruby
+def saml_settings
+
+  idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+  # Returns OneLogin::RubySaml::Settings prepopulated with idp metadata
+  settings = idp_metadata_parser.parse_remote("https://example.com/auth/saml2/idp/metadata")
+
+  settings.assertion_consumer_service_url = "http://#{request.host}/saml/consume"
+  settings.issuer                         = request.host
+  settings.name_identifier_format         = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+  # Optional for most SAML IdPs
+  settings.authn_context = "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport"
+
+  settings
+end
+```
+The following attributes are set:
+  * id_sso_target_url
+  * idp_slo_target_url
+  * id_cert_fingerpint
 
 If are using saml:AttributeStatement to transfer metadata, like the user name, you can access all the attributes through response.attributes. It contains all the saml:AttributeStatement with its 'Name' as a indifferent key the one/more saml:AttributeValue as value. The value returned depends on the value of the
-`single_value_compatibility` (when activate, only one value returned, the first one).
-
+`single_value_compatibility` (when activate, only one value returned, the first one)
 
 ```ruby
 response          = OneLogin::RubySaml::Response.new(params[:SAMLResponse])
@@ -148,6 +174,110 @@ response.settings = saml_settings
 
 response.attributes[:username]
 ```
+
+Imagine this saml:AttributeStatement
+
+```xml
+  <saml:AttributeStatement>
+    <saml:Attribute Name="uid">
+      <saml:AttributeValue xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xs:string">demo</saml:AttributeValue>
+    </saml:Attribute>
+    <saml:Attribute Name="another_value">
+      <saml:AttributeValue xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xs:string">value1</saml:AttributeValue>
+      <saml:AttributeValue xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xs:string">value2</saml:AttributeValue>
+    </saml:Attribute>
+    <saml:Attribute Name="role">
+      <saml:AttributeValue xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xs:string">role1</saml:AttributeValue>
+    </saml:Attribute>
+    <saml:Attribute Name="role">
+      <saml:AttributeValue xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xs:string">role2</saml:AttributeValue>
+      <saml:AttributeValue xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xs:string">role3</saml:AttributeValue>
+    </saml:Attribute>
+    <saml:Attribute Name="attribute_with_nil_value">
+      <saml:AttributeValue xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
+    </saml:Attribute>
+    <saml:Attribute Name="attribute_with_nils_and_empty_strings">
+      <saml:AttributeValue/>
+      <saml:AttributeValue>valuePresent</saml:AttributeValue>
+      <saml:AttributeValue xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
+      <saml:AttributeValue xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="1"/>
+    </saml:Attribute>
+  </saml:AttributeStatement>
+```
+
+```ruby
+pp(response.attributes)   # is an OneLogin::RubySaml::Attributes object
+# => @attributes=
+  {"uid"=>["demo"],
+   "another_value"=>["value1", "value2"],
+   "role"=>["role1", "role2", "role3"],
+   "attribute_with_nil_value"=>[nil],
+   "attribute_with_nils_and_empty_strings"=>["", "valuePresent", nil, nil]}>
+
+# Active single_value_compatibility
+OneLogin::RubySaml::Attributes.single_value_compatibility = true
+
+pp(response.attributes[:uid])
+# => "demo"
+
+pp(response.attributes[:role])
+# => "role1"
+
+pp(response.attributes.single(:role))
+# => "role1"
+
+pp(response.attributes.multi(:role))
+# => ["role1", "role2", "role3"]
+
+pp(response.attributes[:attribute_with_nil_value])
+# => nil
+
+pp(response.attributes[:attribute_with_nils_and_empty_strings])
+# => ""
+
+pp(response.attributes[:not_exists])
+# => nil
+
+pp(response.attributes.single(:not_exists))
+# => nil
+
+pp(response.attributes.multi(:not_exists))
+# => nil
+
+# Deactive single_value_compatibility
+OneLogin::RubySaml::Attributes.single_value_compatibility = false
+
+pp(response.attributes[:uid])
+# => ["demo"]
+
+pp(response.attributes[:role])
+# => ["role1", "role2", "role3"]
+
+pp(response.attributes.single(:role))
+# => "role1"
+
+pp(response.attributes.multi(:role))
+# => ["role1", "role2", "role3"]
+
+pp(response.attributes[:attribute_with_nil_value])
+# => [nil]
+
+pp(response.attributes[:attribute_with_nils_and_empty_strings])
+# => ["", "valuePresent", nil, nil]
+
+pp(response.attributes[:not_exists])
+# => nil
+
+pp(response.attributes.single(:not_exists))
+# => nil
+
+pp(response.attributes.multi(:not_exists))
+# => nil
+```
+
+The saml:AuthnContextClassRef of the AuthNRequest can be provided by `settings.authn_context` , possible values are described at [SAMLAuthnCxt]. The comparison method can be set using the parameter `settings.authn_context_comparison` (the possible values are: 'exact', 'better', 'maximum' and 'minimum'), 'exact' is the default value.
+If we want to add a saml:AuthnContextDeclRef, define a `settings.authn_context_decl_ref`.
+
 
 ## Single Log Out
 
@@ -220,6 +350,7 @@ and this method process the SAML Logout Response sent by the IdP as reply of the
   end
 
 ```
+
 
 ## Service Provider Metadata
 

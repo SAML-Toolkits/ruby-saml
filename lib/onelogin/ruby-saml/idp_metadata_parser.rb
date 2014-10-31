@@ -16,6 +16,11 @@ module OneLogin
 
       attr_reader :document
 
+      def parse_remote(url, validate_cert = true)
+        idp_metadata = get_idp_metadata(url, validate_cert)
+        parse(idp_metadata)
+      end
+
       def parse(idp_metadata)
         @document = REXML::Document.new(idp_metadata)
 
@@ -28,6 +33,29 @@ module OneLogin
       end
 
       private
+
+      # Retrieve the remote IdP metadata from the URL or a cached copy
+      # # returns a REXML document of the metadata
+      def get_idp_metadata(url, validate_cert)
+        uri = URI.parse(url)
+        if uri.scheme == "http"
+          response = Net::HTTP.get_response(uri)
+          meta_text = response.body
+        elsif uri.scheme == "https"
+          http = Net::HTTP.new(uri.host, uri.port)
+          http.use_ssl = true
+          # Most IdPs will probably use self signed certs
+          if validate_cert
+            http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+          else
+            http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+          end
+          get = Net::HTTP::Get.new(uri.request_uri)
+          response = http.request(get)
+          meta_text = response.body
+        end
+        meta_text
+      end
 
       def single_signon_service_url
         node = REXML::XPath.first(document, "/md:EntityDescriptor/md:IDPSSODescriptor/md:SingleSignOnService/@Location", { "md" => METADATA })
