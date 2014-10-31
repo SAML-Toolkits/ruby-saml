@@ -404,7 +404,8 @@ settings.attributes_index = 5
 settings.attribute_consuming_service.configure do
   service_name "Service"
   service_index 5
-  add_attribute :name => "Name", :name_format => "Name Format", :friendly_name => "Friendly Name" 
+  add_attribute :name => "Name", :name_format => "Name Format", :friendly_name => "Friendly Name"
+  add_attribute :name => "Another Attribute", :name_format => "Name Format", :friendly_name => "Friendly Name", :attribute_value => "Attribute Value" 
 end
 ```
 

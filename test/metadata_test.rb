@@ -38,7 +38,7 @@ class MetadataTest < Test::Unit::TestCase
     settings.assertion_consumer_service_url = "https://foo.example/saml/consume"
     settings.attribute_consuming_service.configure do
       service_name "Test Service"
-      add_attribute(:name => "Name", :name_format => "Name Format", :friendly_name => "Friendly Name")
+      add_attribute(:name => "Name", :name_format => "Name Format", :friendly_name => "Friendly Name", :attribute_value => "Attribute Value")
     end
 
     xml_text = OneLogin::RubySaml::Metadata.new.generate(settings)
@@ -51,6 +51,7 @@ class MetadataTest < Test::Unit::TestCase
     assert_equal "Name", req_attr.attribute("Name").value
     assert_equal "Name Format", req_attr.attribute("NameFormat").value
     assert_equal "Friendly Name", req_attr.attribute("FriendlyName").value
+    assert_equal "Attribute Value", REXML::XPath.first(xml_doc, "//md:AttributeValue").text.strip
   end
 
 end

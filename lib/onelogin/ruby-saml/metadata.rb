@@ -61,11 +61,15 @@ module OneLogin
           }
           srv_name.text = settings.attribute_consuming_service.name
           settings.attribute_consuming_service.attributes.each do |attribute|
-            sp_acs.add_element "md:RequestedAttribute", {
+            sp_req_attr = sp_acs.add_element "md:RequestedAttribute", {
               "NameFormat" => attribute[:name_format],
               "Name" => attribute[:name], 
               "FriendlyName" => attribute[:friendly_name]
             }
+            unless attribute[:attribute_value].nil?
+              sp_attr_val = sp_req_attr.add_element "md:AttributeValue"
+              sp_attr_val.text = attribute[:attribute_value]
+            end
           end
         end
 
