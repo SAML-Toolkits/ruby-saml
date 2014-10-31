@@ -179,19 +179,6 @@ response.settings = saml_settings
 response.attributes[:username]
 ```
 
-## Request Signing
-
-XML Dsig request signing is supported. Use the following settings to preform request signing:
-
-```ruby
-  settings = OneLogin::RubySaml::Settings.new
-  settings.sign_request = true
-  settings.certificate = X509::Certificate.new("CERTIFICATE TEXT")
-  settings.private_key = X509::PKey::RSA.new("PRIVATE KEY")
-
-  signed_request = request.create(settings)
-```
-
 Imagine this saml:AttributeStatement
 
 ```xml
@@ -295,6 +282,19 @@ pp(response.attributes.multi(:not_exists))
 The saml:AuthnContextClassRef of the AuthNRequest can be provided by `settings.authn_context` , possible values are described at [SAMLAuthnCxt]. The comparison method can be set using the parameter `settings.authn_context_comparison` (the possible values are: 'exact', 'better', 'maximum' and 'minimum'), 'exact' is the default value.
 If we want to add a saml:AuthnContextDeclRef, define a `settings.authn_context_decl_ref`.
 
+
+## Request Signing
+
+XML Dsig request signing is supported. Use the following settings to preform request signing:
+
+```ruby
+  settings = OneLogin::RubySaml::Settings.new
+  settings.sign_request = true
+  settings.certificate = X509::Certificate.new("CERTIFICATE TEXT")
+  settings.private_key = X509::PKey::RSA.new("PRIVATE KEY")
+
+  signed_request = request.create(settings)
+```
 
 ## Single Log Out
 
