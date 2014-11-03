@@ -166,6 +166,7 @@ class RequestTest < Test::Unit::TestCase
         settings.idp_sso_target_url = "http://example.com?field=value"
         settings.assertion_consumer_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST-SimpleSign"
         settings.security[:authn_requests_signed] = true
+        settings.security[:embeed_sign] = false
         settings.certificate  = ruby_saml_cert_text
         settings.private_key = ruby_saml_key_text
 
