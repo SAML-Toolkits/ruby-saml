@@ -136,7 +136,7 @@ class SamlController < ApplicationController
     settings.attribute_consuming_service.configure do
       service_name "Service"
       service_index 5
-      add_attribute :name => "Name", :name_format => "Name Format", :friendly_name => "Friendly Name" 
+      add_attribute :name => "Name", :name_format => "Name Format", :friendly_name => "Friendly Name"
     end
 
     settings
@@ -331,7 +331,7 @@ and this method process the SAML Logout Response sent by the IdP as reply of the
 
     if session.has_key? :transation_id
       logout_response = OneLogin::RubySaml::Logoutresponse.new(params[:SAMLResponse], settings, :matches_request_id => session[:transation_id])
-    else 
+    else
       logout_response = OneLogin::RubySaml::Logoutresponse.new(params[:SAMLResponse], settings)
     end
 
@@ -388,7 +388,7 @@ First, ensure that both systems synchronize their clocks, using for example the 
 Even then you may experience intermittent issues though, because the clock of the Identity Provider may drift slightly ahead of your system clocks. To allow for a small amount of clock drift you can initialize the response passing in an option named `:allowed_clock_drift`. Its value must be given in a number (and/or fraction) of seconds. The value given is added to the current time at which the response is validated before it's tested against the `NotBefore` assertion. For example:
 
 ```ruby
-response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], :allowed_clock_drift => 1)
+response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], :allowed_clock_drift => 1.second)
 ```
 
 Make sure to keep the value as comfortably small as possible to keep security risks to a minimum.
@@ -405,7 +405,7 @@ settings.attribute_consuming_service.configure do
   service_name "Service"
   service_index 5
   add_attribute :name => "Name", :name_format => "Name Format", :friendly_name => "Friendly Name"
-  add_attribute :name => "Another Attribute", :name_format => "Name Format", :friendly_name => "Friendly Name", :attribute_value => "Attribute Value" 
+  add_attribute :name => "Another Attribute", :name_format => "Name Format", :friendly_name => "Friendly Name", :attribute_value => "Attribute Value"
 end
 ```
 
