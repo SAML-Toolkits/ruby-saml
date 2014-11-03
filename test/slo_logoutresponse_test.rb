@@ -14,7 +14,7 @@ class SloLogoutresponseTest < Test::Unit::TestCase
 
       assert request.is_valid?
 
-      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, request)
+      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, request.id)
       assert unauth_url =~ /^http:\/\/unauth\.com\/logout\?SAMLResponse=/
 
       inflated = decode_saml_response_payload(unauth_url)
@@ -29,11 +29,14 @@ class SloLogoutresponseTest < Test::Unit::TestCase
 
       request = OneLogin::RubySaml::SloLogoutrequest.new(logout_request_document)
 
-      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, request, nil, { :hello => nil })
+      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, request.id, nil, { :hello => nil })
       assert unauth_url =~ /&hello=$/
 
-      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, request, nil, { :foo => "bar" })
+      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, request.id, nil, { :foo => "bar" })
       assert unauth_url =~ /&foo=bar$/
+
+      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, request.id, nil, { :RelayState => "http://idp.example.com" })
+      assert unauth_url =~ /&RelayState=http%3A%2F%2Fidp.example.com$/
     end
 
     should "set InResponseTo to the ID from the logout request" do
@@ -42,7 +45,7 @@ class SloLogoutresponseTest < Test::Unit::TestCase
       settings.compress_request = true
 
       request = OneLogin::RubySaml::SloLogoutrequest.new(logout_request_document)
-      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, request)
+      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, request.id)
 
       inflated = decode_saml_response_payload(unauth_url)
 
@@ -55,7 +58,7 @@ class SloLogoutresponseTest < Test::Unit::TestCase
       settings.compress_request = true
 
       request = OneLogin::RubySaml::SloLogoutrequest.new(logout_request_document)
-      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, request, "Custom Logout Message")
+      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, request.id, "Custom Logout Message")
 
       inflated = decode_saml_response_payload(unauth_url)
 

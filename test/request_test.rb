@@ -143,30 +143,31 @@ class RequestTest < Test::Unit::TestCase
       end
     end
 
-    context "when the settings indicate to sign the request" do
+    context "when the settings indicate to sign (embebed) the request" do
       should "create a signed request" do
         settings = OneLogin::RubySaml::Settings.new
         settings.compress_request = false
         settings.idp_sso_target_url = "http://example.com?field=value"
-        settings.sign_request = true
-        settings.certificate  = ruby_saml_cert
-        settings.private_key = ruby_saml_key
+        settings.security[:authn_requests_signed] = true
+        settings.security[:embeed_sign] = true
+        settings.certificate  = ruby_saml_cert_text
+        settings.private_key = ruby_saml_key_text
 
         params = OneLogin::RubySaml::Authrequest.new.create_params(settings)
         request_xml = Base64.decode64(params["SAMLRequest"])
         assert_match %r[<SignatureValue>([a-zA-Z0-9/+=]+)</SignatureValue>], request_xml
       end
-
     end
 
-    context "when the settings indicate to simple sign the request" do
+    context "when the settings indicate to sign the request" do
       should "create a signature parameter" do
         settings = OneLogin::RubySaml::Settings.new
         settings.compress_request = false
         settings.idp_sso_target_url = "http://example.com?field=value"
         settings.assertion_consumer_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST-SimpleSign"
-        settings.certificate  = ruby_saml_cert
-        settings.private_key = ruby_saml_key
+        settings.security[:authn_requests_signed] = true
+        settings.certificate  = ruby_saml_cert_text
+        settings.private_key = ruby_saml_key_text
 
         params = OneLogin::RubySaml::Authrequest.new.create_params(settings)
         assert params['Signature']

@@ -90,7 +90,7 @@ def saml_settings
 
   # Optional bindings (defaults to Redirect for logout POST for acs)
   settings.assertion_consumer_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
-  settings.assertion_consumer_logout_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+  settings.single_logout_service_url_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
 
   settings
 end
@@ -304,13 +304,13 @@ XML Dsig request signing is supported. Use the following settings to preform req
 
 ## Single Log Out
 
-Right now the Ruby Toolkit only supports SP-initiated Single Logout (The IdP-Initiated SLO will be supported soon).
+The Ruby Toolkit supports SP-initiated Single Logout and IdP-Initiated Single Logout.
 
 Here is an example that we could add to our previous controller to generate and send a SAML Logout Request to the IdP
 
 ```ruby
 
-  # Create an SP initiated SLO
+  # Create a SP initiated SLO
   def sp_logout_request
     # LogoutRequest accepts plain browser requests w/o paramters
     settings = saml_settings
@@ -334,7 +334,6 @@ Here is an example that we could add to our previous controller to generate and 
       redirect_to(logout_request.create(settings, :RelayState => relayState))
     end
   end
-
 ```
 
 and this method process the SAML Logout Response sent by the IdP as reply of the SAML Logout Request
@@ -343,7 +342,7 @@ and this method process the SAML Logout Response sent by the IdP as reply of the
 
   # After sending an SP initiated LogoutRequest to the IdP, we need to accept
   # the LogoutResponse, verify it, then actually delete our session.
-  def logout_response
+  def process_logout_response
     settings = Account.get_saml_settings
 
     if session.has_key? :transation_id
@@ -373,6 +372,49 @@ and this method process the SAML Logout Response sent by the IdP as reply of the
   end
 
 ```
+
+Here is an example that we could add to our previous controller to process a SAML Logout Request from the IdP and reply a SAML Logout Response to the IdP
+
+```ruby
+ # Method to handle IdP initiated logouts
+  def idp_logout_request
+    settings = Account.get_saml_settings
+    logout_request = OneLogin::RubySaml::SloLogoutrequest.new(params[:SAMLRequest])
+    if !logout_request.is_valid?
+      logger.error "IdP initiated LogoutRequest was not valid!"
+      render :inline => logger.error
+    end
+    logger.info "IdP initiated Logout for #{logout_request.name_id}"
+
+    # Actually log out this session
+    delete_session
+
+    # Generate a response to the IdP.
+    logout_request_id = logout_request.id
+    logout_response = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, logout_request_id, nil, :RelayState => params[:RelayState])
+    redirect_to logout_response
+  end
+```
+
+All the mentioned methods could be handled in a unique view:
+
+```ruby
+  # Trigger SP and IdP initiated Logout requests
+  def logout
+    # If we're given a logout request, handle it in the IdP logout initiated method
+    if params[:SAMLRequest]
+      return idp_logout_request
+    # We've been given a response back from the IdP, process it
+    elsif params[:SAMLResponse]
+      return process_logout_response
+    # Initiate SLO (send Logout Request)
+    else
+      return sp_logout_request
+    end
+  end
+```
+
+
 
 ## Service Provider Metadata
 

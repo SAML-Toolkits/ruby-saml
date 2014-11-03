@@ -19,27 +19,27 @@ module OneLogin
         }
         sp_sso = root.add_element "md:SPSSODescriptor", {
             "protocolSupportEnumeration" => "urn:oasis:names:tc:SAML:2.0:protocol",
-            "AuthnRequestsSigned" => settings.sign_request,
+            "AuthnRequestsSigned" => settings.security[:authn_requests_signed],
             # However we would like assertions signed if idp_cert_fingerprint or idp_cert is set
             "WantAssertionsSigned" => (!settings.idp_cert_fingerprint.nil? || !settings.idp_cert.nil?)
         }
         if settings.issuer != nil
           root.attributes["entityID"] = settings.issuer
         end
-        if settings.assertion_consumer_logout_service_url != nil
+        if !settings.single_logout_service_url.nil?
           sp_sso.add_element "md:SingleLogoutService", {
-              "Binding" => settings.assertion_consumer_logout_service_binding,
-              "Location" => settings.assertion_consumer_logout_service_url,
-              "ResponseLocation" => settings.assertion_consumer_logout_service_url,
+              "Binding" => settings.single_logout_service_binding,
+              "Location" => settings.single_logout_service_url,
+              "ResponseLocation" => settings.single_logout_service_url,
               "isDefault" => true,
               "index" => 0
           }
         end
-        if settings.name_identifier_format != nil
+        if !settings.name_identifier_format.nil?
           name_id = sp_sso.add_element "md:NameIDFormat"
           name_id.text = settings.name_identifier_format
         end
-        if settings.assertion_consumer_service_url != nil
+        if !settings.assertion_consumer_service_url.nil?
           sp_sso.add_element "md:AssertionConsumerService", {
               "Binding" => settings.assertion_consumer_service_binding,
               "Location" => settings.assertion_consumer_service_url,
@@ -49,12 +49,13 @@ module OneLogin
         end
 
         # Add KeyDescriptor if messages will be signed
-        if settings.sign_request && !settings.certificate.nil?
+        cert = settings.get_sp_cert()
+        if !cert.nil?
           kd = sp_sso.add_element "md:KeyDescriptor", { "use" => "signing" }
           ki = kd.add_element "ds:KeyInfo", {"xmlns:ds" => "http://www.w3.org/2000/09/xmldsig#"}
           xd = ki.add_element "ds:X509Data"
           xc = xd.add_element "ds:X509Certificate"
-          xc.text = Base64.encode64(settings.certificate.to_der)
+          xc.text = Base64.encode64(cert.to_der)
         end
 
         if settings.attribute_consuming_service.configured?

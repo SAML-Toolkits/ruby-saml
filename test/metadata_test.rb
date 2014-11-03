@@ -7,11 +7,12 @@ class MetadataTest < Test::Unit::TestCase
     @settings.issuer = "https://example.com"
     @settings.name_identifier_format = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
     @settings.assertion_consumer_service_url = "https://foo.example/saml/consume"
+    @settings.security[:authn_requests_signed] = false
   end
 
   should "generate Service Provider Metadata with X509Certificate" do
-    @settings.sign_request = true
-    @settings.certificate = ruby_saml_cert
+    @settings.security[:authn_requests_signed] = true
+    @settings.certificate = ruby_saml_cert_text
 
     xml_text = OneLogin::RubySaml::Metadata.new.generate(@settings)
 
@@ -35,6 +36,7 @@ class MetadataTest < Test::Unit::TestCase
     settings.issuer = "https://example.com"
     settings.name_identifier_format = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
     settings.assertion_consumer_service_url = "https://foo.example/saml/consume"
+    settings.security[:authn_requests_signed] = false
 
     xml_text = OneLogin::RubySaml::Metadata.new.generate(settings)
 

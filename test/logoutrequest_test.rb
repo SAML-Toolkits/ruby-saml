@@ -88,15 +88,16 @@ class RequestTest < Test::Unit::TestCase
       end
     end
 
-    context "when the settings indicate to sign the request" do
+    context "when the settings indicate to sign (embebed) the request" do
       should "created a signed request" do
         settings = OneLogin::RubySaml::Settings.new
         settings.idp_slo_target_url = "http://example.com?field=value"
         settings.name_identifier_value = "f00f00"
         # sign the request
-        settings.sign_request = true
-        settings.certificate = ruby_saml_cert
-        settings.private_key = ruby_saml_key
+        settings.security[:logout_requests_signed] = true
+        settings.security[:embeed_sign] = true
+        settings.certificate = ruby_saml_cert_text
+        settings.private_key = ruby_saml_key_text
 
         unauth_req = OneLogin::RubySaml::Logoutrequest.new
         unauth_url = unauth_req.create(settings)

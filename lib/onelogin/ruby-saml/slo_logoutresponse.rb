@@ -2,10 +2,10 @@ module OneLogin
   module RubySaml
     class SloLogoutresponse < SamlMessage
 
-      def create(settings, request, logout_message = nil, params = {})
+      def create(settings, request_id, logout_message = nil, params = {})
         params = {} if params.nil?
 
-        response_doc = create_logout_response_xml_doc(settings, request, logout_message)
+        response_doc = create_logout_response_xml_doc(settings, request_id, logout_message)
         response_doc.context[:attribute_quote] = :quote if settings.double_quote_xml_attribute_values
 
         response = ''
@@ -24,7 +24,7 @@ module OneLogin
         settings.idp_slo_target_url + response_params
       end
 
-      def create_logout_response_xml_doc(settings, request, logout_message = nil)
+      def create_logout_response_xml_doc(settings, request_id, logout_message = nil)
         uuid = '_' + UUID.new.generate
         time = Time.now.utc.strftime('%Y-%m-%dT%H:%M:%SZ')
 
@@ -34,7 +34,7 @@ module OneLogin
         root.attributes['ID'] = uuid
         root.attributes['IssueInstant'] = time
         root.attributes['Version'] = '2.0'
-        root.attributes['InResponseTo'] = request.id unless request.id.nil?
+        root.attributes['InResponseTo'] = request_id unless request_id.nil?
         root.attributes['Destination'] = settings.idp_slo_target_url unless settings.idp_slo_target_url.nil?
 
         # add success message

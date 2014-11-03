@@ -69,9 +69,13 @@ module OneLogin
           class_ref.text = settings.authn_context
         end
 
-        if settings.sign_request && settings.private_key && settings.certificate
-          request_doc.sign_document(settings.private_key, settings.certificate, settings.signature_method, settings.digest_method)
+        # embebed sign
+        if settings.security[:logout_requests_signed] && settings.private_key && settings.certificate && settings.security[:embeed_sign]
+          private_key         = settings.get_sp_key()
+          cert         = settings.get_sp_cert()
+          request_doc.sign_document(private_key, cert, settings.security[:signature_method], settings.security[:digest_method])
         end
+
 
         request_doc
       end
