@@ -102,7 +102,7 @@ module XMLSecurity
       signature_element   = REXML::Element.new("Signature").add_namespace(DSIG)
       signed_info_element = signature_element.add_element("SignedInfo")
       signed_info_element.add_element("CanonicalizationMethod", {"Algorithm" => C14N})
-      signed_info_element.add_element("SignatureMethod", {"Algorithm"=>SHA1})
+      signed_info_element.add_element("SignatureMethod", {"Algorithm"=>signature_method})
 
       # Add Reference
       reference_element     = signed_info_element.add_element("Reference", {"URI" => "##{uuid}"})
