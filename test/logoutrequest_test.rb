@@ -95,7 +95,7 @@ class RequestTest < Test::Unit::TestCase
         settings.name_identifier_value = "f00f00"
         # sign the request
         settings.security[:logout_requests_signed] = true
-        settings.security[:embeed_sign] = true
+        settings.security[:embed_sign] = true
         settings.certificate = ruby_saml_cert_text
         settings.private_key = ruby_saml_key_text
 

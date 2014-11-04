@@ -149,7 +149,7 @@ class RequestTest < Test::Unit::TestCase
         settings.compress_request = false
         settings.idp_sso_target_url = "http://example.com?field=value"
         settings.security[:authn_requests_signed] = true
-        settings.security[:embeed_sign] = true
+        settings.security[:embed_sign] = true
         settings.certificate  = ruby_saml_cert_text
         settings.private_key = ruby_saml_key_text
 
@@ -165,7 +165,7 @@ class RequestTest < Test::Unit::TestCase
         settings.compress_request = false
         settings.idp_sso_target_url = "http://example.com?field=value"
         settings.security[:authn_requests_signed] = true
-        settings.security[:embeed_sign] = true
+        settings.security[:embed_sign] = true
         settings.security[:signature_method] = XMLSecurity::Document::SHA256
         settings.security[:digest_method] = XMLSecurity::Document::SHA512
         settings.certificate  = ruby_saml_cert_text
@@ -187,7 +187,7 @@ class RequestTest < Test::Unit::TestCase
         settings.idp_sso_target_url = "http://example.com?field=value"
         settings.assertion_consumer_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST-SimpleSign"
         settings.security[:authn_requests_signed] = true
-        settings.security[:embeed_sign] = false
+        settings.security[:embed_sign] = false
         settings.security[:signature_method] = XMLSecurity::Document::SHA1
         settings.certificate  = ruby_saml_cert_text
         settings.private_key = ruby_saml_key_text

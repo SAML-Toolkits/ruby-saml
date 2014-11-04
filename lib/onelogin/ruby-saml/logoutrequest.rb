@@ -70,7 +70,7 @@ module OneLogin
         end
 
         # embebed sign
-        if settings.security[:logout_requests_signed] && settings.private_key && settings.certificate && settings.security[:embeed_sign]
+        if settings.security[:logout_requests_signed] && settings.private_key && settings.certificate && settings.security[:embed_sign]
           private_key         = settings.get_sp_key()
           cert         = settings.get_sp_cert()
           request_doc.sign_document(private_key, cert, settings.security[:signature_method], settings.security[:digest_method])
