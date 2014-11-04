@@ -103,8 +103,8 @@ module OneLogin
           :authn_requests_signed    => false,
           :logout_requests_signed   => false,
           :embeed_sign              => false,
-          :digest_method            => "SHA1",
-          :signature_method         => "SHA1"
+          :digest_method            => XMLSecurity::Document::SHA1,
+          :signature_method         => XMLSecurity::Document::SHA1
         },
         :double_quote_xml_attribute_values         => false,
       }

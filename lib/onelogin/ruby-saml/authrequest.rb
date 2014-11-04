@@ -33,12 +33,12 @@ module OneLogin
         request_params    = {"SAMLRequest" => base64_request}
 
         if settings.security[:authn_requests_signed] && !settings.security[:embeed_sign] && settings.private_key
-          params['SigAlg']    = 'http://www.w3.org/2000/09/xmldsig#rsa-sha1'
+          params['SigAlg']    = XMLSecurity::Document::SHA1
           url_string          = "SAMLRequest=#{CGI.escape(base64_request)}"
           url_string         += "&RelayState=#{CGI.escape(params['RelayState'])}" if params['RelayState']
           url_string         += "&SigAlg=#{CGI.escape(params['SigAlg'])}"
           private_key         = settings.get_sp_key()
-          signature           = private_key.sign(OpenSSL::Digest::SHA1.new, url_string)
+          signature           = private_key.sign(XMLSecurity::BaseDocument.new.algorithm(settings.security[:signature_method]).new, url_string)
           params['Signature'] = encode(signature)
         end
 
@@ -53,7 +53,7 @@ module OneLogin
         uuid = "_" + UUID.new.generate
         time = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
         # Create AuthnRequest root element using REXML
-        request_doc = XMLSecurity::RequestDocument.new
+        request_doc = XMLSecurity::Document.new
         request_doc.uuid = uuid
 
         root = request_doc.add_element "samlp:AuthnRequest", { "xmlns:samlp" => "urn:oasis:names:tc:SAML:2.0:protocol" }

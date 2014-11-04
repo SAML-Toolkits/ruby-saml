@@ -31,7 +31,7 @@ module OneLogin
 
         time = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-        request_doc = XMLSecurity::RequestDocument.new
+        request_doc = XMLSecurity::Document.new
         root = request_doc.add_element "samlp:LogoutRequest", { "xmlns:samlp" => "urn:oasis:names:tc:SAML:2.0:protocol" }
         root.attributes['ID'] = @uuid
         root.attributes['IssueInstant'] = time

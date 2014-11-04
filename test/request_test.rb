@@ -156,8 +156,29 @@ class RequestTest < Test::Unit::TestCase
         params = OneLogin::RubySaml::Authrequest.new.create_params(settings)
         request_xml = Base64.decode64(params["SAMLRequest"])
         assert_match %r[<SignatureValue>([a-zA-Z0-9/+=]+)</SignatureValue>], request_xml
+        request_xml =~ /<SignatureMethod Algorithm='http:\/\/www.w3.org\/2000\/09\/xmldsig#rsa-sha1'\/>/
+        request_xml =~ /<DigestMethod Algorithm='http:\/\/www.w3.org\/2000\/09\/xmldsig#rsa-sha1'\/>/
+      end
+
+      should "create a signed request with 256 digest and signature methods" do
+        settings = OneLogin::RubySaml::Settings.new
+        settings.compress_request = false
+        settings.idp_sso_target_url = "http://example.com?field=value"
+        settings.security[:authn_requests_signed] = true
+        settings.security[:embeed_sign] = true
+        settings.security[:signature_method] = XMLSecurity::Document::SHA256
+        settings.security[:digest_method] = XMLSecurity::Document::SHA512
+        settings.certificate  = ruby_saml_cert_text
+        settings.private_key = ruby_saml_key_text
+
+        params = OneLogin::RubySaml::Authrequest.new.create_params(settings)
+        request_xml = Base64.decode64(params["SAMLRequest"])
+        assert_match %r[<SignatureValue>([a-zA-Z0-9/+=]+)</SignatureValue>], request_xml
+        request_xml =~ /<SignatureMethod Algorithm='http:\/\/www.w3.org\/2001\/04\/xmldsig-more#rsa-sha256'\/>/
+        request_xml =~ /<DigestMethod Algorithm='http:\/\/www.w3.org\/2001\/04\/xmldsig-more#rsa-sha512'\/>/
       end
     end
+
 
     context "when the settings indicate to sign the request" do
       should "create a signature parameter" do
@@ -167,12 +188,20 @@ class RequestTest < Test::Unit::TestCase
         settings.assertion_consumer_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST-SimpleSign"
         settings.security[:authn_requests_signed] = true
         settings.security[:embeed_sign] = false
+        settings.security[:signature_method] = XMLSecurity::Document::SHA1
         settings.certificate  = ruby_saml_cert_text
         settings.private_key = ruby_saml_key_text
 
         params = OneLogin::RubySaml::Authrequest.new.create_params(settings)
         assert params['Signature']
-        assert params['SigAlg'] == 'http://www.w3.org/2000/09/xmldsig#rsa-sha1'
+        assert params['SigAlg'] == XMLSecurity::Document::SHA1
+
+        # signature_method only affects the embedeed signature
+        settings.security[:signature_method] = XMLSecurity::Document::SHA256
+        params = OneLogin::RubySaml::Authrequest.new.create_params(settings)
+        assert params['Signature']
+        assert params['SigAlg'] == XMLSecurity::Document::SHA1
+
       end
 
     end
