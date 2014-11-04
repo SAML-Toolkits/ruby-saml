@@ -155,9 +155,9 @@ class RequestTest < Test::Unit::TestCase
 
         params = OneLogin::RubySaml::Authrequest.new.create_params(settings)
         request_xml = Base64.decode64(params["SAMLRequest"])
-        assert_match %r[<SignatureValue>([a-zA-Z0-9/+=]+)</SignatureValue>], request_xml
-        request_xml =~ /<SignatureMethod Algorithm='http:\/\/www.w3.org\/2000\/09\/xmldsig#rsa-sha1'\/>/
-        request_xml =~ /<DigestMethod Algorithm='http:\/\/www.w3.org\/2000\/09\/xmldsig#rsa-sha1'\/>/
+        assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], request_xml
+        request_xml =~ /<ds:SignatureMethod Algorithm='http:\/\/www.w3.org\/2000\/09\/xmldsig#rsa-sha1'\/>/
+        request_xml =~ /<ds:DigestMethod Algorithm='http:\/\/www.w3.org\/2000\/09\/xmldsig#rsa-sha1'\/>/
       end
 
       should "create a signed request with 256 digest and signature methods" do
@@ -173,9 +173,9 @@ class RequestTest < Test::Unit::TestCase
 
         params = OneLogin::RubySaml::Authrequest.new.create_params(settings)
         request_xml = Base64.decode64(params["SAMLRequest"])
-        assert_match %r[<SignatureValue>([a-zA-Z0-9/+=]+)</SignatureValue>], request_xml
-        request_xml =~ /<SignatureMethod Algorithm='http:\/\/www.w3.org\/2001\/04\/xmldsig-more#rsa-sha256'\/>/
-        request_xml =~ /<DigestMethod Algorithm='http:\/\/www.w3.org\/2001\/04\/xmldsig-more#rsa-sha512'\/>/
+        assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], request_xml
+        request_xml =~ /<ds:SignatureMethod Algorithm='http:\/\/www.w3.org\/2001\/04\/xmldsig-more#rsa-sha256'\/>/
+        request_xml =~ /<ds:DigestMethod Algorithm='http:\/\/www.w3.org\/2001\/04\/xmldsig-more#rsa-sha512'\/>/
       end
     end
 

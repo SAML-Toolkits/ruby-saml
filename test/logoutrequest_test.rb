@@ -103,7 +103,7 @@ class RequestTest < Test::Unit::TestCase
         unauth_url = unauth_req.create(settings)
 
         inflated = decode_saml_request_payload(unauth_url)
-        assert_match %r[<SignatureValue>([a-zA-Z0-9/+=]+)</SignatureValue>], inflated
+        assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], inflated
       end
     end
   end

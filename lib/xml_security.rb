@@ -99,34 +99,34 @@ module XMLSecurity
       noko = Nokogiri.parse(self.to_s)
       canon_doc = noko.canonicalize(canon_algorithm(C14N))
 
-      signature_element   = REXML::Element.new("Signature").add_namespace(DSIG)
-      signed_info_element = signature_element.add_element("SignedInfo")
-      signed_info_element.add_element("CanonicalizationMethod", {"Algorithm" => C14N})
-      signed_info_element.add_element("SignatureMethod", {"Algorithm"=>signature_method})
+      signature_element   = REXML::Element.new("ds:Signature").add_namespace('ds', DSIG)
+      signed_info_element = signature_element.add_element("ds:SignedInfo")
+      signed_info_element.add_element("ds:CanonicalizationMethod", {"Algorithm" => C14N})
+      signed_info_element.add_element("ds:SignatureMethod", {"Algorithm"=>signature_method})
 
       # Add Reference
-      reference_element     = signed_info_element.add_element("Reference", {"URI" => "##{uuid}"})
+      reference_element     = signed_info_element.add_element("ds:Reference", {"URI" => "##{uuid}"})
 
       # Add Transforms
-      transforms_element = reference_element.add_element("Transforms")
-      transforms_element.add_element("Transform", {"Algorithm" => ENVELOPED_SIG})
-      transforms_element.add_element("Transform", {"Algorithm" => C14N})
-      transforms_element.add_element("InclusiveNamespaces", {"xmlns" => C14N, "PrefixList" => INC_PREFIX_LIST})
+      transforms_element = reference_element.add_element("ds:Transforms")
+      transforms_element.add_element("ds:Transform", {"Algorithm" => ENVELOPED_SIG})
+      transforms_element.add_element("ds:Transform", {"Algorithm" => C14N})
+      transforms_element.add_element("ds:InclusiveNamespaces", {"xmlns" => C14N, "PrefixList" => INC_PREFIX_LIST})
 
       digest_method_element = reference_element.add_element("DigestMethod", {"Algorithm" => digest_method})
-      reference_element.add_element("DigestValue").text = compute_digest(canon_doc, algorithm(digest_method_element))
+      reference_element.add_element("ds:DigestValue").text = compute_digest(canon_doc, algorithm(digest_method_element))
 
       # add SignatureValue
       noko_sig_element = Nokogiri.parse(signature_element.to_s)
-      noko_signed_info_element = noko_sig_element.at_xpath('//ds:SignedInfo', 'ds' => DSIG)
+      noko_signed_info_element = noko_sig_element.at_xpath('//ds:Signature/ds:SignedInfo', 'ds' => DSIG)
       canon_string = noko_signed_info_element.canonicalize(canon_algorithm(C14N))
       signature = compute_signature(private_key, algorithm(signature_method).new, canon_string)
-      signature_element.add_element("SignatureValue").text = signature
+      signature_element.add_element("ds:SignatureValue").text = signature
 
       # add KeyInfo
-      key_info_element       = signature_element.add_element("KeyInfo")
-      x509_element           = key_info_element.add_element("X509Data")
-      x509_cert_element      = x509_element.add_element("X509Certificate")
+      key_info_element       = signature_element.add_element("ds:KeyInfo")
+      x509_element           = key_info_element.add_element("ds:X509Data")
+      x509_cert_element      = x509_element.add_element("ds:X509Certificate")
       if certificate.is_a?(String)
         certificate = OpenSSL::X509::Certificate.new(certificate)
       end
