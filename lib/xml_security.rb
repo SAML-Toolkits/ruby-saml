@@ -102,7 +102,7 @@ module XMLSecurity
       signature_element   = REXML::Element.new("Signature").add_namespace(DSIG)
       signed_info_element = signature_element.add_element("SignedInfo")
       signed_info_element.add_element("CanonicalizationMethod", {"Algorithm" => C14N})
-      signed_info_element.add_element("SignatureMethod", {"Algorithm" => signature_method})
+      signed_info_element.add_element("SignatureMethod", {"Algorithm"=>signature_method})
 
       # Add Reference
       reference_element     = signed_info_element.add_element("Reference", {"URI" => "##{uuid}"})
@@ -113,7 +113,6 @@ module XMLSecurity
       transforms_element.add_element("Transform", {"Algorithm" => C14N})
       transforms_element.add_element("InclusiveNamespaces", {"xmlns" => C14N, "PrefixList" => INC_PREFIX_LIST})
 
-      # Add DigestMethod and DigestValue
       digest_method_element = reference_element.add_element("DigestMethod", {"Algorithm" => digest_method})
       reference_element.add_element("DigestValue").text = compute_digest(canon_doc, algorithm(digest_method_element))
 
@@ -134,7 +133,8 @@ module XMLSecurity
       x509_cert_element.text = Base64.encode64(certificate.to_der).gsub(/\n/, "")
 
       # add the signature
-      self.root.add_element(signature_element)
+      issuer_element = self.elements["//saml:Issuer"]
+      self.root.insert_after issuer_element, signature_element
     end
 
     protected
