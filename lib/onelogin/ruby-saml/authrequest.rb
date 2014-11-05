@@ -6,6 +6,13 @@ module OneLogin
   module RubySaml
   include REXML
     class Authrequest < SamlMessage
+
+      attr_reader :uuid # Can be obtained if neccessary
+
+      def initialize
+        @uuid = "_" + UUID.new.generate
+      end
+
       def create(settings, params = {})
         params = create_params(settings, params)
         params_prefix = (settings.idp_sso_target_url =~ /\?/) ? '&' : '?'
@@ -50,9 +57,8 @@ module OneLogin
       end
 
       def create_authentication_xml_doc(settings)
-        uuid = "_" + UUID.new.generate
         time = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
-        # Create AuthnRequest root element using REXML
+
         request_doc = XMLSecurity::Document.new
         request_doc.uuid = uuid
 

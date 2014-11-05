@@ -2,6 +2,12 @@ module OneLogin
   module RubySaml
     class SloLogoutresponse < SamlMessage
 
+      attr_reader :uuid # Can be obtained if neccessary
+
+      def initialize
+        @uuid = "_" + UUID.new.generate
+      end
+
       def create(settings, request_id = nil, logout_message = nil, params = {})
         params = create_params(settings, request_id, logout_message, params)
         params_prefix = (settings.idp_slo_target_url =~ /\?/) ? '&' : '?'
@@ -47,10 +53,10 @@ module OneLogin
       end
 
       def create_logout_response_xml_doc(settings, request_id = nil, logout_message = nil)
-        uuid = '_' + UUID.new.generate
         time = Time.now.utc.strftime('%Y-%m-%dT%H:%M:%SZ')
 
         response_doc = XMLSecurity::Document.new
+        response_doc.uuid = uuid
 
         root = response_doc.add_element 'samlp:LogoutResponse', { 'xmlns:samlp' => 'urn:oasis:names:tc:SAML:2.0:protocol', "xmlns:saml" => "urn:oasis:names:tc:SAML:2.0:assertion" }
         root.attributes['ID'] = uuid

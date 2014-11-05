@@ -99,13 +99,13 @@ module XMLSecurity
       noko = Nokogiri.parse(self.to_s)
       canon_doc = noko.canonicalize(canon_algorithm(C14N))
 
-      signature_element   = REXML::Element.new("ds:Signature").add_namespace('ds', DSIG)
+      signature_element = REXML::Element.new("ds:Signature").add_namespace('ds', DSIG)
       signed_info_element = signature_element.add_element("ds:SignedInfo")
       signed_info_element.add_element("ds:CanonicalizationMethod", {"Algorithm" => C14N})
       signed_info_element.add_element("ds:SignatureMethod", {"Algorithm"=>signature_method})
 
       # Add Reference
-      reference_element     = signed_info_element.add_element("ds:Reference", {"URI" => "##{uuid}"})
+      reference_element = signed_info_element.add_element("ds:Reference", {"URI" => "##{uuid}"})
 
       # Add Transforms
       transforms_element = reference_element.add_element("ds:Transforms")
@@ -134,7 +134,11 @@ module XMLSecurity
 
       # add the signature
       issuer_element = self.elements["//saml:Issuer"]
-      self.root.insert_after issuer_element, signature_element
+      if !issuer_element.nil?
+        self.root.insert_after issuer_element, signature_element
+      else
+        self.root.add_element(signature_element)
+      end
     end
 
     protected

@@ -22,7 +22,7 @@ module OneLogin
       def create_params(settings, params={})
         params = {} if params.nil?
 
-        request_doc = create_unauth_xml_doc(settings, params)
+        request_doc = create_logout_request_xml_doc(settings)
         request_doc.context[:attribute_quote] = :quote if settings.double_quote_xml_attribute_values
 
         request = ""
@@ -51,13 +51,14 @@ module OneLogin
         request_params
       end
 
-      def create_unauth_xml_doc(settings, params)
-
+      def create_logout_request_xml_doc(settings)
         time = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
 
         request_doc = XMLSecurity::Document.new
+        request_doc.uuid = uuid
+
         root = request_doc.add_element "samlp:LogoutRequest", { "xmlns:samlp" => "urn:oasis:names:tc:SAML:2.0:protocol", "xmlns:saml" => "urn:oasis:names:tc:SAML:2.0:assertion" }
-        root.attributes['ID'] = @uuid
+        root.attributes['ID'] = uuid
         root.attributes['IssueInstant'] = time
         root.attributes['Version'] = "2.0"
         root.attributes['Destination'] = settings.idp_slo_target_url  unless settings.idp_slo_target_url.nil?
@@ -67,8 +68,8 @@ module OneLogin
           issuer.text = settings.issuer
         end
 
+        name_id = root.add_element "saml:NameID"
         if settings.name_identifier_value
-          name_id = root.add_element "saml:NameID"
           name_id.attributes['NameQualifier'] = settings.sp_name_qualifier if settings.sp_name_qualifier
           name_id.attributes['Format'] = settings.name_identifier_format if settings.name_identifier_format
           name_id.text = settings.name_identifier_value
