@@ -7,7 +7,8 @@ group :test do
     gem "nokogiri",   "~> 1.5.0"
     gem "ruby-debug", "~> 0.10.4"
   elsif RUBY_VERSION < "2.0"
-    gem "debugger", "~> 1.1"
+    gem "debugger-linecache", "~> 1.2.0"
+    gem "debugger", "~> 1.6.4"
   else
     gem "byebug",   "~> 2.1.1"
   end
