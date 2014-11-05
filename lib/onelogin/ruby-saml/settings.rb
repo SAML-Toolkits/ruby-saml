@@ -25,6 +25,7 @@ module OneLogin
       attr_accessor :name_identifier_value
       attr_accessor :sessionindex
       attr_accessor :compress_request
+      attr_accessor :compress_response
       attr_accessor :double_quote_xml_attribute_values
       attr_accessor :passive
       attr_accessor :protocol_binding
@@ -99,10 +100,12 @@ module OneLogin
         :assertion_consumer_service_binding        => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
         :single_logout_service_binding             => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
         :compress_request                          => true,
+        :compress_response                         => true,
         :security                                  => {
           :authn_requests_signed    => false,
           :logout_requests_signed   => false,
-          :embed_sign              => false,
+          :logout_response_signed   => false,
+          :embed_sign               => false,
           :digest_method            => XMLSecurity::Document::SHA1,
           :signature_method         => XMLSecurity::Document::SHA1
         },
