@@ -29,7 +29,7 @@ module OneLogin
         base64_response = encode(response)
         response_params = {"SAMLResponse" => base64_response}
 
-        if settings.security[:logout_response_signed] && !settings.security[:embed_sign] && settings.private_key
+        if settings.security[:logout_responses_signed] && !settings.security[:embed_sign] && settings.private_key
           params['SigAlg']    = XMLSecurity::Document::SHA1
           url_string          = "SAMLResponse=#{CGI.escape(base64_response)}"
           url_string         += "&RelayState=#{CGI.escape(params['RelayState'])}" if params['RelayState']
@@ -77,7 +77,7 @@ module OneLogin
         end
 
         # embebed sign
-        if settings.security[:logout_response_signed] && settings.private_key && settings.certificate && settings.security[:embed_sign]
+        if settings.security[:logout_responses_signed] && settings.private_key && settings.certificate && settings.security[:embed_sign]
           private_key = settings.get_sp_key()
           cert = settings.get_sp_cert()
           response_doc.sign_document(private_key, cert, settings.security[:signature_method], settings.security[:digest_method])
