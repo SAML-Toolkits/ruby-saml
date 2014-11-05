@@ -45,7 +45,7 @@ module OneLogin
       def single_logout_service_url()
         val = nil
         if @single_logout_service_url.nil?
-          if !@assertion_consumer_logout_service_url.nil?
+          if @assertion_consumer_logout_service_url
             val = @assertion_consumer_logout_service_url
           end
         else
@@ -62,7 +62,7 @@ module OneLogin
       def single_logout_service_binding()
         val = nil
         if @single_logout_service_binding.nil?
-          if !@assertion_consumer_logout_service_binding.nil?
+          if @assertion_consumer_logout_service_binding
             val = @assertion_consumer_logout_service_binding
           end
         else
@@ -78,7 +78,7 @@ module OneLogin
 
       def get_sp_cert
         cert = nil
-        if !self.certificate.nil?
+        if self.certificate
           formated_cert = OneLogin::RubySaml::Utils.format_cert(self.certificate)
           cert = OpenSSL::X509::Certificate.new(formated_cert)
         end
@@ -87,7 +87,7 @@ module OneLogin
 
       def get_sp_key
         private_key = nil
-        if !self.private_key.nil?
+        if self.private_key
           formated_private_key = OneLogin::RubySaml::Utils.format_private_key(self.private_key)
           private_key = OpenSSL::PKey::RSA.new(formated_private_key)
         end

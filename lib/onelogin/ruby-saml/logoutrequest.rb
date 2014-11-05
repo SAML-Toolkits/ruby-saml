@@ -1,3 +1,7 @@
+require "uuid"
+
+require "onelogin/ruby-saml/logging"
+
 module OneLogin
   module RubySaml
     class Logoutrequest < SamlMessage

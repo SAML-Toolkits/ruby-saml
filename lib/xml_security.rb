@@ -134,7 +134,7 @@ module XMLSecurity
 
       # add the signature
       issuer_element = self.elements["//saml:Issuer"]
-      if !issuer_element.nil?
+      if issuer_element
         self.root.insert_after issuer_element, signature_element
       else
         self.root.add_element(signature_element)
