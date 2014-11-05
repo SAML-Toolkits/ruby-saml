@@ -291,26 +291,26 @@ If we want to add a saml:AuthnContextDeclRef, define a `settings.authn_context_d
 
 ## Signing
 
-This toolkit support 2 different kinds of signature: Embeded and as GET parameter
+The Ruby Toolkit supports 2 different kinds of signature: Embeded and as GET parameter
 
 In order to be able to sign we need first to define the private key and the public cert of the service provider
 
 ```ruby
-    settings.certificate = "CERTIFICATE TEXT WITH HEADS"
-    settings.private_key = "PRIVATE KEY TEXT WITH HEADS"
+  settings.certificate = "CERTIFICATE TEXT WITH HEADS"
+  settings.private_key = "PRIVATE KEY TEXT WITH HEADS"
 ```
 
 The settings related to sign are stored in the `security` attribute of the settings:
 
 ```ruby
-    settings.security[:authn_requests_signed]  = true     # Enable or not signature on AuthNRequest
-    settings.security[:logout_requests_signed] = true     # Enable or not signature on Logout Request
-    settings.security[:logout_responses_signed] = true     # Enable or not signature on Logout Response
+  settings.security[:authn_requests_signed]  = true     # Enable or not signature on AuthNRequest
+  settings.security[:logout_requests_signed] = true     # Enable or not signature on Logout Request
+  settings.security[:logout_responses_signed] = true     # Enable or not signature on Logout Response
 
-    settings.security[:digest_method]    = XMLSecurity::Document::SHA1
-    settings.security[:signature_method] = XMLSecurity::Document::SHA1
+  settings.security[:digest_method]    = XMLSecurity::Document::SHA1
+  settings.security[:signature_method] = XMLSecurity::Document::SHA1
 
-    settings.security[:embed_sign]        = false                # Embeded signature or HTTP GET parameter Signature
+  settings.security[:embed_sign]        = false                # Embeded signature or HTTP GET parameter Signature
 ```
 
 
@@ -321,109 +321,106 @@ The Ruby Toolkit supports SP-initiated Single Logout and IdP-Initiated Single Lo
 Here is an example that we could add to our previous controller to generate and send a SAML Logout Request to the IdP
 
 ```ruby
+# Create a SP initiated SLO
+def sp_logout_request
+  # LogoutRequest accepts plain browser requests w/o paramters
+  settings = saml_settings
 
-  # Create a SP initiated SLO
-  def sp_logout_request
-    # LogoutRequest accepts plain browser requests w/o paramters
-    settings = saml_settings
+  if settings.idp_slo_target_url.nil?
+    logger.info "SLO IdP Endpoint not found in settings, executing then a normal logout'"
+    delete_session
+  else
 
-    if settings.idp_slo_target_url.nil?
-      logger.info "SLO IdP Endpoint not found in settings, executing then a normal logout'"
-      delete_session
-    else
+    # Since we created a new SAML request, save the transaction_id
+    # to compare it with the response we get back
+    logout_request = OneLogin::RubySaml::Logoutrequest.new()
+    session[:transaction_id] = logout_request.uuid
+    logger.info "New SP SLO for userid '#{session[:userid]}' transactionid '#{session[:transaction_id]}'"
 
-      # Since we created a new SAML request, save the transaction_id
-      # to compare it with the response we get back
-      logout_request = OneLogin::RubySaml::Logoutrequest.new()
-      session[:transaction_id] = logout_request.uuid
-      logger.info "New SP SLO for userid '#{session[:userid]}' transactionid '#{session[:transaction_id]}'"
-
-      if settings.name_identifier_value.nil?
-        settings.name_identifier_value = session[:userid]
-      end
-
-      relayState =  url_for controller: 'saml', action: 'index'
-      redirect_to(logout_request.create(settings, :RelayState => relayState))
+    if settings.name_identifier_value.nil?
+      settings.name_identifier_value = session[:userid]
     end
+
+    relayState =  url_for controller: 'saml', action: 'index'
+    redirect_to(logout_request.create(settings, :RelayState => relayState))
   end
+end
 ```
 
 and this method process the SAML Logout Response sent by the IdP as reply of the SAML Logout Request
 
 ```ruby
+# After sending an SP initiated LogoutRequest to the IdP, we need to accept
+# the LogoutResponse, verify it, then actually delete our session.
+def process_logout_response
+  settings = Account.get_saml_settings
 
-  # After sending an SP initiated LogoutRequest to the IdP, we need to accept
-  # the LogoutResponse, verify it, then actually delete our session.
-  def process_logout_response
-    settings = Account.get_saml_settings
-
-    if session.has_key? :transation_id
-      logout_response = OneLogin::RubySaml::Logoutresponse.new(params[:SAMLResponse], settings, :matches_request_id => session[:transation_id])
-    else
-      logout_response = OneLogin::RubySaml::Logoutresponse.new(params[:SAMLResponse], settings)
-    end
-
-    logger.info "LogoutResponse is: #{logout_response.to_s}"
-
-    # Validate the SAML Logout Response
-    if not logout_response.validate
-      logger.error "The SAML Logout Response is invalid"
-    else
-      # Actually log out this session
-      if logout_response.success?
-        logger.info "Delete session for '#{session[:userid]}'"
-        delete_session
-      end
-    end
+  if session.has_key? :transation_id
+    logout_response = OneLogin::RubySaml::Logoutresponse.new(params[:SAMLResponse], settings, :matches_request_id => session[:transation_id])
+  else
+    logout_response = OneLogin::RubySaml::Logoutresponse.new(params[:SAMLResponse], settings)
   end
 
-  # Delete a user's session.
-  def delete_session
-    session[:userid] = nil
-    session[:attributes] = nil
-  end
+  logger.info "LogoutResponse is: #{logout_response.to_s}"
 
+  # Validate the SAML Logout Response
+  if not logout_response.validate
+    logger.error "The SAML Logout Response is invalid"
+  else
+    # Actually log out this session
+    if logout_response.success?
+      logger.info "Delete session for '#{session[:userid]}'"
+      delete_session
+    end
+  end
+end
+
+# Delete a user's session.
+def delete_session
+  session[:userid] = nil
+  session[:attributes] = nil
+end
 ```
 
 Here is an example that we could add to our previous controller to process a SAML Logout Request from the IdP and reply a SAML Logout Response to the IdP
 
 ```ruby
- # Method to handle IdP initiated logouts
-  def idp_logout_request
-    settings = Account.get_saml_settings
-    logout_request = OneLogin::RubySaml::SloLogoutrequest.new(params[:SAMLRequest])
-    if !logout_request.is_valid?
-      logger.error "IdP initiated LogoutRequest was not valid!"
-      render :inline => logger.error
-    end
-    logger.info "IdP initiated Logout for #{logout_request.name_id}"
-
-    # Actually log out this session
-    delete_session
-
-    # Generate a response to the IdP.
-    logout_request_id = logout_request.id
-    logout_response = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, logout_request_id, nil, :RelayState => params[:RelayState])
-    redirect_to logout_response
+# Method to handle IdP initiated logouts
+def idp_logout_request
+  settings = Account.get_saml_settings
+  logout_request = OneLogin::RubySaml::SloLogoutrequest.new(params[:SAMLRequest])
+  if !logout_request.is_valid?
+    logger.error "IdP initiated LogoutRequest was not valid!"
+    render :inline => logger.error
   end
+  logger.info "IdP initiated Logout for #{logout_request.name_id}"
+
+  # Actually log out this session
+  delete_session
+
+  # Generate a response to the IdP.
+  logout_request_id = logout_request.id
+  logout_response = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, logout_request_id, nil, :RelayState => params[:RelayState])
+  redirect_to logout_response
+end
 ```
 
 All the mentioned methods could be handled in a unique view:
 
 ```ruby
-  # Trigger SP and IdP initiated Logout requests
-  def logout
-    # If we're given a logout request, handle it in the IdP logout initiated method
-    if params[:SAMLRequest]
-      return idp_logout_request
-    # We've been given a response back from the IdP, process it
-    elsif params[:SAMLResponse]
-      return process_logout_response
-    # Initiate SLO (send Logout Request)
-    else
-      return sp_logout_request
-    end
+# Trigger SP and IdP initiated Logout requests
+def logout
+  # If we're given a logout request, handle it in the IdP logout initiated method
+  if params[:SAMLRequest]
+    return idp_logout_request
+  # We've been given a response back from the IdP, process it
+  elsif params[:SAMLResponse]
+    return process_logout_response
+  # Initiate SLO (send Logout Request)
+  else
+    return sp_logout_request
   end
+end
 ```
 
 
