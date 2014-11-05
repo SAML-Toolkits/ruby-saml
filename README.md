@@ -289,18 +289,30 @@ The saml:AuthnContextClassRef of the AuthNRequest can be provided by `settings.a
 If we want to add a saml:AuthnContextDeclRef, define a `settings.authn_context_decl_ref`.
 
 
-## Request Signing
+## Signing
 
-XML Dsig request signing is supported. Use the following settings to preform request signing:
+This toolkit support 2 different kinds of signature: Embeded and as GET parameter
+
+In order to be able to sign we need first to define the private key and the public cert of the service provider
 
 ```ruby
-  settings = OneLogin::RubySaml::Settings.new
-  settings.sign_request = true
-  settings.certificate = X509::Certificate.new("CERTIFICATE TEXT")
-  settings.private_key = X509::PKey::RSA.new("PRIVATE KEY")
-
-  signed_request = request.create(settings)
+    settings.certificate = "CERTIFICATE TEXT WITH HEADS"
+    settings.private_key = "PRIVATE KEY TEXT WITH HEADS"
 ```
+
+The settings related to sign are stored in the `security` attribute of the settings:
+
+```ruby
+    settings.security[:authn_requests_signed]  = true     # Enable or not signature on AuthNRequest
+    settings.security[:logout_requests_signed] = true     # Enable or not signature on Logout Request
+    settings.security[:logout_response_signed] = true     # Enable or not signature on Logout Response
+
+    settings.security[:digest_method]    = XMLSecurity::Document::SHA1
+    settings.security[:signature_method] = XMLSecurity::Document::SHA1
+
+    settings.security[:embed_sign]        = false                # Embeded signature or HTTP GET parameter Signature
+```
+
 
 ## Single Log Out
 
