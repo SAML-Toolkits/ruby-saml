@@ -142,7 +142,7 @@ class XmlSecurityTest < Test::Unit::TestCase
         document = XMLSecurity::SignedDocument.new(response)
         inclusive_namespaces = document.send(:extract_inclusive_namespaces)
 
-        assert_empty inclusive_namespaces
+        assert inclusive_namespaces.empty?
       end
     end
 

@@ -18,7 +18,7 @@ class RubySamlTest < Test::Unit::TestCase
       end
       should "accept constructor-injected options" do
         logoutresponse = OneLogin::RubySaml::Logoutresponse.new(valid_response, nil, { :foo => :bar} )
-        assert_not_empty logoutresponse.options
+        assert !logoutresponse.options.empty?
       end
       should "support base64 encoded responses" do
         expected_response = valid_response
