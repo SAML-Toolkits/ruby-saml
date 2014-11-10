@@ -189,7 +189,7 @@ class RequestTest < Test::Unit::TestCase
       }
       auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
       assert auth_doc.to_s =~ /<samlp:Extensions[\S ]+>[\S ]+<\/samlp:Extensions>/
-      assert auth_doc.to_s =~ /<MyExtension[\S ]+http:\/\/example.com\/idp-extensions[\S ]+>[\S ]+<\/MyExtension>/
+      assert auth_doc.to_s =~ /<MyExtension[\S ]+http:\/\/example.com\/idp-extensions[\S ]+>SomeValue<\/MyExtension>/
     end
   end
 end
