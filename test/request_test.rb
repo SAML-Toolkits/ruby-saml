@@ -178,5 +178,18 @@ class RequestTest < Test::Unit::TestCase
       assert auth_doc.to_s =~ /<saml:AuthnContextDeclRef[\S ]+>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport<\/saml:AuthnContextDeclRef>/
     end
 
+    should 'create the samlp:Extensions element correctly' do
+      settings = OneLogin::RubySaml::Settings.new
+      settings.idp_sso_target_url = 'http://example.com'
+      settings.authn_request_extensions_builder = ->(extension_context) {
+        extension = extension_context.add_element 'MyExtension', {
+          "xmlns" => 'http://example.com/idp-extensions'
+        }
+        extension.text = "SomeValue"
+      }
+      auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+      assert auth_doc.to_s =~ /<samlp:Extensions[\S ]+>[\S ]+<\/samlp:Extensions>/
+      assert auth_doc.to_s =~ /<MyExtension[\S ]+http:\/\/example.com\/idp-extensions[\S ]+>[\S ]+<\/MyExtension>/
+    end
   end
 end
