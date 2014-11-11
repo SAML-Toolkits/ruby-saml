@@ -8,16 +8,12 @@ class SettingsTest < Test::Unit::TestCase
     end
     should "should provide getters and settings" do
       accessors = [
-        :idp_entity_id, :idp_sso_target_url, :idp_slo_target_url, :idp_cert, :idp_cert_fingerprint,
-        :issuer, :assertion_consumer_service_url, :assertion_consumer_service_binding,
-        :single_logout_service_url, :single_logout_service_binding,
-        :sp_name_qualifier, :name_identifier_format, :name_identifier_value,
-        :sessionindex, :attributes_index, :passive, :force_authn,
-        :compress_request, :double_quote_xml_attribute_values, :protocol_binding,
-        :security, :certificate, :private_key,
-        :authn_context, :authn_context_comparison, :authn_context_decl_ref,
+        :assertion_consumer_service_url, :issuer, :sp_name_qualifier,
+        :idp_sso_target_url, :idp_cert_fingerprint, :name_identifier_format,
+        :idp_slo_target_url, :name_identifier_value, :sessionindex,
         :assertion_consumer_logout_service_url,
-        :assertion_consumer_logout_service_binding
+        :attributes_index,
+        :passive, :protocol_binding
       ]
 
       accessors.each do |accessor|
@@ -25,7 +21,6 @@ class SettingsTest < Test::Unit::TestCase
         @settings.send("#{accessor}=".to_sym, value)
         assert_equal value, @settings.send(accessor)
       end
-
     end
 
     should "create settings from hash" do

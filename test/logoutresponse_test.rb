@@ -10,11 +10,11 @@ class RubySamlTest < Test::Unit::TestCase
       end
       should "default to empty settings" do
         logoutresponse = OneLogin::RubySaml::Logoutresponse.new( valid_response)
-        assert_nil logoutresponse.settings
+        assert logoutresponse.settings.nil?
       end
       should "accept constructor-injected settings" do
         logoutresponse = OneLogin::RubySaml::Logoutresponse.new(valid_response, settings)
-        assert_not_nil logoutresponse.settings
+        assert !logoutresponse.settings.nil?
       end
       should "accept constructor-injected options" do
         logoutresponse = OneLogin::RubySaml::Logoutresponse.new(valid_response, nil, { :foo => :bar} )

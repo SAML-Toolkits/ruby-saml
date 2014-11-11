@@ -6,7 +6,7 @@ require "nokogiri"
 module OneLogin
   module RubySaml
 
-    class Response < SamlMessage
+    class Response
       ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion"
       PROTOCOL  = "urn:oasis:names:tc:SAML:2.0:protocol"
       DSIG      = "http://www.w3.org/2000/09/xmldsig#"
@@ -23,7 +23,7 @@ module OneLogin
         @errors = []
         raise ArgumentError.new("Response cannot be nil") if response.nil?
         @options  = options
-        @response = decode_raw_saml(response)
+        @response = (response =~ /^</) ? response : Base64.decode64(response)
         @document = XMLSecurity::SignedDocument.new(@response, @errors)
       end
 
@@ -133,8 +133,12 @@ module OneLogin
 
       private
 
+      def validation_error(message)
+        raise ValidationError.new(message)
+      end
+
       def validate(soft = true)
-        valid_saml?(document, soft)      &&
+        validate_structure(soft)      &&
         validate_response_state(soft) &&
         validate_conditions(soft)     &&
         validate_issuer(soft)         &&
@@ -158,7 +162,7 @@ module OneLogin
         if soft
           @schema.validate(@xml).map{
             @errors << "Schema validation failed";
-            return false
+            return false 
           }
         else
           @schema.validate(@xml).map{ |error| @errors << "#{error.message}\n\n#{@xml.to_s}";
