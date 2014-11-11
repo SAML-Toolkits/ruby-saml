@@ -21,7 +21,7 @@ module OneLogin
             "protocolSupportEnumeration" => "urn:oasis:names:tc:SAML:2.0:protocol",
             "AuthnRequestsSigned" => settings.security[:authn_requests_signed],
             # However we would like assertions signed if idp_cert_fingerprint or idp_cert is set
-            "WantAssertionsSigned" => (settings.idp_cert_fingerprint || settings.idp_cert || false)
+            "WantAssertionsSigned" => !!(settings.idp_cert_fingerprint || settings.idp_cert)
         }
         if settings.issuer
           root.attributes["entityID"] = settings.issuer
