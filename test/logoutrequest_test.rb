@@ -52,14 +52,6 @@ class RequestTest < Test::Unit::TestCase
       assert_match %r(#{name_identifier_value}</saml:NameID>), inflated
     end
 
-    should "require name_identifier_value" do
-      settings = OneLogin::RubySaml::Settings.new
-      settings.idp_slo_target_url = "http://example.com"
-      settings.name_identifier_format = nil
-
-      assert_raises(OneLogin::RubySaml::ValidationError) { OneLogin::RubySaml::Logoutrequest.new.create(settings) }
-    end
-
     context "when the target url doesn't contain a query string" do
       should "create the SAMLRequest parameter correctly" do
         settings = OneLogin::RubySaml::Settings.new
@@ -95,6 +87,71 @@ class RequestTest < Test::Unit::TestCase
         assert_match %r[ID='#{unauth_req.uuid}'], inflated
       end
     end
+
+    context "when the settings indicate to sign (embebed) the logout request" do
+      should "created a signed logout request" do
+        settings = OneLogin::RubySaml::Settings.new
+        settings.idp_slo_target_url = "http://example.com?field=value"
+        settings.name_identifier_value = "f00f00"
+        # sign the logout request
+        settings.security[:logout_requests_signed] = true
+        settings.security[:embed_sign] = true
+        settings.certificate = ruby_saml_cert_text
+        settings.private_key = ruby_saml_key_text
+
+        unauth_req = OneLogin::RubySaml::Logoutrequest.new
+        unauth_url = unauth_req.create(settings)
+
+        inflated = decode_saml_request_payload(unauth_url)
+        assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], inflated
+      end
+
+      should "create a signed logout request with 256 digest and signature methods" do
+        settings = OneLogin::RubySaml::Settings.new
+        settings.compress_request = false
+        settings.idp_slo_target_url = "http://example.com?field=value"
+        settings.name_identifier_value = "f00f00"
+        # sign the logout request
+        settings.security[:logout_requests_signed] = true
+        settings.security[:embed_sign] = true
+        settings.security[:signature_method] = XMLSecurity::Document::SHA256
+        settings.security[:digest_method] = XMLSecurity::Document::SHA512
+        settings.certificate  = ruby_saml_cert_text
+        settings.private_key = ruby_saml_key_text
+
+        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings)
+        request_xml = Base64.decode64(params["SAMLRequest"])
+
+        assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], request_xml
+        request_xml =~ /<ds:SignatureMethod Algorithm='http:\/\/www.w3.org\/2001\/04\/xmldsig-more#rsa-sha256'\/>/
+        request_xml =~ /<ds:DigestMethod Algorithm='http:\/\/www.w3.org\/2001\/04\/xmldsig-more#rsa-sha512'\/>/
+      end
+    end
+
+    context "when the settings indicate to sign the logout request" do
+      should "create a signature parameter" do
+        settings = OneLogin::RubySaml::Settings.new
+        settings.compress_request = false
+        settings.idp_slo_target_url = "http://example.com?field=value"
+        settings.name_identifier_value = "f00f00"
+        settings.security[:logout_requests_signed] = true
+        settings.security[:embed_sign] = false
+        settings.security[:signature_method] = XMLSecurity::Document::SHA1
+        settings.certificate  = ruby_saml_cert_text
+        settings.private_key = ruby_saml_key_text
+
+        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings)
+        assert params['Signature']
+        assert params['SigAlg'] == XMLSecurity::Document::SHA1
+
+        # signature_method only affects the embedeed signature
+        settings.security[:signature_method] = XMLSecurity::Document::SHA256
+        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings)
+        assert params['Signature']
+        assert params['SigAlg'] == XMLSecurity::Document::SHA1
+      end
+    end
+
   end
 
   def decode_saml_request_payload(unauth_url)
