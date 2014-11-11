@@ -19,36 +19,43 @@ module OneLogin
         }
         sp_sso = root.add_element "md:SPSSODescriptor", {
             "protocolSupportEnumeration" => "urn:oasis:names:tc:SAML:2.0:protocol",
-            # Metadata request need not be signed (as we don't publish our cert)
-            "AuthnRequestsSigned" => false,
+            "AuthnRequestsSigned" => settings.security[:authn_requests_signed],
             # However we would like assertions signed if idp_cert_fingerprint or idp_cert is set
-            "WantAssertionsSigned" => (!settings.idp_cert_fingerprint.nil? || !settings.idp_cert.nil?)
+            "WantAssertionsSigned" => !!(settings.idp_cert_fingerprint || settings.idp_cert)
         }
-        if settings.issuer != nil
+        if settings.issuer
           root.attributes["entityID"] = settings.issuer
         end
-        if settings.assertion_consumer_logout_service_url != nil
+        if settings.single_logout_service_url
           sp_sso.add_element "md:SingleLogoutService", {
-              # Add this as a setting to create different bindings?
-              "Binding" => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
-              "Location" => settings.assertion_consumer_logout_service_url,
-              "ResponseLocation" => settings.assertion_consumer_logout_service_url,
+              "Binding" => settings.single_logout_service_binding,
+              "Location" => settings.single_logout_service_url,
+              "ResponseLocation" => settings.single_logout_service_url,
               "isDefault" => true,
               "index" => 0
           }
         end
-        if settings.name_identifier_format != nil
+        if settings.name_identifier_format
           name_id = sp_sso.add_element "md:NameIDFormat"
           name_id.text = settings.name_identifier_format
         end
-        if settings.assertion_consumer_service_url != nil
+        if settings.assertion_consumer_service_url
           sp_sso.add_element "md:AssertionConsumerService", {
-              # Add this as a setting to create different bindings?
-              "Binding" => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
+              "Binding" => settings.assertion_consumer_service_binding,
               "Location" => settings.assertion_consumer_service_url,
               "isDefault" => true,
               "index" => 0
           }
+        end
+
+        # Add KeyDescriptor if messages will be signed
+        cert = settings.get_sp_cert()
+        if cert
+          kd = sp_sso.add_element "md:KeyDescriptor", { "use" => "signing" }
+          ki = kd.add_element "ds:KeyInfo", {"xmlns:ds" => "http://www.w3.org/2000/09/xmldsig#"}
+          xd = ki.add_element "ds:X509Data"
+          xc = xd.add_element "ds:X509Certificate"
+          xc.text = Base64.encode64(cert.to_der).gsub("\n", '')
         end
 
         if settings.attribute_consuming_service.configured?

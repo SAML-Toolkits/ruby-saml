@@ -20,11 +20,11 @@ class RubySamlTest < Test::Unit::TestCase
 
     should "adapt namespace" do
       response = OneLogin::RubySaml::Response.new(response_document)
-      assert !response.name_id.nil?
+      assert_not_nil response.name_id
       response = OneLogin::RubySaml::Response.new(response_document_2)
-      assert !response.name_id.nil?
+      assert_not_nil response.name_id
       response = OneLogin::RubySaml::Response.new(response_document_3)
-      assert !response.name_id.nil?
+      assert_not_nil response.name_id
     end
 
     should "default to raw input when a response is not Base64 encoded" do
@@ -40,7 +40,7 @@ class RubySamlTest < Test::Unit::TestCase
         settings = OneLogin::RubySaml::Settings.new
         settings.idp_cert_fingerprint = signature_fingerprint_1
         response.settings = settings
-        assert response.name_id.nil?
+        assert_nil response.name_id
       end
     end
 
@@ -345,7 +345,7 @@ class RubySamlTest < Test::Unit::TestCase
         assert response.session_expires_at.is_a?(Time)
 
         response = OneLogin::RubySaml::Response.new(response_document_2)
-        assert response.session_expires_at.nil?
+        assert_nil response.session_expires_at
       end
     end
 

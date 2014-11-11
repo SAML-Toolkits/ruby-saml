@@ -80,4 +80,33 @@ class Test::Unit::TestCase
     @idp_metadata ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'idp_descriptor.xml'))
   end
 
+  def logout_request_document
+    unless @logout_request_document
+      xml = File.read(File.join(File.dirname(__FILE__), 'responses', 'slo_request.xml'))
+      deflated = Zlib::Deflate.deflate(xml, 9)[2..-5]
+      @logout_request_document = Base64.encode64(deflated)
+    end
+    @logout_request_document
+  end
+
+  def ruby_saml_cert
+    @ruby_saml_cert ||= OpenSSL::X509::Certificate.new(ruby_saml_cert_text)
+  end
+
+  def ruby_saml_cert_fingerprint
+    @ruby_saml_cert_fingerprint ||= Digest::SHA1.hexdigest(ruby_saml_cert.to_der).scan(/../).join(":")
+  end
+
+  def ruby_saml_cert_text
+    File.read(File.join(File.dirname(__FILE__), 'certificates', 'ruby-saml.crt'))
+  end
+
+  def ruby_saml_key
+    @ruby_saml_key ||= OpenSSL::PKey::RSA.new(ruby_saml_key_text)
+  end
+
+  def ruby_saml_key_text
+    File.read(File.join(File.dirname(__FILE__), 'certificates', 'ruby-saml.key'))
+  end
+
 end

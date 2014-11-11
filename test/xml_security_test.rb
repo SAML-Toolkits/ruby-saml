@@ -146,6 +146,56 @@ class XmlSecurityTest < Test::Unit::TestCase
       end
     end
 
+    context "XMLSecurity::DSIG" do
+      should "sign a AuthNRequest" do
+        settings = OneLogin::RubySaml::Settings.new({
+          :idp_sso_target_url => "https://idp.example.com/sso",
+          :protocol_binding => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
+          :issuer => "https://sp.example.com/saml2",
+          :assertion_consumer_service_url => "https://sp.example.com/acs"
+        })
+
+        request = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+        request.sign_document(ruby_saml_key, ruby_saml_cert)
+
+        # verify our signature
+        signed_doc = XMLSecurity::SignedDocument.new(request.to_s)
+        signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
+      end
+
+      should "sign a LogoutRequest" do
+        settings = OneLogin::RubySaml::Settings.new({
+          :idp_slo_target_url => "https://idp.example.com/slo",
+          :protocol_binding => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
+          :issuer => "https://sp.example.com/saml2",
+          :single_logout_service_url => "https://sp.example.com/sls"
+        })
+
+        request = OneLogin::RubySaml::Logoutrequest.new.create_logout_request_xml_doc(settings)
+        request.sign_document(ruby_saml_key, ruby_saml_cert)
+
+        # verify our signature
+        signed_doc = XMLSecurity::SignedDocument.new(request.to_s)
+        signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
+      end
+
+      should "sign a LogoutResponse" do
+        settings = OneLogin::RubySaml::Settings.new({
+          :idp_slo_target_url => "https://idp.example.com/slo",
+          :protocol_binding => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
+          :issuer => "https://sp.example.com/saml2",
+          :single_logout_service_url => "https://sp.example.com/sls"
+        })
+
+        response = OneLogin::RubySaml::SloLogoutresponse.new.create_logout_response_xml_doc(settings, 'request_id_example', "Custom Logout Message")
+        response.sign_document(ruby_saml_key, ruby_saml_cert)
+
+        # verify our signature
+        signed_doc = XMLSecurity::SignedDocument.new(response.to_s)
+        signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
+      end
+    end
+
     context "StarfieldTMS" do
       setup do
         @response = OneLogin::RubySaml::Response.new(fixture(:starfield_response))
