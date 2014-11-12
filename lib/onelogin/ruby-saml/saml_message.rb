@@ -14,7 +14,7 @@ module OneLogin
 
       def valid_saml?(document, soft = true)
         Dir.chdir(File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'schemas'))) do
-          @schema = Nokogiri::XML::Schema(IO.read('saml20protocol_schema.xsd'))
+          @schema = Nokogiri::XML::Schema(IO.read('saml-schema-protocol-2.0.xsd'))
           @xml = Nokogiri::XML(document.to_s)
         end
         if soft

@@ -1,14 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE schema  PUBLIC "-//W3C//DTD XMLSchema 200102//EN"
- "http://www.w3.org/2001/XMLSchema.dtd"
- [
-   <!ATTLIST schema
-     xmlns:xenc CDATA #FIXED 'http://www.w3.org/2001/04/xmlenc#'
-     xmlns:ds CDATA #FIXED 'http://www.w3.org/2000/09/xmldsig#'>
-   <!ENTITY xenc 'http://www.w3.org/2001/04/xmlenc#'>
-   <!ENTITY % p ''>
-   <!ENTITY % s ''>
-  ]>
 
 <schema xmlns='http://www.w3.org/2001/XMLSchema' version='1.0'
         xmlns:xenc='http://www.w3.org/2001/04/xmlenc#'
@@ -17,7 +7,7 @@
         elementFormDefault='qualified'>
 
   <import namespace='http://www.w3.org/2000/09/xmldsig#'
-          schemaLocation='xmldsig_schema.xsd'/>
+          schemaLocation='xmldsig-core-schema.xsd'/>
 
   <complexType name='EncryptedType' abstract='true'>
     <sequence>
