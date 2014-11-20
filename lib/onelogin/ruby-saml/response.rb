@@ -41,6 +41,13 @@ module OneLogin
         end
       end
 
+      def in_response_to
+        @in_reponse_to ||= begin
+          node = REXML::XPath.first(document, "/p:Response", { "p" => PROTOCOL })
+          node.attributes["InResponseTo"]
+        end
+      end
+
       def sessionindex
         @sessionindex ||= begin
           node = xpath_first_from_signed_assertion('/a:AuthnStatement')
