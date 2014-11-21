@@ -54,4 +54,5 @@ Gem::Specification.new do |s|
     # 2.1.x, 2.2.x
     s.add_development_dependency('pry-byebug')
   end
+  s.add_runtime_dependency("xmlenc", ["~> 0.1.5"])
 end

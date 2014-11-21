@@ -37,6 +37,16 @@ module OneLogin
 
       private
 
+      def decrypt_saml(decoded_saml, private_key_file_path=nil)
+        noko_xml = Nokogiri::XML(decoded_saml)
+        if (noko_xml.xpath('//saml:EncryptedAssertion', {:saml => "urn:oasis:names:tc:SAML:2.0:assertion"}).count > 0 && !private_key_file_path.nil?)
+          encrypted_response = Xmlenc::EncryptedDocument.new(decoded_saml)
+          private_key = OpenSSL::PKey::RSA.new(private_key_file_path)
+          return encrypted_response.decrypt(private_key)
+        end
+        return decoded_saml
+      end
+      
       def decode_raw_saml(saml)
         if saml =~ /^</
           return saml
