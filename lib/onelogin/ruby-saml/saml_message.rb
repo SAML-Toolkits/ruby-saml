@@ -5,6 +5,7 @@ require "nokogiri"
 require "rexml/document"
 require "rexml/xpath"
 require "thread"
+require "xmlenc"
 
 module OneLogin
   module RubySaml
@@ -39,9 +40,10 @@ module OneLogin
 
       def decrypt_saml(decoded_saml, private_key_file_path=nil)
         noko_xml = Nokogiri::XML(decoded_saml)
-        if (noko_xml.xpath('//saml:EncryptedAssertion', {:saml => "urn:oasis:names:tc:SAML:2.0:assertion"}).count > 0 && !private_key_file_path.nil?)
+        if ((noko_xml.xpath('//saml:EncryptedAssertion', {:saml => "urn:oasis:names:tc:SAML:2.0:assertion"}).count > 0) && !private_key_file_path.nil?)
+          key_pem = File.read(private_key_file_path)
           encrypted_response = Xmlenc::EncryptedDocument.new(decoded_saml)
-          private_key = OpenSSL::PKey::RSA.new(private_key_file_path)
+          private_key = OpenSSL::PKey::RSA.new(key_pem)
           return encrypted_response.decrypt(private_key)
         end
         return decoded_saml
