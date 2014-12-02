@@ -10,6 +10,7 @@ module OneLogin
       ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion"
       PROTOCOL  = "urn:oasis:names:tc:SAML:2.0:protocol"
       DSIG      = "http://www.w3.org/2000/09/xmldsig#"
+      XENC      = "http://www.w3.org/2001/04/xmlenc#" 
 
       # TODO: This should probably be ctor initialized too... WDYT?
       attr_accessor :settings
@@ -42,14 +43,14 @@ module OneLogin
       # The value of the user identifier as designated by the initialization request response
       def name_id
         @name_id ||= begin
-          node = xpath_first_from_signed_assertion('/a:Subject/a:NameID')
+          node = xpath_first_from_signed_assertion('/saml:Subject/saml:NameID')
           node.nil? ? nil : node.text
         end
       end
 
       def sessionindex
         @sessionindex ||= begin
-          node = xpath_first_from_signed_assertion('/a:AuthnStatement')
+          node = xpath_first_from_signed_assertion('/saml:AuthnStatement')
           node.nil? ? nil : node.attributes['SessionIndex']
         end
       end
@@ -69,7 +70,7 @@ module OneLogin
         @attr_statements ||= begin
           attributes = Attributes.new
 
-          stmt_element = xpath_first_from_signed_assertion('/a:AttributeStatement')
+          stmt_element = xpath_first_from_signed_assertion('/saml:AttributeStatement')
           return attributes if stmt_element.nil?
 
           stmt_element.elements.each do |attr_element|
@@ -90,7 +91,7 @@ module OneLogin
       # When this user session should expire at latest
       def session_expires_at
         @expires_at ||= begin
-          node = xpath_first_from_signed_assertion('/a:AuthnStatement')
+          node = xpath_first_from_signed_assertion('/saml:AuthnStatement')
           parse_time(node, "SessionNotOnOrAfter")
         end
       end
@@ -98,21 +99,21 @@ module OneLogin
       # Checks the status of the response for a "Success" code
       def success?
         @status_code ||= begin
-          node = REXML::XPath.first(document, "/p:Response/p:Status/p:StatusCode", { "p" => PROTOCOL, "a" => ASSERTION })
+          node = REXML::XPath.first(document, "/samlp:Response/samlp:Status/samlp:StatusCode", { "samlp" => PROTOCOL })
           node.attributes["Value"] == "urn:oasis:names:tc:SAML:2.0:status:Success"
         end
       end
 
       def status_message
         @status_message ||= begin
-          node = REXML::XPath.first(document, "/p:Response/p:Status/p:StatusMessage", { "p" => PROTOCOL, "a" => ASSERTION })
+          node = REXML::XPath.first(document, "/samlp:Response/samlp:Status/samlp:StatusMessage", { "samlp" => PROTOCOL })
           node.text if node
         end
       end
 
       # Conditions (if any) for the assertion to run
       def conditions
-        @conditions ||= xpath_first_from_signed_assertion('/a:Conditions')
+        @conditions ||= xpath_first_from_signed_assertion('/saml:Conditions')
       end
 
       def not_before
@@ -125,8 +126,8 @@ module OneLogin
 
       def issuer
         @issuer ||= begin
-          node = REXML::XPath.first(document, "/p:Response/a:Issuer", { "p" => PROTOCOL, "a" => ASSERTION })
-          node ||= xpath_first_from_signed_assertion('/a:Issuer')
+          node = REXML::XPath.first(assertion_document, "/samlp:Response/saml:Issuer", { "samlp" => PROTOCOL, "saml" => ASSERTION })
+          node ||= xpath_first_from_signed_assertion('/saml:Issuer')
           node.nil? ? nil : node.text
         end
       end
@@ -134,11 +135,13 @@ module OneLogin
       private
 
       def validate(soft = true)
-        valid_saml?(document, soft)      &&
+        valid_saml?(document, soft)   &&
         validate_response_state(soft) &&
         validate_conditions(soft)     &&
         validate_issuer(soft)         &&
-        document.validate_document(get_fingerprint, soft) &&
+        # If signature on message or non-encrypted assertion, validate_the original document
+        # otherwise send to validate the document once the assertion was unencrypted
+        validate_right_document(get_fingerprint, soft) &&
         validate_success_status(soft)
       end
 
@@ -184,8 +187,8 @@ module OneLogin
       end
 
       def xpath_first_from_signed_assertion(subelt=nil)
-        node = REXML::XPath.first(document, "/p:Response/a:Assertion[@ID='#{document.signed_element_id}']#{subelt}", { "p" => PROTOCOL, "a" => ASSERTION })
-        node ||= REXML::XPath.first(document, "/p:Response[@ID='#{document.signed_element_id}']/a:Assertion#{subelt}", { "p" => PROTOCOL, "a" => ASSERTION })
+        node = REXML::XPath.first(assertion_document, "/samlp:Response/saml:Assertion[@ID='#{assertion_document.signed_element_id}']#{subelt}", { "samlp" => PROTOCOL, "saml" => ASSERTION, 'ds' => DSIG })
+        node ||= REXML::XPath.first(assertion_document, "/samlp:Response[@ID='#{assertion_document.signed_element_id}']/saml:Assertion#{subelt}", { "samlp" => PROTOCOL, "saml" => ASSERTION, 'ds' => DSIG })
         node
       end
 
@@ -229,6 +232,79 @@ module OneLogin
       def parse_time(node, attribute)
         if node && node.attributes[attribute]
           Time.parse(node.attributes[attribute])
+        end
+      end
+
+      def validate_right_document(get_fingerprint, soft)
+        if REXML::XPath.first(document, "/samlp:Response/ds:Signature", { "samlp" => PROTOCOL, "ds" => DSIG })
+          document.validate_document(get_fingerprint, soft)
+        else
+          decrypted_response.validate_document(get_fingerprint, soft)
+        end
+      end
+
+      def decrypted_response
+        @decrypted_response ||= assertion_document
+      end
+
+      def decrypt_assertion_document
+        @encrypted = true
+        encrypted_assertion = REXML::XPath.first(document, "(/samlp:Response/EncryptedAssertion/)|(/samlp:Response/saml:EncryptedAssertion/)", { "samlp" => PROTOCOL, "saml" => ASSERTION, 'ds' => DSIG })
+        cipher_data = REXML::XPath.first(encrypted_assertion, "./xenc:EncryptedData", { 'xenc' => XENC })
+        aes_key = retrieve_symmetric_key(cipher_data)
+        cipher_value = REXML::XPath.first(cipher_data, "./xenc:CipherData/xenc:CipherValue", { 'xenc' => XENC })
+        encrypted_assertion = Base64.decode64(cipher_value.text)
+        enc_method = REXML::XPath.first(cipher_data, "./xenc:EncryptionMethod", { 'xenc' => XENC })
+        algorithm = enc_method.attributes['Algorithm']
+        assertion_plaintext = retrieve_plaintext(encrypted_assertion, aes_key, algorithm)
+        REXML::Document.new(assertion_plaintext)
+      end
+
+      def assertion_document
+        @assertion_document ||= begin
+          if encrypted_element = REXML::XPath.first(document, "(/samlp:Response/EncryptedAssertion/)|(/samlp:Response/saml:EncryptedAssertion/)", { "samlp" => PROTOCOL, "saml" => ASSERTION })
+            response = REXML::XPath.first(document, "/samlp:Response/", { "samlp" => PROTOCOL })
+            response.add(decrypt_assertion_document)
+            encrypted_element.remove
+            XMLSecurity::SignedDocument.new(document.to_s)
+          else
+            document
+          end
+        end
+      end
+
+      def retrieve_symmetric_key(cipher_data)
+        private_key = OpenSSL::PKey::RSA.new(settings.private_key)
+        encrypted_aes_key_element = REXML::XPath.first(cipher_data, "./ds:KeyInfo/xenc:EncryptedKey/xenc:CipherData/xenc:CipherValue", { "ds" => DSIG, "xenc" => XENC })
+        encrypted_aes_key = Base64.decode64(encrypted_aes_key_element.text)
+        private_key.private_decrypt(encrypted_aes_key, OpenSSL::PKey::RSA::PKCS1_OAEP_PADDING)
+      end
+
+      def retrieve_plaintext(cipher_text, key, algorithm)
+        case algorithm
+        when 'http://www.w3.org/2001/04/xmlenc#tripledes-cbc' then cipher = OpenSSL::Cipher.new('DES-EDE3-CBC').decrypt
+        when 'http://www.w3.org/2001/04/xmlenc#aes128-cbc' then cipher = OpenSSL::Cipher.new('AES-128-CBC').decrypt
+        when 'http://www.w3.org/2001/04/xmlenc#aes192-cbc' then cipher = OpenSSL::Cipher.new('AES-192-CBC').decrypt
+        when 'http://www.w3.org/2001/04/xmlenc#aes256-cbc' then cipher = OpenSSL::Cipher.new('AES-256-CBC').decrypt
+        when 'http://www.w3.org/2001/04/xmlenc#rsa-1_5' then rsa = key
+        when 'http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p' then oaep = key
+        end
+
+        if cipher
+          iv = cipher_text[0..15]
+          data = cipher_text[16..-1]
+          cipher.padding, cipher.key, cipher.iv = 0, key, iv
+          assertion_plaintext = cipher.update(data)
+          assertion_plaintext << cipher.final
+          # We get some problematic noise in the plaintext after decrypting.
+          # This quick regexp parse will grab only the assertion and discard the noise.
+          assertion_plaintext.match(/(.*<\/(saml:|)Assertion>)/m)[0]
+        elsif rsa
+          rsa.private_decrypt(cipher_text)
+        elsif oaep
+          oaep.private_decrypt(cipher_text, OpenSSL::PKey::RSA::PKCS1_OAEP_PADDING)
+        else
+          cipher_text
         end
       end
     end
