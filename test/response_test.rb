@@ -159,6 +159,36 @@ class RubySamlTest < Test::Unit::TestCase
         response.settings = settings
         assert_raises(OneLogin::RubySaml::ValidationError, 'Digest mismatch'){ response.validate! }
       end
+
+      should "validate encrypted assertion in a signed message" do
+        response = OneLogin::RubySaml::Response.new(signed_message_encrypted_and_unsigned_assertion)
+        response.stubs(:conditions).returns(nil)
+        settings = OneLogin::RubySaml::Settings.new
+        settings.idp_cert_fingerprint = "EE:17:4E:FB:A8:81:71:12:0D:2A:78:43:BC:E7:0C:07:58:79:F4:F4"
+        response.settings = settings
+        assert response.send(:validate_right_document, settings.idp_cert_fingerprint, false)
+      end
+
+      should "validate encrypted signed assertion in a signed message" do
+        response = OneLogin::RubySaml::Response.new(signed_message_encrypted_and_signed_assertion)
+        response.stubs(:conditions).returns(nil)
+        settings = OneLogin::RubySaml::Settings.new
+        settings.idp_cert_fingerprint = "EE:17:4E:FB:A8:81:71:12:0D:2A:78:43:BC:E7:0C:07:58:79:F4:F4"
+        response.settings = settings
+        assert response.send(:validate_right_document, settings.idp_cert_fingerprint, false)
+      end
+
+      should "validate encrypted signed assertion in an unsigned message" do
+        response = OneLogin::RubySaml::Response.new(unsigned_message_encrypted_and_signed_assertion)
+        response.stubs(:conditions).returns(nil)
+        settings = OneLogin::RubySaml::Settings.new
+        settings.idp_cert_fingerprint = "EE:17:4E:FB:A8:81:71:12:0D:2A:78:43:BC:E7:0C:07:58:79:F4:F4"
+        settings.certificate = ruby_saml_cert2_text
+        settings.private_key = ruby_saml_key2_text
+        response.settings = settings
+        assert response.send(:validate_right_document, settings.idp_cert_fingerprint, false)
+      end
+
     end
 
     context "#name_id" do

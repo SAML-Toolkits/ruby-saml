@@ -64,6 +64,18 @@ class Test::Unit::TestCase
     @wrapped_response_2 ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'wrapped_response_2.xml.base64'))
   end
 
+  def signed_message_encrypted_and_unsigned_assertion
+    @signed_message_encrypted_and_unsigned_assertion ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'signed_message_encrypted_and_unsigned_assertion.xml.base64'))
+  end
+
+  def signed_message_encrypted_and_signed_assertion
+    @signed_message_encrypted_and_signed_assertion ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'signed_message_encrypted_and_signed_assertion.xml.base64'))
+  end
+
+  def unsigned_message_encrypted_and_signed_assertion
+    @unsigned_message_encrypted_and_signed_assertion ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'unsigned_message_encrypted_and_signed_assertion.xml.base64'))
+  end
+
   def signature_fingerprint_1
     @signature_fingerprint1 ||= "C5:19:85:D9:47:F1:BE:57:08:20:25:05:08:46:EB:27:F6:CA:B7:83"
   end
@@ -101,12 +113,20 @@ class Test::Unit::TestCase
     File.read(File.join(File.dirname(__FILE__), 'certificates', 'ruby-saml.crt'))
   end
 
+  def ruby_saml_cert2_text
+    @ruby_saml_cert2_text ||= File.read(File.join(File.dirname(__FILE__), 'certificates', 'ruby-saml2.crt'))
+  end
+
   def ruby_saml_key
     @ruby_saml_key ||= OpenSSL::PKey::RSA.new(ruby_saml_key_text)
   end
 
   def ruby_saml_key_text
     File.read(File.join(File.dirname(__FILE__), 'certificates', 'ruby-saml.key'))
+  end
+
+  def ruby_saml_key2_text
+    @ruby_saml_key2_text ||= File.read(File.join(File.dirname(__FILE__), 'certificates', 'ruby-saml2.key'))
   end
 
 end

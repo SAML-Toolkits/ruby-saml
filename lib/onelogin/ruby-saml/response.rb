@@ -19,13 +19,15 @@ module OneLogin
       attr_reader :options
       attr_reader :response
       attr_reader :document
+      attr_reader :original_document
 
       def initialize(response, options = {})
         @errors = []
         raise ArgumentError.new("Response cannot be nil") if response.nil?
         @options  = options
         @response = decode_raw_saml(response)
-        @document = XMLSecurity::SignedDocument.new(@response, @errors)
+        @document = @original_document = XMLSecurity::SignedDocument.new(@response, @errors)
+        @original_document = Marshal.load(Marshal.dump(@document))
       end
 
       def is_valid?
@@ -237,7 +239,7 @@ module OneLogin
 
       def validate_right_document(get_fingerprint, soft)
         if REXML::XPath.first(document, "/samlp:Response/ds:Signature", { "samlp" => PROTOCOL, "ds" => DSIG })
-          document.validate_document(get_fingerprint, soft)
+          original_document.validate_document(get_fingerprint, soft)
         else
           decrypted_response.validate_document(get_fingerprint, soft)
         end
