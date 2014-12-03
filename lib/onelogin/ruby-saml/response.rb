@@ -26,8 +26,14 @@ module OneLogin
         raise ArgumentError.new("Response cannot be nil") if response.nil?
         @options  = options
         @response = decode_raw_saml(response)
-        @document = @original_document = XMLSecurity::SignedDocument.new(@response, @errors)
-        @original_document = Marshal.load(Marshal.dump(@document))
+        @document = XMLSecurity::SignedDocument.new(@response, @errors)
+
+        # Marshal at Ruby 1.8.7 throw an Exception
+        if RUBY_VERSION < "1.9"
+          @original_document = XMLSecurity::SignedDocument.new(@response, @errors)
+        else
+          @original_document = Marshal.load(Marshal.dump(@document))
+        end
       end
 
       def is_valid?
