@@ -34,6 +34,7 @@ require "onelogin/ruby-saml/validation_error"
 module XMLSecurity
 
   class BaseDocument < REXML::Document
+    @@entity_expansion_limit = 0
 
     C14N            = "http://www.w3.org/2001/10/xml-exc-c14n#"
     DSIG            = "http://www.w3.org/2000/09/xmldsig#"

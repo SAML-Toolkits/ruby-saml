@@ -8,6 +8,7 @@ require "rexml/xpath"
 module OneLogin
   module RubySaml
     include REXML
+    REXML::Document::entity_expansion_limit = 0
 
     class IdpMetadataParser
 
