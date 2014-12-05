@@ -154,7 +154,7 @@ module OneLogin
         Dir.chdir(File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'schemas'))) do
           @schema = Nokogiri::XML::Schema(IO.read('saml-schema-protocol-2.0.xsd'))
           @xml = Nokogiri::XML(self.document.to_s) do |config|
-            config.options = Nokogiri::XML::ParseOptions::STRICT | Nokogiri::XML::ParseOptions::NONET
+            config.options = Nokogiri::XML::ParseOptions::NONET
           end
         end
         if soft
