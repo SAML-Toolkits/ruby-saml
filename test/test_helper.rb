@@ -20,32 +20,40 @@ class Minitest::Test
     end
   end
 
+  def read_response(response)
+    File.read(File.join(File.dirname(__FILE__), "responses", response))
+  end
+
+  def read_certificate(certificate)
+    File.read(File.join(File.dirname(__FILE__), "certificates", certificate))
+  end
+
   def response_document
-    @response_document ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'response1.xml.base64'))
+    @response_document ||= read_response("response1.xml.base64")
   end
 
   def response_document_2
-    @response_document2 ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'response2.xml.base64'))
+    @response_document2 ||= read_response("response2.xml.base64")
   end
 
   def response_document_3
-    @response_document3 ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'response3.xml.base64'))
+    @response_document3 ||= read_response("response3.xml.base64")
   end
 
   def response_document_4
-    @response_document4 ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'response4.xml.base64'))
+    @response_document4 ||= read_response("response4.xml.base64")
   end
 
   def response_document_5
-    @response_document5 ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'response5.xml.base64'))
+    @response_document5 ||= read_response("response5.xml.base64")
   end
 
   def r1_response_document_6
-    @response_document6 ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'r1_response6.xml.base64'))
+    @response_document6 ||= read_response("r1_response6.xml.base64")
   end
 
   def ampersands_response
-    @ampersands_response ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'response_with_ampersands.xml.base64'))
+    @ampersands_response ||= read_response("response_with_ampersands.xml.base64")
   end
 
   def response_document_6
@@ -56,11 +64,11 @@ class Minitest::Test
   end
 
   def response_document_7
-    @response_document7 ||= Base64.encode64(File.read(File.join(File.dirname(__FILE__), 'responses', 'response_no_cert_and_encrypted_attrs.xml')))
+    @response_document7 ||= Base64.encode64(read_response("response_no_cert_and_encrypted_attrs.xml"))
   end
 
   def wrapped_response_2
-    @wrapped_response_2 ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'wrapped_response_2.xml.base64'))
+    @wrapped_response_2 ||= read_response("wrapped_response_2.xml.base64")
   end
 
   def signature_fingerprint_1
@@ -68,20 +76,20 @@ class Minitest::Test
   end
 
   def signature_1
-    @signature1 ||= File.read(File.join(File.dirname(__FILE__), 'certificates', 'certificate1'))
+    @signature1 ||= read_certificate("certificate1")
   end
 
   def r1_signature_2
-    @signature2 ||= File.read(File.join(File.dirname(__FILE__), 'certificates', 'r1_certificate2_base64'))
+    @signature2 ||= read_certificate("r1_certificate2_base64")
   end
 
   def idp_metadata
-    @idp_metadata ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'idp_descriptor.xml'))
+    @idp_metadata ||= read_response("idp_descriptor.xml")
   end
 
   def logout_request_document
     unless @logout_request_document
-      xml = File.read(File.join(File.dirname(__FILE__), 'responses', 'slo_request.xml'))
+      xml = read_response("slo_request.xml")
       deflated = Zlib::Deflate.deflate(xml, 9)[2..-5]
       @logout_request_document = Base64.encode64(deflated)
     end
@@ -97,7 +105,7 @@ class Minitest::Test
   end
 
   def ruby_saml_cert_text
-    File.read(File.join(File.dirname(__FILE__), 'certificates', 'ruby-saml.crt'))
+    read_certificate("ruby-saml.crt")
   end
 
   def ruby_saml_key
@@ -105,7 +113,7 @@ class Minitest::Test
   end
 
   def ruby_saml_key_text
-    File.read(File.join(File.dirname(__FILE__), 'certificates', 'ruby-saml.key'))
+    read_certificate("ruby-saml.key")
   end
 
   #
