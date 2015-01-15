@@ -99,8 +99,8 @@ module XMLSecurity
       signature_method = sig_options[:signature_method] || SHA1
       digest_method    = sig_options[:digest_method]    || SHA1
 
-      noko = Nokogiri.parse(self.to_s)
-      canon_doc = noko.canonicalize(canon_algorithm(C14N))
+      doc = Nokogiri.parse(self.to_s)
+      canon_doc = doc.canonicalize(canon_algorithm(C14N))
 
       signature_element = REXML::Element.new("ds:Signature").add_namespace('ds', DSIG)
       signed_info_element = signature_element.add_element("ds:SignedInfo")
