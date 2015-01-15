@@ -90,7 +90,7 @@ module OneLogin
         if settings.security[:logout_responses_signed] && settings.private_key && settings.certificate && settings.security[:embed_sign]
           private_key = settings.get_sp_key()
           cert = settings.get_sp_cert()
-          response_doc.sign_document(private_key, cert, settings.security[:signature_method], settings.security[:digest_method])
+          response_doc.sign_document(private_key, cert, settings.security.slice(:signature_method, :digest_method))
         end
 
         response_doc

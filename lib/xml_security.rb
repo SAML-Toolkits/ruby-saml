@@ -95,7 +95,10 @@ module XMLSecurity
       #<KeyInfo />
       #<Object />
     #</Signature>
-    def sign_document(private_key, certificate, signature_method = SHA1, digest_method = SHA1)
+    def sign_document(private_key, certificate, sig_options = {})
+      signature_method = sig_options[:signature_method] || SHA1
+      digest_method    = sig_options[:digest_method]    || SHA1
+
       noko = Nokogiri.parse(self.to_s)
       canon_doc = noko.canonicalize(canon_algorithm(C14N))
 
