@@ -105,7 +105,7 @@ module XMLSecurity
       signature_element = REXML::Element.new("ds:Signature").add_namespace('ds', DSIG)
       signed_info_element = signature_element.add_element("ds:SignedInfo")
       signed_info_element.add_element("ds:CanonicalizationMethod", {"Algorithm" => C14N})
-      signed_info_element.add_element("ds:SignatureMethod", {"Algorithm"=>signature_method})
+      signed_info_element.add_element("ds:SignatureMethod", {"Algorithm" => signature_method})
 
       # Add Reference
       reference_element = signed_info_element.add_element("ds:Reference", {"URI" => "##{uuid}"})
@@ -158,9 +158,7 @@ module XMLSecurity
   end
 
   class SignedDocument < BaseDocument
-
-    attr_accessor :signed_element_id
-    attr_accessor :errors
+    attr_accessor :signed_element_id, :errors
 
     def initialize(response, errors = [])
       super(response)
@@ -255,7 +253,7 @@ module XMLSecurity
       return true
     end
 
-    private
+  private
 
     def digests_match?(hash, digest_value)
       hash == digest_value
