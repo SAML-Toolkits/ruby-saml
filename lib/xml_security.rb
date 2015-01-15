@@ -80,6 +80,37 @@ module XMLSecurity
 
     attr_accessor :uuid
 
+    def sign_document(private_key, certificate, sig_options = {})
+      signature_method = sig_options[:signature_method] || SHA1
+      digest_method    = sig_options[:digest_method]    || SHA1
+
+      doc = Nokogiri.parse(self.to_s)
+      canon_doc = doc.canonicalize(canon_algorithm(C14N))
+
+      signature_element = build_signature_element
+
+      # add the signature
+      issuer_element = self.elements["//saml:Issuer"]
+      if issuer_element
+        self.root.insert_after(issuer_element, signature_element)
+      else
+        self.root.add_element(signature_element)
+      end
+    end
+
+  protected
+
+    def compute_signature(private_key, signature_algorithm, document)
+      Base64.encode64(private_key.sign(signature_algorithm, document)).gsub(/\n/, "")
+    end
+
+    def compute_digest(document, digest_algorithm)
+      digest = digest_algorithm.digest(document)
+      Base64.encode64(digest).strip!
+    end
+
+  private
+
     #<Signature>
       #<SignedInfo>
         #<CanonicalizationMethod />
@@ -95,13 +126,7 @@ module XMLSecurity
       #<KeyInfo />
       #<Object />
     #</Signature>
-    def sign_document(private_key, certificate, sig_options = {})
-      signature_method = sig_options[:signature_method] || SHA1
-      digest_method    = sig_options[:digest_method]    || SHA1
-
-      doc = Nokogiri.parse(self.to_s)
-      canon_doc = doc.canonicalize(canon_algorithm(C14N))
-
+    def build_signature_element
       signature_element = REXML::Element.new("ds:Signature").add_namespace('ds', DSIG)
       signed_info_element = signature_element.add_element("ds:SignedInfo")
       signed_info_element.add_element("ds:CanonicalizationMethod", {"Algorithm" => C14N})
@@ -135,24 +160,7 @@ module XMLSecurity
       end
       x509_cert_element.text = Base64.encode64(certificate.to_der).gsub(/\n/, "")
 
-      # add the signature
-      issuer_element = self.elements["//saml:Issuer"]
-      if issuer_element
-        self.root.insert_after issuer_element, signature_element
-      else
-        self.root.add_element(signature_element)
-      end
-    end
-
-    protected
-
-    def compute_signature(private_key, signature_algorithm, document)
-      Base64.encode64(private_key.sign(signature_algorithm, document)).gsub(/\n/, "")
-    end
-
-    def compute_digest(document, digest_algorithm)
-      digest = digest_algorithm.digest(document)
-      Base64.encode64(digest).strip!
+      signature_element
     end
 
   end
