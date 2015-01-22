@@ -18,4 +18,5 @@ group :test do
   gem "timecop",    "<= 0.6.0"
   gem "systemu",    "~> 2"
   gem "rspec",      "~> 2"
+  gem 'pry'
 end
