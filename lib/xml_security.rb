@@ -102,7 +102,7 @@ module XMLSecurity
       signature_element = REXML::Element.new("ds:Signature").add_namespace('ds', DSIG)
       signed_info_element = signature_element.add_element("ds:SignedInfo")
       signed_info_element.add_element("ds:CanonicalizationMethod", {"Algorithm" => C14N})
-      signed_info_element.add_element("ds:SignatureMethod", {"Algorithm"=>signature_method})
+      signed_method_element = signed_info_element.add_element("ds:SignatureMethod", {"Algorithm"=>signature_method})
 
       # Add Reference
       reference_element = signed_info_element.add_element("ds:Reference", {"URI" => "##{uuid}"})
@@ -120,7 +120,7 @@ module XMLSecurity
       noko_sig_element = Nokogiri.parse(signature_element.to_s)
       noko_signed_info_element = noko_sig_element.at_xpath('//ds:Signature/ds:SignedInfo', 'ds' => DSIG)
       canon_string = noko_signed_info_element.canonicalize(canon_algorithm(C14N))
-      signature = compute_signature(private_key, algorithm(signature_method).new, canon_string)
+      signature = compute_signature(private_key, algorithm(signed_method_element).new, canon_string)
       signature_element.add_element("ds:SignatureValue").text = signature
 
       # add KeyInfo
