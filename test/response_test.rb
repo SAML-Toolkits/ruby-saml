@@ -332,7 +332,7 @@ class RubySamlTest < Test::Unit::TestCase
           OneLogin::RubySaml::Attributes.single_value_compatibility = false
           assert_equal nil, response.attributes[:attribute_not_exists]
           assert_equal nil, response.attributes.single(:attribute_not_exists)
-          assert_equal nil, response.attributes.multi(:attribute_not_exists)          
+          assert_equal nil, response.attributes.multi(:attribute_not_exists)
           OneLogin::RubySaml::Attributes.single_value_compatibility = true
         end
 
@@ -368,5 +368,13 @@ class RubySamlTest < Test::Unit::TestCase
       end
     end
 
+    context '#xpath_first_from_signed_assertion' do
+      should 'not allow arbitrary code execution' do
+        malicious_response_document = fixture('response_eval', false)
+        response = OneLogin::RubySaml::Response.new(malicious_response_document)
+        response.send(:xpath_first_from_signed_assertion)
+        assert_equal($evalled, nil)
+      end
+    end
   end
 end
