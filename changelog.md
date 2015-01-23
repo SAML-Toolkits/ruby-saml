@@ -1,4 +1,6 @@
 # RubySaml Changelog
+### 0.9 (Jan 23, 2015)
+
 
 ### 0.8.0 (Feb 21, 2014)
 Changed namespace of the gem from `OneLogin::Saml` to `OneLogin::RubySaml`.  Please update your implementations of the gem accordingly.
