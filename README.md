@@ -14,6 +14,12 @@ SAML authorization is a two step process and you are expected to implement suppo
 
 We created a demo project for Rails4 that uses the latest version of this library: [ruby-saml-example](https://github.com/onelogin/ruby-saml-example)
 
+### Supported versions of Ruby
+* 1.8.7
+* 1.9.3
+* 2.1.x
+* 2.2 (not yet officially supported)
+
 ## Adding Features, Pull Requests
 * Fork the repository
 * Make your feature addition or bug fix
