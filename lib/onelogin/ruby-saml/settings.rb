@@ -38,6 +38,9 @@ module OneLogin
       attr_accessor :authn_context_comparison
       attr_accessor :authn_context_decl_ref
       attr_reader :attribute_consuming_service
+      attr_accessor :idp_list
+      attr_accessor :proxy_count
+      attr_accessor :requester_id
       # Compability
       attr_accessor :assertion_consumer_logout_service_url
       attr_accessor :assertion_consumer_logout_service_binding

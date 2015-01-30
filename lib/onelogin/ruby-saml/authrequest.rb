@@ -111,6 +111,31 @@ module OneLogin
           end
         end
 
+        if settings.proxy_count || settings.idp_list || settings.requester_id
+          proxy_count_attribute = if settings.proxy_count
+            {
+              'ProxyCount' => settings.proxy_count.to_s
+            }
+          end
+
+          scoping = root.add_element 'samlp:Scoping', proxy_count_attribute
+
+          if settings.idp_list
+            idp_list_element = scoping.add_element 'samlp:IDPList'
+            settings.idp_list.each do |idp_entry|
+              idp_list_element.add_element 'samlp:IDPEntry', {
+                'Name' => idp_entry['name'],
+                'ProviderID' => idp_entry['provider_id']
+              }
+            end
+          end
+
+          if settings.requester_id
+            requester_id = scoping.add_element 'samlp:RequesterID'
+            requester_id.text = settings.requester_id
+          end
+        end
+
         # embebed sign
         if settings.security[:authn_requests_signed] && settings.private_key && settings.certificate && settings.security[:embed_sign] 
           private_key = settings.get_sp_key()
