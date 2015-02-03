@@ -2,8 +2,8 @@ module OneLogin
   module RubySaml
     class Utils
       def self.format_cert(cert, heads=true)
-        cert = cert.delete("\n").delete("\r").delete("\x0D")
         if cert
+          cert = cert.delete("\n").delete("\r").delete("\x0D")
           cert = cert.gsub('-----BEGIN CERTIFICATE-----', '')
           cert = cert.gsub('-----END CERTIFICATE-----', '')
           cert = cert.gsub(' ', '')
@@ -17,8 +17,8 @@ module OneLogin
       end
 
       def self.format_private_key(key, heads=true)
-        key = key.delete("\n").delete("\r").delete("\x0D")
         if key
+          key = key.delete("\n").delete("\r").delete("\x0D")
           if key.index('-----BEGIN PRIVATE KEY-----') != nil
             key = key.gsub('-----BEGIN PRIVATE KEY-----', '')
             key = key.gsub('-----END PRIVATE KEY-----', '')
@@ -37,8 +37,8 @@ module OneLogin
             end
           end
         end
+        key
       end
-
     end
   end
 end

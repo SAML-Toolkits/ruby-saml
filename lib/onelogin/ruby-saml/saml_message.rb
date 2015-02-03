@@ -12,6 +12,20 @@ module OneLogin
       ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion"
       PROTOCOL  = "urn:oasis:names:tc:SAML:2.0:protocol"
 
+      def version(document)
+        @recipient ||= begin
+          node = REXML::XPath.first(document, "/p:AuthnRequest | /p:Response | /p:LogoutResponse | /p:LogoutRequest", { "p" => PROTOCOL })
+          node.nil? ? nil : node.attributes['Version']
+        end
+      end
+
+      def id(document)
+        @id ||= begin
+          node = REXML::XPath.first(document, "/p:AuthnRequest | /p:Response | /p:LogoutResponse | /p:LogoutRequest", { "p" => PROTOCOL })
+          node.nil? ? nil : node.attributes['ID']
+        end
+      end
+
       def valid_saml?(document, soft = true)
         Dir.chdir(File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'schemas'))) do
           @schema = Nokogiri::XML::Schema(IO.read('saml-schema-protocol-2.0.xsd'))

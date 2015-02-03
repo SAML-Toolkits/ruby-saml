@@ -12,6 +12,7 @@ group :test do
   else
     gem "byebug",   "~> 2.1.1"
   end
+  gem 'simplecov',  "~> 0.9.0"
   gem "shoulda",    "~> 2.11"
   gem "rake",       "~> 10"
   gem "mocha",      "~> 0.14",  :require => false

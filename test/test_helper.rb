@@ -1,3 +1,9 @@
+require 'simplecov'
+
+SimpleCov.start do
+  add_filter "test/"
+end
+
 require 'rubygems'
 require 'bundler'
 require 'test/unit'
@@ -60,6 +66,98 @@ class Test::Unit::TestCase
     @response_document7 ||= Base64.encode64(File.read(File.join(File.dirname(__FILE__), 'responses', 'response_no_cert_and_encrypted_attrs.xml')))
   end
 
+  def response_document_8
+    @response_document8 ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'response8.xml.base64'))
+  end
+
+  def response_document_9
+    @response_document9 ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'response9.xml.base64'))
+  end
+
+  def valid_signed_response
+    @valid_signed_response ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'valid_response.xml.base64'))
+  end
+
+  def response_no_id
+    @response_no_id ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'invalids', 'no_id.xml.base64'))
+  end
+
+  def response_no_version
+    @response_no_version ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'invalids', 'no_saml2.xml.base64'))
+  end
+
+  def response_multi_assertion
+    @response_no_version ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'invalids', 'multiple_assertions.xml.base64'))
+  end
+
+  def response_no_status
+    @response_no_status ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'invalids', 'no_status.xml.base64'))
+  end
+
+  def response_no_statuscode
+    @response_no_statuscode ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'invalids', 'no_status_code.xml.base64'))
+  end
+
+  def response_statuscode_responder
+    @response_statuscode_responder ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'invalids', 'status_code_responder.xml.base64'))
+  end
+
+  def response_statuscode_responder_and_msg
+    @status_code_responer_and_msg ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'invalids', 'status_code_responer_and_msg.xml.base64'))
+  end
+
+  def response_encrypted_attrs
+    @response_encrypted_attrs ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'invalids', 'response_encrypted_attrs.xml.base64')) 
+  end
+
+  def response_no_signed_elements
+    @response_no_signed_elements ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'invalids', 'no_signature.xml.base64'))
+  end
+
+  def response_multiple_signed
+    @response_no_signed_elements ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'invalids', 'multiple_signed.xml.base64'))
+  end
+
+  def response_invalid_audience
+    @response_invalid_audience ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'invalids', 'invalid_audience.xml.base64'))
+  end
+
+  def response_invalid_signed_element
+    @response_invalid_signed_element ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'invalids', 'response_invalid_signed_element.xml.base64'))
+  end
+
+  def response_invalid_issuer_assertion
+    @response_invalid_issuer_assertion ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'invalids', 'invalid_issuer_assertion.xml.base64'))
+  end
+
+  def response_invalid_issuer_message
+    @response_invalid_issuer_assertion ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'invalids', 'invalid_issuer_message.xml.base64'))
+  end
+
+  def response_no_subjectconfirmation_data
+    @response_no_subjectconfirmation_data ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'invalids', 'no_subjectconfirmation_data.xml.base64'))
+  end
+
+  def response_no_subjectconfirmation_method
+    @no_subjectconfirmation_method ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'invalids', 'no_subjectconfirmation_method.xml.base64'))
+  end
+
+  def response_invalid_subjectconfirmation_inresponse
+    @response_invalid_subjectconfirmation_inresponse ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'invalids', 'invalid_subjectconfirmation_inresponse.xml.base64'))
+  end
+
+  def response_invalid_subjectconfirmation_recipient
+    @response_invalid_subjectconfirmation_recipient ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'invalids', 'invalid_subjectconfirmation_recipient.xml.base64'))
+  end
+
+  def response_invalid_subjectconfirmation_nb
+    @response_invalid_subjectconfirmation_nb ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'invalids', 'invalid_subjectconfirmation_nb.xml.base64'))
+  end
+
+  def response_invalid_subjectconfirmation_noa
+    @response_invalid_subjectconfirmation_noa ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'invalids', 'invalid_subjectconfirmation_noa.xml.base64'))
+  end
+
   def wrapped_response_2
     @wrapped_response_2 ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'wrapped_response_2.xml.base64'))
   end
@@ -94,7 +192,7 @@ class Test::Unit::TestCase
   end
 
   def ruby_saml_cert_fingerprint
-    @ruby_saml_cert_fingerprint ||= Digest::SHA1.hexdigest(ruby_saml_cert.to_der).scan(/../).join(":")
+    @ruby_saml_cert_fingerprint ||= Digest::SHA1.hexdigest(ruby_saml_cert.to_der).scan(/../).join(":").upcase
   end
 
   def ruby_saml_cert_text

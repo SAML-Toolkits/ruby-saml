@@ -206,6 +206,7 @@ class XmlSecurityTest < Test::Unit::TestCase
 
       should "be able to validate a good response" do
         Timecop.freeze Time.parse('2012-11-28 17:55:00 UTC') do
+          @response.stubs(:validate_subject_confirmation).returns(true)
           assert @response.validate!
         end
       end
@@ -213,12 +214,14 @@ class XmlSecurityTest < Test::Unit::TestCase
       should "fail before response is valid" do
         Timecop.freeze Time.parse('2012-11-20 17:55:00 UTC') do
           assert ! @response.is_valid?
+          assert @response.errors.include? "Current time is earlier than NotBefore condition 2012-11-20 17:55:00 UTC < 2012-11-28 17:53:45 UTC)"
         end
       end
 
       should "fail after response expires" do
         Timecop.freeze Time.parse('2012-11-30 17:55:00 UTC') do
           assert ! @response.is_valid?
+          assert @response.errors.include? "Current time is on or after NotOnOrAfter condition (2012-11-30 17:55:00 UTC >= 2012-11-28 18:33:45 UTC)"
         end
       end
     end
