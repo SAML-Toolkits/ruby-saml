@@ -1,5 +1,8 @@
 # Ruby SAML [![Build Status](https://secure.travis-ci.org/onelogin/ruby-saml.png)](http://travis-ci.org/onelogin/ruby-saml)
 
+## Updating from 0.8.x to 0.9
+Version `0.9` adds many new features and improvements. It is a recommended update for all Ruby SAML users. For more details, please review [the changelog](changelog.md)
+
 ## Updating from 0.7.x to 0.8.x
 Version `0.8.x` changes the namespace of the gem from `OneLogin::Saml` to `OneLogin::RubySaml`.  Please update your implementations of the gem accordingly.
 
@@ -11,6 +14,20 @@ SAML authorization is a two step process and you are expected to implement suppo
 
 We created a demo project for Rails4 that uses the latest version of this library: [ruby-saml-example](https://github.com/onelogin/ruby-saml-example)
 
+### Supported versions of Ruby
+* 1.8.7
+* 1.9.3
+* 2.1.x
+* 2.2 (not yet officially supported)
+
+## Adding Features, Pull Requests
+* Fork the repository
+* Make your feature addition or bug fix
+* Add tests for your new features. This is important so we don't break any features in a future version unintentionally.
+* Ensure all tests pass.
+* Do not change rakefile, version, or history.
+* Open a pull request, following [this template](https://gist.github.com/Lordnibbler/11002759).
+
 ## Getting Started
 In order to use the toolkit you will need to install the gem (either manually or using Bundler), and require the library in your Ruby application:
 
@@ -18,7 +35,7 @@ Using `Gemfile`
 
 ```ruby
 # latest stable
-gem 'ruby-saml', '~> 0.8.1'
+gem 'ruby-saml', '~> 0.9'
 
 # or track master for bleeding-edge
 gem 'ruby-saml', :github => 'onelogin/ruby-saml'
@@ -475,11 +492,3 @@ settings.attribute_consuming_service.configure do
   add_attribute :name => "Another Attribute", :name_format => "Name Format", :friendly_name => "Friendly Name", :attribute_value => "Attribute Value"
 end
 ```
-
-## Adding Features, Pull Requests
-* Fork the repository
-* Make your feature addition or bug fix
-* Add tests for your new features. This is important so we don't break any features in a future version unintentionally.
-* Ensure all tests pass.
-* Do not change rakefile, version, or history.
-* Open a pull request, following [this template](https://gist.github.com/Lordnibbler/11002759).
