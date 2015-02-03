@@ -2,14 +2,14 @@ require File.expand_path(File.join(File.dirname(__FILE__), "test_helper"))
 require 'net/http'
 require 'net/https'
 
-class IdpMetadataParserTest < Test::Unit::TestCase
+class IdpMetadataParserTest < Minitest::Test
 
   class MockResponse
     attr_accessor :body
   end
 
-  context "parsing an IdP descriptor file" do
-    should "extract settings details from xml" do
+  describe "parsing an IdP descriptor file" do
+    it "extract settings details from xml" do
       idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
 
       settings = idp_metadata_parser.parse(idp_metadata)
@@ -20,8 +20,8 @@ class IdpMetadataParserTest < Test::Unit::TestCase
     end
   end
 
-  context "download and parse IdP descriptor file" do
-    setup do
+  describe "download and parse IdP descriptor file" do
+    before do
       mock_response = MockResponse.new
       mock_response.body = idp_metadata
       @url = "https://example.com"
@@ -33,7 +33,7 @@ class IdpMetadataParserTest < Test::Unit::TestCase
     end
 
 
-    should "extract settings from remote xml" do
+    it "extract settings from remote xml" do
       idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
       settings = idp_metadata_parser.parse_remote(@url)
 
@@ -43,7 +43,7 @@ class IdpMetadataParserTest < Test::Unit::TestCase
       assert_equal OpenSSL::SSL::VERIFY_PEER, @http.verify_mode
     end
 
-    should "accept self signed certificate if insturcted" do
+    it "accept self signed certificate if insturcted" do
       idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
       settings = idp_metadata_parser.parse_remote(@url, false)
 

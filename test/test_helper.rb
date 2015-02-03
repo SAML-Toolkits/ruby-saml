@@ -1,6 +1,6 @@
 require 'rubygems'
 require 'bundler'
-require 'test/unit'
+require 'minitest/autorun'
 require 'mocha/setup'
 
 Bundler.require :default, :test
@@ -11,7 +11,7 @@ require 'ruby-saml'
 
 ENV["ruby-saml/testing"] = "1"
 
-class Test::Unit::TestCase
+class Minitest::Test
   def fixture(document, base64 = true)
     response = Dir.glob(File.join(File.dirname(__FILE__), "responses", "#{document}*")).first
     if base64 && response =~ /\.xml$/
@@ -109,4 +109,38 @@ class Test::Unit::TestCase
     File.read(File.join(File.dirname(__FILE__), 'certificates', 'ruby-saml.key'))
   end
 
+  #
+  # logoutresponse fixtures
+  #
+  def random_id
+    "_#{UUID.new.generate}"
+  end
+
+  #
+  # decodes a base64 encoded SAML response for use in SloLogoutresponse tests
+  #
+  def decode_saml_response_payload(unauth_url)
+    payload = CGI.unescape(unauth_url.split("SAMLResponse=").last)
+    decoded = Base64.decode64(payload)
+
+    zstream = Zlib::Inflate.new(-Zlib::MAX_WBITS)
+    inflated = zstream.inflate(decoded)
+    zstream.finish
+    zstream.close
+    inflated
+  end
+
+  #
+  # decodes a base64 encoded SAML request for use in Logoutrequest tests
+  #
+  def decode_saml_request_payload(unauth_url)
+    payload = CGI.unescape(unauth_url.split("SAMLRequest=").last)
+    decoded = Base64.decode64(payload)
+
+    zstream = Zlib::Inflate.new(-Zlib::MAX_WBITS)
+    inflated = zstream.inflate(decoded)
+    zstream.finish
+    zstream.close
+    inflated
+  end
 end

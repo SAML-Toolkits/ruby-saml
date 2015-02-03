@@ -1,112 +1,109 @@
-require 'test_helper'
+require File.expand_path(File.join(File.dirname(__FILE__), "test_helper"))
 require 'xml_security'
+require 'timecop'
 
-class XmlSecurityTest < Test::Unit::TestCase
+class XmlSecurityTest < Minitest::Test
   include XMLSecurity
 
-  context "XmlSecurity" do
-    setup do
+  describe "XmlSecurity" do
+    before do
       @document = XMLSecurity::SignedDocument.new(Base64.decode64(response_document))
       @base64cert = @document.elements["//ds:X509Certificate"].text
     end
 
-    should "should run validate without throwing NS related exceptions" do
+    it "should run validate without throwing NS related exceptions" do
       assert !@document.validate_signature(@base64cert, true)
     end
 
-    should "should run validate with throwing NS related exceptions" do
-      assert_raise(OneLogin::RubySaml::ValidationError) do
+    it "should run validate with throwing NS related exceptions" do
+      assert_raises(OneLogin::RubySaml::ValidationError) do
         @document.validate_signature(@base64cert, false)
       end
     end
 
-    should "not raise an error when softly validating the document multiple times" do
-      assert_nothing_raised do
-        2.times { @document.validate_signature(@base64cert, true) }
-      end
+    it "not raise an error when softly validating the document multiple times" do
+      2.times { assert_equal @document.validate_signature(@base64cert, true), false }
     end
 
-    should "not raise an error when softly validating the document and the X509Certificate is missing" do
+    it "not raise an error when softly validating the document and the X509Certificate is missing" do
       response = Base64.decode64(response_document)
       response.sub!(/<ds:X509Certificate>.*<\/ds:X509Certificate>/, "")
       document = XMLSecurity::SignedDocument.new(response)
-      assert_nothing_raised do
-        assert !document.validate_document("a fingerprint", true) # The fingerprint isn't relevant to this test
-      end
+      assert !document.validate_document("a fingerprint", true) # The fingerprint isn't relevant to this test
     end
 
-    should "should raise Fingerprint mismatch" do
-      exception = assert_raise(OneLogin::RubySaml::ValidationError) do
+    it "should raise Fingerprint mismatch" do
+      exception = assert_raises(OneLogin::RubySaml::ValidationError) do
         @document.validate_document("no:fi:ng:er:pr:in:t", false)
       end
       assert_equal("Fingerprint mismatch", exception.message)
       assert @document.errors.include? "Fingerprint mismatch"
     end
 
-    should "should raise Digest mismatch" do
-      exception = assert_raise(OneLogin::RubySaml::ValidationError) do
+    it "should raise Digest mismatch" do
+      exception = assert_raises(OneLogin::RubySaml::ValidationError) do
         @document.validate_signature(@base64cert, false)
       end
       assert_equal("Digest mismatch", exception.message)
       assert @document.errors.include? "Digest mismatch"
     end
 
-    should "should raise Key validation error" do
+    it "should raise Key validation error" do
       response = Base64.decode64(response_document)
       response.sub!("<ds:DigestValue>pJQ7MS/ek4KRRWGmv/H43ReHYMs=</ds:DigestValue>",
                     "<ds:DigestValue>b9xsAXLsynugg3Wc1CI3kpWku+0=</ds:DigestValue>")
       document = XMLSecurity::SignedDocument.new(response)
       base64cert = document.elements["//ds:X509Certificate"].text
-      exception = assert_raise(OneLogin::RubySaml::ValidationError) do
+      exception = assert_raises(OneLogin::RubySaml::ValidationError) do
         document.validate_signature(base64cert, false)
       end
       assert_equal("Key validation error", exception.message)
       assert document.errors.include? "Key validation error"
     end
 
-    should "correctly obtain the digest method with alternate namespace declaration" do
+    it "correctly obtain the digest method with alternate namespace declaration" do
       document = XMLSecurity::SignedDocument.new(fixture(:adfs_response_xmlns, false))
       base64cert = document.elements["//X509Certificate"].text
       assert document.validate_signature(base64cert, false)
     end
 
-    should "raise validation error when the X509Certificate is missing" do
+    it "raise validation error when the X509Certificate is missing" do
       response = Base64.decode64(response_document)
       response.sub!(/<ds:X509Certificate>.*<\/ds:X509Certificate>/, "")
       document = XMLSecurity::SignedDocument.new(response)
-      exception = assert_raise(OneLogin::RubySaml::ValidationError) do
+      exception = assert_raises(OneLogin::RubySaml::ValidationError) do
         document.validate_document("a fingerprint", false) # The fingerprint isn't relevant to this test
       end
       assert_equal("Certificate element missing in response (ds:X509Certificate)", exception.message)
     end
   end
 
-  context "Algorithms" do
-    should "validate using SHA1" do
+  describe "Algorithms" do
+    it "validate using SHA1" do
       @document = XMLSecurity::SignedDocument.new(fixture(:adfs_response_sha1, false))
       assert @document.validate_document("F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72")
     end
 
-    should "validate using SHA256" do
+    it "validate using SHA256" do
       @document = XMLSecurity::SignedDocument.new(fixture(:adfs_response_sha256, false))
       assert @document.validate_document("28:74:9B:E8:1F:E8:10:9C:A8:7C:A9:C3:E3:C5:01:6C:92:1C:B4:BA")
     end
 
-    should "validate using SHA384" do
+    it "validate using SHA384" do
       @document = XMLSecurity::SignedDocument.new(fixture(:adfs_response_sha384, false))
       assert @document.validate_document("F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72")
     end
 
-    should "validate using SHA512" do
+    it "validate using SHA512" do
       @document = XMLSecurity::SignedDocument.new(fixture(:adfs_response_sha512, false))
       assert @document.validate_document("F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72")
     end
   end
 
-  context "XmlSecurity::SignedDocument" do
+  describe "XmlSecurity::SignedDocument" do
 
-    context "#extract_inclusive_namespaces" do
-      should "support explicit namespace resolution for exclusive canonicalization" do
+    describe "#extract_inclusive_namespaces" do
+      it "support explicit namespace resolution for exclusive canonicalization" do
         response = fixture(:open_saml_response, false)
         document = XMLSecurity::SignedDocument.new(response)
         inclusive_namespaces = document.send(:extract_inclusive_namespaces)
@@ -114,7 +111,7 @@ class XmlSecurityTest < Test::Unit::TestCase
         assert_equal %w[ xs ], inclusive_namespaces
       end
 
-      should "support implicit namespace resolution for exclusive canonicalization" do
+      it "support implicit namespace resolution for exclusive canonicalization" do
         response = fixture(:no_signature_ns, false)
         document = XMLSecurity::SignedDocument.new(response)
         inclusive_namespaces = document.send(:extract_inclusive_namespaces)
@@ -122,8 +119,8 @@ class XmlSecurityTest < Test::Unit::TestCase
         assert_equal %w[ #default saml ds xs xsi ], inclusive_namespaces
       end
 
-      should_eventually 'support inclusive canonicalization' do
-
+      it 'support inclusive canonicalization' do
+        skip('test not yet implemented')
         response = OneLogin::RubySaml::Response.new(fixture("tdnf_response.xml"))
         response.stubs(:conditions).returns(nil)
         assert !response.is_valid?
@@ -135,7 +132,7 @@ class XmlSecurityTest < Test::Unit::TestCase
         assert response.validate!
       end
 
-      should "return an empty list when inclusive namespace element is missing" do
+      it "return an empty list when inclusive namespace element is missing" do
         response = fixture(:no_signature_ns, false)
         response.slice! %r{<InclusiveNamespaces xmlns="http://www.w3.org/2001/10/xml-exc-c14n#" PrefixList="#default saml ds xs xsi"/>}
 
@@ -146,8 +143,8 @@ class XmlSecurityTest < Test::Unit::TestCase
       end
     end
 
-    context "XMLSecurity::DSIG" do
-      should "sign a AuthNRequest" do
+    describe "XMLSecurity::DSIG" do
+      it "sign a AuthNRequest" do
         settings = OneLogin::RubySaml::Settings.new({
           :idp_sso_target_url => "https://idp.example.com/sso",
           :protocol_binding => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
@@ -163,7 +160,7 @@ class XmlSecurityTest < Test::Unit::TestCase
         signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
       end
 
-      should "sign a LogoutRequest" do
+      it "sign a LogoutRequest" do
         settings = OneLogin::RubySaml::Settings.new({
           :idp_slo_target_url => "https://idp.example.com/slo",
           :protocol_binding => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
@@ -179,7 +176,7 @@ class XmlSecurityTest < Test::Unit::TestCase
         signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
       end
 
-      should "sign a LogoutResponse" do
+      it "sign a LogoutResponse" do
         settings = OneLogin::RubySaml::Settings.new({
           :idp_slo_target_url => "https://idp.example.com/slo",
           :protocol_binding => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
@@ -196,33 +193,31 @@ class XmlSecurityTest < Test::Unit::TestCase
       end
     end
 
-    context "StarfieldTMS" do
-      setup do
+    describe "StarfieldTMS" do
+      before do
         @response = OneLogin::RubySaml::Response.new(fixture(:starfield_response))
         @response.settings = OneLogin::RubySaml::Settings.new(
                                                           :idp_cert_fingerprint => "8D:BA:53:8E:A3:B6:F9:F1:69:6C:BB:D9:D8:BD:41:B3:AC:4F:9D:4D"
                                                           )
       end
 
-      should "be able to validate a good response" do
+      it "be able to validate a good response" do
         Timecop.freeze Time.parse('2012-11-28 17:55:00 UTC') do
           assert @response.validate!
         end
       end
 
-      should "fail before response is valid" do
+      it "fail before response is valid" do
         Timecop.freeze Time.parse('2012-11-20 17:55:00 UTC') do
           assert ! @response.is_valid?
         end
       end
 
-      should "fail after response expires" do
+      it "fail after response expires" do
         Timecop.freeze Time.parse('2012-11-30 17:55:00 UTC') do
           assert ! @response.is_valid?
         end
       end
     end
-
   end
-
 end
