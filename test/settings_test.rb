@@ -1,12 +1,13 @@
 require File.expand_path(File.join(File.dirname(__FILE__), "test_helper"))
 
-class SettingsTest < Test::Unit::TestCase
+class SettingsTest < Minitest::Test
 
-  context "Settings" do
-    setup do
+  describe "Settings" do
+    before do
       @settings = OneLogin::RubySaml::Settings.new
     end
-    should "should provide getters and settings" do
+
+    it "should provide getters and settings" do
       accessors = [
         :idp_entity_id, :idp_sso_target_url, :idp_slo_target_url, :idp_cert, :idp_cert_fingerprint,
         :issuer, :assertion_consumer_service_url, :assertion_consumer_service_binding,
@@ -28,7 +29,7 @@ class SettingsTest < Test::Unit::TestCase
 
     end
 
-    should "create settings from hash" do
+    it "create settings from hash" do
 
       config = {
           :assertion_consumer_service_url => "http://app.muda.no/sso",
@@ -49,18 +50,16 @@ class SettingsTest < Test::Unit::TestCase
       end
     end
 
-    should "configure attribute service attributes correctly" do
+    it "configure attribute service attributes correctly" do
       @settings = OneLogin::RubySaml::Settings.new
       @settings.attribute_consuming_service.configure do
         service_name "Test Service"
-        add_attribute :name => "Name", :name_format => "Name Format", :friendly_name => "Friendly Name" 
+        add_attribute :name => "Name", :name_format => "Name Format", :friendly_name => "Friendly Name"
       end
 
       assert_equal @settings.attribute_consuming_service.configured?, true
       assert_equal @settings.attribute_consuming_service.name, "Test Service"
       assert_equal @settings.attribute_consuming_service.attributes, [{:name => "Name", :name_format => "Name Format", :friendly_name => "Friendly Name" }]
     end
-
   end
-
 end

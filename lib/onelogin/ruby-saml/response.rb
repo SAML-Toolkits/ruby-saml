@@ -368,7 +368,6 @@ module OneLogin
             { "p" => PROTOCOL, "a" => ASSERTION },
             { 'id' => document.signed_element_id }
         ))
-        node
       end
 
       def get_fingerprint

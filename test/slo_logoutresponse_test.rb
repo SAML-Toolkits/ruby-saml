@@ -1,11 +1,11 @@
 require File.expand_path(File.join(File.dirname(__FILE__), "test_helper"))
 
-class SloLogoutresponseTest < Test::Unit::TestCase
+class SloLogoutresponseTest < Minitest::Test
 
-  context "SloLogoutresponse" do
-    settings = OneLogin::RubySaml::Settings.new
+  describe "SloLogoutresponse" do
+    let(:settings) { OneLogin::RubySaml::Settings.new }
 
-    should "create the deflated SAMLResponse URL parameter" do
+    it "create the deflated SAMLResponse URL parameter" do
       settings.idp_slo_target_url = "http://unauth.com/logout"
       settings.name_identifier_value = "f00f00"
       settings.compress_request = true
@@ -22,7 +22,7 @@ class SloLogoutresponseTest < Test::Unit::TestCase
       assert_match /^<samlp:LogoutResponse/, inflated
     end
 
-    should "support additional params" do
+    it "support additional params" do
       settings.idp_slo_target_url = "http://unauth.com/logout"
       settings.name_identifier_value = "f00f00"
       settings.compress_request = true
@@ -39,7 +39,7 @@ class SloLogoutresponseTest < Test::Unit::TestCase
       assert unauth_url =~ /&RelayState=http%3A%2F%2Fidp.example.com$/
     end
 
-    should "set InResponseTo to the ID from the logout request" do
+    it "set InResponseTo to the ID from the logout request" do
       settings.idp_slo_target_url = "http://unauth.com/logout"
       settings.name_identifier_value = "f00f00"
       settings.compress_request = true
@@ -52,7 +52,7 @@ class SloLogoutresponseTest < Test::Unit::TestCase
       assert_match /InResponseTo='_c0348950-935b-0131-1060-782bcb56fcaa'/, inflated
     end
 
-    should "set a custom successful logout message on the response" do
+    it "set a custom successful logout message on the response" do
       settings.idp_slo_target_url = "http://unauth.com/logout"
       settings.name_identifier_value = "f00f00"
       settings.compress_request = true
@@ -65,8 +65,8 @@ class SloLogoutresponseTest < Test::Unit::TestCase
       assert_match /<samlp:StatusMessage>Custom Logout Message<\/samlp:StatusMessage>/, inflated
     end
 
-    context "when the settings indicate to sign (embebed) the logout response" do
-      should "create a signed logout response" do
+    describe "when the settings indicate to sign (embebed) the logout response" do
+      it "create a signed logout response" do
         settings = OneLogin::RubySaml::Settings.new
         settings.compress_response = false
         settings.idp_slo_target_url = "http://example.com?field=value"
@@ -84,7 +84,7 @@ class SloLogoutresponseTest < Test::Unit::TestCase
         response_xml =~ /<ds:DigestMethod Algorithm='http:\/\/www.w3.org\/2000\/09\/xmldsig#rsa-sha1'\/>/
       end
 
-      should "create a signed logout response with 256 digest and signature methods" do
+      it "create a signed logout response with 256 digest and signature methods" do
         settings = OneLogin::RubySaml::Settings.new
         settings.compress_response = false
         settings.idp_slo_target_url = "http://example.com?field=value"
@@ -105,8 +105,8 @@ class SloLogoutresponseTest < Test::Unit::TestCase
       end
     end
 
-    context "when the settings indicate to sign the logout response" do
-      should "create a signature parameter" do
+    describe "when the settings indicate to sign the logout response" do
+      it "create a signature parameter" do
         settings = OneLogin::RubySaml::Settings.new
         settings.compress_response = false
         settings.idp_slo_target_url = "http://example.com?field=value"
@@ -129,18 +129,5 @@ class SloLogoutresponseTest < Test::Unit::TestCase
         assert params['SigAlg'] == XMLSecurity::Document::SHA1
       end
     end
-
   end
-
-  def decode_saml_response_payload(unauth_url)
-    payload = CGI.unescape(unauth_url.split("SAMLResponse=").last)
-    decoded = Base64.decode64(payload)
-
-    zstream = Zlib::Inflate.new(-Zlib::MAX_WBITS)
-    inflated = zstream.inflate(decoded)
-    zstream.finish
-    zstream.close
-    inflated
-  end
-
 end
