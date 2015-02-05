@@ -1,4 +1,7 @@
 # RubySaml Changelog
+### 0.9.1 (Not released yet)
+* [#191](https://github.com/onelogin/ruby-saml/pull/191) Use Minitest instead of Test::Unit
+
 ### 0.9 (Jan 26, 2015)
 * [#169](https://github.com/onelogin/ruby-saml/pull/169) WantAssertionSigned should be either true or false
 * [#167](https://github.com/onelogin/ruby-saml/pull/167) (doc update) make unit of clock drift obvious
