@@ -1,21 +1,12 @@
-require 'simplecov'
-
+require "simplecov"
 SimpleCov.start do
-  add_filter "test/"
-  add_filter "lib/onelogin/ruby-saml/logging.rb"
+  add_filter "bundle|test|vendor"
 end
 
-require 'stringio'
-require 'rubygems'
-require 'bundler'
-require 'minitest/autorun'
-require 'mocha/setup'
-require 'timecop'
-
-Bundler.require :default, :test
-
-$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
-$LOAD_PATH.unshift(File.dirname(__FILE__))
+require "minitest/autorun"
+require "minitest/pride"
+require "mocha/setup"
+require "onelogin/ruby-saml"
 
 require 'onelogin/ruby-saml/logging'
 
@@ -112,19 +103,19 @@ class Minitest::Test
   end
 
   def signed_message_encrypted_unsigned_assertion
-    @signed_message_encrypted_unsigned_assertion ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'signed_message_encrypted_unsigned_assertion.xml.base64'))    
+    @signed_message_encrypted_unsigned_assertion ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'signed_message_encrypted_unsigned_assertion.xml.base64'))
   end
 
   def signed_message_encrypted_signed_assertion
-    @signed_message_encrypted_signed_assertion ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'signed_message_encrypted_signed_assertion.xml.base64'))    
+    @signed_message_encrypted_signed_assertion ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'signed_message_encrypted_signed_assertion.xml.base64'))
   end
 
   def unsigned_message_encrypted_signed_assertion
-    @unsigned_message_encrypted_signed_assertion ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'unsigned_message_encrypted_signed_assertion.xml.base64'))    
+    @unsigned_message_encrypted_signed_assertion ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'unsigned_message_encrypted_signed_assertion.xml.base64'))
   end
 
   def unsigned_message_encrypted_unsigned_assertion
-    @unsigned_message_encrypted_unsigned_assertion ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'unsigned_message_encrypted_unsigned_assertion.xml.base64'))    
+    @unsigned_message_encrypted_unsigned_assertion ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'unsigned_message_encrypted_unsigned_assertion.xml.base64'))
   end
 
   def signature_fingerprint_1
@@ -132,7 +123,7 @@ class Minitest::Test
   end
 
   # certificate used on response_with_undefined_recipient
-  def signature_1  
+  def signature_1
     @signature1 ||= read_certificate("certificate1")
   end
 
