@@ -11,6 +11,7 @@ require "onelogin/ruby-saml/logging"
 module OneLogin
   module RubySaml
     include REXML
+    REXML::Document::entity_expansion_limit = 0
     class Metadata
       def generate(settings)
         meta_doc = REXML::Document.new

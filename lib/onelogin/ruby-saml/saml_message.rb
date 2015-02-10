@@ -8,6 +8,7 @@ module OneLogin
   module RubySaml
     class SamlMessage
       include REXML
+      REXML::Document::entity_expansion_limit = 0
 
       ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion"
       PROTOCOL  = "urn:oasis:names:tc:SAML:2.0:protocol"
@@ -15,7 +16,9 @@ module OneLogin
       def valid_saml?(document, soft = true)
         Dir.chdir(File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'schemas'))) do
           @schema = Nokogiri::XML::Schema(IO.read('saml-schema-protocol-2.0.xsd'))
-          @xml = Nokogiri::XML(document.to_s)
+          @xml = Nokogiri::XML(document.to_s) do |config|
+            config.options = Nokogiri::XML::ParseOptions::NONET
+          end
         end
         if soft
           @schema.validate(@xml).map{ return false }

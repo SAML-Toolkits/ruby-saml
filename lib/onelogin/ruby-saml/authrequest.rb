@@ -5,6 +5,7 @@ require "onelogin/ruby-saml/logging"
 module OneLogin
   module RubySaml
   include REXML
+    REXML::Document::entity_expansion_limit = 0
     class Authrequest < SamlMessage
 
       attr_reader :uuid # Can be obtained if neccessary
