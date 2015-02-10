@@ -1,6 +1,6 @@
 # Ruby SAML [![Build Status](https://secure.travis-ci.org/onelogin/ruby-saml.png)](http://travis-ci.org/onelogin/ruby-saml)
 
-## Updating from 0.8.x to 0.9
+## Updating from 0.8.x to 0.9.x
 Version `0.9` adds many new features and improvements. It is a recommended update for all Ruby SAML users. For more details, please review [the changelog](changelog.md)
 
 ## Updating from 0.7.x to 0.8.x
@@ -16,7 +16,7 @@ We created a demo project for Rails4 that uses the latest version of this librar
 
 ### Supported versions of Ruby
 * 1.8.7
-* 1.9.3
+* 1.9.x
 * 2.1.x
 * 2.2 (not yet officially supported)
 
@@ -35,7 +35,7 @@ Using `Gemfile`
 
 ```ruby
 # latest stable
-gem 'ruby-saml', '~> 0.9'
+gem 'ruby-saml', '~> 0.9.1'
 
 # or track master for bleeding-edge
 gem 'ruby-saml', :github => 'onelogin/ruby-saml'

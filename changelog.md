@@ -1,5 +1,6 @@
 # RubySaml Changelog
-### 0.9.1 (Not released yet)
+### 0.9.1 (Feb 10, 2015)
+* [#194](https://github.com/onelogin/ruby-saml/pull/194) Relax nokogiri gem requirements
 * [#191](https://github.com/onelogin/ruby-saml/pull/191) Use Minitest instead of Test::Unit
 
 ### 0.9 (Jan 26, 2015)
