@@ -25,29 +25,34 @@ Gem::Specification.new do |s|
   s.summary = %q{SAML Ruby Tookit}
   s.test_files = `git ls-files test/*`.split("\n")
 
-  s.add_runtime_dependency('uuid', ['~> 2.3'])
-  s.add_runtime_dependency('nokogiri', ['~> 1.5.0'])
+  s.add_runtime_dependency('uuid', '~> 2.3')
+  if RUBY_VERSION < '1.9'
+    # 1.8.7
+    s.add_runtime_dependency('nokogiri', '~> 1.5.10')
+  else
+    s.add_runtime_dependency('nokogiri', '~> 1.6.0')
+  end
 
-  s.add_development_dependency 'minitest',           ['~> 5.5']
-  s.add_development_dependency 'mocha',              ['~> 0.14']
-  s.add_development_dependency 'rake',               ['~> 10']
-  s.add_development_dependency 'shoulda',            ['~> 2.11']
-  s.add_development_dependency 'simplecov',          ['~> 0.9.0']
-  s.add_development_dependency 'systemu',            ['~> 2']
-  s.add_development_dependency 'timecop',            ['<= 0.6.0']
+  s.add_development_dependency('minitest', '~> 5.5')
+  s.add_development_dependency('mocha',    '~> 0.14')
+  s.add_development_dependency('rake',     '~> 10')
+  s.add_development_dependency('shoulda',  '~> 2.11')
+  s.add_development_dependency 'simplecov','~> 0.9.0')
+  s.add_development_dependency('systemu',  '~> 2')
+  s.add_development_dependency('timecop',  '<= 0.6.0')
 
   if RUBY_VERSION < '1.9'
     # 1.8.7
-    s.add_development_dependency 'ruby-debug', ['~> 0.10.4']
+    s.add_development_dependency('ruby-debug', '~> 0.10.4')
   elsif RUBY_VERSION < '2.0'
     # 1.9.x
-    s.add_development_dependency 'debugger-linecache', ['~> 1.2.0']
-    s.add_development_dependency 'debugger', ['~> 1.6.4']
+    s.add_development_dependency('debugger-linecache', '~> 1.2.0')
+    s.add_development_dependency('debugger', '~> 1.6.4')
   elsif RUBY_VERSION < '2.1'
     # 2.0.x
-    s.add_development_dependency 'byebug',   ['~> 2.1.1']
+    s.add_development_dependency('byebug', '~> 2.1.1')
   else
     # 2.1.x, 2.2.x
-    s.add_development_dependency 'pry-byebug'
+    s.add_development_dependency('pry-byebug')
   end
 end

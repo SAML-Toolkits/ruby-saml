@@ -293,11 +293,19 @@ module OneLogin
       end
 
       def validate_structure(soft = true)
-        valid = valid_saml?(@document, soft)
-        unless valid
-          @errors << "Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd"
+        xml = Nokogiri::XML(self.document.to_s)
+
+        SamlMessage.schema.validate(xml).map do |error|
+          if soft
+            @errors << "Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd"
+            break false
+          else
+            error_message = [error.message, xml.to_s].join("\n\n")
+
+            @errors << error_message
+            validation_error(error_message)
+          end
         end
-        valid
       end
 
       def validate_in_response_to(request_id = nil, soft = true)
