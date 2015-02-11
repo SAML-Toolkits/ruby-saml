@@ -6,6 +6,8 @@ require "nokogiri"
 module OneLogin
   module RubySaml
 
+    # SAML 2 Authentication Response. SAML Response
+    #
     class Response < SamlMessage
       ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion"
       PROTOCOL  = "urn:oasis:names:tc:SAML:2.0:protocol"
@@ -19,6 +21,11 @@ module OneLogin
       attr_reader :response
       attr_reader :document
 
+      # Constructs the SAML Response. A Response Object that is a SamlMessage.
+      # @param [String] A UUEncoded SAML response from the IdP.
+      # @param [Hash]   Settings. Some options for the response validation process like skip the conditions validation
+      #                 with the :skip_conditions, or allow a croft_drift when checking dates with :allowed_clock_drift
+      #
       def initialize(response, options = {})
         @errors = []
         raise ArgumentError.new("Response cannot be nil") if response.nil?
@@ -386,12 +393,12 @@ module OneLogin
 
         now = Time.now.utc
 
-        if not_before && (now + (options[:allowed_clock_drift] || 0)) < not_before
+        if not_before && not_before > (now + (options[:allowed_clock_drift] || 0))
           @errors << "Current time is earlier than NotBefore condition #{(now + (options[:allowed_clock_drift] || 0))} < #{not_before})"
           return soft ? false : validation_error("Current time is earlier than NotBefore condition")
         end
 
-        if not_on_or_after && now >= not_on_or_after
+        if not_on_or_after && now >= (not_on_or_after + (options[:allowed_clock_drift] || 0))
           @errors << "Current time is on or after NotOnOrAfter condition (#{now} >= #{not_on_or_after})"
           return soft ? false : validation_error("Current time is on or after NotOnOrAfter condition")
         end
@@ -417,7 +424,7 @@ module OneLogin
         return true if session_expires_at.nil?
 
         now = Time.now.utc
-        unless session_expires_at > now
+        unless session_expires_at > (now + (options[:allowed_clock_drift] || 0))
           error_msg = "The attributes have expired, based on the SessionNotOnOrAfter of the AttributeStatement of this Response"
           @errors << error_msg
           return soft ? false : validation_error(error_msg)
@@ -450,11 +457,11 @@ module OneLogin
               next
             end
 
-            if confirmation_data_node.attributes.include? "NotOnOrAfter" and parse_time(confirmation_data_node, "NotOnOrAfter") <= now
+            if confirmation_data_node.attributes.include? "NotOnOrAfter" and (parse_time(confirmation_data_node, "NotOnOrAfter") + (options[:allowed_clock_drift] || 0)) <= now
               next
             end
 
-            if confirmation_data_node.attributes.include? "NotBefore" and parse_time(confirmation_data_node, "NotBefore") > now
+            if confirmation_data_node.attributes.include? "NotBefore" and parse_time(confirmation_data_node, "NotBefore") > (now + (options[:allowed_clock_drift] || 0))
               next
             end
             

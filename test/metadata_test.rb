@@ -58,6 +58,8 @@ class MetadataTest < Minitest::Test
       assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress", REXML::XPath.first(xml_doc, "//md:NameIDFormat").text.strip
 
       acs = REXML::XPath.first(xml_doc, "//md:AssertionConsumerService")
+      assert_equal "true", acs.attribute("isDefault").value
+      assert_equal "0", acs.attribute("index").value
       assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST", acs.attribute("Binding").value
       assert_equal "https://foo.example/saml/consume", acs.attribute("Location").value
     end
@@ -83,6 +85,23 @@ class MetadataTest < Minitest::Test
       assert_equal "Name Format", req_attr.attribute("NameFormat").value
       assert_equal "Friendly Name", req_attr.attribute("FriendlyName").value
       assert_equal "Attribute Value", REXML::XPath.first(xml_doc, "//md:AttributeValue").text.strip
+    end
+
+    it "generates Service Provider Metadata with Single Logout Service" do
+      settings = OneLogin::RubySaml::Settings.new
+      settings.issuer = "https://example.com"
+      settings.name_identifier_format = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+      settings.assertion_consumer_service_url = "https://foo.example/saml/consume"
+      settings.single_logout_service_url = "https://foo.example/saml/slo"
+
+      xml_text = OneLogin::RubySaml::Metadata.new.generate(settings)
+      xml_doc = REXML::Document.new(xml_text)
+      acs = REXML::XPath.first(xml_doc, "//md:SingleLogoutService")
+      assert_equal "true", acs.attribute("isDefault").value
+      assert_equal "0", acs.attribute("index").value
+      assert_equal settings.single_logout_service_binding, acs.attribute("Binding").value
+      assert_equal settings.single_logout_service_url, acs.attribute("Location").value
+      assert_equal settings.single_logout_service_url, acs.attribute("ResponseLocation").value
     end
   end
 end

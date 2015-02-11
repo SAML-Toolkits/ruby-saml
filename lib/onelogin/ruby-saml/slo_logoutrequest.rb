@@ -11,6 +11,7 @@ module OneLogin
       attr_reader :document
 
       def initialize(request, options = {})
+        @errors = []
         raise ArgumentError.new("Request cannot be nil") if request.nil?
         @options  = options
         @request = decode_raw_saml(request)
@@ -51,13 +52,34 @@ module OneLogin
       private
 
       def validate(soft = true)
-        valid_saml?(document, soft)  && validate_request_state(soft)
+        @errors = []
+        valid_saml?(document, soft)  &&
+        validate_request_state(soft)
       end
 
       def validate_request_state(soft = true)
-        if request.empty?
-          return soft ? false : validation_error("Blank request")
+        if request.nil? or request.empty?
+          return soft ? false : validation_error("Blank Logout Request")
         end
+        true
+      end
+
+      def validate_conditions(soft = true)
+        return true if conditions.nil?
+        return true if options[:skip_conditions]
+
+        now = Time.now.utc
+
+        if not_before && (now + (options[:allowed_clock_drift] || 0)) < not_before
+          @errors << "Current time is earlier than NotBefore condition #{(now + (options[:allowed_clock_drift] || 0))} < #{not_before})"
+          return soft ? false : validation_error("Current time is earlier than NotBefore condition")
+        end
+
+        if not_on_or_after && now >= (not_on_or_after + (options[:allowed_clock_drift] || 0))
+          @errors << "Current time is on or after NotOnOrAfter condition (#{now} >= #{not_on_or_after})"
+          return soft ? false : validation_error("Current time is on or after NotOnOrAfter condition")
+        end
+
         true
       end
 
