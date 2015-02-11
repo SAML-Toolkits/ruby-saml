@@ -1,8 +1,10 @@
 require 'cgi'
 require 'zlib'
 require 'base64'
+require "nokogiri"
 require "rexml/document"
 require "rexml/xpath"
+require "thread"
 
 module OneLogin
   module RubySaml
@@ -12,15 +14,20 @@ module OneLogin
       ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion"
       PROTOCOL  = "urn:oasis:names:tc:SAML:2.0:protocol"
 
-      def valid_saml?(document, soft = true)
-        Dir.chdir(File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'schemas'))) do
-          @schema = Nokogiri::XML::Schema(IO.read('saml-schema-protocol-2.0.xsd'))
-          @xml = Nokogiri::XML(document.to_s)
+      def self.schema
+        @schema ||= Mutex.new.synchronize do
+          Dir.chdir(File.expand_path("../../../schemas", __FILE__)) do
+            ::Nokogiri::XML::Schema(File.read("saml-schema-protocol-2.0.xsd"))
+          end
         end
-        if soft
-          @schema.validate(@xml).map{ return false }
-        else
-          @schema.validate(@xml).map{ |error| validation_error("#{error.message}\n\n#{@xml.to_s}") }
+      end
+
+      def valid_saml?(document, soft = true)
+        xml = Nokogiri::XML(document.to_s)
+
+        SamlMessage.schema.validate(xml).map do |error|
+          break false if soft
+          validation_error("#{error.message}\n\n#{xml.to_s}")
         end
       end
 
