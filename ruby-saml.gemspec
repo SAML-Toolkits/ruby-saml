@@ -29,7 +29,7 @@ Gem::Specification.new do |s|
   if RUBY_VERSION < '1.9'
     # 1.8.7
     s.add_runtime_dependency('nokogiri', '~> 1.5.10')
-    s.add_development_dependency('timecop', '<=0.6.0')
+    s.add_development_dependency('timecop', '<= 0.6.0')
   else
     s.add_runtime_dependency('nokogiri', '~> 1.6.0')
     s.add_development_dependency('timecop',  '~> 0.7.2')
