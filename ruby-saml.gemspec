@@ -29,8 +29,10 @@ Gem::Specification.new do |s|
   if RUBY_VERSION < '1.9'
     # 1.8.7
     s.add_runtime_dependency('nokogiri', '~> 1.5.10')
+    s.add_development_dependency('timecop', '<=0.6.0')
   else
     s.add_runtime_dependency('nokogiri', '~> 1.6.0')
+    s.add_development_dependency('timecop',  '~> 0.7.2')
   end
 
   s.add_development_dependency('minitest', '~> 5.5')
@@ -38,7 +40,6 @@ Gem::Specification.new do |s|
   s.add_development_dependency('rake',     '~> 10')
   s.add_development_dependency('shoulda',  '~> 2.11')
   s.add_development_dependency('systemu',  '~> 2')
-  s.add_development_dependency('timecop',  '~> 0.7.2')
 
   if RUBY_VERSION < '1.9'
     # 1.8.7
