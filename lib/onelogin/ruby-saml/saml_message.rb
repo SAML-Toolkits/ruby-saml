@@ -44,7 +44,13 @@ module OneLogin
           key_pem = File.read(private_key_file_path)
           encrypted_response = Xmlenc::EncryptedDocument.new(decoded_saml)
           private_key = OpenSSL::PKey::RSA.new(key_pem)
-          return encrypted_response.decrypt(private_key)
+          decrypted_string = encrypted_response.decrypt(private_key)
+          decrypted_string.gsub!('<?xml version="1.0"?>', '')
+          decrypted_string.gsub!('<Assertion', '<Assertion xmlns="urn:oasis:names:tc:SAML:2.0:assertion" ')
+          decrypted_string.gsub!('<KeyInfo', '<KeyInfo xmlns="http://www.w3.org/2000/09/xmldsig#"> ')
+          decrypted_string.gsub!('<EncryptedAssertion xmlns="urn:oasis:names:tc:SAML:2.0:assertion">', '')
+          decrypted_string.gsub!('</EncryptedAssertion>', '')
+          return decrypted_string.squish
         end
         return decoded_saml
       end
