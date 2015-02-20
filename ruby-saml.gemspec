@@ -26,6 +26,7 @@ Gem::Specification.new do |s|
   s.test_files = `git ls-files test/*`.split("\n")
 
   s.add_runtime_dependency('uuid', '~> 2.3')
+  s.add_runtime_dependency("xmlenc", ["~> 0.1.6"])
   if RUBY_VERSION < '1.9'
     # 1.8.7
     s.add_runtime_dependency('nokogiri', '~> 1.5.10')
@@ -55,5 +56,5 @@ Gem::Specification.new do |s|
     # 2.1.x, 2.2.x
     s.add_development_dependency('pry-byebug')
   end
-  s.add_runtime_dependency("xmlenc", ["~> 0.1.5"])
+
 end

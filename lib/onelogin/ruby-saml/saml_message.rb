@@ -48,7 +48,7 @@ module OneLogin
           decrypted_doc = Nokogiri::XML(decrypted_string) do |config|
             # config.strict.nonet # for an ideal world
           end
-          saml_namespace = {:saml => "urn:oasis:names:tc:SAML:2.0:assertion"}
+          saml_namespace = { :saml => ASSERTION }
           assertion = decrypted_doc.xpath("//saml:EncryptedAssertion/saml:Assertion", saml_namespace)
           assertion = decrypted_doc.xpath("//saml:assertion", saml_namespace) if assertion.empty?
           assertion = decrypted_doc.xpath("//saml:Assertion", saml_namespace) if assertion.empty?
