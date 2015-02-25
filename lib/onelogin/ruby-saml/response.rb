@@ -18,12 +18,16 @@ module OneLogin
       attr_reader :options
       attr_reader :response
       attr_reader :document
-
+      attr_reader :decoded_response
+      attr_reader :decrypted_response
+      
       def initialize(response, options = {})
         @errors = []
         raise ArgumentError.new("Response cannot be nil") if response.nil?
         @options  = options
-        @response = decode_raw_saml(response)
+        @decoded_response = decode_raw_saml(response)
+        @decrypted_response = decrypt_saml(@decoded_response, @options[:private_key_file_path])
+        @response = @decrypted_response
         @document = XMLSecurity::SignedDocument.new(@response, @errors)
       end
 

@@ -5,6 +5,7 @@ require "nokogiri"
 require "rexml/document"
 require "rexml/xpath"
 require "thread"
+require "xmlenc"
 
 module OneLogin
   module RubySaml
@@ -37,6 +38,31 @@ module OneLogin
 
       private
 
+      def decrypt_saml(decoded_saml, private_key_file_path=nil)
+        noko_xml = Nokogiri::XML(decoded_saml)
+        if (noko_xml.xpath('//saml:EncryptedAssertion', { :saml => ASSERTION }).count > 0)
+          raise ArgumentError, "Decryption Key File Path not provided for Encrypted Assertion" if private_key_file_path.nil?
+          key_pem = File.read(private_key_file_path)
+          encrypted_response = Xmlenc::EncryptedDocument.new(decoded_saml)
+          private_key = OpenSSL::PKey::RSA.new(key_pem)
+          decrypted_string = encrypted_response.decrypt(private_key)
+          decrypted_doc = Nokogiri::XML(decrypted_string) do |config|
+            # config.strict.nonet # for an ideal world
+          end
+          saml_namespace = { :saml => ASSERTION }
+          assertion = decrypted_doc.xpath("//saml:EncryptedAssertion/saml:Assertion", saml_namespace)
+          assertion = decrypted_doc.xpath("//saml:assertion", saml_namespace) if assertion.empty?
+          assertion = decrypted_doc.xpath("//saml:Assertion", saml_namespace) if assertion.empty?
+          assertion = decrypted_doc.xpath("//saml:ASSERTION", saml_namespace) if assertion.empty?
+          if assertion.empty?
+            validation_error("XML document seems to be malformed and does not have correct Nodes")
+          else
+            return assertion.first.to_s.gsub(" ", '').gsub("\n", '')
+          end
+        end
+        return decoded_saml
+      end
+      
       def decode_raw_saml(saml)
         if saml =~ /^</
           return saml
