@@ -40,7 +40,8 @@ module OneLogin
 
       def decrypt_saml(decoded_saml, private_key_file_path=nil)
         noko_xml = Nokogiri::XML(decoded_saml)
-        if ((noko_xml.xpath('//saml:EncryptedAssertion', {:saml => "urn:oasis:names:tc:SAML:2.0:assertion"}).count > 0) && !private_key_file_path.nil?)
+        if (noko_xml.xpath('//saml:EncryptedAssertion', { :saml => ASSERTION }).count > 0)
+          raise ArgumentError, "Decryption Key File Path not provided for Encrypted Assertion" if private_key_file_path.nil?
           key_pem = File.read(private_key_file_path)
           encrypted_response = Xmlenc::EncryptedDocument.new(decoded_saml)
           private_key = OpenSSL::PKey::RSA.new(key_pem)
