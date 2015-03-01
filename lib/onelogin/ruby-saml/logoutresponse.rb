@@ -8,12 +8,16 @@ module OneLogin
     # SAML 2 Logout Response (SLO IdP initiated, Parser)
     #
     class Logoutresponse < SamlMessage
-      # For API compability, this is mutable.
+
+      # OneLogin::RubySaml::Settings Toolkit settings
       attr_accessor :settings
 
-      attr_reader :document
+      # Array with the causes
+      attr_accessor :errors
+
       attr_reader :response
       attr_reader :options
+      attr_reader :document
 
       # In order to validate that the response matches a given request, append
       # the option:
@@ -22,7 +26,7 @@ module OneLogin
       # It will validate that the logout response matches the ID of the request.
       # You can also do this yourself through the in_response_to accessor.
       #
-      def initialize(response, settings = nil, options = {})
+      def initialize(response, settings = nil)
         raise ArgumentError.new("Logoutresponse cannot be nil") if response.nil?
         self.settings = settings
 
@@ -35,10 +39,56 @@ module OneLogin
         validate(false)
       end
 
-      def validate(soft = true)
-        return false unless valid_saml?(document, soft) && valid_state?(soft)
+      def validate(soft = true, request_id = nil)
+        @errors = []
+        valid_saml?(document, soft) && 
+        valid_state?(soft) &&
+        valid_in_response_to?(soft, request_id) &&
+        valid_issuer?(soft) &&
+        validate_success_status(soft)
+      end
 
-        valid_in_response_to?(soft) && valid_issuer?(soft) && success?(soft)
+      # After execute a validation process, if fails this method returns the causes
+      # @return [Array] Empty Array if no errors, or an Array with the causes
+      #
+      def errors
+        @errors
+      end
+
+      # Validates the Status of the Logout Response
+      # If fails, the error is added to the errors array, including the StatusCode returned and the Status Message.
+      # @param  [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the response is invalid or not)      
+      # @return [Boolean|ValidationError] True if the Logout Response contains a Success code, otherwise: 
+      #                                   - False if soft=True
+      #                                   - Raise a ValidationError if soft=False 
+      #
+      def validate_success_status(soft = true)
+        if success?
+          true
+        else
+          error_msg = 'The status code of the Logout Response was not Success'
+          unless status_code.nil?
+            printable_code = status_code.split(':').pop
+            error_msg +=  ', was ' + printable_code
+          end
+
+          unless status_message.nil?
+            error_msg +=  ' -> ' + status_message
+          end
+
+          @errors << error_msg
+          soft ? false : validation_error(error_msg)
+        end
+      end
+
+      # Gets the StatusMessage from a SAML Response.
+      # @return [String] StatusMessage Value
+      #
+      def status_message
+        @status_message ||= begin
+          node = REXML::XPath.first(document, "/p:LogoutResponse/p:Status/p:StatusMessage", { "p" => PROTOCOL, "a" => ASSERTION })
+          node.text if node
+        end
       end
 
       def success?(soft = true)
@@ -92,11 +142,11 @@ module OneLogin
         true
       end
 
-      def valid_in_response_to?(soft = true)
-        return true unless self.options.has_key? :matches_request_id
+      def valid_in_response_to?(soft = true, request_id = nil)
+        return true if request_id.nil?
 
-        unless self.options[:matches_request_id] == in_response_to
-          return soft ? false : validation_error("Response does not match the request ID, expected: <#{self.options[:matches_request_id]}>, but was: <#{in_response_to}>")
+        unless request_id == in_response_to
+          return soft ? false : validation_error("Logout Response does not match the request ID, expected: <#{request_id}>, but was: <#{in_response_to}>")
         end
 
         true

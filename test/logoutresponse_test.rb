@@ -17,10 +17,6 @@ class RubySamlTest < Minitest::Test
         logoutresponse = OneLogin::RubySaml::Logoutresponse.new(valid_response, settings)
         refute_nil logoutresponse.settings
       end
-      it "accept constructor-injected options" do
-        logoutresponse = OneLogin::RubySaml::Logoutresponse.new(valid_response, nil, { :foo => :bar} )
-        assert !logoutresponse.options.empty?
-      end
       it "support base64 encoded responses" do
         expected_response = valid_response
         logoutresponse = OneLogin::RubySaml::Logoutresponse.new(Base64.encode64(expected_response), settings)
@@ -46,11 +42,10 @@ class RubySamlTest < Minitest::Test
       it "invalidate responses with wrong id when given option :matches_uuid" do
 
         expected_request_id = "_some_other_expected_uuid"
-        opts = { :matches_request_id => expected_request_id}
 
-        logoutresponse = OneLogin::RubySaml::Logoutresponse.new(valid_response, settings, opts)
+        logoutresponse = OneLogin::RubySaml::Logoutresponse.new(valid_response, settings)
 
-        assert !logoutresponse.validate
+        assert !logoutresponse.validate(true, expected_request_id)
         refute_equal expected_request_id, logoutresponse.in_response_to
       end
 
@@ -74,11 +69,10 @@ class RubySamlTest < Minitest::Test
       it "raises validation error when matching for wrong request id" do
 
         expected_request_id = "_some_other_expected_id"
-        opts = { :matches_request_id => expected_request_id}
 
-        logoutresponse = OneLogin::RubySaml::Logoutresponse.new(valid_response, settings, opts)
+        logoutresponse = OneLogin::RubySaml::Logoutresponse.new(valid_response, settings)
 
-        assert_raises(OneLogin::RubySaml::ValidationError) { logoutresponse.validate! }
+        assert_raises(OneLogin::RubySaml::ValidationError) { logoutresponse.validate(false, expected_request_id) }
       end
 
       it "raise validation error for wrong request status" do
