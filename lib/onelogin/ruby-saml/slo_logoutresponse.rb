@@ -6,16 +6,27 @@ require "onelogin/ruby-saml/logging"
 module OneLogin
   module RubySaml
 
-    # SAML 2 Logout Response (SLO SP initiated, Builder)
+    # SAML 2 Logout Response (SLO SP initiated, Parser)
     #
     class SloLogoutresponse < SamlMessage
 
-      attr_reader :uuid # Can be obtained if neccessary
+      # Logout Response ID
+      attr_reader :uuid
 
+      # Initializes the Logout Response. A SloLogoutresponse Object that is an extension of the SamlMessage class.
+      # Asigns an ID, a random uuid.
+      #
       def initialize
         @uuid = "_" + UUID.new.generate
       end
 
+      # Creates the Logout Response string.
+      # @param [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @param [String] The ID of the LogoutRequest sent by this SP to the IdP. That ID will be placed as the InResponseTo in the logout response
+      # @param [String] The Message to be placed as StatusMessage in the logout response
+      # @param [Hash]   Some parameters to build the logout request
+      # @return [String] Logout Request string that includes the SAMLRequest
+      #
       def create(settings, request_id = nil, logout_message = nil, params = {})
         params = create_params(settings, request_id, logout_message, params)
         params_prefix = (settings.idp_slo_target_url =~ /\?/) ? '&' : '?'
@@ -28,6 +39,13 @@ module OneLogin
         @logout_url = settings.idp_slo_target_url + response_params
       end
 
+      # Creates the Get parameters for the logout response.
+      # @param [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @param [String] The ID of the LogoutRequest sent by this SP to the IdP. That ID will be placed as the InResponseTo in the logout response
+      # @param [String] The Message to be placed as StatusMessage in the logout response
+      # @param [Hash]  Some parameters to build the logout response
+      # @return [Hash] Parameters
+      #
       def create_params(settings, request_id = nil, logout_message = nil, params = {})
         params = {} if params.nil?
 
@@ -60,6 +78,12 @@ module OneLogin
         response_params
       end
 
+      # Creates the SAMLResponse String.
+      # @param [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @param [String] The ID of the LogoutRequest sent by this SP to the IdP. That ID will be placed as the InResponseTo in the logout response
+      # @param [String] The Message to be placed as StatusMessage in the logout response
+      # @return [String] The SAMLResponse String.
+      #
       def create_logout_response_xml_doc(settings, request_id = nil, logout_message = nil)
         time = Time.now.utc.strftime('%Y-%m-%dT%H:%M:%SZ')
 

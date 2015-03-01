@@ -10,12 +10,21 @@ module OneLogin
     #
     class Logoutrequest < SamlMessage
 
-      attr_reader :uuid # Can be obtained if neccessary
+      # Logout Request ID
+      attr_reader :uuid
 
+      # Initializes the Logout Request. A Logoutrequest Object that is an extension of the SamlMessage class.
+      # Asigns an ID, a random uuid.
+      #
       def initialize
         @uuid = "_" + UUID.new.generate
       end
 
+      # Creates the Logout Request string.
+      # @param [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @param [Hash]   Some parameters to build the logout request
+      # @return [String] Logout Request string that includes the SAMLRequest
+      #
       def create(settings, params={})
         params = create_params(settings, params)
         params_prefix = (settings.idp_slo_target_url =~ /\?/) ? '&' : '?'
@@ -27,6 +36,11 @@ module OneLogin
         @logout_url = settings.idp_slo_target_url + request_params
       end
 
+      # Creates the Get parameters for the logout request.
+      # @param [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @param [Hash]  Some parameters to build the logout request
+      # @return [Hash] Parameters
+      #
       def create_params(settings, params={})
         params = {} if params.nil?
 
@@ -59,6 +73,10 @@ module OneLogin
         request_params
       end
 
+      # Creates the SAMLRequest String.
+      # @param [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @return [String] The SAMLRequest String.
+      #
       def create_logout_request_xml_doc(settings)
         time = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
 

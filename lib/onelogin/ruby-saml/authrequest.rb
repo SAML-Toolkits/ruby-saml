@@ -2,17 +2,30 @@ require "uuid"
 
 require "onelogin/ruby-saml/logging"
 
+# Only supports SAML 2.0
 module OneLogin
   module RubySaml
   include REXML
+
+    # SAML 2 Authentication. AuthNRequest (SSO SP initiated, Builder)
+    #
     class Authrequest < SamlMessage
 
-      attr_reader :uuid # Can be obtained if neccessary
+      # AuthNRequest ID
+      attr_reader :uuid
 
+      # Initializes the AuthNRequest. An Authrequest Object that is an extension of the SamlMessage class.
+      # Asigns an ID, a random uuid.
+      #
       def initialize
         @uuid = "_" + UUID.new.generate
       end
 
+      # Creates the AuthNRequest string.
+      # @param [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @param [Hash]   Some parameters to build the request
+      # @return [String] AuthNRequest string that includes the SAMLRequest
+      #
       def create(settings, params = {})
         params = create_params(settings, params)
         params_prefix = (settings.idp_sso_target_url =~ /\?/) ? '&' : '?'
@@ -24,6 +37,11 @@ module OneLogin
         @login_url = settings.idp_sso_target_url + request_params
       end
 
+      # Creates the Get parameters for the request.
+      # @param [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @param [Hash]   Some parameters to build the request
+      # @return [Hash] Parameters
+      #
       def create_params(settings, params={})
         params = {} if params.nil?
 
@@ -56,6 +74,10 @@ module OneLogin
         request_params
       end
 
+      # Creates the SAMLRequest String.
+      # @param [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @return [String] The SAMLRequest String.
+      #
       def create_authentication_xml_doc(settings)
         time = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
 

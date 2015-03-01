@@ -15,7 +15,7 @@ module OneLogin
 
       # TODO: Settings should probably be initialized too... WDYT?
 
-      # OneLogin::RubySaml::Settings  Toolkit settings
+      # OneLogin::RubySaml::Settings Toolkit settings
       attr_accessor :settings
 
       # Array with the causes
@@ -27,7 +27,7 @@ module OneLogin
 
       # Constructs the SAML Response. A Response Object that is an extension of the SamlMessage class.
       # @param [String] A UUEncoded SAML response from the IdP.
-      # @param [Hash]   Settings. Some options for the response validation process like skip the conditions validation
+      # @param [Hash]   Some options for the response validation process like skip the conditions validation
       #                 with the :skip_conditions, or allow a clock_drift when checking dates with :allowed_clock_drift
       #
       def initialize(response, options = {})
