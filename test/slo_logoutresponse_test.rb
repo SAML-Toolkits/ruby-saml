@@ -6,15 +6,17 @@ class SloLogoutresponseTest < Minitest::Test
     let(:settings) { OneLogin::RubySaml::Settings.new }
 
     it "create the deflated SAMLResponse URL parameter" do
+      settings.idp_entity_id = 'https://app.onelogin.com/saml/metadata/SOMEACCOUNT'
       settings.idp_slo_target_url = "http://unauth.com/logout"
       settings.name_identifier_value = "f00f00"
       settings.compress_request = true
 
-      request = OneLogin::RubySaml::SloLogoutrequest.new(logout_request_document)
+      logout_request = OneLogin::RubySaml::SloLogoutrequest.new(logout_request_document)
+      logout_request.settings = settings
 
-      assert request.is_valid?
+      assert logout_request.is_valid?
 
-      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, request.id)
+      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, logout_request.id)
       assert unauth_url =~ /^http:\/\/unauth\.com\/logout\?SAMLResponse=/
 
       inflated = decode_saml_response_payload(unauth_url)

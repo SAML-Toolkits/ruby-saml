@@ -85,6 +85,17 @@ class MetadataTest < Minitest::Test
       assert_equal "Name Format", req_attr.attribute("NameFormat").value
       assert_equal "Friendly Name", req_attr.attribute("FriendlyName").value
       assert_equal "Attribute Value", REXML::XPath.first(xml_doc, "//md:AttributeValue").text.strip
+
+      settings.attribute_consuming_service.configure do
+        service_name "Test Service 2"
+        service_index 2        
+      end
+      xml_text_2 = OneLogin::RubySaml::Metadata.new.generate(settings)
+      xml_doc_2 = REXML::Document.new(xml_text_2)
+      acs_2 = REXML::XPath.first(xml_doc_2, "//md:AttributeConsumingService")
+      assert_equal "true", acs_2.attribute("isDefault").value
+      assert_equal "2", acs_2.attribute("index").value
+      assert_equal REXML::XPath.first(xml_doc_2, "//md:ServiceName").text.strip, "Test Service 2"
     end
 
     it "generates Service Provider Metadata with Single Logout Service" do

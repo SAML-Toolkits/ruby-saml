@@ -89,7 +89,7 @@ class RubySamlTest < Minitest::Test
       end
     end
 
-    it "raise when encountering a SAML Response with bad formated" do
+    it "raise when encountering a SAML Response with bad formatted" do
       response = OneLogin::RubySaml::Response.new(response_document_2)
       response.settings = settings
       assert_raises(OneLogin::RubySaml::ValidationError){ response.validate! }
@@ -206,17 +206,24 @@ class RubySamlTest < Minitest::Test
 
 
   describe "#validate_structure" do
-    it "return false when encountering a SAML Response with bad formated" do
+    it "return false when encountering a SAML Response bad formatted" do
       response = OneLogin::RubySaml::Response.new(response_document_2)
-      response.send(:validate_structure)
+      assert !response.send(:validate_structure, true)
       assert response.errors.include? "Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd"
+    end
+
+    it "raise when encountering a SAML Response bad formatted" do
+      response = OneLogin::RubySaml::Response.new(response_document_2)
+      assert_raises(OneLogin::RubySaml::ValidationError, "Element '{http://www.w3.org/2000/09/xmldsig#}DigestValue': 'Digest Stuff' is not a valid value of the atomic type '{http://www.w3.org/2000/09/xmldsig#}DigestValueType'") do
+        response.send(:validate_structure, false)
+      end
     end
   end
 
   describe "#validate_id" do
     it "return false when no ID present in the SAML Response" do
       response = OneLogin::RubySaml::Response.new(response_no_id)
-      response.send(:validate_id)
+      assert !response.send(:validate_id)
       assert response.errors.include? "Missing ID attribute on SAML Response"
     end
   end
@@ -224,7 +231,7 @@ class RubySamlTest < Minitest::Test
   describe "#validate_version" do
     it "return false when no 2.0 Version present in the SAML Response" do
       response = OneLogin::RubySaml::Response.new(response_no_version)
-      response.send(:validate_version)
+      assert !response.send(:validate_version)
       assert response.errors.include? "Unsupported SAML version"
     end
   end
@@ -232,7 +239,7 @@ class RubySamlTest < Minitest::Test
   describe "#validate_num_assertion" do
     it "return false when no 2.0 Version present in the SAML Response" do
       response = OneLogin::RubySaml::Response.new(response_multi_assertion)
-      response.send(:validate_num_assertion)
+      assert !response.send(:validate_num_assertion)
       assert response.errors.include? "SAML Response must contain 1 assertion"
     end
 
@@ -243,7 +250,7 @@ class RubySamlTest < Minitest::Test
       settings = OneLogin::RubySaml::Settings.new
       settings.idp_cert_fingerprint = signature_fingerprint_1
       response.settings = settings
-      response.send(:validate_num_assertion)
+      assert !response.send(:validate_num_assertion)
       assert response.errors.include? "SAML Response must contain 1 assertion"
     end
   end
@@ -251,25 +258,25 @@ class RubySamlTest < Minitest::Test
   describe "validate_success_status" do
     it "return false when the status if no Status provided" do
       response = OneLogin::RubySaml::Response.new(response_no_status)
-      response.send(:validate_success_status, true)
+      assert !response.send(:validate_success_status, true)
       assert response.errors.include? "The status code of the Response was not Success"
     end
 
     it "return false when the status if no StatusCode provided" do
       response = OneLogin::RubySaml::Response.new(response_no_statuscode)
-      response.send(:validate_success_status, true)
+      assert !response.send(:validate_success_status, true)
       assert response.errors.include? "The status code of the Response was not Success"
     end
 
     it "return false when the status is not 'Success'" do
       response = OneLogin::RubySaml::Response.new(response_statuscode_responder)
-      response.send(:validate_success_status, true)
+      assert !response.send(:validate_success_status, true)
       assert response.errors.include? "The status code of the Response was not Success, was Responder"
     end
 
     it "return false when the status is not 'Success', and shows the StatusMessage" do
       response = OneLogin::RubySaml::Response.new(response_statuscode_responder_and_msg)
-      response.send(:validate_success_status, true)
+      assert !response.send(:validate_success_status, true)
       assert response.errors.include? "The status code of the Response was not Success, was Responder -> something_is_wrong"
     end
 
@@ -383,7 +390,7 @@ class RubySamlTest < Minitest::Test
   end
 
   describe "#validate_destination" do
-    it "return false when the destination od the SAML Response does not match the assertion consumer service url" do
+    it "return false when the destination of the SAML Response does not match the assertion consumer service url" do
       response = OneLogin::RubySaml::Response.new(valid_signed_response)
       response.settings = settings
       response.settings.assertion_consumer_service_url = 'invalid_acs'
@@ -391,7 +398,7 @@ class RubySamlTest < Minitest::Test
       assert response.errors.include? "The response was received at #{response.destination} instead of #{response.settings.assertion_consumer_service_url}"
     end
 
-    it "return true when the destination od the SAML Response matches the assertion consumer service url" do
+    it "return true when the destination of the SAML Response matches the assertion consumer service url" do
       response = OneLogin::RubySaml::Response.new(valid_signed_response)
       response.settings = settings
       assert response.send(:validate_destination)
@@ -821,6 +828,37 @@ class RubySamlTest < Minitest::Test
       assert_equal nil, response.attributes.multi(:attribute_not_exists)
       OneLogin::RubySaml::Attributes.single_value_compatibility = true
     end
+
+    it "Iterate over all attributes" do
+      attrs = Hash.new
+      attrs['uid'] = ['demo']
+      attrs['another_value'] = ['value1', 'value2']
+      attrs['role'] = ['role1', 'role2', 'role3']
+      attrs['attribute_with_nil_value'] = [nil]
+      attrs['attribute_with_nils_and_empty_strings'] = ['', 'valuePresent', nil, nil]
+
+      response = OneLogin::RubySaml::Response.new(fixture(:response_with_multiple_attribute_values))
+      response.attributes.each do |k,v|
+        assert_equal attrs[k], v
+      end
+    end
+
+    it "Replace values" do
+      response = OneLogin::RubySaml::Response.new(fixture(:response_with_multiple_attribute_values))
+      assert_equal ['role1', 'role2', 'role3'], response.attributes.multi(:role)
+      response.attributes.set('role', ['role4'])
+      assert_equal ['role4'], response.attributes.multi(:role)
+      response.attributes.set('role', 'role5')
+      assert_equal 'role5', response.attributes.multi(:role)
+    end
+
+    it "Comparison" do
+      response = OneLogin::RubySaml::Response.new(fixture(:response_with_multiple_attribute_values))
+      response_2 = OneLogin::RubySaml::Response.new(fixture(:response_with_multiple_attribute_values))
+      assert response.attributes == response_2.attributes
+      response.attributes.set('role', ['role4'])
+      assert !(response.attributes == response_2.attributes)
+    end    
   end
      
   describe "#session_expires_at" do

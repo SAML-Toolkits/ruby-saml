@@ -2,8 +2,12 @@ require "uuid"
 
 require "onelogin/ruby-saml/logging"
 
+# Only supports SAML 2.0
 module OneLogin
   module RubySaml
+
+    # SAML 2 Logout Request (SLO SP initiated, Builder)
+    #
     class Logoutrequest < SamlMessage
 
       attr_reader :uuid # Can be obtained if neccessary

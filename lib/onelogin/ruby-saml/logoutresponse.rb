@@ -1,8 +1,12 @@
 require "xml_security"
 require "time"
 
+# Only supports SAML 2.0
 module OneLogin
   module RubySaml
+
+    # SAML 2 Logout Response (SLO IdP initiated, Parser)
+    #
     class Logoutresponse < SamlMessage
       # For API compability, this is mutable.
       attr_accessor :settings
@@ -11,7 +15,6 @@ module OneLogin
       attr_reader :response
       attr_reader :options
 
-      #
       # In order to validate that the response matches a given request, append
       # the option:
       #   :matches_request_id => REQUEST_ID

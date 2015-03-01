@@ -20,7 +20,7 @@ class IdpMetadataParserTest < Minitest::Test
     end
   end
 
-  describe "download and parse IdP descriptor file" do
+  describe "download and parse IdP descriptor file (HTTPS)" do
     before do
       mock_response = MockResponse.new
       mock_response.body = idp_metadata
@@ -46,8 +46,36 @@ class IdpMetadataParserTest < Minitest::Test
     it "accept self signed certificate if insturcted" do
       idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
       settings = idp_metadata_parser.parse_remote(@url, false)
-
       assert_equal OpenSSL::SSL::VERIFY_NONE, @http.verify_mode
+    end
+  end
+
+  describe "download and parse IdP descriptor file (HTTP)" do
+    before do
+      mock_response = MockResponse.new
+      mock_response.body = idp_metadata_2
+      @url = "http://example.com"
+      uri = URI(@url)
+
+      @http = Net::HTTP.new(uri.host, uri.port)
+      Net::HTTP.expects(:new).returns(@http)
+      @http.expects(:request).returns(mock_response)
+    end
+
+    it "extract settings from remote xml [Requires internet access]" do
+      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      settings = idp_metadata_parser.parse_remote(@url)
+
+      assert_equal "http://example.hello.com/access/saml/login", settings.idp_sso_target_url
+      assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", settings.idp_cert_fingerprint
+      assert_equal "http://example.hello.com/access/saml/logout", settings.idp_slo_target_url
+      refute_equal OpenSSL::SSL::VERIFY_PEER, @http.verify_mode
+    end
+
+    it "accept self signed certificate if instructed [Requires internet access]" do
+      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      settings = idp_metadata_parser.parse_remote(@url, false)
+      refute_equal OpenSSL::SSL::VERIFY_NONE, @http.verify_mode
     end
   end
 

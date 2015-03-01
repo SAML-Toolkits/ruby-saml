@@ -28,7 +28,7 @@ module OneLogin
       # Constructs the SAML Response. A Response Object that is an extension of the SamlMessage class.
       # @param [String] A UUEncoded SAML response from the IdP.
       # @param [Hash]   Settings. Some options for the response validation process like skip the conditions validation
-      #                 with the :skip_conditions, or allow a croft_drift when checking dates with :allowed_clock_drift
+      #                 with the :skip_conditions, or allow a clock_drift when checking dates with :allowed_clock_drift
       #
       def initialize(response, options = {})
         @errors = []
@@ -45,7 +45,7 @@ module OneLogin
         validate
       end
 
-      # Another aux function to validate the the SAML Response (soft = false)
+      # Another aux function to validate the SAML Response (soft = false)
       # @return [Boolean] TRUE if the SAML Response is valid
       #
       def validate!(soft=false, response_id = nil)
@@ -235,7 +235,7 @@ module OneLogin
         end
      end
 
-      # Gets the expected current_url 
+      # Gets the expected current_url
       # (Right now we read this url from the Assertion Consumer Service of the Settings)
       # TODO: Calculate the real current_url and use it.
       # @return 

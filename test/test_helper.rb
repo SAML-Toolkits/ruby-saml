@@ -2,6 +2,7 @@ require 'simplecov'
 
 SimpleCov.start do
   add_filter "test/"
+  add_filter "lib/onelogin/ruby-saml/logging.rb"
 end
 
 require 'rubygems'
@@ -29,6 +30,10 @@ class Minitest::Test
 
   def response_document
     @response_document ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'response1.xml.base64'))
+  end
+
+  def response_document_xml
+    @response_document ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'response1.xml'))
   end
 
   def response_document_2
@@ -179,16 +184,41 @@ class Minitest::Test
   end
 
   def idp_metadata
-    @idp_metadata ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'idp_descriptor.xml'))
+    @idp_metadata ||= File.read(File.join(File.dirname(__FILE__), 'metadata', 'idp_descriptor.xml'))
+  end
+
+  def idp_metadata_2
+    @idp_metadata_2 ||= File.read(File.join(File.dirname(__FILE__), 'metadata', 'idp_descriptor_2.xml'))
+  end
+
+  def logout_request_xml
+    @logout_request_xml ||= File.read(File.join(File.dirname(__FILE__), 'logout', 'slo_request.xml'))
+  end
+
+  def logout_request_base64
+    @logout_request_base64 ||= File.read(File.join(File.dirname(__FILE__), 'logout', 'slo_request.xml.base64'))
+  end
+
+  def logout_request_deflated_base64
+    @logout_request_deflated_base64 ||= File.read(File.join(File.dirname(__FILE__), 'logout', 'slo_request_deflated.xml.base64'))
   end
 
   def logout_request_document
     unless @logout_request_document
-      xml = File.read(File.join(File.dirname(__FILE__), 'responses', 'slo_request.xml'))
+      xml = File.read(File.join(File.dirname(__FILE__), 'logout', 'slo_request.xml'))
       deflated = Zlib::Deflate.deflate(xml, 9)[2..-5]
       @logout_request_document = Base64.encode64(deflated)
     end
     @logout_request_document
+  end
+
+  def invalid_logout_request_document
+    unless @invalid_logout_request_document
+      xml = File.read(File.join(File.dirname(__FILE__), 'logout', 'invalid_slo_request.xml'))
+      deflated = Zlib::Deflate.deflate(xml, 9)[2..-5]
+      @invalid_logout_request_document = Base64.encode64(deflated)
+    end
+    @invalid_logout_request_document
   end
 
   def ruby_saml_cert
@@ -200,7 +230,7 @@ class Minitest::Test
   end
 
   def ruby_saml_cert_text
-    File.read(File.join(File.dirname(__FILE__), 'certificates', 'ruby-saml.crt'))
+    @ruby_saml_cert_text ||= File.read(File.join(File.dirname(__FILE__), 'certificates', 'ruby-saml.crt'))
   end
 
   def ruby_saml_key
@@ -208,7 +238,7 @@ class Minitest::Test
   end
 
   def ruby_saml_key_text
-    File.read(File.join(File.dirname(__FILE__), 'certificates', 'ruby-saml.key'))
+    @ruby_saml_key_text ||= File.read(File.join(File.dirname(__FILE__), 'certificates', 'ruby-saml.key'))
   end
 
   #
