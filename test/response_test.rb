@@ -220,6 +220,20 @@ class RubySamlTest < Minitest::Test
     end
   end
 
+  describe "#valid_saml?" do
+    it "return false when encountering a SAML Response bad formatted" do
+      response = OneLogin::RubySaml::Response.new(response_document_2)
+      assert !response.send(:valid_saml?, response.document, true)
+    end
+
+    it "return false when encountering a SAML Response bad formatted" do
+      response = OneLogin::RubySaml::Response.new(response_document_2)
+      assert_raises(OneLogin::RubySaml::ValidationError, "Element '{http://www.w3.org/2000/09/xmldsig#}DigestValue': 'Digest Stuff' is not a valid value of the atomic type '{http://www.w3.org/2000/09/xmldsig#}DigestValueType'") do
+        response.send(:valid_saml?, response.document, false)
+      end
+    end
+  end
+
   describe "#validate_id" do
     it "return false when no ID present in the SAML Response" do
       response = OneLogin::RubySaml::Response.new(response_no_id)

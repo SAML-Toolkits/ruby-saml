@@ -27,7 +27,7 @@ class RubySamlTest < Minitest::Test
       formatted_cert = OneLogin::RubySaml::Utils.format_cert(cert, true)
       assert !(cert.include? "-----BEGIN CERTIFICATE-----")
       assert !(cert.include? "-----END CERTIFICATE-----")
-      assert assert cert != formatted_cert
+      refute_equal cert, formatted_cert
       assert formatted_cert.include? "-----BEGIN CERTIFICATE-----"
       assert formatted_cert.include? "-----END CERTIFICATE-----"
     end
@@ -37,7 +37,7 @@ class RubySamlTest < Minitest::Test
       formatted_cert = OneLogin::RubySaml::Utils.format_cert(cert, false)
       assert cert.include? "-----BEGIN CERTIFICATE-----"
       assert cert.include? "-----END CERTIFICATE-----"
-      assert assert cert != formatted_cert
+      refute_equal cert, formatted_cert
       assert !(formatted_cert.include? "-----BEGIN CERTIFICATE-----")
       assert !(formatted_cert.include? "-----END CERTIFICATE-----")
       assert cert.include? formatted_cert
@@ -51,7 +51,7 @@ class RubySamlTest < Minitest::Test
       formatted_cert = OneLogin::RubySaml::Utils.format_cert(cert, false)
       assert !(cert.include? "-----BEGIN CERTIFICATE-----")
       assert !(cert.include? "-----END CERTIFICATE-----")
-      assert assert cert != formatted_cert
+      refute_equal cert, formatted_cert
       assert !(formatted_cert.include? "-----BEGIN CERTIFICATE-----")
       assert !(formatted_cert.include? "-----END CERTIFICATE-----")
     end
@@ -83,7 +83,7 @@ class RubySamlTest < Minitest::Test
       formatted_private_key = OneLogin::RubySaml::Utils.format_private_key(private_key, true)
       assert !(private_key.include? "-----BEGIN RSA PRIVATE KEY-----")
       assert !(private_key.include? "-----END RSA PRIVATE KEY-----")
-      assert assert private_key != formatted_private_key
+      refute_equal private_key, formatted_private_key
       assert formatted_private_key.include? "-----BEGIN RSA PRIVATE KEY-----"
       assert formatted_private_key.include? "-----END RSA PRIVATE KEY-----"
     end
@@ -93,7 +93,7 @@ class RubySamlTest < Minitest::Test
       formatted_private_key = OneLogin::RubySaml::Utils.format_private_key(private_key, false)
       assert private_key.include? "-----BEGIN RSA PRIVATE KEY-----"
       assert private_key.include? "-----END RSA PRIVATE KEY-----"
-      assert assert private_key != formatted_private_key
+      refute_equal private_key, formatted_private_key
       assert !(formatted_private_key.include? "-----BEGIN RSA PRIVATE KEY-----")
       assert !(formatted_private_key.include? "-----END RSA PRIVATE KEY-----")
       assert private_key.include? formatted_private_key
@@ -107,7 +107,7 @@ class RubySamlTest < Minitest::Test
       formatted_private_key = OneLogin::RubySaml::Utils.format_private_key(private_key, false)
       assert !(private_key.include? "-----BEGIN RSA PRIVATE KEY-----")
       assert !(private_key.include? "-----END RSA PRIVATE KEY-----")
-      assert assert private_key != formatted_private_key
+      refute_equal private_key, formatted_private_key
       assert !(formatted_private_key.include? "-----BEGIN RSA PRIVATE KEY-----")
       assert !(formatted_private_key.include? "-----END RSA PRIVATE KEY-----")
     end
@@ -132,7 +132,7 @@ class RubySamlTest < Minitest::Test
       formatted_private_key = OneLogin::RubySaml::Utils.format_private_key(private_key, true)
       assert !(private_key.include? "-----BEGIN PRIVATE KEY-----")
       assert !(private_key.include? "-----END PRIVATE KEY-----")
-      assert assert private_key != formatted_private_key
+      refute_equal private_key, formatted_private_key
       assert formatted_private_key.include? "-----BEGIN RSA PRIVATE KEY-----"
       assert formatted_private_key.include? "-----END RSA PRIVATE KEY-----"
     end
@@ -143,7 +143,7 @@ class RubySamlTest < Minitest::Test
       formatted_private_key = OneLogin::RubySaml::Utils.format_private_key(private_key, false)
       assert private_key.include? "-----BEGIN PRIVATE KEY-----"
       assert private_key.include? "-----END PRIVATE KEY-----"
-      assert assert private_key != formatted_private_key
+      refute_equal private_key, formatted_private_key
       assert !(formatted_private_key.include? "-----BEGIN PRIVATE KEY-----")
       assert !(formatted_private_key.include? "-----END PRIVATE KEY-----")
       assert !(formatted_private_key.include? "-----BEGIN RSA PRIVATE KEY-----")
@@ -160,7 +160,7 @@ class RubySamlTest < Minitest::Test
       formatted_private_key = OneLogin::RubySaml::Utils.format_private_key(private_key, false)
       assert !(private_key.include? "-----BEGIN PRIVATE KEY-----")
       assert !(private_key.include? "-----END PRIVATE KEY-----")
-      assert assert private_key != formatted_private_key
+      refute_equal private_key, formatted_private_key
       assert !(formatted_private_key.include? "-----BEGIN PRIVATE KEY-----")
       assert !(formatted_private_key.include? "-----END PRIVATE KEY-----")
       assert !(formatted_private_key.include? "-----BEGIN RSA PRIVATE KEY-----")

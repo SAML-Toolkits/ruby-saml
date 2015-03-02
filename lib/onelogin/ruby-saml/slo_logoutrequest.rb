@@ -184,8 +184,9 @@ module OneLogin
       #
       def validate_request_state(soft = true)
         if request.nil? or request.empty?
-          @errors << "Blank Logout Request"
-          return soft ? false : validation_error("Blank Logout Request")
+          error_msg = "Blank Logout Request" 
+          @errors << error_msg
+          return soft ? false : validation_error(error_msg)
         end
         true
       end

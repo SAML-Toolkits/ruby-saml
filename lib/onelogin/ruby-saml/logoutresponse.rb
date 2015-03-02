@@ -69,7 +69,6 @@ module OneLogin
       def issuer
         @issuer ||= begin
           node = REXML::XPath.first(document, "/p:LogoutResponse/a:Issuer", { "p" => PROTOCOL, "a" => ASSERTION })
-          node ||= REXML::XPath.first(document, "/p:LogoutResponse/a:Assertion/a:Issuer", { "p" => PROTOCOL, "a" => ASSERTION })
           node.nil? ? nil : node.text
         end
       end
@@ -113,15 +112,14 @@ module OneLogin
       #                                   - Raise a ValidationError if soft=False
       def validate(soft = true, request_id = nil)
         @errors = []
-        valid_saml?(document, soft) && 
         valid_state?(soft) &&
         valid_in_response_to?(soft, request_id) &&
         valid_issuer?(soft) &&
+        validate_structure(soft) &&
         validate_success_status(soft)
       end
 
       private
-
 
       # Validates that the Logout Response provided in the initialization is not empty, 
       # also check that the setting and the IdP cert were also provided 
@@ -132,23 +130,54 @@ module OneLogin
       #                                   - Raise a ValidationError if soft=False 
       #
       def valid_state?(soft = true)
-        if response.empty?
-          return soft ? false : validation_error("Blank logout response")
+        if response.nil? or response.empty?
+          error_msg = "Blank Logout Response"
+          @errors << error_msg
+          return soft ? false : validation_error(error_msg)
         end
 
         if settings.nil?
-          return soft ? false : validation_error("No settings on logout response")
+          error_msg = "No settings on Logout Response"
+          @errors << error_msg
+          return soft ? false : validation_error(error_msg)
         end
 
         if settings.issuer.nil?
-          return soft ? false : validation_error("No issuer in settings")
+          error_msg = "No issuer in settings"
+          @errors << error_msg
+          return soft ? false : validation_error(error_msg)
         end
 
         if settings.idp_cert_fingerprint.nil? && settings.idp_cert.nil?
-          return soft ? false : validation_error("No fingerprint or certificate on settings")
+          error_msg = "No fingerprint or certificate on settings"
+          @errors << error_msg
+          return soft ? false : validation_error(error_msg)
         end
 
         true
+      end
+
+      # Validates the Logout Response against the specified schema.
+      # If fails, the error is added to the errors array
+      # @param  [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout response is invalid or not)
+      # @return [Boolean|ValidationError] True if the XML is valid, otherwise:
+      #                                   - False if soft=True
+      #                                   - Raise a ValidationError if soft=False 
+      #
+      def validate_structure(soft = true)
+        xml = Nokogiri::XML(self.document.to_s)
+
+        SamlMessage.schema.validate(xml).map do |error|
+          if soft
+            @errors << "Invalid Logout Response. Not match the saml-schema-protocol-2.0.xsd"
+            break false
+          else
+            error_message = [error.message, xml.to_s].join("\n\n")
+
+            @errors << error_message
+            validation_error(error_message)
+          end
+        end
       end
 
       # Validates the Status of the Logout Response
@@ -208,7 +237,7 @@ module OneLogin
         return true if self.settings.idp_entity_id.nil? or self.issuer.nil?
 
         unless URI.parse(self.issuer) == URI.parse(self.settings.idp_entity_id)
-          error_msg = "Doesn't match the issuer, expected: <#{self.settings.issuer}>, but was: <#{issuer}>"
+          error_msg = "Doesn't match the issuer, expected: <#{self.settings.idp_entity_id}>, but was: <#{issuer}>"
           @errors << error_msg
           return soft ? false : validation_error(error_msg)
         end
