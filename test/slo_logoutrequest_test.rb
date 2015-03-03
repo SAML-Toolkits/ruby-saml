@@ -27,15 +27,15 @@ class RubySamlTest < Minitest::Test
     end
 
     it "should be idempotent when the logout request is initialized with invalid data" do
-      logout_request = OneLogin::RubySaml::SloLogoutrequest.new(invalid_xml_response)
+      logout_request = OneLogin::RubySaml::SloLogoutrequest.new(invalid_logout_request_document)
       settings = OneLogin::RubySaml::Settings.new
       settings.idp_entity_id = 'https://app.onelogin.com/saml/metadata/SOMEACCOUNT'
       logout_request.settings = settings
 
       assert !logout_request.is_valid?
-      assert_equal ['Missing ID attribute on Logout Request'], logout_request.errors
+      assert_equal ['Invalid Logout Request. Not match the saml-schema-protocol-2.0.xsd'], logout_request.errors
       assert !logout_request.is_valid?
-      assert_equal ['Missing ID attribute on Logout Request'], logout_request.errors
+      assert_equal ['Invalid Logout Request. Not match the saml-schema-protocol-2.0.xsd'], logout_request.errors
     end
 
     it "should be idempotent when the logout request is initialized with valid data" do
@@ -94,7 +94,19 @@ class RubySamlTest < Minitest::Test
       slo_url = 'http://sp.example.com/slo'
       settings.single_logout_service_url = slo_url
       logout_request.settings = settings
-      assert_equal slo_url, logout_request.current_url
+      assert_equal slo_url, logout_request.send(:current_url)
+    end
+  end
+
+  describe '#session_indexes' do
+    it "return empty array when no SessionIndex" do
+      logout_request = OneLogin::RubySaml::SloLogoutrequest.new(logout_request_document)
+      assert_equal [], logout_request.session_indexes
+    end
+
+    it "return an Array with one SessionIndex" do
+      logout_request = OneLogin::RubySaml::SloLogoutrequest.new(logout_request_xml_with_session_index)
+      assert_equal ['_ea853497-c58a-408a-bc23-c849752d9741'], logout_request.session_indexes
     end
   end
 

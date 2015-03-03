@@ -195,6 +195,10 @@ class Minitest::Test
     @logout_request_xml ||= File.read(File.join(File.dirname(__FILE__), 'logout', 'slo_request.xml'))
   end
 
+  def logout_request_xml_with_session_index
+    @logout_request_xml_with_session_index ||= File.read(File.join(File.dirname(__FILE__), 'logout', 'slo_request_with_session_index.xml'))
+  end
+
   def logout_request_base64
     @logout_request_base64 ||= File.read(File.join(File.dirname(__FILE__), 'logout', 'slo_request.xml.base64'))
   end

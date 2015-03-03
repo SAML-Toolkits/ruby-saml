@@ -46,10 +46,12 @@ module OneLogin
       end
 
       # Another aux function to validate the SAML Response (soft = false)
+      # @param [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the response is invalid or not)
+      # @param [String|nil] request_id The ID of the AuthNRequest sent by this SP to the IdP (if was sent any)
       # @return [Boolean] TRUE if the SAML Response is valid
       #
-      def validate!(soft=false, response_id = nil)
-        validate(soft, response_id)
+      def validate!(soft=false, request_id = nil)
+        validate(soft, request_id)
       end
 
       # After execute a validation process, if fails this method returns the causes
@@ -235,18 +237,18 @@ module OneLogin
         end
      end
 
+      private
+
       # Gets the expected current_url
       # (Right now we read this url from the Assertion Consumer Service of the Settings)
       # TODO: Calculate the real current_url and use it.
       # @return 
       #
-     def current_url
-      @current_url ||= begin
-        settings.assertion_consumer_service_url
+      def current_url
+        @current_url ||= begin
+          settings.assertion_consumer_service_url
+        end
       end
-     end
-
-      private
 
       # Validates the SAML Response (calls several validation methods)
       # If fails, the attribute errors will contains the reason for the invalidation.

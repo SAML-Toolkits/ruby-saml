@@ -40,18 +40,13 @@ module OneLogin
       end
 
       # Another aux function to validate the Logout Response (soft = false)
+      # @param [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout response is invalid or not)
+      # @param [String|nil] request_id The ID of the Logout Request sent by this SP to the IdP (if was sent any)
       # @return [Boolean] TRUE if the SAML Response is valid
       #
-      def validate!
-        validate(false)
-      end
-
-      # After execute a validation process, if fails this method returns the causes
-      # @return [Array] Empty Array if no errors, or an Array with the causes
-      #
-      def errors
-        @errors
-      end
+      def validate!(soft=false, request_id = nil)
+        validate(soft, request_id)
+      end      
 
       # Gets the InResponseTo attribute from the Logout Response.
       # @return [String|nil] The InResponseTo value if exists.
@@ -60,6 +55,16 @@ module OneLogin
         @in_response_to ||= begin
           node = REXML::XPath.first(document, "/p:LogoutResponse", { "p" => PROTOCOL, "a" => ASSERTION })
           node.nil? ? nil : node.attributes['InResponseTo']
+        end
+      end
+
+      # Gets the Destination attribute from the Logout Response.
+      # @return [String|nil] The Destination value if exists.
+      #
+      def destination
+        @destination ||= begin
+          node = REXML::XPath.first(document, "/p:LogoutResponse", { "p" => PROTOCOL })
+          node.nil? ? nil : node.attributes['Destination']
         end
       end
 
@@ -103,6 +108,28 @@ module OneLogin
         end
       end
 
+      # After execute a validation process, if fails this method returns the causes
+      # @return [Array] Empty Array if no errors, or an Array with the causes
+      #
+      def errors
+        @errors
+      end
+
+      private
+
+      # Gets the expected current_url
+      # (Right now we read this url from the Sinle Logout Service of the Settings)
+      # TODO: Calculate the real current_url and use it.
+      # @return 
+      #
+      def current_url
+        @current_url ||= begin
+          unless self.settings.nil? or self.settings.single_logout_service_url.nil?
+            self.settings.single_logout_service_url
+          end
+        end
+      end
+
       # Validates the Logout Response (calls several validation methods)
       # If fails, the attribute errors will contains the reason for the invalidation.
       # @param [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout response is invalid or not)
@@ -113,10 +140,11 @@ module OneLogin
       def validate(soft = true, request_id = nil)
         @errors = []
         valid_state?(soft) &&
-        valid_in_response_to?(soft, request_id) &&
-        valid_issuer?(soft) &&
+        validate_success_status(soft) &&
         validate_structure(soft) &&
-        validate_success_status(soft)
+        valid_in_response_to?(soft, request_id) &&
+        validate_destination(soft)   &&        
+        valid_issuer?(soft)
       end
 
       private
@@ -225,6 +253,25 @@ module OneLogin
 
         true
       end
+
+        # Validates the Destination, (if the Logout Response is received where expected)
+        # If fails, the error is added to the errors array
+        # @param  [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout response is invalid or not)
+        # @return [Boolean|ValidationError] True if the destination is valid, otherwise:
+        #                                   - False if soft=True
+        #                                   - Raise a ValidationError if soft=False 
+        #
+        def validate_destination(soft = true)
+          return true if destination.nil? or destination.empty? or settings.single_logout_service_url.nil? or settings.single_logout_service_url.empty?
+
+          unless destination == current_url
+            error_msg = "The Logout Response was received at #{self.destination} instead of #{current_url}"
+            @errors << error_msg
+            return soft ? false : validation_error(error_msg)
+          end
+
+          true
+        end
 
       # Validates the Issuer of the Logout Response
       # If fails, the error is added to the errors array

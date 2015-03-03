@@ -45,10 +45,16 @@ def unsuccessful_response(opts = {})
 end
 
 def invalid_xml_response
-  "<samlp:SomethingAwful
+  "<samlp:LogoutResponse
         xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\"
         ID=\"#{random_id}\" Version=\"2.0\">
-      </samlp:SomethingAwful>"
+      <samlp:Status xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\">
+      <samlp:StatusCode xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\"
+          Value=\"urn:oasis:names:tc:SAML:2.0:status:Success\">
+      </samlp:StatusCode>
+      </samlp:Status>
+      <samlp:SomethingAwful>LalaLa</samlp:SomethingAwful>
+      </samlp:LogoutResponse>"
 end
 
 def settings
