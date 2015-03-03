@@ -125,7 +125,8 @@ class RequestTest < Minitest::Test
       inflated = zstream.inflate(decoded)
       zstream.finish
       zstream.close
-      assert_match /<samlp:NameIDPolicy AllowCreate='true' Format='urn:oasis:names:tc:SAML:2.0:nameid-format:transient'/, inflated
+      assert_match /<samlp:NameIDPolicy[^<]* AllowCreate='true'/, inflated
+      assert_match /<samlp:NameIDPolicy[^<]* Format='urn:oasis:names:tc:SAML:2.0:nameid-format:transient'/, inflated
     end
 
     it "accept extra parameters" do

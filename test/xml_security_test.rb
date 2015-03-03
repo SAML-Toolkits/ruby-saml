@@ -226,14 +226,20 @@ class XmlSecurityTest < Minitest::Test
       it "fail before response is valid" do
         Timecop.freeze Time.parse('2012-11-20 17:55:00 UTC') do
           assert ! @response.is_valid?
-          assert @response.errors.include? "Current time is earlier than NotBefore condition 2012-11-20 17:55:00 UTC < 2012-11-28 17:53:45 UTC)"
+          
+          contains_expected_error = @response.errors.include? "Current time is earlier than NotBefore condition 2012-11-20 17:55:00 UTC < 2012-11-28 17:53:45 UTC)"
+          contains_expected_error = contains_expected_error || (@response.errors.include? "Current time is earlier than NotBefore condition Tue Nov 20 17:55:00 UTC 2012 < Wed Nov 28 17:53:45 UTC 2012)")
+          assert contains_expected_error
         end
       end
 
       it "fail after response expires" do
         Timecop.freeze Time.parse('2012-11-30 17:55:00 UTC') do
           assert ! @response.is_valid?
-          assert @response.errors.include? "Current time is on or after NotOnOrAfter condition (2012-11-30 17:55:00 UTC >= 2012-11-28 18:33:45 UTC)"
+          
+          contains_expected_error = @response.errors.include? "Current time is on or after NotOnOrAfter condition (2012-11-30 17:55:00 UTC >= 2012-11-28 18:33:45 UTC)"
+          contains_expected_error = contains_expected_error || (@response.errors.include? "Current time is on or after NotOnOrAfter condition (Fri Nov 30 17:55:00 UTC 2012 >= Wed Nov 28 18:33:45 UTC 2012)")
+          assert contains_expected_error
         end
       end
     end
