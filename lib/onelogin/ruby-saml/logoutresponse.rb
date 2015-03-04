@@ -108,19 +108,12 @@ module OneLogin
         end
       end
 
-      # After execute a validation process, if fails this method returns the causes
-      # @return [Array] Empty Array if no errors, or an Array with the causes
-      #
-      def errors
-        @errors
-      end
-
       private
 
       # Gets the expected current_url
       # (Right now we read this url from the Sinle Logout Service of the Settings)
       # TODO: Calculate the real current_url and use it.
-      # @return 
+      # @return [String] The current url
       #
       def current_url
         @current_url ||= begin
@@ -136,7 +129,8 @@ module OneLogin
       # @param [String|nil] request_id The ID of the Logout Request sent by this SP to the IdP (if was sent any)
       # @return [Boolean|ValidationError] True if the Logout Response is valid, otherwise
       #                                   - False if soft=True
-      #                                   - Raise a ValidationError if soft=False
+      # @raise [ValidationError] if soft == false and validation fails
+      #
       def validate(soft = true, request_id = nil)
         @errors = []
         valid_state?(soft) &&
@@ -155,7 +149,7 @@ module OneLogin
       # @param  [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout response is invalid or not)
       # @return [Boolean|ValidationError] True if the required info is found, otherwise
       #                                   - False if soft=True
-      #                                   - Raise a ValidationError if soft=False 
+      # @raise [ValidationError] if soft == false and validation fails
       #
       def valid_state?(soft = true)
         if response.nil? or response.empty?
@@ -190,7 +184,7 @@ module OneLogin
       # @param  [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout response is invalid or not)
       # @return [Boolean|ValidationError] True if the XML is valid, otherwise:
       #                                   - False if soft=True
-      #                                   - Raise a ValidationError if soft=False 
+      # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_structure(soft = true)
         xml = Nokogiri::XML(self.document.to_s)
@@ -213,7 +207,7 @@ module OneLogin
       # @param  [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the response is invalid or not)      
       # @return [Boolean|ValidationError] True if the Logout Response contains a Success code, otherwise: 
       #                                   - False if soft=True
-      #                                   - Raise a ValidationError if soft=False 
+      # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_success_status(soft = true)
         if success?
@@ -240,7 +234,7 @@ module OneLogin
       # @param  [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout response is invalid or not)
       # @return [Boolean|ValidationError] True if there is no request_id or it match, otherwise:
       #                                   - False if soft=True
-      #                                   - Raise a ValidationError if soft=False 
+      # @raise [ValidationError] if soft == false and validation fails
       #
       def valid_in_response_to?(soft = true, request_id = nil)
         return true if request_id.nil?
@@ -254,31 +248,31 @@ module OneLogin
         true
       end
 
-        # Validates the Destination, (if the Logout Response is received where expected)
-        # If fails, the error is added to the errors array
-        # @param  [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout response is invalid or not)
-        # @return [Boolean|ValidationError] True if the destination is valid, otherwise:
-        #                                   - False if soft=True
-        #                                   - Raise a ValidationError if soft=False 
-        #
-        def validate_destination(soft = true)
-          return true if destination.nil? or destination.empty? or settings.single_logout_service_url.nil? or settings.single_logout_service_url.empty?
+      # Validates the Destination, (if the Logout Response is received where expected)
+      # If fails, the error is added to the errors array
+      # @param  [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout response is invalid or not)
+      # @return [Boolean|ValidationError] True if the destination is valid, otherwise:
+      #                                   - False if soft=True
+      # @raise [ValidationError] if soft == false and validation fails
+      #
+      def validate_destination(soft = true)
+        return true if destination.nil? or destination.empty? or settings.single_logout_service_url.nil? or settings.single_logout_service_url.empty?
 
-          unless destination == current_url
-            error_msg = "The Logout Response was received at #{self.destination} instead of #{current_url}"
-            @errors << error_msg
-            return soft ? false : validation_error(error_msg)
-          end
-
-          true
+        unless destination == current_url
+          error_msg = "The Logout Response was received at #{self.destination} instead of #{current_url}"
+          @errors << error_msg
+          return soft ? false : validation_error(error_msg)
         end
+
+        true
+      end
 
       # Validates the Issuer of the Logout Response
       # If fails, the error is added to the errors array
       # @param  [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout response is invalid or not)
       # @return [Boolean|ValidationError] True if the Issuer matchs the IdP entityId, otherwise:
       #                                   - False if soft=True
-      #                                   - Raise a ValidationError if soft=False 
+      # @raise [ValidationError] if soft == false and validation fails
       #
       def valid_issuer?(soft = true)
         return true if self.settings.idp_entity_id.nil? or self.issuer.nil?

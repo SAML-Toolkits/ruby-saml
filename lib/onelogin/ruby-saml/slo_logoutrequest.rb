@@ -32,29 +32,32 @@ module OneLogin
         @document = REXML::Document.new(@request)
       end
 
-      # An aux function to validate the Logout Request with the default values (soft = true)
+      # Validates the Logout Request with the default values (soft = true)
       # @return [Boolean] TRUE if the Logout Request is valid
       #
       def is_valid?
         validate
       end
 
-      # Another aux function to validate the Logout Request (soft = false)
+      # Validates the Logout Request (soft = false)
       # @param  [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout request is invalid or not)
       # @return [Boolean] TRUE if the Logout Request is valid
+      # @raise [ValidationError] if soft == false and validation fails
       #
-      def validate!
-        validate(false)
+      def validate!(soft=false)
+        validate(soft)
       end
 
       # Gets the ID attribute from the Logout Request.
       # @return [String|nil] The ID value if exists.
+      #
       def id
         super(self.document)
       end
 
       # Gets the NameID of the Logout Request.
       # @return [String] NameID Value
+      #
       def name_id
         @name_id ||= begin
           node = REXML::XPath.first(self.document, "/p:LogoutRequest/a:NameID", { "p" => PROTOCOL, "a" => ASSERTION })
@@ -111,19 +114,12 @@ module OneLogin
         session_index
       end
 
-      # After execute a validation process, if fails this method returns the causes
-      # @return [Array] Empty Array if no errors, or an Array with the causes
-      #
-      def errors
-        @errors
-      end
-
       private
 
         # Gets the expected current_url
         # (Right now we read this url from the Sinle Logout Service of the Settings)
         # TODO: Calculate the real current_url and use it.
-        # @return 
+        # @return [String] The current url
         #
         def current_url
           @current_url ||= begin
@@ -138,7 +134,7 @@ module OneLogin
         # @param [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout request is invalid or not)
         # @return [Boolean|ValidationError] True if the Logout Request is valid, otherwise
         #                                   - False if soft=True
-        #                                   - Raise a ValidationError if soft=False
+        # @raise [ValidationError] if soft == false and validation fails
         def validate(soft = true)
           @errors = []
           validate_request_state(soft) &&
@@ -179,7 +175,7 @@ module OneLogin
         # @param  [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout request is invalid or not)
         # @return [Boolean|ValidationError] True if satisfies the conditions, otherwise:
         #                                   - False if soft=True
-        #                                   - Raise a ValidationError if soft=False 
+        # @raise [ValidationError] if soft == false and validation fails
         #
         def validate_not_on_or_after(soft = true)
           now = Time.now.utc
@@ -196,7 +192,7 @@ module OneLogin
         # @param  [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout request is invalid or not)
         # @return [Boolean|ValidationError] True if the required info is found, otherwise
         #                                   - False if soft=True
-        #                                   - Raise a ValidationError if soft=False 
+        # @raise [ValidationError] if soft == false and validation fails
         #
         def validate_request_state(soft = true)
           if request.nil? or request.empty?
@@ -212,7 +208,7 @@ module OneLogin
         # @param  [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout request is invalid or not)
         # @return [Boolean|ValidationError] True if the XML is valid, otherwise:
         #                                   - False if soft=True
-        #                                   - Raise a ValidationError if soft=False 
+        # @raise [ValidationError] if soft == false and validation fails
         #
         def validate_structure(soft = true)
           xml = Nokogiri::XML(self.document.to_s)
@@ -235,7 +231,7 @@ module OneLogin
         # @param  [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout request is invalid or not)
         # @return [Boolean|ValidationError] True if the destination is valid, otherwise:
         #                                   - False if soft=True
-        #                                   - Raise a ValidationError if soft=False 
+        # @raise [ValidationError] if soft == false and validation fails
         #
         def validate_destination(soft = true)
           return true if destination.nil? or destination.empty? or settings.single_logout_service_url.nil? or settings.single_logout_service_url.empty?
@@ -254,7 +250,7 @@ module OneLogin
         # @param  [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout request is invalid or not)
         # @return [Boolean|ValidationError] True if the Issuer matchs the IdP entityId, otherwise:
         #                                   - False if soft=True
-        #                                   - Raise a ValidationError if soft=False 
+        # @raise [ValidationError] if soft == false and validation fails
         #
         def validate_issuer(soft = true)
           return true if settings.idp_entity_id.nil? or issuer.nil?
