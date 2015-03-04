@@ -22,8 +22,8 @@ module OneLogin
       end
 
       # Creates the AuthNRequest string.
-      # @param [OneLogin::RubySaml::Settings|nil] Toolkit settings
-      # @param [Hash]   Some parameters to build the request
+      # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @param params [Hash]   Some parameters to build the request
       # @return [String] AuthNRequest string that includes the SAMLRequest
       #
       def create(settings, params = {})
@@ -38,8 +38,8 @@ module OneLogin
       end
 
       # Creates the Get parameters for the request.
-      # @param [OneLogin::RubySaml::Settings|nil] Toolkit settings
-      # @param [Hash]   Some parameters to build the request
+      # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @param params [Hash]   Some parameters to build the request
       # @return [Hash] Parameters
       #
       def create_params(settings, params={})
@@ -75,7 +75,7 @@ module OneLogin
       end
 
       # Creates the SAMLRequest String.
-      # @param [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
       # @return [String] The SAMLRequest String.
       #
       def create_authentication_xml_doc(settings)

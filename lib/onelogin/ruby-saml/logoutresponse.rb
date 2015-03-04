@@ -20,8 +20,8 @@ module OneLogin
       attr_reader :document
 
       # Constructs the Logout Response. A Logout Response Object that is an extension of the SamlMessage class.
-      # @param [String] A UUEncoded logout response from the IdP.
-      # @param [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @param response [String] A UUEncoded logout response from the IdP.
+      # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
       #
       def initialize(response, settings = nil)
         raise ArgumentError.new("Logoutresponse cannot be nil") if response.nil?
@@ -40,8 +40,8 @@ module OneLogin
       end
 
       # Another aux function to validate the Logout Response (soft = false)
-      # @param [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout response is invalid or not)
-      # @param [String|nil] request_id The ID of the Logout Request sent by this SP to the IdP (if was sent any)
+      # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout response is invalid or not)
+      # @param request_id [String|nil] request_id The ID of the Logout Request sent by this SP to the IdP (if was sent any)
       # @return [Boolean] TRUE if the SAML Response is valid
       #
       def validate!(soft=false, request_id = nil)
@@ -79,7 +79,9 @@ module OneLogin
       end
 
       # Checks if the Status has the "Success" code
+      # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout response is invalid or not)
       # @return [Boolean] True if the StatusCode is Sucess
+      # @raise [ValidationError] if soft == false and validation fails
       # 
       def success?(soft = true)
         unless status_code == "urn:oasis:names:tc:SAML:2.0:status:Success"
@@ -125,9 +127,9 @@ module OneLogin
 
       # Validates the Logout Response (calls several validation methods)
       # If fails, the attribute errors will contains the reason for the invalidation.
-      # @param [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout response is invalid or not)
-      # @param [String|nil] request_id The ID of the Logout Request sent by this SP to the IdP (if was sent any)
-      # @return [Boolean|ValidationError] True if the Logout Response is valid, otherwise
+      # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout response is invalid or not)
+      # @param request_id [String|nil] request_id The ID of the Logout Request sent by this SP to the IdP (if was sent any)
+      # @return [Boolean] True if the Logout Response is valid, otherwise
       #                                   - False if soft=True
       # @raise [ValidationError] if soft == false and validation fails
       #
@@ -146,8 +148,8 @@ module OneLogin
       # Validates that the Logout Response provided in the initialization is not empty, 
       # also check that the setting and the IdP cert were also provided 
       # If fails, the error is added to the errors array.
-      # @param  [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout response is invalid or not)
-      # @return [Boolean|ValidationError] True if the required info is found, otherwise
+      # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout response is invalid or not)
+      # @return [Boolean] True if the required info is found, otherwise
       #                                   - False if soft=True
       # @raise [ValidationError] if soft == false and validation fails
       #
@@ -181,8 +183,8 @@ module OneLogin
 
       # Validates the Logout Response against the specified schema.
       # If fails, the error is added to the errors array
-      # @param  [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout response is invalid or not)
-      # @return [Boolean|ValidationError] True if the XML is valid, otherwise:
+      # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout response is invalid or not)
+      # @return [Boolean] True if the XML is valid, otherwise:
       #                                   - False if soft=True
       # @raise [ValidationError] if soft == false and validation fails
       #
@@ -204,8 +206,8 @@ module OneLogin
 
       # Validates the Status of the Logout Response
       # If fails, the error is added to the errors array, including the StatusCode returned and the Status Message.
-      # @param  [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the response is invalid or not)      
-      # @return [Boolean|ValidationError] True if the Logout Response contains a Success code, otherwise: 
+      # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the response is invalid or not)      
+      # @return [Boolean] True if the Logout Response contains a Success code, otherwise: 
       #                                   - False if soft=True
       # @raise [ValidationError] if soft == false and validation fails
       #
@@ -230,9 +232,9 @@ module OneLogin
 
       # Validates if the provided request_id match the inResponseTo value.
       # If fails, the error is added to the errors array
-      # @param  [String|nil] request_id The ID of the Logout Request sent by this SP to the IdP (if was sent any)
-      # @param  [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout response is invalid or not)
-      # @return [Boolean|ValidationError] True if there is no request_id or it match, otherwise:
+      # @param soft [String|nil] request_id The ID of the Logout Request sent by this SP to the IdP (if was sent any)
+      # @param request_id [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout response is invalid or not)
+      # @return [Boolean] True if there is no request_id or it match, otherwise:
       #                                   - False if soft=True
       # @raise [ValidationError] if soft == false and validation fails
       #
@@ -250,8 +252,8 @@ module OneLogin
 
       # Validates the Destination, (if the Logout Response is received where expected)
       # If fails, the error is added to the errors array
-      # @param  [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout response is invalid or not)
-      # @return [Boolean|ValidationError] True if the destination is valid, otherwise:
+      # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout response is invalid or not)
+      # @return [Boolean] True if the destination is valid, otherwise:
       #                                   - False if soft=True
       # @raise [ValidationError] if soft == false and validation fails
       #
@@ -269,8 +271,8 @@ module OneLogin
 
       # Validates the Issuer of the Logout Response
       # If fails, the error is added to the errors array
-      # @param  [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout response is invalid or not)
-      # @return [Boolean|ValidationError] True if the Issuer matchs the IdP entityId, otherwise:
+      # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout response is invalid or not)
+      # @return [Boolean] True if the Issuer matchs the IdP entityId, otherwise:
       #                                   - False if soft=True
       # @raise [ValidationError] if soft == false and validation fails
       #

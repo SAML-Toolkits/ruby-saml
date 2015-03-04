@@ -5,8 +5,8 @@ module OneLogin
     #
     class Utils
       # Return the x509 certificate string formatted
-      # @param [String] The original certificate 
-      # @param [Boolean] If true, the formatted certificate will include the
+      # @param cert [String] The original certificate 
+      # @param heads [Boolean] If true, the formatted certificate will include the
       #                  "BEGIN CERTIFICATE" header and the footer.
       # @return [String] The formatted certificate
       #
@@ -26,8 +26,8 @@ module OneLogin
       end
 
       # Return the private key string formatted
-      # @param [String] The original private key 
-      # @param [Boolean] If true, the formatted private key will include the
+      # @param key [String] The original private key 
+      # @param heads [Boolean] If true, the formatted private key will include the
       #                  "BEGIN PRIVATE KEY" or the "BEGIN RSA PRIVATE KEY" header and the footer.
       # @return [String] The formatted certificate
       def self.format_private_key(key, heads=true)
