@@ -71,14 +71,6 @@ class Minitest::Test
     @response_document7 ||= Base64.encode64(File.read(File.join(File.dirname(__FILE__), 'responses', 'response_no_cert_and_encrypted_attrs.xml')))
   end
 
-  def response_document_8
-    @response_document8 ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'response8.xml.base64'))
-  end
-
-  def response_document_9
-    @response_document9 ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'response9.xml.base64'))
-  end
-
   def valid_signed_response
     @valid_signed_response ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'valid_response.xml.base64'))
   end
