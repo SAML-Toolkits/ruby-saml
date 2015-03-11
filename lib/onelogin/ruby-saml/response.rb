@@ -6,7 +6,7 @@ require "nokogiri"
 module OneLogin
   module RubySaml
 
-    # SAML 2 Authentication Response. SAML Response
+    # SAML2 Authentication Response. SAML Response
     #
     class Response < SamlMessage
       ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion"

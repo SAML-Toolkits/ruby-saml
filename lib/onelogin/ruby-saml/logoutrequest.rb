@@ -6,7 +6,7 @@ require "onelogin/ruby-saml/logging"
 module OneLogin
   module RubySaml
 
-    # SAML 2 Logout Request (SLO SP initiated, Builder)
+    # SAML2 Logout Request (SLO SP initiated, Builder)
     #
     class Logoutrequest < SamlMessage
 

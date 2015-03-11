@@ -7,7 +7,7 @@ module OneLogin
   module RubySaml
   include REXML
 
-    # SAML 2 Authentication. AuthNRequest (SSO SP initiated, Builder)
+    # SAML2 Authentication. AuthNRequest (SSO SP initiated, Builder)
     #
     class Authrequest < SamlMessage
 

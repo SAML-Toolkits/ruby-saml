@@ -1,7 +1,7 @@
 module OneLogin
   module RubySaml
 
-    # SAML 2 Auxiliary class
+    # SAML2 Auxiliary class
     #
     class Utils
       # Return the x509 certificate string formatted
@@ -30,6 +30,7 @@ module OneLogin
       # @param heads [Boolean] If true, the formatted private key will include the
       #                  "BEGIN PRIVATE KEY" or the "BEGIN RSA PRIVATE KEY" header and the footer.
       # @return [String] The formatted certificate
+      #
       def self.format_private_key(key, heads=true)
         unless key.empty?
           key = key.delete("\n").delete("\r").delete("\x0D")

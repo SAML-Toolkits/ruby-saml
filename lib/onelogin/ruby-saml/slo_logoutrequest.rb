@@ -6,7 +6,7 @@ require 'nokogiri'
 module OneLogin
   module RubySaml
 
-    # SAML 2 Logout Request (SLO IdP initiated, Parser)
+    # SAML2 Logout Request (SLO IdP initiated, Parser)
     #
     class SloLogoutrequest < SamlMessage
 
@@ -23,6 +23,7 @@ module OneLogin
       # Constructs the Logout Request. A Logout Request Object that is an extension of the SamlMessage class.
       # @param request [String] A UUEncoded Logout Request from the IdP.
       # @param options [Hash]   Settings. Some options for the logout request validation process like allow a clock drift when checking dates with :allowed_clock_drift
+      # @raise [ArgumentError]
       #
       def initialize(request, options = {})
         @errors = []
@@ -48,15 +49,13 @@ module OneLogin
         validate(soft)
       end
 
-      # Gets the ID attribute from the Logout Request.
-      # @return [String|nil] The ID value if exists.
+      # @return [String|nil] Gets the ID attribute from the Logout Request. if exists.
       #
       def id
         super(self.document)
       end
 
-      # Gets the NameID of the Logout Request.
-      # @return [String] NameID Value
+      # @return [String] Gets the NameID of the Logout Request.
       #
       def name_id
         @name_id ||= begin
@@ -65,8 +64,7 @@ module OneLogin
         end
       end
 
-      # Gets the Destination attribute from the Logout Request.
-      # @return [String|nil] The Destination value if exists.
+      # @return [String|nil] Gets the Destination attribute from the Logout Request. if exists.
       #
       def destination
         @destination ||= begin
@@ -75,8 +73,7 @@ module OneLogin
         end
       end
 
-      # Gets the Issuer from the Logout Request.
-      # @return [String] The Issuer
+      # @return [String] Gets the Issuer from the Logout Request.
       #
       def issuer
         @issuer ||= begin
@@ -85,8 +82,7 @@ module OneLogin
         end
       end
 
-      # Gets the NotOnOrAfter Attribute value if exists.
-      # @return [Time|nil] The NotOnOrAfter value in Time format
+      # @return [Time|nil] Gets the NotOnOrAfter Attribute value if exists.
       #
       def not_on_or_after
         @not_on_or_after ||= begin
@@ -99,8 +95,7 @@ module OneLogin
         end
       end
 
-      # Gets the SessionIndex if exists (Supported multiple values). 
-      # @return [Array] The Session Indexes. Empty Array if none found 
+      # @return [Array] Gets the SessionIndex if exists (Supported multiple values). Empty Array if none found 
       #
       def session_indexes
         session_index = []
@@ -135,6 +130,7 @@ module OneLogin
         # @return [Boolean] True if the Logout Request is valid, otherwise
         #                                   - False if soft=True
         # @raise [ValidationError] if soft == false and validation fails
+        #
         def validate(soft = true)
           @errors = []
           validate_request_state(soft) &&

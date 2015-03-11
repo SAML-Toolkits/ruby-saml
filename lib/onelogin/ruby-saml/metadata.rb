@@ -4,14 +4,19 @@ require "uri"
 
 require "onelogin/ruby-saml/logging"
 
-# Class to return SP metadata based on the settings requested.
-# Return this XML in a controller, then give that URL to the the
-# IdP administrator.  The IdP will poll the URL and your settings
-# will be updated automatically
+# Only supports SAML 2.0
 module OneLogin
   module RubySaml
     include REXML
+
+    # SAML2 Metadata. XML Metadata Builder
+    #
     class Metadata
+
+      # Return SP metadata based on the settings.
+      # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @return [String] XML Metadata of the Service Provider
+      #      
       def generate(settings)
         meta_doc = REXML::Document.new
         root = meta_doc.add_element "md:EntityDescriptor", {

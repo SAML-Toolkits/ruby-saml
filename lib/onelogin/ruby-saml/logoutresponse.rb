@@ -5,7 +5,7 @@ require "time"
 module OneLogin
   module RubySaml
 
-    # SAML 2 Logout Response (SLO IdP initiated, Parser)
+    # SAML2 Logout Response (SLO IdP initiated, Parser)
     #
     class Logoutresponse < SamlMessage
 
@@ -22,6 +22,7 @@ module OneLogin
       # Constructs the Logout Response. A Logout Response Object that is an extension of the SamlMessage class.
       # @param response [String] A UUEncoded logout response from the IdP.
       # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @raise [ArgumentError]
       #
       def initialize(response, settings = nil)
         raise ArgumentError.new("Logoutresponse cannot be nil") if response.nil?
@@ -48,8 +49,7 @@ module OneLogin
         validate(soft, request_id)
       end      
 
-      # Gets the InResponseTo attribute from the Logout Response.
-      # @return [String|nil] The InResponseTo value if exists.
+      # @return [String|nil] Gets the InResponseTo attribute from the Logout Response if exists.
       #
       def in_response_to
         @in_response_to ||= begin
@@ -58,8 +58,7 @@ module OneLogin
         end
       end
 
-      # Gets the Destination attribute from the Logout Response.
-      # @return [String|nil] The Destination value if exists.
+      # @return [String|nil] Gets the Destination attribute from the Logout Response if exists.
       #
       def destination
         @destination ||= begin
@@ -68,8 +67,7 @@ module OneLogin
         end
       end
 
-      # Gets the Issuer from the Logout Response.
-      # @return [String] Issuer
+      # @return [String] Gets the Issuer from the Logout Response.
       #
       def issuer
         @issuer ||= begin
@@ -90,8 +88,7 @@ module OneLogin
         true
       end
 
-      # Gets the StatusCode from a Logout Response.
-      # @return [String] StatusCode Value
+      # @return [String] Gets the StatusCode from a Logout Response.
       #
       def status_code
         @status_code ||= begin
@@ -100,8 +97,7 @@ module OneLogin
         end
       end
 
-      # Gets the StatusMessage from a SAML Response.
-      # @return [String] StatusMessage Value
+      # @return [String] Gets the StatusMessage from a SAML Response.
       #
       def status_message
         @status_message ||= begin
