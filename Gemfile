@@ -1,6 +1,6 @@
 #
 # Please keep this file alphabetized and organized
 #
-source 'http://rubygems.org'
+source 'https://rubygems.org'
 
 gemspec
