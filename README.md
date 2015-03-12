@@ -41,7 +41,7 @@ gem 'ruby-saml', '~> 0.9.1'
 gem 'ruby-saml', :github => 'onelogin/ruby-saml'
 ```
 
-Using Bundler
+Using RubyGems
 
 ```sh
 gem install ruby-saml
@@ -57,6 +57,22 @@ or just the required components individually:
 ```ruby
 require 'onelogin/ruby-saml/authrequest'
 ```
+
+### Installation on Ruby 1.8.7
+
+This gem has a dependency on Nokogiri, which dropped support for Ruby 1.8.x in Nokogiri 1.6. When installing this gem on Ruby 1.8.7, you will need to make sure a version of Nokogiri prior to 1.6 is installed or specified if it hasn't been already.
+
+Using `Gemfile`
+
+```ruby
+gem 'nokogiri', '~> 1.5.10'
+```
+
+Using RubyGems
+
+```sh
+gem install nokogiri --version '~> 1.5.10'
+````
 
 ## The Initialization Phase
 
