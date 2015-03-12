@@ -168,4 +168,42 @@ class RubySamlTest < Minitest::Test
     end
   end
 
+  describe "#format method working" do
+    it "raise nested asn1 error, valid cert but with bad format (with heads)" do
+      cert = ruby_saml_cert_text
+      cert = cert.gsub("\n", "\n ")
+
+      assert_raises(OpenSSL::X509::CertificateError, "nested asn1 error") do
+        x509 = OpenSSL::X509::Certificate.new(cert)
+      end
+    end
+
+    it "return true, valid cert but with bad format (with heads) formated" do
+      cert = ruby_saml_cert_text
+      cert = cert.gsub("\n", "\n ")
+
+      x509 = OpenSSL::X509::Certificate.new(OneLogin::RubySaml::Utils.format_cert(cert))
+    end
+
+    it "valid false, valid cert but with without head and footer" do
+      cert = ruby_saml_cert_text
+      cert = cert.delete("\n").delete("\r").delete("\x0D")
+      cert = cert.gsub('-----BEGIN CERTIFICATE-----', '')
+      cert = cert.gsub('-----END CERTIFICATE-----', '')      
+
+      assert_raises(OpenSSL::X509::CertificateError, "nested asn1 error") do
+        x509 = OpenSSL::X509::Certificate.new(cert)
+      end
+    end
+
+    it "valid true, valid cert but with bad without head and footer formated" do
+      cert = ruby_saml_cert_text
+      cert = cert.delete("\n").delete("\r").delete("\x0D")
+      cert = cert.gsub('-----BEGIN CERTIFICATE-----', '')
+      cert = cert.gsub('-----END CERTIFICATE-----', '')      
+
+      x509 = OpenSSL::X509::Certificate.new(OneLogin::RubySaml::Utils.format_cert(cert))
+    end
+  end
+
 end

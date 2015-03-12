@@ -7,16 +7,13 @@ module OneLogin
       # Return the x509 certificate string formatted
       # @param cert [String] The original certificate 
       # @param heads [Boolean] If true, the formatted certificate will include the
-      #                  "BEGIN CERTIFICATE" header and the footer.
+      #                        "BEGIN CERTIFICATE" header and the footer.
       # @return [String] The formatted certificate
       #
       def self.format_cert(cert, heads=true)
         unless cert.empty?
-          cert = cert.delete("\n").delete("\r").delete("\x0D")
-          cert = cert.gsub('-----BEGIN CERTIFICATE-----', '')
-          cert = cert.gsub('-----END CERTIFICATE-----', '')
-          cert = cert.gsub(' ', '')
-
+          cert = cert.gsub(/\-{5}\s?(BEGIN|END) CERTIFICATE\s?\-{5}/, "")
+          cert = cert.gsub(/[\n\r\s]/, "")
           cert = cert.scan(/.{1,64}/).join("\n")+"\n"
           if heads
             cert = "-----BEGIN CERTIFICATE-----\n" + cert + "-----END CERTIFICATE-----\n"
