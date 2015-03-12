@@ -242,8 +242,7 @@ module OneLogin
       # If fails, the attribute errors will contains the reason for the invalidation.
       # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the response is invalid or not)
       # @param request_id [String|nil] request_id The ID of the AuthNRequest sent by this SP to the IdP (if was sent any)
-      # @return [Boolean] True if the SAML Response is valid, otherwise
-      #                                   - False if soft=True
+      # @return [Boolean] True if the SAML Response is valid, otherwise False if soft=True
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate(soft = true, request_id = nil)
@@ -270,8 +269,7 @@ module OneLogin
       # also check that the setting and the IdP cert were also provided 
       # If fails, the error is added to the errors array.
       # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the response is invalid or not)
-      # @return [Boolean] True if the required info is found, otherwise
-      #                                   - False if soft=True
+      # @return [Boolean] True if the required info is found, otherwise False if soft=True
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_response_state(soft = true)
@@ -335,8 +333,7 @@ module OneLogin
       # Validates the Status of the SAML Response
       # If fails, the error is added to the errors array, including the StatusCode returned and the Status Message.
       # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the response is invalid or not)      
-      # @return [Boolean] True if the SAML Response contains a Success code, otherwise: 
-      #                                   - False if soft=True
+      # @return [Boolean] True if the SAML Response contains a Success code, otherwise False if soft == false
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_success_status(soft = true)
@@ -361,8 +358,7 @@ module OneLogin
       # Validates the Signed elements
       # If fails, the error is added to the errors array
       # @return [Boolean] True if there is 1 or 2 Elements signed in the SAML Response
-      #                                   an are a Response or an Assertion Element, otherwise:
-      #                                   - False if soft=True
+      #                                   an are a Response or an Assertion Element, otherwise False if soft=True
       #
       def validate_signed_elements()
         signature_nodes = REXML::XPath.match(@document, "//ds:Signature", {"ds"=>DSIG})
@@ -388,32 +384,22 @@ module OneLogin
       # Validates the SAML Response against the specified schema.
       # If fails, the error is added to the errors array
       # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the response is invalid or not)
-      # @return [Boolean] True if the XML is valid, otherwise:
-      #                                   - False if soft=True
+      # @return [Boolean] True if the XML is valid, otherwise False if soft=True
       # @raise [ValidationError] if soft == false and validation fails 
       #
       def validate_structure(soft = true)
-        xml = Nokogiri::XML(self.document.to_s)
-
-        SamlMessage.schema.validate(xml).map do |error|
-          if soft
-            @errors << "Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd"
-            break false
-          else
-            error_message = [error.message, xml.to_s].join("\n\n")
-
-            @errors << error_message
-            validation_error(error_message)
-          end
+        valid = self.valid_saml?(self.document, soft)
+        unless valid
+          @errors << "Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd"
         end
+        valid
       end
 
       # Validates if the provided request_id match the inResponseTo value.
       # If fails, the error is added to the errors array
       # @param request_id [String|nil] request_id The ID of the AuthNRequest sent by this SP to the IdP (if was sent any)
       # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the response is invalid or not)
-      # @return [Boolean] True if there is no request_id or it match, otherwise:
-      #                                   - False if soft=True
+      # @return [Boolean] True if there is no request_id or it match, otherwise False if soft=True
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_in_response_to(request_id = nil, soft = true)
@@ -431,8 +417,7 @@ module OneLogin
       # Validates that there are not EncryptedAttribute (not supported)
       # If fails, the error is added to the errors array
       # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the response is invalid or not)
-      # @return [Boolean] True if there are no EncryptedAttribute elements, otherwise:
-      #                                   - False if soft=True
+      # @return [Boolean] True if there are no EncryptedAttribute elements, otherwise False if soft=True
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_no_encrypted_attributes(soft = true)
@@ -447,8 +432,7 @@ module OneLogin
       # Validates the Destination, (if the SAML Response is received where expected)
       # If fails, the error is added to the errors array
       # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the response is invalid or not)
-      # @return [Boolean] True if the destination is valid, otherwise:
-      #                                   - False if soft=True
+      # @return [Boolean] True if the destination is valid, otherwise False if soft=True
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_destination(soft = true)
@@ -466,8 +450,7 @@ module OneLogin
       # Validates the Audience, (If the Audience match the Service Provider EntityID)
       # If fails, the error is added to the errors array
       # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the response is invalid or not)
-      # @return [Boolean] True if there is an Audience Element that match the Service Provider EntityID, otherwise:
-      #                                   - False if soft=True
+      # @return [Boolean] True if there is an Audience Element that match the Service Provider EntityID, otherwise False if soft=True
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_audience(soft = true)
@@ -540,8 +523,7 @@ module OneLogin
       # If the response was initialized with the :allowed_clock_drift option, the timing validations are relaxed by the allowed_clock_drift value)
       # If fails, the error is added to the errors array
       # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the response is invalid or not)
-      # @return [Boolean] True if satisfies the conditions, otherwise:
-      #                                   - False if soft=True
+      # @return [Boolean] True if satisfies the conditions, otherwise False if soft=True
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_conditions(soft = true)
@@ -566,8 +548,7 @@ module OneLogin
       # Validates the Issuer (Of the SAML Response and the SAML Assertion)
       # If fails, the error is added to the errors array
       # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the response is invalid or not)
-      # @return [Boolean] True if the Issuer matchs the IdP entityId, otherwise:
-      #                                   - False if soft=True
+      # @return [Boolean] True if the Issuer matchs the IdP entityId, otherwise False if soft=True
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_issuer(soft = true)
@@ -588,8 +569,7 @@ module OneLogin
       # this time validation is relaxed by the allowed_clock_drift value)
       # If fails, the error is added to the errors array
       # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the response is invalid or not)
-      # @return [Boolean] True if the SessionNotOnOrAfter of the AttributeStatement is valid, otherwise (expired):
-      #                                   - False if soft=True
+      # @return [Boolean] True if the SessionNotOnOrAfter of the AttributeStatement is valid, otherwise (when expired) False if soft=True
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_session_expiration(soft = true)
@@ -609,8 +589,7 @@ module OneLogin
       # timimg validation are relaxed by the allowed_clock_drift value)
       # If fails, the error is added to the errors array
       # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the response is invalid or not)
-      # @return [Boolean] True if exists a valid SubjectConfirmation, otherwise:
-      #                                   - False if soft=True
+      # @return [Boolean] True if exists a valid SubjectConfirmation, otherwise False if soft=True
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_subject_confirmation(soft = true)

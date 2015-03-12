@@ -127,8 +127,7 @@ module OneLogin
         # Validates the Logout Request (calls several validation methods)
         # If fails, the attribute errors will contains the reason for the invalidation.
         # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout request is invalid or not)
-        # @return [Boolean] True if the Logout Request is valid, otherwise
-        #                                   - False if soft=True
+        # @return [Boolean] True if the Logout Request is valid, otherwise False if soft=True
         # @raise [ValidationError] if soft == false and validation fails
         #
         def validate(soft = true)
@@ -169,8 +168,7 @@ module OneLogin
         # Validates the time. (If the logout request was initialized with the :allowed_clock_drift option, the timing validations are relaxed by the allowed_clock_drift value)
         # If fails, the error is added to the errors array
         # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout request is invalid or not)
-        # @return [Boolean] True if satisfies the conditions, otherwise:
-        #                                   - False if soft=True
+        # @return [Boolean] True if satisfies the conditions, otherwise False if soft=True
         # @raise [ValidationError] if soft == false and validation fails
         #
         def validate_not_on_or_after(soft = true)
@@ -186,8 +184,7 @@ module OneLogin
         # Validates that the Logout Request provided in the initialization is not empty, 
         # If fails, the error is added to the errors array.
         # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout request is invalid or not)
-        # @return [Boolean] True if the required info is found, otherwise
-        #                                   - False if soft=True
+        # @return [Boolean] True if the required info is found, otherwise False if soft=True
         # @raise [ValidationError] if soft == false and validation fails
         #
         def validate_request_state(soft = true)
@@ -202,31 +199,21 @@ module OneLogin
         # Validates the Logout Request against the specified schema.
         # If fails, the error is added to the errors array
         # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout request is invalid or not)
-        # @return [Boolean] True if the XML is valid, otherwise:
-        #                                   - False if soft=True
+        # @return [Boolean] True if the XML is valid, otherwise False if soft=True
         # @raise [ValidationError] if soft == false and validation fails
         #
         def validate_structure(soft = true)
-          xml = Nokogiri::XML(self.document.to_s)
-
-          SamlMessage.schema.validate(xml).map do |error|
-            if soft
-              @errors << "Invalid Logout Request. Not match the saml-schema-protocol-2.0.xsd"
-              break false
-            else
-              error_message = [error.message, xml.to_s].join("\n\n")
-
-              @errors << error_message
-              validation_error(error_message)
-            end
+          valid = self.valid_saml?(self.document, soft)
+          unless valid
+            @errors << "Invalid Logout Request. Not match the saml-schema-protocol-2.0.xsd"
           end
+          valid
         end
 
         # Validates the Destination, (if the Logout Request is received where expected)
         # If fails, the error is added to the errors array
         # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout request is invalid or not)
-        # @return [Boolean] True if the destination is valid, otherwise:
-        #                                   - False if soft=True
+        # @return [Boolean] True if the destination is valid, otherwise False if soft=True
         # @raise [ValidationError] if soft == false and validation fails
         #
         def validate_destination(soft = true)
@@ -244,8 +231,7 @@ module OneLogin
         # Validates the Issuer of the Logout Request
         # If fails, the error is added to the errors array
         # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout request is invalid or not)
-        # @return [Boolean] True if the Issuer matchs the IdP entityId, otherwise:
-        #                                   - False if soft=True
+        # @return [Boolean] True if the Issuer matchs the IdP entityId, otherwise False if soft=True
         # @raise [ValidationError] if soft == false and validation fails
         #
         def validate_issuer(soft = true)

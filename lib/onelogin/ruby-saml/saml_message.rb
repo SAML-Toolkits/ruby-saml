@@ -57,7 +57,8 @@ module OneLogin
 
         SamlMessage.schema.validate(xml).map do |error|
           break false if soft
-          validation_error("#{error.message}\n\n#{xml.to_s}")
+          error_message = [error.message, xml.to_s].join("\n\n")
+          validation_error(error_message)
         end
       end
 
