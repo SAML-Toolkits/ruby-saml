@@ -47,6 +47,12 @@ module OneLogin
           # Most IdPs will probably use self signed certs
           if validate_cert
             http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+
+            # Net::HTTP in Ruby 1.8 did not set the default certificate store
+            # automatically when VERIFY_PEER was specified.
+            if RUBY_VERSION < '1.9' && !http.ca_file && !http.ca_path && !http.cert_store
+              http.cert_store = OpenSSL::SSL::SSLContext::DEFAULT_CERT_STORE
+            end
           else
             http.verify_mode = OpenSSL::SSL::VERIFY_NONE
           end
