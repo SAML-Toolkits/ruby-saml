@@ -72,26 +72,26 @@ module OneLogin
 
       private
 
-      # Base64 decode and inflate a SAML Message
+      # Base64 decode and try also to inflate a SAML Message
       # @param saml [String] The deflated and encoded SAML Message
       # @return [String] The plain SAML Message
-
+      #
       def decode_raw_saml(saml)
-        if saml =~ /^</
-          return saml
-        elsif (decoded  = decode(saml)) =~ /^</
-          return decoded
-        elsif (inflated = inflate(decoded)) =~ /^</
-          return inflated
-        end
+        return saml unless is_base64?(saml)
 
-        return nil
+        decoded = decode(saml)
+        begin
+          inflate(decoded)
+        rescue
+          decoded
+        end
       end
 
       # Deflate, base64 encode and url-encode a SAML Message (To be used in the HTTP-redirect binding)
       # @param saml [String] The plain SAML Message
       # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
       # @return [String] The deflated and encoded SAML Message (encoded if the compression is requested)
+      #
       def encode_raw_saml(saml, settings)
         saml           = Zlib::Deflate.deflate(saml, 9)[2..-5] if settings.compress_request
         base64_saml    = Base64.encode64(saml)
@@ -101,6 +101,7 @@ module OneLogin
       # Base 64 decode method
       # @param saml [String] The string message
       # @return [String] The decoded string
+      #
       def decode(encoded)
         Base64.decode64(encoded)
       end
@@ -108,13 +109,25 @@ module OneLogin
       # Base 64 encode method
       # @param saml [String] The string
       # @return [String] The encoded string
+      #
       def encode(encoded)
         Base64.encode64(encoded).gsub(/\n/, "")
+      end
+
+      ##
+      # Check if the provided string is base64 encoded. 
+      # The function is not strict and does allow newline. This is because some SAML implementations
+      # uses newline in the base64-encoded data, even if they shouldn't have (RFC4648).
+      # @param message [String] The value to be checked.
+      # @return [Boolean] True if the value is a base64 encoded string.
+      def is_base64?(message)
+        message.match(%r{\A(([A-Za-z0-9+/]{4})|\n)*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)\Z})
       end
 
       # URL-decode method
       # @param saml [String] The string
       # @return [String] The url-encoded string
+      #
       def escape(unescaped)
         CGI.escape(unescaped)
       end
@@ -122,6 +135,7 @@ module OneLogin
       # URL-encode method
       # @param saml [String] The url-encoded string
       # @return [String] The url-decoded string
+      #
       def unescape(escaped)
         CGI.unescape(escaped)
       end
@@ -129,6 +143,7 @@ module OneLogin
       # Inflate method
       # @param saml [String] The string
       # @return [String] The inflated string
+      #
       def inflate(deflated)
         zlib = Zlib::Inflate.new(-Zlib::MAX_WBITS)
         zlib.inflate(deflated)
@@ -137,6 +152,7 @@ module OneLogin
       # Deflate method
       # @param saml [String] The string
       # @return [String] The deflated string
+      #
       def deflate(inflated)
         Zlib::Deflate.deflate(inflated, 9)[2..-5]
       end

@@ -60,6 +60,12 @@ module OneLogin
           # Most IdPs will probably use self signed certs
           if validate_cert
             http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+
+            # Net::HTTP in Ruby 1.8 did not set the default certificate store
+            # automatically when VERIFY_PEER was specified.
+            if RUBY_VERSION < '1.9' && !http.ca_file && !http.ca_path && !http.cert_store
+              http.cert_store = OpenSSL::SSL::SSLContext::DEFAULT_CERT_STORE
+            end
           else
             http.verify_mode = OpenSSL::SSL::VERIFY_NONE
           end
@@ -71,18 +77,21 @@ module OneLogin
       end
 
       # @return [String|nil] SingleSignOnService endpoint if exists
+      #
       def single_signon_service_url
         node = REXML::XPath.first(document, "/md:EntityDescriptor/md:IDPSSODescriptor/md:SingleSignOnService/@Location", { "md" => METADATA })
         node.value if node
       end
 
       # @return [String|nil] SingleLogoutService endpoint if exists
+      #
       def single_logout_service_url
         node = REXML::XPath.first(document, "/md:EntityDescriptor/md:IDPSSODescriptor/md:SingleLogoutService/@Location", { "md" => METADATA })
         node.value if node
       end
 
       # @return [String|nil] X509Certificate if exists
+      #
       def certificate
         @certificate ||= begin
           node = REXML::XPath.first(document, "/md:EntityDescriptor/md:IDPSSODescriptor/md:KeyDescriptor[@use='signing']/ds:KeyInfo/ds:X509Data/ds:X509Certificate", { "md" => METADATA, "ds" => DSIG })
@@ -91,6 +100,7 @@ module OneLogin
       end
 
       # @return [String|nil] the SHA-1 fingerpint of the X509Certificate if it exists
+      #
       def fingerprint
         @fingerprint ||= begin
           if certificate
