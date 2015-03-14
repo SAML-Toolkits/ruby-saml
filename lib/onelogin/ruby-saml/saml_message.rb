@@ -37,16 +37,23 @@ module OneLogin
 
       private
 
+      ##
+      # Take a SAML object provided by +saml+, determine its status and return
+      # a decoded XML as a String.
+      #
+      # Since SAML decided to use the RFC1951 and therefor has no zlib markers,
+      # the only reliable method of deciding whether we have a zlib stream or not
+      # is to try and inflate it and fall back to the base64 decoded string if
+      # the stream contains errors.
       def decode_raw_saml(saml)
-        if saml =~ /^</
-          return saml
-        elsif (decoded  = decode(saml)) =~ /^</
-          return decoded
-        elsif (inflated = inflate(decoded)) =~ /^</
-          return inflated
-        end
+        return saml unless is_base64?(saml)
 
-        return nil
+        decoded = decode(saml)
+        begin
+          inflate(decoded)
+        rescue
+          decoded
+        end
       end
 
       def encode_raw_saml(saml, settings)
@@ -61,6 +68,15 @@ module OneLogin
 
       def encode(encoded)
         Base64.encode64(encoded).gsub(/\n/, "")
+      end
+
+      ##
+      # Check if +string+ is base64 encoded
+      #
+      # The function is not strict and does allow newline. This is because some SAML implementations
+      # uses newline in the base64-encoded data, even if they shouldn't have (RFC4648).
+      def is_base64?(string)
+        string.match(%r{\A(([A-Za-z0-9+/]{4})|\n)*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)\Z})
       end
 
       def escape(unescaped)
