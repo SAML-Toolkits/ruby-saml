@@ -3,6 +3,7 @@ require "uuid"
 require "zlib"
 require "cgi"
 require 'net/http'
+require 'net/https'
 require "rexml/document"
 require "rexml/xpath"
 
