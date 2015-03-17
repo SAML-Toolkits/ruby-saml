@@ -1,5 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), "test_helper"))
 
+require 'onelogin/ruby-saml/settings'
+
 class SettingsTest < Minitest::Test
 
   describe "Settings" do

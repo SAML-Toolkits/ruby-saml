@@ -2,6 +2,8 @@ require File.expand_path(File.join(File.dirname(__FILE__), "test_helper"))
 require 'net/http'
 require 'net/https'
 
+require 'onelogin/ruby-saml/idp_metadata_parser'
+
 class IdpMetadataParserTest < Minitest::Test
 
   class MockResponse
