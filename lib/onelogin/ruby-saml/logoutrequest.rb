@@ -1,6 +1,7 @@
 require "uuid"
 
 require "onelogin/ruby-saml/logging"
+require "onelogin/ruby-saml/saml_message"
 
 module OneLogin
   module RubySaml

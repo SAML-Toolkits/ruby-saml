@@ -1,3 +1,5 @@
+require "xml_security"
+
 module OneLogin
   module RubySaml
     class Settings
