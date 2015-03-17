@@ -1,6 +1,5 @@
-require "uuid"
-
 require "onelogin/ruby-saml/logging"
+require "onelogin/ruby-saml/utils"
 
 module OneLogin
   module RubySaml
@@ -9,7 +8,7 @@ module OneLogin
       attr_reader :uuid # Can be obtained if neccessary
 
       def initialize
-        @uuid = "_" + UUID.new.generate
+        @uuid = OneLogin::RubySaml::Utils.uuid
       end
 
       def create(settings, params={})
@@ -79,7 +78,7 @@ module OneLogin
           name_id.text = settings.name_identifier_value
         else
           # If no NameID is present in the settings we generate one
-          name_id.text = "_" + UUID.new.generate
+          name_id.text = OneLogin::RubySaml::Utils.uuid
           name_id.attributes['Format'] = 'urn:oasis:names:tc:SAML:2.0:nameid-format:transient'
         end
 
