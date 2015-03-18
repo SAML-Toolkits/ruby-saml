@@ -1,6 +1,11 @@
 module OneLogin
   module RubySaml
     class Utils
+
+      def self.uuid
+        "_#{SecureRandom.uuid}"
+      end
+
       def self.format_cert(cert, heads=true)
         cert = cert.delete("\n").delete("\r").delete("\x0D")
         if cert

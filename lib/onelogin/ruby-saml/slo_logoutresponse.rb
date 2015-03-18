@@ -1,6 +1,5 @@
-require "uuid"
-
 require "onelogin/ruby-saml/logging"
+require "onelogin/ruby-saml/utils"
 
 module OneLogin
   module RubySaml
@@ -9,7 +8,7 @@ module OneLogin
       attr_reader :uuid # Can be obtained if neccessary
 
       def initialize
-        @uuid = "_" + UUID.new.generate
+        @uuid = OneLogin::RubySaml::Utils.uuid
       end
 
       def create(settings, request_id = nil, logout_message = nil, params = {})
