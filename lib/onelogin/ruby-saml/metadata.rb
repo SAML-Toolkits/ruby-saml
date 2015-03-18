@@ -1,5 +1,3 @@
-require "rexml/document"
-require "rexml/xpath"
 require "uri"
 
 require "onelogin/ruby-saml/logging"
@@ -10,7 +8,6 @@ require "onelogin/ruby-saml/logging"
 # will be updated automatically
 module OneLogin
   module RubySaml
-    include REXML
     class Metadata
       def generate(settings)
         meta_doc = XMLSecurity::Document.new
