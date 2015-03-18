@@ -1,3 +1,7 @@
+require "xml_security"
+require "onelogin/ruby-saml/attribute_service"
+require "onelogin/ruby-saml/utils"
+
 module OneLogin
   module RubySaml
     class Settings

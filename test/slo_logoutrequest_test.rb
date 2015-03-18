@@ -1,6 +1,8 @@
 require File.expand_path(File.join(File.dirname(__FILE__), "test_helper"))
 require 'responses/logoutresponse_fixtures'
 
+require 'onelogin/ruby-saml/slo_logoutrequest'
+
 class RubySamlTest < Minitest::Test
 
   describe "SloLogoutrequest" do
