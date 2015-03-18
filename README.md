@@ -336,9 +336,10 @@ In order to be able to sign we need first to define the private key and the publ
 The settings related to sign are stored in the `security` attribute of the settings:
 
 ```ruby
-  settings.security[:authn_requests_signed]  = true     # Enable or not signature on AuthNRequest
-  settings.security[:logout_requests_signed] = true     # Enable or not signature on Logout Request
+  settings.security[:authn_requests_signed]   = true     # Enable or not signature on AuthNRequest
+  settings.security[:logout_requests_signed]  = true     # Enable or not signature on Logout Request
   settings.security[:logout_responses_signed] = true     # Enable or not signature on Logout Response
+  settings.security[:metadata_signed]         = true     # Enable or not signature on Metadata
 
   settings.security[:digest_method]    = XMLSecurity::Document::SHA1
   settings.security[:signature_method] = XMLSecurity::Document::SHA1

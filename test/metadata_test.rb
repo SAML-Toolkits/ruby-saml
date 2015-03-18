@@ -84,5 +84,42 @@ class MetadataTest < Minitest::Test
       assert_equal "Friendly Name", req_attr.attribute("FriendlyName").value
       assert_equal "Attribute Value", REXML::XPath.first(xml_doc, "//md:AttributeValue").text.strip
     end
+
+    describe "when the settings indicate to sign (embedded) the metadata" do
+      it "create a signed metadata" do
+        settings = OneLogin::RubySaml::Settings.new
+        settings.issuer = "https://example.com"
+        settings.name_identifier_format = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+        settings.assertion_consumer_service_url = "https://foo.example/saml/consume"
+        settings.security[:metadata_signed] = true
+        settings.security[:embed_sign] = true
+        settings.certificate = ruby_saml_cert_text
+        settings.private_key = ruby_saml_key_text
+        xml_text = OneLogin::RubySaml::Metadata.new.generate(settings)
+
+        assert_match %r[<ds:SignatureValue>\s*([a-zA-Z0-9/+=]+)\s*</ds:SignatureValue>]m, xml_text
+        assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], xml_text
+        assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], xml_text
+      end
+
+      it "create a signed metadata with 256 digest and signature methods" do
+        settings = OneLogin::RubySaml::Settings.new
+        settings.issuer = "https://example.com"
+        settings.name_identifier_format = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+        settings.assertion_consumer_service_url = "https://foo.example/saml/consume"
+        settings.security[:metadata_signed] = true
+        settings.security[:embed_sign] = true
+        settings.security[:signature_method] = XMLSecurity::Document::SHA256
+        settings.security[:digest_method] = XMLSecurity::Document::SHA512
+        settings.certificate = ruby_saml_cert_text
+        settings.private_key = ruby_saml_key_text
+
+        xml_text = OneLogin::RubySaml::Metadata.new.generate(settings)
+
+        assert_match %r[<ds:SignatureValue>\s*([a-zA-Z0-9/+=]+)\s*</ds:SignatureValue>]m, xml_text
+        assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], xml_text
+        assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha512'/>], xml_text
+      end
+    end
   end
 end

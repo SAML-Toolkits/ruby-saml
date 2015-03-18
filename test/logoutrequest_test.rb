@@ -88,7 +88,7 @@ class RequestTest < Minitest::Test
       end
     end
 
-    describe "when the settings indicate to sign (embebed) the logout request" do
+    describe "when the settings indicate to sign (embedded) the logout request" do
       it "created a signed logout request" do
         settings = OneLogin::RubySaml::Settings.new
         settings.idp_slo_target_url = "http://example.com?field=value"
