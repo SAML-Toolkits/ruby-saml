@@ -18,7 +18,7 @@ We created a demo project for Rails4 that uses the latest version of this librar
 * 1.8.7
 * 1.9.x
 * 2.1.x
-* 2.2 (not yet officially supported)
+* 2.2.0
 
 ## Adding Features, Pull Requests
 * Fork the repository
