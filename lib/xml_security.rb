@@ -81,7 +81,9 @@ module XMLSecurity
     attr_accessor :uuid
 
     def uuid
-      uuid ||= document.root.attributes['ID']
+      @uuid ||= begin
+        document.root.nil? ? nil : document.root.attributes['ID']
+      end
     end
 
     #<Signature>
