@@ -157,7 +157,7 @@ class XmlSecurityTest < Minitest::Test
 
         # verify our signature
         signed_doc = XMLSecurity::SignedDocument.new(request.to_s)
-        signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
+        assert signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
       end
 
       it "sign a LogoutRequest" do
@@ -173,7 +173,7 @@ class XmlSecurityTest < Minitest::Test
 
         # verify our signature
         signed_doc = XMLSecurity::SignedDocument.new(request.to_s)
-        signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
+        assert signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
       end
 
       it "sign a LogoutResponse" do
@@ -189,7 +189,7 @@ class XmlSecurityTest < Minitest::Test
 
         # verify our signature
         signed_doc = XMLSecurity::SignedDocument.new(response.to_s)
-        signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
+        assert signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
       end
     end
 
