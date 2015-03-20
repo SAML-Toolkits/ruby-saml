@@ -80,6 +80,10 @@ module XMLSecurity
 
     attr_accessor :uuid
 
+    def uuid
+      uuid ||= document.root.attributes['ID']
+    end
+
     #<Signature>
       #<SignedInfo>
         #<CanonicalizationMethod />
