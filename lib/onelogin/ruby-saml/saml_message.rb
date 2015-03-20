@@ -76,7 +76,8 @@ module OneLogin
       # The function is not strict and does allow newline. This is because some SAML implementations
       # uses newline in the base64-encoded data, even if they shouldn't have (RFC4648).
       def is_base64?(string)
-        string.match(%r{\A(([A-Za-z0-9+/]{4})|\n)*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)\Z})
+        string = string.gsub(/\r\n/, "").gsub(/\n/, "")
+        string.match(%r{\A(([A-Za-z0-9+/]{4}))*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)\Z})
       end
 
       def escape(unescaped)
