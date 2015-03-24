@@ -145,7 +145,7 @@ class RequestTest < Minitest::Test
       end
     end
 
-    describe "when the settings indicate to sign (embebed) the request" do
+    describe "when the settings indicate to sign (embedded) the request" do
       it "create a signed request" do
         settings = OneLogin::RubySaml::Settings.new
         settings.compress_request = false
