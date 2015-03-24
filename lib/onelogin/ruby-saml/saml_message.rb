@@ -14,7 +14,7 @@ module OneLogin
       ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion"
       PROTOCOL  = "urn:oasis:names:tc:SAML:2.0:protocol"
 
-      BASE64_FORMAT_REGEXP = %r{\A(([A-Za-z0-9+/]{4}))*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)\Z}
+      BASE64_FORMAT = %r(\A[A-Za-z0-9+/]{4}*[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=?\Z)
 
       def self.schema
         @schema ||= Mutex.new.synchronize do
@@ -48,7 +48,7 @@ module OneLogin
       # is to try and inflate it and fall back to the base64 decoded string if
       # the stream contains errors.
       def decode_raw_saml(saml)
-        return saml unless base64_formatted?(saml)
+        return saml unless base64_encoded?(saml)
 
         decoded = decode(saml)
         begin
@@ -72,11 +72,12 @@ module OneLogin
         Base64.encode64(encoded).gsub(/\n/, "")
       end
 
-      # Check if the provided string is base64 encoded.
-      # @param message [String] The value to be checked.
-      # @return [Boolean] True if the value is a base64 encoded string.
-      def base64_formatted?(string)
-        string.gsub(/[\r\n]|\\r|\\n/, "").match(BASE64_FORMAT_REGEXP)
+      # Check if a string is base64 encoded
+      #
+      # @param string [String] string to check the encoding of
+      # @return [true, false] whether or not the string is base64 encoded
+      def base64_encoded?(string)
+        !!string.gsub(/[\r\n]|\\r|\\n/, "").match(BASE64_FORMAT)
       end
 
       def escape(unescaped)
