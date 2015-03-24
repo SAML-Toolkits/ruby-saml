@@ -378,5 +378,6 @@ class RubySamlTest < Minitest::Test
         assert_equal($evalled, nil)
       end
     end
+
   end
 end

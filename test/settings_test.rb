@@ -69,13 +69,13 @@ class SettingsTest < Minitest::Test
       settings.security[:authn_requests_signed] = true
       settings.security[:embed_sign] = true
       settings.security[:digest_method] = XMLSecurity::Document::SHA256
-      settings.security[:signature_method] = XMLSecurity::Document::SHA256
+      settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
 
       new_settings = OneLogin::RubySaml::Settings.new
       assert_equal new_settings.security[:authn_requests_signed], false
       assert_equal new_settings.security[:embed_sign], false
       assert_equal new_settings.security[:digest_method], XMLSecurity::Document::SHA1
-      assert_equal new_settings.security[:signature_method], XMLSecurity::Document::SHA1
+      assert_equal new_settings.security[:signature_method], XMLSecurity::Document::RSA_SHA1
     end
   end
 end
