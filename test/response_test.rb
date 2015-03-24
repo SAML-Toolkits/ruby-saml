@@ -195,15 +195,23 @@ class RubySamlTest < Minitest::Test
         assert response.send(:validate_conditions, true)
       end
 
-      it "optionally allow for clock drift" do
+      it "optionally allows for clock drift" do
         # The NotBefore condition in the document is 2011-06-14T18:21:01.516Z
-        Time.stubs(:now).returns(Time.parse("2011-06-14T18:21:01Z"))
-        response = OneLogin::RubySaml::Response.new(response_document_5, :allowed_clock_drift => 0.515)
-        assert !response.send(:validate_conditions, true)
+        Timecop.freeze(Time.parse("2011-06-14T18:21:01Z")) do
+          response = OneLogin::RubySaml::Response.new(
+            response_document_5,
+            :allowed_clock_drift => 0.515
+          )
+          assert !response.send(:validate_conditions, true)
+        end
 
-        Time.stubs(:now).returns(Time.parse("2011-06-14T18:21:01Z"))
-        response = OneLogin::RubySaml::Response.new(response_document_5, :allowed_clock_drift => 0.516)
-        assert response.send(:validate_conditions, true)
+        Timecop.freeze(Time.parse("2011-06-14T18:21:01Z")) do
+          response = OneLogin::RubySaml::Response.new(
+            response_document_5,
+            :allowed_clock_drift => 0.516
+          )
+          assert response.send(:validate_conditions, true)
+        end
       end
     end
 
