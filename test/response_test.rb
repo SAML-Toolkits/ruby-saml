@@ -379,5 +379,27 @@ class RubySamlTest < Minitest::Test
       end
     end
 
+    describe '#sign_document' do
+      it 'Sign an unsigned SAML Response XML and initiate the SAML object with it' do
+        xml = Base64.decode64(fixture("test_sign.xml"))
+
+        document = XMLSecurity::Document.new(xml)
+
+        formated_cert = OneLogin::RubySaml::Utils.format_cert(ruby_saml_cert_text)
+        cert = OpenSSL::X509::Certificate.new(formated_cert)
+
+        formated_private_key = OneLogin::RubySaml::Utils.format_private_key(ruby_saml_key_text)
+        private_key = OpenSSL::PKey::RSA.new(formated_private_key)
+        document.sign_document(private_key, cert)
+
+        saml_response = OneLogin::RubySaml::Response.new(document.to_s)
+        settings = OneLogin::RubySaml::Settings.new
+        settings.idp_cert = ruby_saml_cert_text
+        saml_response.settings = settings
+        time = Time.parse("2015-03-18T04:50:24Z")
+        Time.stubs(:now).returns(time)
+        saml_response.validate!
+      end
+    end
   end
 end
