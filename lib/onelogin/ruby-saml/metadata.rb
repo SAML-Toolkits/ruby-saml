@@ -84,7 +84,7 @@ module OneLogin
         meta_doc << REXML::XMLDecl.new("1.0", "UTF-8")
 
         # embed signature
-        if settings.security[:metadata_signed] && settings.private_key && settings.certificate && settings.security[:embed_sign]
+        if settings.security[:metadata_signed] && settings.private_key && settings.certificate
           private_key = settings.get_sp_key()
           meta_doc.sign_document(private_key, cert, settings.security[:signature_method], settings.security[:digest_method])
         end
