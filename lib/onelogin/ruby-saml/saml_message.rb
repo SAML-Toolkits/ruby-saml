@@ -14,6 +14,8 @@ module OneLogin
       ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion"
       PROTOCOL  = "urn:oasis:names:tc:SAML:2.0:protocol"
 
+      BASE64_FORMAT_REGEXP = %r{\A(([A-Za-z0-9+/]{4}))*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)\Z}
+
       def self.schema
         @schema ||= Mutex.new.synchronize do
           Dir.chdir(File.expand_path("../../../schemas", __FILE__)) do
@@ -46,7 +48,7 @@ module OneLogin
       # is to try and inflate it and fall back to the base64 decoded string if
       # the stream contains errors.
       def decode_raw_saml(saml)
-        return saml unless is_base64?(saml)
+        return saml unless base64_formatted?(saml)
 
         decoded = decode(saml)
         begin
@@ -73,11 +75,11 @@ module OneLogin
       ##
       # Check if +string+ is base64 encoded
       #
-      # The function is not strict and does allow newline. This is because some SAML implementations
-      # uses newline in the base64-encoded data, even if they shouldn't have (RFC4648).
-      def is_base64?(string)
-        string = string.gsub(/\r\n/, "").gsub(/\n/, "")
-        string.match(%r{\A(([A-Za-z0-9+/]{4}))*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)\Z})
+      # The function is not strict and allows newlines. This is because some
+      # SAML implementations use newlines in the base64-encoded data even if
+      # they shouldn't (RFC4648).
+      def base64_formatted?(string)
+        string.gsub(/[\r\n]|\\r|\\n/, "").match(BASE64_FORMAT_REGEXP)
       end
 
       def escape(unescaped)
