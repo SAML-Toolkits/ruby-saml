@@ -58,7 +58,7 @@ module OneLogin
         request_params = {"SAMLRequest" => base64_request}
 
         if settings.security[:logout_requests_signed] && !settings.security[:embed_sign] && settings.private_key
-          params['SigAlg']    = XMLSecurity::Document::RSA_SHA1
+          params['SigAlg']    = settings.security[:signature_method]
           url_string          = "SAMLRequest=#{CGI.escape(base64_request)}"
           url_string         += "&RelayState=#{CGI.escape(params['RelayState'])}" if params['RelayState']
           url_string         += "&SigAlg=#{CGI.escape(params['SigAlg'])}"

@@ -126,11 +126,11 @@ class SloLogoutresponseTest < Minitest::Test
         assert params['Signature']
         assert params['SigAlg'] == XMLSecurity::Document::RSA_SHA1
 
-        # signature_method only affects the embedeed signature
-        settings.security[:signature_method] = XMLSecurity::Document::SHA256
+        # if signature_method changes, the SigAlg also changes
+        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
         params = OneLogin::RubySaml::SloLogoutresponse.new.create_params(settings, request.id, "Custom Logout Message")
         assert params['Signature']
-        assert params['SigAlg'] == XMLSecurity::Document::RSA_SHA1
+        assert params['SigAlg'] == XMLSecurity::Document::RSA_SHA256
       end
     end
   end
