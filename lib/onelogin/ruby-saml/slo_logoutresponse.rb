@@ -87,7 +87,7 @@ module OneLogin
           issuer.text = settings.issuer
         end
 
-        # embebed sign
+        # embed signature
         if settings.security[:logout_responses_signed] && settings.private_key && settings.certificate && settings.security[:embed_sign]
           private_key = settings.get_sp_key()
           cert = settings.get_sp_cert()
