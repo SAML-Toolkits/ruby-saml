@@ -80,14 +80,6 @@ module OneLogin
         !!string.gsub(/[\r\n]|\\r|\\n/, "").match(BASE64_FORMAT)
       end
 
-      def escape(unescaped)
-        CGI.escape(unescaped)
-      end
-
-      def unescape(escaped)
-        CGI.unescape(escaped)
-      end
-
       def inflate(deflated)
         zlib = Zlib::Inflate.new(-Zlib::MAX_WBITS)
         zlib.inflate(deflated)
