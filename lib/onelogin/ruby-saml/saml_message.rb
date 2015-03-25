@@ -1,10 +1,10 @@
 require 'cgi'
 require 'zlib'
 require 'base64'
-require "nokogiri"
-require "rexml/document"
-require "rexml/xpath"
-require "thread"
+require 'nokogiri'
+require 'rexml/document'
+require 'rexml/xpath'
+require 'thread'
 
 module OneLogin
   module RubySaml
