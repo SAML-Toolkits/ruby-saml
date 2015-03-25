@@ -18,9 +18,21 @@ class MetadataTest < Minitest::Test
     end
 
     it "generates Pretty Print Service Provider Metadata" do
+      xml_text = OneLogin::RubySaml::Metadata.new.generate(settings, true)
+      # assert correct xml declaration
       start = "<?xml version='1.0' encoding='UTF-8'?>\n<md:EntityDescriptor"
-      xml_text_2 = OneLogin::RubySaml::Metadata.new.generate(settings, true)
-      assert xml_text_2[0..start.length-1] == start
+      assert xml_text[0..start.length-1] == start
+
+      assert_equal "https://example.com", REXML::XPath.first(xml_doc, "//md:EntityDescriptor").attribute("entityID").value
+
+      assert_equal "urn:oasis:names:tc:SAML:2.0:protocol", spsso_descriptor.attribute("protocolSupportEnumeration").value
+      assert_equal "false", spsso_descriptor.attribute("AuthnRequestsSigned").value
+      assert_equal "false", spsso_descriptor.attribute("WantAssertionsSigned").value
+
+      assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress", REXML::XPath.first(xml_doc, "//md:NameIDFormat").text.strip
+
+      assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST", acs.attribute("Binding").value
+      assert_equal "https://foo.example/saml/consume", acs.attribute("Location").value      
     end
 
     it "generates Service Provider Metadata" do
@@ -93,7 +105,7 @@ class MetadataTest < Minitest::Test
       end
 
       it "creates a signed metadata" do
-        assert_match %r[<ds:SignatureValue>\s*([a-zA-Z0-9/+=]+)\s*</ds:SignatureValue>]m, xml_text
+        assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>]m, xml_text
         assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], xml_text
         assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2000/09/xmldsig#sha1'/>], xml_text
         signed_metadata = XMLSecurity::SignedDocument.new(xml_text)
@@ -107,7 +119,7 @@ class MetadataTest < Minitest::Test
         end
 
         it "creates a signed metadata with specified digest and signature methods" do
-          assert_match %r[<ds:SignatureValue>\s*([a-zA-Z0-9/+=]+)\s*</ds:SignatureValue>]m, xml_text
+          assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>]m, xml_text
           assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], xml_text
           assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#sha512'/>], xml_text
 
