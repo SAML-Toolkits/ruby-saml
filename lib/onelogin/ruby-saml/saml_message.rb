@@ -72,12 +72,9 @@ module OneLogin
         Base64.encode64(encoded).gsub(/\n/, "")
       end
 
-      ##
-      # Check if +string+ is base64 encoded
-      #
-      # The function is not strict and allows newlines. This is because some
-      # SAML implementations use newlines in the base64-encoded data even if
-      # they shouldn't (RFC4648).
+      # Check if the provided string is base64 encoded.
+      # @param message [String] The value to be checked.
+      # @return [Boolean] True if the value is a base64 encoded string.
       def base64_formatted?(string)
         string.gsub(/[\r\n]|\\r|\\n/, "").match(BASE64_FORMAT_REGEXP)
       end
