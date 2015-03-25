@@ -44,6 +44,8 @@ module OneLogin
       #
       def create_params(settings, params={})
         params = {} if params.nil?
+        # Some ruby-saml versions uses :RelayState others use 'RelayState'
+        params['RelayState'] = params[:RelayState] if params[:RelayState]
 
         request_doc = create_logout_request_xml_doc(settings)
         request_doc.context[:attribute_quote] = :quote if settings.double_quote_xml_attribute_values

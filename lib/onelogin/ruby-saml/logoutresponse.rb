@@ -108,8 +108,6 @@ module OneLogin
         end
       end
 
-      private
-
       # Gets the expected current_url
       # (Right now we read this url from the Sinle Logout Service of the Settings)
       # TODO: Calculate the real current_url and use it.
