@@ -6,7 +6,7 @@ class MetadataTest < Minitest::Test
 
   describe 'Metadata' do
     let(:settings)          { OneLogin::RubySaml::Settings.new }
-    let(:xml_text)          { OneLogin::RubySaml::Metadata.new.generate(settings) }
+    let(:xml_text)          { OneLogin::RubySaml::Metadata.new.generate(settings, false) }
     let(:xml_doc)           { REXML::Document.new(xml_text) }
     let(:spsso_descriptor)  { REXML::XPath.first(xml_doc, "//md:SPSSODescriptor") }
     let(:acs)               { REXML::XPath.first(xml_doc, "//md:AssertionConsumerService") }
@@ -17,9 +17,15 @@ class MetadataTest < Minitest::Test
       settings.assertion_consumer_service_url = "https://foo.example/saml/consume"
     end
 
+    it "generates Pretty Print Service Provider Metadata" do
+      start = "<?xml version='1.0' encoding='UTF-8'?>\n<md:EntityDescriptor"
+      xml_text_2 = OneLogin::RubySaml::Metadata.new.generate(settings, true)
+      assert xml_text_2[0..start.length-1] == start
+    end
+
     it "generates Service Provider Metadata" do
       # assert correct xml declaration
-      start = "<?xml version='1.0' encoding='UTF-8'?>\n<md:EntityDescriptor"
+      start = "<?xml version='1.0' encoding='UTF-8'?><md:EntityDescriptor"
       assert xml_text[0..start.length-1] == start
 
       assert_equal "https://example.com", REXML::XPath.first(xml_doc, "//md:EntityDescriptor").attribute("entityID").value
@@ -89,19 +95,25 @@ class MetadataTest < Minitest::Test
       it "creates a signed metadata" do
         assert_match %r[<ds:SignatureValue>\s*([a-zA-Z0-9/+=]+)\s*</ds:SignatureValue>]m, xml_text
         assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], xml_text
-        assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], xml_text
+        assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2000/09/xmldsig#sha1'/>], xml_text
+        signed_metadata = XMLSecurity::SignedDocument.new(xml_text)
+        assert signed_metadata.validate_document(ruby_saml_cert_fingerprint, false)        
       end
 
       describe "when digest and signature methods are specified" do
         before do
-          settings.security[:signature_method] = XMLSecurity::Document::SHA256
+          settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
           settings.security[:digest_method] = XMLSecurity::Document::SHA512
         end
 
         it "creates a signed metadata with specified digest and signature methods" do
           assert_match %r[<ds:SignatureValue>\s*([a-zA-Z0-9/+=]+)\s*</ds:SignatureValue>]m, xml_text
           assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], xml_text
-          assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha512'/>], xml_text
+          assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#sha512'/>], xml_text
+
+          signed_metadata_2 = XMLSecurity::SignedDocument.new(xml_text)
+
+          assert signed_metadata_2.validate_document(ruby_saml_cert_fingerprint, false)          
         end
       end
     end

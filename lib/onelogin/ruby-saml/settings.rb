@@ -111,7 +111,8 @@ module OneLogin
         :security                                  => {
           :authn_requests_signed    => false,
           :logout_requests_signed   => false,
-          :logout_responses_signed   => false,
+          :logout_responses_signed  => false,
+          :metadata_signed          => false,
           :embed_sign               => false,
           :digest_method            => XMLSecurity::Document::SHA1,
           :signature_method         => XMLSecurity::Document::RSA_SHA1
