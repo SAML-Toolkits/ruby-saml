@@ -59,9 +59,9 @@ module OneLogin
       end
 
       def encode_raw_saml(saml, settings)
-        saml           = Zlib::Deflate.deflate(saml, 9)[2..-5] if settings.compress_request
-        base64_saml    = Base64.encode64(saml)
-        return CGI.escape(base64_saml)
+        saml = deflate(saml) if settings.compress_request
+
+        CGI.escape(Base64.encode64(saml))
       end
 
       def decode(encoded)
