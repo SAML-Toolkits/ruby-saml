@@ -1,6 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__), "test_helper"))
-require 'net/http'
-require 'net/https'
+
+require 'onelogin/ruby-saml/idp_metadata_parser'
 
 class IdpMetadataParserTest < Minitest::Test
 
@@ -14,9 +14,11 @@ class IdpMetadataParserTest < Minitest::Test
 
       settings = idp_metadata_parser.parse(idp_metadata)
 
+      assert_equal "https://example.hello.com/access/saml/idp.xml", settings.idp_entity_id
       assert_equal "https://example.hello.com/access/saml/login", settings.idp_sso_target_url
       assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", settings.idp_cert_fingerprint
       assert_equal "https://example.hello.com/access/saml/logout", settings.idp_slo_target_url
+      assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified", settings.name_identifier_format
     end
   end
 
@@ -37,9 +39,11 @@ class IdpMetadataParserTest < Minitest::Test
       idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
       settings = idp_metadata_parser.parse_remote(@url)
 
+      assert_equal "https://example.hello.com/access/saml/idp.xml", settings.idp_entity_id
       assert_equal "https://example.hello.com/access/saml/login", settings.idp_sso_target_url
       assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", settings.idp_cert_fingerprint
       assert_equal "https://example.hello.com/access/saml/logout", settings.idp_slo_target_url
+      assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified", settings.name_identifier_format
       assert_equal OpenSSL::SSL::VERIFY_PEER, @http.verify_mode
     end
 

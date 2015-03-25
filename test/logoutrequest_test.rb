@@ -1,5 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), "test_helper"))
 
+require 'onelogin/ruby-saml/logoutrequest'
+
 class RequestTest < Minitest::Test
 
   describe "Logoutrequest" do
@@ -104,6 +106,8 @@ class RequestTest < Minitest::Test
 
         inflated = decode_saml_request_payload(unauth_url)
         assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], inflated
+        assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], inflated
+        assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2000/09/xmldsig#sha1'/>], inflated
       end
 
       it "create a signed logout request with 256 digest and signature methods" do
@@ -114,7 +118,7 @@ class RequestTest < Minitest::Test
         # sign the logout request
         settings.security[:logout_requests_signed] = true
         settings.security[:embed_sign] = true
-        settings.security[:signature_method] = XMLSecurity::Document::SHA256
+        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
         settings.security[:digest_method] = XMLSecurity::Document::SHA512
         settings.certificate  = ruby_saml_cert_text
         settings.private_key = ruby_saml_key_text
@@ -123,8 +127,8 @@ class RequestTest < Minitest::Test
         request_xml = Base64.decode64(params["SAMLRequest"])
 
         assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], request_xml
-        request_xml =~ /<ds:SignatureMethod Algorithm='http:\/\/www.w3.org\/2001\/04\/xmldsig-more#rsa-sha256'\/>/
-        request_xml =~ /<ds:DigestMethod Algorithm='http:\/\/www.w3.org\/2001\/04\/xmldsig-more#rsa-sha512'\/>/
+        assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], request_xml
+        assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#sha512'/>], request_xml
       end
     end
 
@@ -136,19 +140,19 @@ class RequestTest < Minitest::Test
         settings.name_identifier_value = "f00f00"
         settings.security[:logout_requests_signed] = true
         settings.security[:embed_sign] = false
-        settings.security[:signature_method] = XMLSecurity::Document::SHA1
+        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
         settings.certificate  = ruby_saml_cert_text
         settings.private_key = ruby_saml_key_text
 
         params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings)
         assert params['Signature']
-        assert params['SigAlg'] == XMLSecurity::Document::SHA1
+        assert params['SigAlg'] == XMLSecurity::Document::RSA_SHA1
 
         # signature_method only affects the embedeed signature
-        settings.security[:signature_method] = XMLSecurity::Document::SHA256
+        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
         params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings)
         assert params['Signature']
-        assert params['SigAlg'] == XMLSecurity::Document::SHA1
+        assert params['SigAlg'] == XMLSecurity::Document::RSA_SHA1
       end
     end
 

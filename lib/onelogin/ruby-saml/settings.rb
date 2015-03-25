@@ -1,3 +1,7 @@
+require "xml_security"
+require "onelogin/ruby-saml/attribute_service"
+require "onelogin/ruby-saml/utils"
+
 module OneLogin
   module RubySaml
     class Settings
@@ -5,7 +9,10 @@ module OneLogin
         config = DEFAULTS.merge(overrides)
         config.each do |k,v|
           acc = "#{k.to_s}=".to_sym
-          self.send(acc, v) if self.respond_to? acc
+          if self.respond_to? acc
+            value = v.is_a?(Hash) ? v.dup : v
+            self.send(acc, value)
+          end
         end
         @attribute_consuming_service = AttributeService.new
       end
@@ -97,8 +104,8 @@ module OneLogin
       private
 
       DEFAULTS = {
-        :assertion_consumer_service_binding        => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
-        :single_logout_service_binding             => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
+        :assertion_consumer_service_binding        => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST".freeze,
+        :single_logout_service_binding             => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect".freeze,
         :compress_request                          => true,
         :compress_response                         => true,
         :security                                  => {
@@ -107,10 +114,10 @@ module OneLogin
           :logout_responses_signed   => false,
           :embed_sign               => false,
           :digest_method            => XMLSecurity::Document::SHA1,
-          :signature_method         => XMLSecurity::Document::SHA1
-        },
+          :signature_method         => XMLSecurity::Document::RSA_SHA1
+        }.freeze,
         :double_quote_xml_attribute_values         => false,
-      }
+      }.freeze
     end
   end
 end

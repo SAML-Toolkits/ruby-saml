@@ -17,6 +17,8 @@ module OneLogin
       ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion"
       PROTOCOL  = "urn:oasis:names:tc:SAML:2.0:protocol"
 
+      BASE64_FORMAT_REGEXP = %r{\A(([A-Za-z0-9+/]{4}))*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)\Z}
+
       # @return [String|nil] Gets the Version attribute from the SAML Message if exists.
       #
       def version(document)
@@ -77,7 +79,7 @@ module OneLogin
       # @return [String] The plain SAML Message
       #
       def decode_raw_saml(saml)
-        return saml unless is_base64?(saml)
+        return saml unless base64_formatted?(saml)
 
         decoded = decode(saml)
         begin
@@ -114,14 +116,13 @@ module OneLogin
         Base64.encode64(encoded).gsub(/\n/, "")
       end
 
-      ##
-      # Check if the provided string is base64 encoded. 
+      # Check if the provided string is base64 encoded.
       # The function is not strict and does allow newline. This is because some SAML implementations
-      # uses newline in the base64-encoded data, even if they shouldn't have (RFC4648).
+      # uses newline in the base64-encoded data, even if they shouldn't have (RFC4648).      
       # @param message [String] The value to be checked.
       # @return [Boolean] True if the value is a base64 encoded string.
-      def is_base64?(message)
-        message.match(%r{\A(([A-Za-z0-9+/]{4})|\n)*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)\Z})
+      def base64_formatted?(string)
+        string.gsub(/[\r\n]|\\r|\\n/, "").match(BASE64_FORMAT_REGEXP)
       end
 
       # URL-decode method

@@ -156,13 +156,14 @@ class XmlSecurityTest < Minitest::Test
         request.sign_document(ruby_saml_key, ruby_saml_cert)
         # verify our signature
         signed_doc = XMLSecurity::SignedDocument.new(request.to_s)
-        signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
+        assert signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
 
         request2 = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
         request2.sign_document(ruby_saml_key, ruby_saml_cert_text)
         # verify our signature
         signed_doc2 = XMLSecurity::SignedDocument.new(request2.to_s)
-        signed_doc2.validate_document(ruby_saml_cert_fingerprint, false)
+        assert signed_doc2.validate_document(ruby_saml_cert_fingerprint, false)
+
       end
 
       it "sign a LogoutRequest" do
@@ -177,13 +178,14 @@ class XmlSecurityTest < Minitest::Test
         request.sign_document(ruby_saml_key, ruby_saml_cert)
         # verify our signature
         signed_doc = XMLSecurity::SignedDocument.new(request.to_s)
-        signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
+        assert signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
 
         request2 = OneLogin::RubySaml::Logoutrequest.new.create_logout_request_xml_doc(settings)
         request2.sign_document(ruby_saml_key, ruby_saml_cert_text)
         # verify our signature
         signed_doc2 = XMLSecurity::SignedDocument.new(request2.to_s)
         signed_doc2.validate_document(ruby_saml_cert_fingerprint, false)        
+        assert signed_doc2.validate_document(ruby_saml_cert_fingerprint, false)
       end
 
       it "sign a LogoutResponse" do
@@ -198,13 +200,14 @@ class XmlSecurityTest < Minitest::Test
         response.sign_document(ruby_saml_key, ruby_saml_cert)
         # verify our signature
         signed_doc = XMLSecurity::SignedDocument.new(response.to_s)
-        signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
+        assert signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
 
         response2 = OneLogin::RubySaml::SloLogoutresponse.new.create_logout_response_xml_doc(settings, 'request_id_example', "Custom Logout Message")
         response2.sign_document(ruby_saml_key, ruby_saml_cert_text)
         # verify our signature
         signed_doc2 = XMLSecurity::SignedDocument.new(response2.to_s)
         signed_doc2.validate_document(ruby_saml_cert_fingerprint, false)        
+        assert signed_doc2.validate_document(ruby_saml_cert_fingerprint, false)
       end
     end
 

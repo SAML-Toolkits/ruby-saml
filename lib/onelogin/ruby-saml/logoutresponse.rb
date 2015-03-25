@@ -1,4 +1,6 @@
 require "xml_security"
+require "onelogin/ruby-saml/saml_message"
+
 require "time"
 
 # Only supports SAML 2.0

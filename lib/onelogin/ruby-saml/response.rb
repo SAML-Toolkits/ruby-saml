@@ -1,4 +1,6 @@
 require "xml_security"
+require "onelogin/ruby-saml/attributes"
+
 require "time"
 require "nokogiri"
 

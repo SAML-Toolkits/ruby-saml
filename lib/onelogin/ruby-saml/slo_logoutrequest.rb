@@ -2,6 +2,8 @@ require 'zlib'
 require 'time'
 require 'nokogiri'
 
+require "onelogin/ruby-saml/saml_message"
+
 # Only supports SAML 2.0
 module OneLogin
   module RubySaml

@@ -70,14 +70,24 @@ module XMLSecurity
   end
 
   class Document < BaseDocument
-    SHA1            = "http://www.w3.org/2000/09/xmldsig#rsa-sha1"
-    SHA256          = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"
-    SHA384          = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha384"
-    SHA512          = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha512"
+    RSA_SHA1            = "http://www.w3.org/2000/09/xmldsig#rsa-sha1"
+    RSA_SHA256            = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"
+    RSA_SHA384            = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha384"
+    RSA_SHA512            = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha512"
+    SHA1            = "http://www.w3.org/2000/09/xmldsig#sha1"
+    SHA256          = "http://www.w3.org/2001/04/xmldsig-more#sha256"
+    SHA384          = "http://www.w3.org/2001/04/xmldsig-more#sha384"
+    SHA512          = "http://www.w3.org/2001/04/xmldsig-more#sha512"
     ENVELOPED_SIG   = "http://www.w3.org/2000/09/xmldsig#enveloped-signature"
     INC_PREFIX_LIST = "#default samlp saml ds xs xsi"
 
     attr_accessor :uuid
+
+    def uuid
+      @uuid ||= begin
+        document.root.nil? ? nil : document.root.attributes['ID']
+      end
+    end
 
     #<Signature>
       #<SignedInfo>
@@ -94,9 +104,8 @@ module XMLSecurity
       #<KeyInfo />
       #<Object />
     #</Signature>
-    def sign_document(private_key, certificate, signature_method = SHA1, digest_method = SHA1)
+    def sign_document(private_key, certificate, signature_method = RSA_SHA1, digest_method = SHA1)
       noko = Nokogiri.parse(self.to_s)
-      canon_doc = noko.canonicalize(canon_algorithm(C14N))
 
       signature_element = REXML::Element.new("ds:Signature").add_namespace('ds', DSIG)
       signed_info_element = signature_element.add_element("ds:SignedInfo")
@@ -109,10 +118,14 @@ module XMLSecurity
       # Add Transforms
       transforms_element = reference_element.add_element("ds:Transforms")
       transforms_element.add_element("ds:Transform", {"Algorithm" => ENVELOPED_SIG})
-      transforms_element.add_element("ds:Transform", {"Algorithm" => C14N})
-      transforms_element.add_element("ds:InclusiveNamespaces", {"xmlns" => C14N, "PrefixList" => INC_PREFIX_LIST})
+      #transforms_element.add_element("ds:Transform", {"Algorithm" => C14N})
+      #transforms_element.add_element("ds:InclusiveNamespaces", {"xmlns" => C14N, "PrefixList" => INC_PREFIX_LIST})
+      c14element = transforms_element.add_element("ds:Transform", {"Algorithm" => C14N})
+      c14element.add_element("ec:InclusiveNamespaces", {"xmlns:ec" => C14N, "PrefixList" => INC_PREFIX_LIST})
 
       digest_method_element = reference_element.add_element("ds:DigestMethod", {"Algorithm" => digest_method})
+      inclusive_namespaces = INC_PREFIX_LIST.split(" ")
+      canon_doc = noko.canonicalize(canon_algorithm(C14N), inclusive_namespaces)
       reference_element.add_element("ds:DigestValue").text = compute_digest(canon_doc, algorithm(digest_method_element))
 
       # add SignatureValue

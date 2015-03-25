@@ -2,6 +2,8 @@ require "base64"
 require "uuid"
 require "zlib"
 require "cgi"
+require "net/http"
+require "net/https"
 require "rexml/document"
 require "rexml/xpath"
 
@@ -35,7 +37,8 @@ module OneLogin
         @document = REXML::Document.new(idp_metadata)
 
         OneLogin::RubySaml::Settings.new.tap do |settings|
-
+          settings.idp_entity_id = idp_entity_id
+          settings.name_identifier_format = idp_name_id_format
           settings.idp_sso_target_url = single_signon_service_url
           settings.idp_slo_target_url = single_logout_service_url
           settings.idp_cert_fingerprint = fingerprint
@@ -74,6 +77,20 @@ module OneLogin
           meta_text = response.body
         end
         meta_text
+      end
+
+      # @return [String|nil] IdP Entity ID value if exists
+      #
+      def idp_entity_id
+        node = REXML::XPath.first(document, "/md:EntityDescriptor/@entityID", { "md" => METADATA })
+        node.value if node
+      end
+
+      # @return [String|nil] IdP Name ID Format value if exists
+      #
+      def idp_name_id_format
+        node = REXML::XPath.first(document, "/md:EntityDescriptor/md:IDPSSODescriptor/md:NameIDFormat", { "md" => METADATA })
+        node.text if node
       end
 
       # @return [String|nil] SingleSignOnService endpoint if exists
