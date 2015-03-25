@@ -341,7 +341,7 @@ The settings related to sign are stored in the `security` attribute of the setti
   settings.security[:logout_responses_signed] = true     # Enable or not signature on Logout Response
 
   settings.security[:digest_method]    = XMLSecurity::Document::SHA1
-  settings.security[:signature_method] = XMLSecurity::Document::SHA1
+  settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
 
   settings.security[:embed_sign]        = false                # Embeded signature or HTTP GET parameter Signature
 ```

@@ -26,6 +26,8 @@ module OneLogin
 
       def create_params(settings, params={})
         params = {} if params.nil?
+        # Some ruby-saml versions uses :RelayState others use 'RelayState'
+        relay_state = params[:RelayState] || params['RelayState']
 
         request_doc = create_logout_request_xml_doc(settings)
         request_doc.context[:attribute_quote] = :quote if settings.double_quote_xml_attribute_values
@@ -40,9 +42,9 @@ module OneLogin
         request_params = {"SAMLRequest" => base64_request}
 
         if settings.security[:logout_requests_signed] && !settings.security[:embed_sign] && settings.private_key
-          params['SigAlg']    = XMLSecurity::Document::RSA_SHA1
+          params['SigAlg']    = settings.security[:signature_method]
           url_string          = "SAMLRequest=#{CGI.escape(base64_request)}"
-          url_string         += "&RelayState=#{CGI.escape(params['RelayState'])}" if params['RelayState']
+          url_string         += "&RelayState=#{CGI.escape(relay_state)}" if relay_state
           url_string         += "&SigAlg=#{CGI.escape(params['SigAlg'])}"
           private_key         = settings.get_sp_key()
           signature           = private_key.sign(XMLSecurity::BaseDocument.new.algorithm(settings.security[:signature_method]).new, url_string)
