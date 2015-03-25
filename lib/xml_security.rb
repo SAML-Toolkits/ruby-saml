@@ -55,8 +55,9 @@ module XMLSecurity
       algorithm = element
       if algorithm.is_a?(REXML::Element)
         algorithm = element.attribute("Algorithm").value
-        algorithm = algorithm && algorithm =~ /sha(.*?)$/i && $1.to_i
       end
+
+      algorithm = algorithm && algorithm =~ /(rsa-)?sha(.*?)$/i && $2.to_i
 
       case algorithm
       when 256 then OpenSSL::Digest::SHA256
