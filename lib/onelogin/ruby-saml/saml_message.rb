@@ -81,14 +81,12 @@ module OneLogin
       end
 
       def inflate(deflated)
-        zlib = Zlib::Inflate.new(-Zlib::MAX_WBITS)
-        zlib.inflate(deflated)
+        Zlib::Inflate.new(-Zlib::MAX_WBITS).inflate(deflated)
       end
 
       def deflate(inflated)
         Zlib::Deflate.deflate(inflated, 9)[2..-5]
       end
-
     end
   end
 end
