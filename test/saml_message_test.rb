@@ -44,21 +44,6 @@ class RubySamlTest < Minitest::Test
       assert logout_request_base64, encoded2
     end
 
-    it "return escaped string" do
-      url = 'https://app.onelogin.com/saml/metadata/someaccount'
-      escaped_url = 'https%3A%2F%2Fapp.onelogin.com%2Fsaml%2Fmetadata%2Fsomeaccount'
-      message = OneLogin::RubySaml::SamlMessage.new
-      escaped_url = message.send(:escape, url)
-      assert 'https%3A%2F%2Fapp.onelogin.com%2Fsaml%2Fmetadata%2Fsomeaccount', escaped_url
-    end
-
-    it "return unescaped string" do
-      escaped_url = 'https%3A%2F%2Fapp.onelogin.com%2Fsaml%2Fmetadata%2Fsomeaccount'
-      message = OneLogin::RubySaml::SamlMessage.new
-      url = message.send(:unescape, escaped_url)
-      assert 'https://app.onelogin.com/saml/metadata/someaccount', url
-    end
-
     it "return deflated string" do
       message = OneLogin::RubySaml::SamlMessage.new
       deflated = message.send(:deflate, logout_request_xml)

@@ -80,7 +80,7 @@ module XMLSecurity
     SHA384          = "http://www.w3.org/2001/04/xmldsig-more#sha384"
     SHA512          = "http://www.w3.org/2001/04/xmldsig-more#sha512"
     ENVELOPED_SIG   = "http://www.w3.org/2000/09/xmldsig#enveloped-signature"
-    INC_PREFIX_LIST = "#default samlp saml ds xs xsi"
+    INC_PREFIX_LIST = "#default samlp saml ds xs xsi md"
 
     attr_accessor :uuid
 
@@ -119,8 +119,6 @@ module XMLSecurity
       # Add Transforms
       transforms_element = reference_element.add_element("ds:Transforms")
       transforms_element.add_element("ds:Transform", {"Algorithm" => ENVELOPED_SIG})
-      #transforms_element.add_element("ds:Transform", {"Algorithm" => C14N})
-      #transforms_element.add_element("ds:InclusiveNamespaces", {"xmlns" => C14N, "PrefixList" => INC_PREFIX_LIST})
       c14element = transforms_element.add_element("ds:Transform", {"Algorithm" => C14N})
       c14element.add_element("ec:InclusiveNamespaces", {"xmlns:ec" => C14N, "PrefixList" => INC_PREFIX_LIST})
 
@@ -133,6 +131,7 @@ module XMLSecurity
       noko_sig_element = Nokogiri.parse(signature_element.to_s)
       noko_signed_info_element = noko_sig_element.at_xpath('//ds:Signature/ds:SignedInfo', 'ds' => DSIG)
       canon_string = noko_signed_info_element.canonicalize(canon_algorithm(C14N))
+
       signature = compute_signature(private_key, algorithm(signature_method).new, canon_string)
       signature_element.add_element("ds:SignatureValue").text = signature
 
@@ -150,7 +149,11 @@ module XMLSecurity
       if issuer_element
         self.root.insert_after issuer_element, signature_element
       else
-        self.root.add_element(signature_element)
+        if sp_sso_descriptor = self.elements["/md:EntityDescriptor"]
+          self.root.insert_before sp_sso_descriptor, signature_element
+        else
+          self.root.add_element(signature_element)
+        end
       end
     end
 

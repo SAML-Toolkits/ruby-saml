@@ -43,9 +43,10 @@ module OneLogin
       # @return [Hash] Parameters
       #
       def create_params(settings, params={})
-        params = {} if params.nil?
-        # Some ruby-saml versions uses :RelayState others use 'RelayState'
-        params['RelayState'] = params[:RelayState] if params[:RelayState]
+        # The method expects :RelayState but sometimes we get 'RelayState' instead.
+        # Based on the HashWithIndifferentAccess value in Rails we could experience
+        # conflicts so this line will solve them.
+        relay_state = params[:RelayState] || params['RelayState']
 
         request_doc = create_logout_request_xml_doc(settings)
         request_doc.context[:attribute_quote] = :quote if settings.double_quote_xml_attribute_values
@@ -62,8 +63,8 @@ module OneLogin
         if settings.security[:logout_requests_signed] && !settings.security[:embed_sign] && settings.private_key
           params['SigAlg']    = settings.security[:signature_method]
           url_string          = "SAMLRequest=#{CGI.escape(base64_request)}"
-          url_string         += "&RelayState=#{CGI.escape(params['RelayState'])}" if params['RelayState']
-          url_string         += "&SigAlg=#{CGI.escape(params['SigAlg'])}"
+          url_string         << "&RelayState=#{CGI.escape(relay_state)}" if relay_state
+          url_string         << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
           private_key         = settings.get_sp_key()
           signature           = private_key.sign(XMLSecurity::BaseDocument.new.algorithm(settings.security[:signature_method]).new, url_string)
           params['Signature'] = encode(signature)
@@ -113,7 +114,7 @@ module OneLogin
           sessionindex.text = settings.sessionindex
         end
 
-        # embebed sign
+        # embed signature
         if settings.security[:logout_requests_signed] && settings.private_key && settings.certificate && settings.security[:embed_sign]
           private_key = settings.get_sp_key()
           cert = settings.get_sp_cert()
