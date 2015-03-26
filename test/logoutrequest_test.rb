@@ -90,7 +90,7 @@ class RequestTest < Minitest::Test
       end
     end
 
-    describe "when the settings indicate to sign (embebed) the logout request" do
+    describe "when the settings indicate to sign (embedded) logout request" do
       it "created a signed logout request" do
         settings = OneLogin::RubySaml::Settings.new
         settings.idp_slo_target_url = "http://example.com?field=value"
@@ -146,13 +146,13 @@ class RequestTest < Minitest::Test
 
         params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings)
         assert params['Signature']
-        assert params['SigAlg'] == XMLSecurity::Document::RSA_SHA1
+        assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA1
 
         # signature_method only affects the embedeed signature
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
         params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings)
         assert params['Signature']
-        assert params['SigAlg'] == XMLSecurity::Document::RSA_SHA1
+        assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA1
       end
     end
 

@@ -67,7 +67,7 @@ class SloLogoutresponseTest < Minitest::Test
       assert_match /<samlp:StatusMessage>Custom Logout Message<\/samlp:StatusMessage>/, inflated
     end
 
-    describe "when the settings indicate to sign (embebed) the logout response" do
+    describe "when the settings indicate to sign (embedded) logout response" do
       it "create a signed logout response" do
         settings = OneLogin::RubySaml::Settings.new
         settings.compress_response = false
@@ -122,13 +122,13 @@ class SloLogoutresponseTest < Minitest::Test
         request = OneLogin::RubySaml::SloLogoutrequest.new(logout_request_document)
         params = OneLogin::RubySaml::SloLogoutresponse.new.create_params(settings, request.id, "Custom Logout Message")
         assert params['Signature']
-        assert params['SigAlg'] == XMLSecurity::Document::RSA_SHA1
+        assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA1
 
         # signature_method only affects the embedeed signature
         settings.security[:signature_method] = XMLSecurity::Document::SHA256
         params = OneLogin::RubySaml::SloLogoutresponse.new.create_params(settings, request.id, "Custom Logout Message")
         assert params['Signature']
-        assert params['SigAlg'] == XMLSecurity::Document::RSA_SHA1
+        assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA1
       end
     end
   end

@@ -1,6 +1,5 @@
-require "rexml/document"
-require "rexml/xpath"
 require "uri"
+require "uuid"
 
 require "onelogin/ruby-saml/logging"
 
@@ -10,10 +9,9 @@ require "onelogin/ruby-saml/logging"
 # will be updated automatically
 module OneLogin
   module RubySaml
-    include REXML
     class Metadata
-      def generate(settings)
-        meta_doc = REXML::Document.new
+      def generate(settings, pretty_print=true)
+        meta_doc = XMLSecurity::Document.new
         root = meta_doc.add_element "md:EntityDescriptor", {
             "xmlns:md" => "urn:oasis:names:tc:SAML:2.0:metadata"
         }
@@ -23,6 +21,7 @@ module OneLogin
             # However we would like assertions signed if idp_cert_fingerprint or idp_cert is set
             "WantAssertionsSigned" => !!(settings.idp_cert_fingerprint || settings.idp_cert)
         }
+        root.attributes["ID"] = "_" + UUID.new.generate
         if settings.issuer
           root.attributes["entityID"] = settings.issuer
         end
@@ -85,9 +84,20 @@ module OneLogin
         #  <md:XACMLAuthzDecisionQueryDescriptor WantAssertionsSigned="false" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol"/>
 
         meta_doc << REXML::XMLDecl.new("1.0", "UTF-8")
+
+        # embed signature
+        if settings.security[:metadata_signed] && settings.private_key && settings.certificate
+          private_key = settings.get_sp_key()
+          meta_doc.sign_document(private_key, cert, settings.security[:signature_method], settings.security[:digest_method])
+        end
+
         ret = ""
         # pretty print the XML so IdP administrators can easily see what the SP supports
-        meta_doc.write(ret, 1)
+        if pretty_print
+          meta_doc.write(ret, 1)
+        else 
+          ret = meta_doc.to_s
+        end
 
         return ret
       end

@@ -145,7 +145,7 @@ class RequestTest < Minitest::Test
       end
     end
 
-    describe "when the settings indicate to sign (embebed) the request" do
+    describe "when the settings indicate to sign (embedded) request" do
       it "create a signed request" do
         settings = OneLogin::RubySaml::Settings.new
         settings.compress_request = false
@@ -195,13 +195,13 @@ class RequestTest < Minitest::Test
 
         params = OneLogin::RubySaml::Authrequest.new.create_params(settings)
         assert params['Signature']
-        assert params['SigAlg'] == XMLSecurity::Document::RSA_SHA1
+        assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA1
 
         # signature_method only affects the embedeed signature
         settings.security[:signature_method] = XMLSecurity::Document::SHA256
         params = OneLogin::RubySaml::Authrequest.new.create_params(settings)
         assert params['Signature']
-        assert params['SigAlg'] == XMLSecurity::Document::RSA_SHA1
+        assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA1
       end
     end
 

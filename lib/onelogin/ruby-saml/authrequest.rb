@@ -113,7 +113,7 @@ module OneLogin
           end
         end
 
-        # embebed sign
+        # embed signature
         if settings.security[:authn_requests_signed] && settings.private_key && settings.certificate && settings.security[:embed_sign] 
           private_key = settings.get_sp_key()
           cert = settings.get_sp_cert()
