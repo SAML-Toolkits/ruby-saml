@@ -145,7 +145,7 @@ class RequestTest < Minitest::Test
       end
     end
 
-    describe "when the settings indicate to sign (embedded) request" do
+    describe "#create_params when the settings indicate to sign (embebed) the request" do
       it "create a signed request" do
         settings = OneLogin::RubySaml::Settings.new
         settings.compress_request = false
@@ -181,27 +181,51 @@ class RequestTest < Minitest::Test
       end
     end
 
-    describe "when the settings indicate to sign the request" do
-      it "create a signature parameter" do
-        settings = OneLogin::RubySaml::Settings.new
-        settings.compress_request = false
-        settings.idp_sso_target_url = "http://example.com?field=value"
-        settings.assertion_consumer_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST-SimpleSign"
-        settings.security[:authn_requests_signed] = true
-        settings.security[:embed_sign] = false
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
-        settings.certificate  = ruby_saml_cert_text
-        settings.private_key = ruby_saml_key_text
+    describe "#create_params when the settings indicate to sign the request" do
+      def setup
+        @settings = OneLogin::RubySaml::Settings.new
+        @settings.compress_request = false
+        @settings.idp_sso_target_url = "http://example.com?field=value"
+        @settings.assertion_consumer_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST-SimpleSign"
+        @settings.security[:authn_requests_signed] = true
+        @settings.security[:embed_sign] = false
+        @settings.certificate  = ruby_saml_cert_text
+        @settings.private_key = ruby_saml_key_text
+        @cert = OpenSSL::X509::Certificate.new(ruby_saml_cert_text)
+      end
+      
+      it "create a signature parameter with RSA_SHA1 and validate it" do
+        @settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
 
-        params = OneLogin::RubySaml::Authrequest.new.create_params(settings)
+        params = OneLogin::RubySaml::Authrequest.new.create_params(@settings, :RelayState => 'http://example.com')
+        assert params['SAMLRequest']
+        assert params[:RelayState]
         assert params['Signature']
         assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA1
 
-        # signature_method only affects the embedeed signature
-        settings.security[:signature_method] = XMLSecurity::Document::SHA256
-        params = OneLogin::RubySaml::Authrequest.new.create_params(settings)
+        query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
+        query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
+        query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
+
+        signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
+        assert_equal signature_algorithm, OpenSSL::Digest::SHA1
+        assert @cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
+      end
+
+      it "create a signature parameter with RSA_SHA256 and validate it" do
+        @settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
+
+        params = OneLogin::RubySaml::Authrequest.new.create_params(@settings, :RelayState => 'http://example.com')
         assert params['Signature']
-        assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA1
+        assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA256
+
+        query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
+        query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
+        query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
+
+        signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
+        assert_equal signature_algorithm, OpenSSL::Digest::SHA256
+        assert @cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)        
       end
     end
 

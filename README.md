@@ -342,7 +342,7 @@ The settings related to sign are stored in the `security` attribute of the setti
   settings.security[:metadata_signed]         = true     # Enable or not signature on Metadata
 
   settings.security[:digest_method]    = XMLSecurity::Document::SHA1
-  settings.security[:signature_method] = XMLSecurity::Document::SHA1
+  settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
 
   # Embeded signature or HTTP GET parameter signature
   # Note that metadata signature is always embedded regardless of this value.
