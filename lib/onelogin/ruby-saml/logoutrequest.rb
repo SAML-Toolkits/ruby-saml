@@ -25,8 +25,9 @@ module OneLogin
       end
 
       def create_params(settings, params={})
-        params = {} if params.nil?
-        # Some ruby-saml versions uses :RelayState others use 'RelayState'
+        # The method expects :RelayState but sometimes we get 'RelayState' instead.
+        # Based on the HashWithIndifferentAccess value in Rails we could experience
+        # conflicts so this line will solve them.
         relay_state = params[:RelayState] || params['RelayState']
 
         request_doc = create_logout_request_xml_doc(settings)

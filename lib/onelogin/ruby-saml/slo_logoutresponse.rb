@@ -26,7 +26,6 @@ module OneLogin
       end
 
       def create_params(settings, request_id = nil, logout_message = nil, params = {})
-        params = {} if params.nil?
         # Some ruby-saml versions uses :RelayState others use 'RelayState'
         relay_state = params[:RelayState] || params['RelayState']
 
