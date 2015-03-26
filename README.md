@@ -349,6 +349,10 @@ The settings related to sign are stored in the `security` attribute of the setti
   settings.security[:embed_sign] = false
 ```
 
+Notice that the RelayState parameter is used when creating the Signature on the HTTP-Redirect Binding,
+remember to provide it to the Signature builder if you are sending a GET RelayState parameter or
+Signature validation process will fail at the Identity Provider.
+
 
 ## Single Log Out
 
