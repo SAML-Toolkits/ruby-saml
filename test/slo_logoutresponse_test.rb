@@ -67,7 +67,7 @@ class SloLogoutresponseTest < Minitest::Test
       assert_match /<samlp:StatusMessage>Custom Logout Message<\/samlp:StatusMessage>/, inflated
     end
 
-    describe "when the settings indicate to sign (embedded) the logout response" do
+    describe "when the settings indicate to sign (embedded) logout response" do
       it "create a signed logout response" do
         settings = OneLogin::RubySaml::Settings.new
         settings.compress_response = false

@@ -97,7 +97,7 @@ class MetadataTest < Minitest::Test
       end
     end
 
-    describe "when the settings indicate to sign (embedded) the metadata" do
+    describe "when the settings indicate to sign (embedded) metadata" do
       before do
         settings.security[:metadata_signed] = true
         settings.certificate = ruby_saml_cert_text
