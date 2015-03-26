@@ -44,8 +44,8 @@ module OneLogin
         if settings.security[:logout_requests_signed] && !settings.security[:embed_sign] && settings.private_key
           params['SigAlg']    = settings.security[:signature_method]
           url_string          = "SAMLRequest=#{CGI.escape(base64_request)}"
-          url_string         += "&RelayState=#{CGI.escape(relay_state)}" if relay_state
-          url_string         += "&SigAlg=#{CGI.escape(params['SigAlg'])}"
+          url_string         << "&RelayState=#{CGI.escape(relay_state)}" if relay_state
+          url_string         << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
           private_key         = settings.get_sp_key()
           signature           = private_key.sign(XMLSecurity::BaseDocument.new.algorithm(settings.security[:signature_method]).new, url_string)
           params['Signature'] = encode(signature)

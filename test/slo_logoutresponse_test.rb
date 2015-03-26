@@ -107,29 +107,56 @@ class SloLogoutresponseTest < Minitest::Test
       end
     end
 
-    describe "when the settings indicate to sign the logout response" do
-      it "create a signature parameter" do
-        settings = OneLogin::RubySaml::Settings.new
-        settings.compress_response = false
-        settings.idp_slo_target_url = "http://example.com?field=value"
-        settings.assertion_consumer_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST-SimpleSign"
-        settings.security[:logout_responses_signed] = true
-        settings.security[:embed_sign] = false
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
-        settings.certificate  = ruby_saml_cert_text
-        settings.private_key = ruby_saml_key_text
-
-        request = OneLogin::RubySaml::SloLogoutrequest.new(logout_request_document)
-        params = OneLogin::RubySaml::SloLogoutresponse.new.create_params(settings, request.id, "Custom Logout Message")
-        assert params['Signature']
-        assert params['SigAlg'] == XMLSecurity::Document::RSA_SHA1
-
-        # if signature_method changes, the SigAlg also changes
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
-        params = OneLogin::RubySaml::SloLogoutresponse.new.create_params(settings, request.id, "Custom Logout Message")
-        assert params['Signature']
-        assert params['SigAlg'] == XMLSecurity::Document::RSA_SHA256
+    describe "#create_params when the settings indicate to sign the logout response" do
+      def setup
+        @settings = OneLogin::RubySaml::Settings.new
+        @settings.compress_response = false
+        @settings.idp_slo_target_url = "http://example.com?field=value"
+        @settings.assertion_consumer_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST-SimpleSign"
+        @settings.security[:logout_responses_signed] = true
+        @settings.security[:embed_sign] = false
+        @settings.certificate  = ruby_saml_cert_text
+        @settings.private_key = ruby_saml_key_text
+        @cert = OpenSSL::X509::Certificate.new(ruby_saml_cert_text)
+        @request = OneLogin::RubySaml::SloLogoutrequest.new(logout_request_document)
       end
+
+      it "create a signature parameter with RSA_SHA1 and validate it" do
+        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+
+        params = OneLogin::RubySaml::SloLogoutresponse.new.create_params(@settings, @request.id, "Custom Logout Message", :RelayState => 'http://example.com')
+        assert params['SAMLResponse']
+        assert params[:RelayState]
+        assert params['Signature']
+        assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA1
+
+        query_string = "SAMLResponse=#{CGI.escape(params['SAMLResponse'])}"
+        query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
+        query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
+
+        signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
+        assert_equal signature_algorithm, OpenSSL::Digest::SHA1
+        assert @cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
+      end
+
+      it "create a signature parameter with RSA_SHA256 and validate it" do
+        @settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
+
+        params = OneLogin::RubySaml::SloLogoutresponse.new.create_params(@settings, @request.id, "Custom Logout Message", :RelayState => 'http://example.com')
+        assert params['SAMLResponse']
+        assert params[:RelayState]
+        assert params['Signature']
+        assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA256
+
+        query_string = "SAMLResponse=#{CGI.escape(params['SAMLResponse'])}"
+        query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
+        query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
+
+        signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
+        assert_equal signature_algorithm, OpenSSL::Digest::SHA256
+        assert @cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
+      end
+
     end
   end
 end
