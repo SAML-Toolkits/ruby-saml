@@ -121,7 +121,7 @@ class RubySamlTest < Minitest::Test
         settings.idp_cert_fingerprint = signature_fingerprint_1
         response.settings = settings
         assert response.is_valid?
-        assert response.name_id == "test@onelogin.com"
+        assert_equal response.name_id, "test@onelogin.com"
       end
 
       it "support dynamic namespace resolution on signature elements" do

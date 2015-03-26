@@ -146,13 +146,13 @@ class RequestTest < Minitest::Test
 
         params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings)
         assert params['Signature']
-        assert params['SigAlg'] == XMLSecurity::Document::RSA_SHA1
+        assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA1
 
         # signature_method only affects the embedeed signature
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
         params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings)
         assert params['Signature']
-        assert params['SigAlg'] == XMLSecurity::Document::RSA_SHA1
+        assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA1
       end
     end
 

@@ -21,7 +21,7 @@ class MetadataTest < Minitest::Test
       xml_text = OneLogin::RubySaml::Metadata.new.generate(settings, true)
       # assert correct xml declaration
       start = "<?xml version='1.0' encoding='UTF-8'?>\n<md:EntityDescriptor"
-      assert xml_text[0..start.length-1] == start
+      assert_equal xml_text[0..start.length-1],start
 
       assert_equal "https://example.com", REXML::XPath.first(xml_doc, "//md:EntityDescriptor").attribute("entityID").value
 
@@ -38,7 +38,7 @@ class MetadataTest < Minitest::Test
     it "generates Service Provider Metadata" do
       # assert correct xml declaration
       start = "<?xml version='1.0' encoding='UTF-8'?><md:EntityDescriptor"
-      assert xml_text[0..start.length-1] == start
+      assert_equal xml_text[0..start.length-1], start
 
       assert_equal "https://example.com", REXML::XPath.first(xml_doc, "//md:EntityDescriptor").attribute("entityID").value
 
