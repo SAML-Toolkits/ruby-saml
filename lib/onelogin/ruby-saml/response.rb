@@ -605,21 +605,10 @@ module OneLogin
             next
           else
             attrs = confirmation_data_node.attributes
-            if attrs.include? "InResponseTo" and attrs['InResponseTo'] != in_response_to
-              next
-            end
-
-            if attrs.include? "Recipient" and attrs['Recipient'] != current_url
-              next
-            end
-
-            if attrs.include? "NotOnOrAfter" and (parse_time(confirmation_data_node, "NotOnOrAfter") + (options[:allowed_clock_drift] || 0)) <= now
-              next
-            end
-
-            if attrs.include? "NotBefore" and parse_time(confirmation_data_node, "NotBefore") > (now + (options[:allowed_clock_drift] || 0))
-              next
-            end
+            next if (attrs.include? "InResponseTo" and attrs['InResponseTo'] != in_response_to) ||
+                    (attrs.include? "Recipient" and attrs['Recipient'] != current_url) ||
+                    (attrs.include? "NotOnOrAfter" and (parse_time(confirmation_data_node, "NotOnOrAfter") + (options[:allowed_clock_drift] || 0)) <= now) ||
+                    (attrs.include? "NotBefore" and parse_time(confirmation_data_node, "NotBefore") > (now + (options[:allowed_clock_drift] || 0)))
             
             valid_subject_confirmation = true
             break

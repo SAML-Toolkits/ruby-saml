@@ -11,7 +11,7 @@ module OneLogin
       # @return [String] The formatted certificate
       #
       def self.format_cert(cert, heads=true)
-        unless cert.empty?
+        if cert && !cert.empty?
           cert = cert.gsub(/\-{5}\s?(BEGIN|END) CERTIFICATE\s?\-{5}/, "")
           cert = cert.gsub(/[\n\r\s]/, "")
           cert = cert.scan(/.{1,64}/).join("\n")+"\n"
@@ -29,8 +29,8 @@ module OneLogin
       # @return [String] The formatted certificate
       #
       def self.format_private_key(key, heads=true)
-        unless key.empty?
-          key = key.delete("\n").delete("\r").delete("\x0D")
+        if key && !key.empty?
+          key = key.delete("\n\r\x0D")
           if key.index('-----BEGIN PRIVATE KEY-----') != nil
             key = key.gsub('-----BEGIN PRIVATE KEY-----', '')
             key = key.gsub('-----END PRIVATE KEY-----', '')

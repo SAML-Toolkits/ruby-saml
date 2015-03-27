@@ -77,7 +77,7 @@ class RubySamlTest < Minitest::Test
 
     it "return formatted RSA private_key with head from RSA private_key without head" do
       private_key = ruby_saml_key_text
-      private_key = private_key.delete("\n").delete("\r").delete("\x0D")
+      private_key = private_key.delete("\n\r\x0D")
       private_key = private_key.gsub('-----BEGIN RSA PRIVATE KEY-----', '')
       private_key = private_key.gsub('-----END RSA PRIVATE KEY-----', '')
       formatted_private_key = OneLogin::RubySaml::Utils.format_private_key(private_key, true)
@@ -101,7 +101,7 @@ class RubySamlTest < Minitest::Test
 
     it "return formatted RSA private_key without head from RSA private_key without head" do
       private_key = ruby_saml_key_text
-      private_key = private_key.delete("\n").delete("\r").delete("\x0D")
+      private_key = private_key.delete("\n\r\x0D")
       private_key = private_key.gsub('-----BEGIN RSA PRIVATE KEY-----', '')
       private_key = private_key.gsub('-----END RSA PRIVATE KEY-----', '')
       formatted_private_key = OneLogin::RubySaml::Utils.format_private_key(private_key, false)
@@ -126,7 +126,7 @@ class RubySamlTest < Minitest::Test
     it "return formatted RSA private_key with head from private_key without head" do
       private_key = ruby_saml_key_text
       private_key = private_key.gsub(' RSA ', ' ')
-      private_key = private_key.delete("\n").delete("\r").delete("\x0D")
+      private_key = private_key.delete("\n\r\x0D")
       private_key = private_key.gsub('-----BEGIN PRIVATE KEY-----', '')
       private_key = private_key.gsub('-----END PRIVATE KEY-----', '')
       formatted_private_key = OneLogin::RubySaml::Utils.format_private_key(private_key, true)
@@ -154,7 +154,7 @@ class RubySamlTest < Minitest::Test
     it "return formatted private_key without head from private_key without head" do
       private_key = ruby_saml_key_text
       private_key = private_key.gsub(' RSA ', ' ')
-      private_key = private_key.delete("\n").delete("\r").delete("\x0D")
+      private_key = private_key.delete("\n\r\x0D")
       private_key = private_key.gsub('-----BEGIN PRIVATE KEY-----', '')
       private_key = private_key.gsub('-----END PRIVATE KEY-----', '')
       formatted_private_key = OneLogin::RubySaml::Utils.format_private_key(private_key, false)
@@ -187,7 +187,7 @@ class RubySamlTest < Minitest::Test
 
     it "valid false, valid cert but with without head and footer" do
       cert = ruby_saml_cert_text
-      cert = cert.delete("\n").delete("\r").delete("\x0D")
+      cert = cert.delete("\n\r\x0D")
       cert = cert.gsub('-----BEGIN CERTIFICATE-----', '')
       cert = cert.gsub('-----END CERTIFICATE-----', '')      
 
@@ -198,7 +198,7 @@ class RubySamlTest < Minitest::Test
 
     it "valid true, valid cert but with bad without head and footer formated" do
       cert = ruby_saml_cert_text
-      cert = cert.delete("\n").delete("\r").delete("\x0D")
+      cert = cert.delete("\n\r\x0D")
       cert = cert.gsub('-----BEGIN CERTIFICATE-----', '')
       cert = cert.gsub('-----END CERTIFICATE-----', '')      
 
