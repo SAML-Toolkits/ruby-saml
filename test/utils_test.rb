@@ -206,4 +206,12 @@ class RubySamlTest < Minitest::Test
     end
   end
 
+  describe "#build_query" do
+
+  end
+
+  describe "#verify_signature" do
+    
+  end
+
 end

@@ -20,10 +20,11 @@ module OneLogin
       attr_reader :options
       attr_reader :response
       attr_reader :document
+      attr_reader :get_params
 
       # Constructs the Logout Response. A Logout Response Object that is an extension of the SamlMessage class.
-      # @param response [String] A UUEncoded logout response from the IdP.
-      # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @param response   [String] A UUEncoded logout response from the IdP.
+      # @param settings   [OneLogin::RubySaml::Settings|nil] Toolkit settings
       # @raise [ArgumentError]
       #
       def initialize(response, settings = nil)
@@ -33,6 +34,7 @@ module OneLogin
         @options = options
         @response = decode_raw_saml(response)
         @document = XMLSecurity::SignedDocument.new(@response)
+
       end
 
       # An aux function to validate the Logout Response with the default values (soft = true)
@@ -45,10 +47,12 @@ module OneLogin
       # Another aux function to validate the Logout Response (soft = false)
       # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout response is invalid or not)
       # @param request_id [String|nil] request_id The ID of the Logout Request sent by this SP to the IdP (if was sent any)
+      # @param get_params [Hash] In order to validate the In value we need to provide the GET parameters
+
       # @return [Boolean] TRUE if the SAML Response is valid
       #
-      def validate!(soft=false, request_id = nil)
-        validate(soft, request_id)
+      def validate!(soft=false, request_id = nil, get_params = nil)
+        validate(soft, request_id, get_params)
       end      
 
       # @return [String|nil] Gets the InResponseTo attribute from the Logout Response if exists.
@@ -125,17 +129,19 @@ module OneLogin
       # If fails, the attribute errors will contains the reason for the invalidation.
       # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout response is invalid or not)
       # @param request_id [String|nil] request_id The ID of the Logout Request sent by this SP to the IdP (if was sent any)
+      # @param get_params [Hash] In order to validate the In value we need to provide the GET parameters
       # @return [Boolean] True if the Logout Response is valid, otherwise False if soft=True
       # @raise [ValidationError] if soft == false and validation fails
       #
-      def validate(soft = true, request_id = nil)
+      def validate(soft = true, request_id = nil, get_params = nil)
         @errors = []
-        valid_state?(soft) &&
-        validate_success_status(soft) &&
-        validate_structure(soft) &&
+        valid_state?(soft)                      &&
+        validate_success_status(soft)           &&
+        validate_structure(soft)                &&
         valid_in_response_to?(soft, request_id) &&
-        validate_destination(soft)   &&        
-        valid_issuer?(soft)
+        validate_destination(soft)              &&
+        valid_issuer?(soft)                     &&
+        validate_signature(soft, get_params)
       end
 
       private
@@ -269,6 +275,30 @@ module OneLogin
         true
       end
 
+      # Validates the Signature if exists and GET parameters are provided
+      # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout response is invalid or not)
+      # @param get_params [Hash] In order to validate the In value we need to provide the GET parameters
+      # @return [Boolean] True if not contains a Signature or if the Signature is valid, otherwise False if soft=True
+      # @raise [ValidationError] if soft == false and validation fails
+      #      
+      def validate_signature(soft = true, get_params = nil)
+        return true if get_params.nil? || get_params['Signature'].nil? || self.settings.nil? || self.settings.get_idp_cert.nil?
+        
+        require "byebug"
+        debugger
+
+        query_string = OneLogin::RubySaml::Utils.build_query('SAMLResponse',
+                                                          get_params['SAMLResponse'],
+                                                          get_params['RelayState'],
+                                                          get_params['SigAlg']
+        )
+
+        return OneLogin::RubySaml::Utils.verify_signature(self.settings.get_idp_cert,
+                                                          get_params['SigAlg'],
+                                                          Base64.encode64(get_params['Signature']),
+                                                          query_string
+        )
+      end
     end
   end
 end

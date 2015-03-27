@@ -52,6 +52,32 @@ module OneLogin
         end
         key
       end
+
+      # Build the Query String signature that will be used in the HTTP-Redirect binding
+      # to generate the Signature
+      # @param type        [String] 'SAMLRequest' or 'SAMLResponse'
+      # @param data        [String] The plain text request or response
+      # @param relay_state [String] The RelayState parameter
+      # @param sig_alg     [String] The SigAlg parameter                  
+      # @return [String] The Query String 
+      #
+      def self.build_query(type, data, relay_state, sig_alg)
+        url_string          = "#{type}=#{CGI.escape(data)}"
+        url_string         << "&RelayState=#{CGI.escape(relay_state)}" if relay_state
+        url_string         << "&SigAlg=#{CGI.escape(sig_alg)}"          
+      end
+
+      # Validate the Signature parameter sent on the HTTP-Redirect binding
+      # @param cert         [OpenSSL::X509::Certificate] The Identity provider public certtificate
+      # @param sig_alg      [String] The SigAlg parameter
+      # @param signature    [String] The Base64 decoded Signature
+      # @param query_string [String] The SigAlg parameter
+      # @return [Boolean] True if the Signature is valid, False otherwise
+      #
+      def self.verify_signature(cert, sig_alg, signature, query_string)
+        signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(sig_alg)
+        return cert.public_key.verify(signature_algorithm.new, signature, query_string)        
+      end
     end
   end
 end

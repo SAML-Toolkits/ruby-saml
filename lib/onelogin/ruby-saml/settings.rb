@@ -83,6 +83,15 @@ module OneLogin
         @single_logout_service_binding = val
       end
 
+      def get_idp_cert
+        cert = nil
+        if self.idp_cert
+          formated_cert = OneLogin::RubySaml::Utils.format_cert(self.idp_cert)
+          cert = OpenSSL::X509::Certificate.new(formated_cert)
+        end
+        cert
+      end
+
       def get_sp_cert
         cert = nil
         if self.certificate

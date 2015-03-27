@@ -44,11 +44,12 @@ module OneLogin
 
       # Validates the Logout Request (soft = false)
       # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout request is invalid or not)
+      # @param get_params [Hash] In order to validate the In value we need to provide the GET parameters      
       # @return [Boolean] TRUE if the Logout Request is valid
       # @raise [ValidationError] if soft == false and validation fails
       #
-      def validate!(soft=false)
-        validate(soft)
+      def validate!(soft = false, get_params = nil)
+        validate(soft, get_params)
       end
 
       # @return [String|nil] Gets the ID attribute from the Logout Request. if exists.
@@ -129,10 +130,11 @@ module OneLogin
         # Validates the Logout Request (calls several validation methods)
         # If fails, the attribute errors will contains the reason for the invalidation.
         # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout request is invalid or not)
+        # @param get_params [Hash] In order to validate the In value we need to provide the GET parameters
         # @return [Boolean] True if the Logout Request is valid, otherwise False if soft=True
         # @raise [ValidationError] if soft == false and validation fails
         #
-        def validate(soft = true)
+        def validate(soft = true, get_params = nil)
           @errors = []
           validate_request_state(soft) &&
           validate_id                  &&
@@ -140,7 +142,8 @@ module OneLogin
           validate_structure(soft)     &&
           validate_not_on_or_after     &&
           validate_destination(soft)   &&
-          validate_issuer(soft)
+          validate_issuer(soft)        &&
+          validate_signature(soft, get_params)
         end
 
         # Validates that the Logout Request contains an ID 
@@ -247,6 +250,26 @@ module OneLogin
 
           true
         end
+
+      # Validates the Signature if exists and GET parameters are provided
+      # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout response is invalid or not)
+      # @param get_params [Hash] In order to validate the In value we need to provide the GET parameters
+      # @return [Boolean] True if not contains a Signature or if the Signature is valid, otherwise False if soft=True
+      # @raise [ValidationError] if soft == false and validation fails
+      #      
+      def validate_signature(soft = true, get_params = nil)
+        return true if get_params.nil? || get_params['Signature'].nil? || self.settings.nil? || self.settings.get_idp_cert.nil?
+        
+        query_string = OneLogin::RubySaml::Utils.build_query('SAMLRequest',
+                                                          get_params['SAMLRequest'],
+                                                          get_params['RelayState']+'dadadadad',
+                                                          get_params['SigAlg'])
+
+        return OneLogin::RubySaml::Utils.verify_signature(self.settings.get_idp_cert,
+                                                          get_params['SigAlg'],
+                                                          Base64.encode64(get_params['Signature']),
+                                                          query_string)
+      end
 
     end
   end

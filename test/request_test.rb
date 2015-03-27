@@ -226,7 +226,7 @@ class RequestTest < Minitest::Test
 
         signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
         assert_equal signature_algorithm, OpenSSL::Digest::SHA256
-        assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)        
+        assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
       end
     end
 
