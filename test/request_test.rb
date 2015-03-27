@@ -147,6 +147,33 @@ class RequestTest < Minitest::Test
       end
     end
 
+    it "create the saml:AuthnContextClassRef element correctly" do
+      settings.authn_context = 'secure/name/password/uri'
+      auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+      assert auth_doc.to_s =~ /<saml:AuthnContextClassRef>secure\/name\/password\/uri<\/saml:AuthnContextClassRef>/
+    end
+
+    it "create the saml:AuthnContextClassRef with comparison exact" do
+      settings.authn_context = 'secure/name/password/uri'
+      auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+      assert auth_doc.to_s =~ /<samlp:RequestedAuthnContext[\S ]+Comparison='exact'/
+      assert auth_doc.to_s =~ /<saml:AuthnContextClassRef>secure\/name\/password\/uri<\/saml:AuthnContextClassRef>/
+    end
+
+    it "create the saml:AuthnContextClassRef with comparison minimun" do
+      settings.authn_context = 'secure/name/password/uri'
+      settings.authn_context_comparison = 'minimun'
+      auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+      assert auth_doc.to_s =~ /<samlp:RequestedAuthnContext[\S ]+Comparison='minimun'/
+      assert auth_doc.to_s =~ /<saml:AuthnContextClassRef>secure\/name\/password\/uri<\/saml:AuthnContextClassRef>/
+    end
+
+    it "create the saml:AuthnContextDeclRef element correctly" do
+      settings.authn_context_decl_ref = 'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport'
+      auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+      assert auth_doc.to_s =~ /<saml:AuthnContextDeclRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport<\/saml:AuthnContextDeclRef>/
+    end
+
     describe "#create_params when the settings indicate to sign (embebed) the request" do
 
       let(:settings2) { OneLogin::RubySaml::Settings.new }
@@ -228,33 +255,6 @@ class RequestTest < Minitest::Test
         assert_equal signature_algorithm, OpenSSL::Digest::SHA256
         assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
       end
-    end
-
-    it "create the saml:AuthnContextClassRef element correctly" do
-      settings.authn_context = 'secure/name/password/uri'
-      auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
-      assert auth_doc.to_s =~ /<saml:AuthnContextClassRef>secure\/name\/password\/uri<\/saml:AuthnContextClassRef>/
-    end
-
-    it "create the saml:AuthnContextClassRef with comparison exact" do
-      settings.authn_context = 'secure/name/password/uri'
-      auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
-      assert auth_doc.to_s =~ /<samlp:RequestedAuthnContext[\S ]+Comparison='exact'/
-      assert auth_doc.to_s =~ /<saml:AuthnContextClassRef>secure\/name\/password\/uri<\/saml:AuthnContextClassRef>/
-    end
-
-    it "create the saml:AuthnContextClassRef with comparison minimun" do
-      settings.authn_context = 'secure/name/password/uri'
-      settings.authn_context_comparison = 'minimun'
-      auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
-      assert auth_doc.to_s =~ /<samlp:RequestedAuthnContext[\S ]+Comparison='minimun'/
-      assert auth_doc.to_s =~ /<saml:AuthnContextClassRef>secure\/name\/password\/uri<\/saml:AuthnContextClassRef>/
-    end
-
-    it "create the saml:AuthnContextDeclRef element correctly" do
-      settings.authn_context_decl_ref = 'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport'
-      auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
-      assert auth_doc.to_s =~ /<saml:AuthnContextDeclRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport<\/saml:AuthnContextDeclRef>/
     end
   end
 end

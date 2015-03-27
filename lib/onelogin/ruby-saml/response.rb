@@ -180,16 +180,10 @@ module OneLogin
       def issuers
         @issuers ||= begin
           issuers = []
-          node = REXML::XPath.first(document, "/p:Response/a:Issuer", { "p" => PROTOCOL, "a" => ASSERTION })
-          if node
-            issuers << node.text
+          nodes = REXML::XPath.match(document, "/p:Response/a:Issuer | /p:Response/a:Assertion/a:Issuer", { "p" => PROTOCOL, "a" => ASSERTION })
+          nodes.each do |node|
+            issuers << node.text if not node.text.nil?
           end
-
-          node = REXML::XPath.first(document, "/p:Response/a:Assertion/a:Issuer", { "p" => PROTOCOL, "a" => ASSERTION })
-          if node
-            issuers << node.text          
-          end
-
           issuers.uniq
         end
       end
@@ -219,7 +213,7 @@ module OneLogin
           audiences = []
           nodes = xpath_from_signed_assertion('/a:Conditions/a:AudienceRestriction/a:Audience')
           nodes.each do |node|
-            unless node.nil? or node.text.empty?
+            if node && node.text
               audiences << node.text
             end
           end
@@ -275,7 +269,7 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_response_state(soft = true)
-        if response.nil? or response.empty?
+        if response.nil? || response.empty?
           @errors << "Blank SAML Response"
           return soft ? false : validation_error("Blank SAML Response")
         end
@@ -325,7 +319,7 @@ module OneLogin
         assertions = REXML::XPath.match(document, "//a:Assertion", { "a" => ASSERTION })
         encrypted_assertions = REXML::XPath.match(document, "//a:EncryptedAssertion", { "a" => ASSERTION })
 
-        unless assertions.length + encrypted_assertions.length == 1
+        unless assertions.size + encrypted_assertions.size == 1
           @errors << "SAML Response must contain 1 assertion"
           return false
         end
@@ -390,7 +384,7 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails 
       #
       def validate_structure(soft = true)
-        valid = self.valid_saml?(self.document, soft)
+        valid = valid_saml?(document, soft)
         unless valid
           @errors << "Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd"
         end
@@ -405,13 +399,13 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_in_response_to(request_id = nil, soft = true)
-        return true if request_id.nil? or self.in_response_to.nil? or self.in_response_to.empty?
+        return true if request_id.nil? || in_response_to.nil? || in_response_to.empty?
 
-        unless request_id != self.in_response_to
+        unless request_id != in_response_to
           return true
         end
 
-        error_msg = "The InResponseTo of the Response: #{self.in_response_to}, does not match the ID of the AuthNRequest sent by the SP: #{request_id}"
+        error_msg = "The InResponseTo of the Response: #{in_response_to}, does not match the ID of the AuthNRequest sent by the SP: #{request_id}"
         @errors << error_msg
         return soft ? false : validation_error(error_msg)
       end
@@ -438,10 +432,10 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_destination(soft = true)
-        return true if self.destination.nil? or self.destination.empty? or settings.assertion_consumer_service_url.nil? or settings.assertion_consumer_service_url.empty?
+        return true if destination.nil? || destination.empty? || settings.assertion_consumer_service_url.nil? || settings.assertion_consumer_service_url.empty?
 
-        unless self.destination == current_url
-          error_msg = "The response was received at #{self.destination} instead of #{current_url}"
+        unless destination == current_url
+          error_msg = "The response was received at #{destination} instead of #{current_url}"
           @errors << error_msg
           return soft ? false : validation_error(error_msg)
         end
@@ -456,10 +450,10 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_audience(soft = true)
-        return true if self.audiences.empty? or settings.issuer.nil? or settings.issuer.empty?
+        return true if audiences.empty? || settings.issuer.nil? || settings.issuer.empty?
 
-        unless self.audiences.include? settings.issuer
-          error_msg = "#{self.settings.issuer} is not a valid audience for this Response"
+        unless audiences.include? settings.issuer
+          error_msg = "#{settings.issuer} is not a valid audience for this Response"
           @errors << error_msg
           return soft ? false : validation_error(error_msg)
         end
@@ -610,19 +604,20 @@ module OneLogin
           if not confirmation_data_node
             next
           else
-            if confirmation_data_node.attributes.include? "InResponseTo" and confirmation_data_node.attributes['InResponseTo'] != in_response_to
+            attrs = confirmation_data_node.attributes
+            if attrs.include? "InResponseTo" and attrs['InResponseTo'] != in_response_to
               next
             end
 
-            if confirmation_data_node.attributes.include? "Recipient" and confirmation_data_node.attributes['Recipient'] != current_url
+            if attrs.include? "Recipient" and attrs['Recipient'] != current_url
               next
             end
 
-            if confirmation_data_node.attributes.include? "NotOnOrAfter" and (parse_time(confirmation_data_node, "NotOnOrAfter") + (options[:allowed_clock_drift] || 0)) <= now
+            if attrs.include? "NotOnOrAfter" and (parse_time(confirmation_data_node, "NotOnOrAfter") + (options[:allowed_clock_drift] || 0)) <= now
               next
             end
 
-            if confirmation_data_node.attributes.include? "NotBefore" and parse_time(confirmation_data_node, "NotBefore") > (now + (options[:allowed_clock_drift] || 0))
+            if attrs.include? "NotBefore" and parse_time(confirmation_data_node, "NotBefore") > (now + (options[:allowed_clock_drift] || 0))
               next
             end
             

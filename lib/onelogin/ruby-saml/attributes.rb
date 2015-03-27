@@ -8,7 +8,7 @@ module OneLogin
 
       # By default Attributes#[] is backwards compatible and
       # returns only the first value for the attribute
-      # Setting this to `false` returns all values for an attribute      
+      # Setting this to `false` returns all values for an attribute
       @@single_value_compatibility = true
 
       # @return [Boolean] Get current status of backwards compatibility mode.

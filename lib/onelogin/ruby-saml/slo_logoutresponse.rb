@@ -67,7 +67,12 @@ module OneLogin
 
         if settings.security[:logout_responses_signed] && !settings.security[:embed_sign] && settings.private_key
           params['SigAlg']    = settings.security[:signature_method]
-          url_string          = OneLogin::RubySaml::Utils.build_query('SAMLResponse', base64_response, relay_state, params['SigAlg'])
+          url_string = OneLogin::RubySaml::Utils.build_query(
+            :type        => 'SAMLResponse',
+            :data        => base64_response,
+            :relay_state => relay_state,
+            :sig_alg     => params['SigAlg']
+          )          
           signature           = settings.get_sp_key().sign(XMLSecurity::BaseDocument.new.algorithm(settings.security[:signature_method]).new, url_string)
           params['Signature'] = encode(signature)
         end

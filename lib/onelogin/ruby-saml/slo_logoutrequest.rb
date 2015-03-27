@@ -55,14 +55,14 @@ module OneLogin
       # @return [String|nil] Gets the ID attribute from the Logout Request. if exists.
       #
       def id
-        super(self.document)
+        super(document)
       end
 
       # @return [String] Gets the NameID of the Logout Request.
       #
       def name_id
         @name_id ||= begin
-          node = REXML::XPath.first(self.document, "/p:LogoutRequest/a:NameID", { "p" => PROTOCOL, "a" => ASSERTION })
+          node = REXML::XPath.first(document, "/p:LogoutRequest/a:NameID", { "p" => PROTOCOL, "a" => ASSERTION })
           node.nil? ? nil : node.text
         end
       end
@@ -80,7 +80,7 @@ module OneLogin
       #
       def issuer
         @issuer ||= begin
-          node = REXML::XPath.first(self.document, "/p:LogoutRequest/a:Issuer", { "p" => PROTOCOL, "a" => ASSERTION })
+          node = REXML::XPath.first(document, "/p:LogoutRequest/a:Issuer", { "p" => PROTOCOL, "a" => ASSERTION })
           node.nil? ? nil : node.text
         end
       end
@@ -89,7 +89,7 @@ module OneLogin
       #
       def not_on_or_after
         @not_on_or_after ||= begin
-          node = REXML::XPath.first(self.document, "/p:LogoutRequest", { "p" => PROTOCOL} )
+          node = REXML::XPath.first(document, "/p:LogoutRequest", { "p" => PROTOCOL} )
           if node && node.attributes["NotOnOrAfter"]
             Time.parse(node.attributes["NotOnOrAfter"])
           else
@@ -102,7 +102,7 @@ module OneLogin
       #
       def session_indexes
         session_index = []
-        nodes = REXML::XPath.match(self.document, "/p:LogoutRequest/p:SessionIndex", { "p" => PROTOCOL} )
+        nodes = REXML::XPath.match(document, "/p:LogoutRequest/p:SessionIndex", { "p" => PROTOCOL} )
 
         if nodes
           nodes.each { |node|
@@ -121,8 +121,8 @@ module OneLogin
         #
         def current_url
           @current_url ||= begin
-            unless self.settings.nil? or self.settings.single_logout_service_url.nil?
-              self.settings.single_logout_service_url
+            if settings && settings.single_logout_service_url
+              settings.single_logout_service_url
             end
           end
         end
@@ -163,7 +163,7 @@ module OneLogin
         # @return [Boolean] True if the Logout Request is 2.0, otherwise returns False
         #
         def validate_version()
-          unless version(self.document) == "2.0"
+          unless version(document) == "2.0"
             @errors << "Unsupported SAML version"
             return false
           end
@@ -193,7 +193,7 @@ module OneLogin
         # @raise [ValidationError] if soft == false and validation fails
         #
         def validate_request_state(soft = true)
-          if request.nil? or request.empty?
+          if request.nil? || request.empty?
             error_msg = "Blank Logout Request" 
             @errors << error_msg
             return soft ? false : validation_error(error_msg)
@@ -208,7 +208,7 @@ module OneLogin
         # @raise [ValidationError] if soft == false and validation fails
         #
         def validate_structure(soft = true)
-          valid = self.valid_saml?(self.document, soft)
+          valid = valid_saml?(document, soft)
           unless valid
             @errors << "Invalid Logout Request. Not match the saml-schema-protocol-2.0.xsd"
           end
@@ -222,10 +222,10 @@ module OneLogin
         # @raise [ValidationError] if soft == false and validation fails
         #
         def validate_destination(soft = true)
-          return true if destination.nil? or destination.empty? or settings.single_logout_service_url.nil? or settings.single_logout_service_url.empty?
+          return true if destination.nil? || destination.empty? || settings.single_logout_service_url.nil? || settings.single_logout_service_url.empty?
 
           unless destination == current_url
-            error_msg = "The Logout Request was received at #{self.destination} instead of #{current_url}"
+            error_msg = "The Logout Request was received at #{destination} instead of #{current_url}"
             @errors << error_msg
             return soft ? false : validation_error(error_msg)
           end
@@ -240,9 +240,9 @@ module OneLogin
         # @raise [ValidationError] if soft == false and validation fails
         #
         def validate_issuer(soft = true)
-          return true if settings.idp_entity_id.nil? or issuer.nil?
+          return true if settings.idp_entity_id.nil? || issuer.nil?
 
-          unless URI.parse(issuer) == URI.parse(self.settings.idp_entity_id)
+          unless URI.parse(issuer) == URI.parse(settings.idp_entity_id)
             error_msg = "Doesn't match the issuer, expected: <#{settings.idp_entity_id}>, but was: <#{issuer}>"
             @errors << error_msg
             return soft ? false : validation_error(error_msg)
@@ -258,17 +258,21 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #      
       def validate_signature(soft = true, get_params = nil)
-        return true if get_params.nil? || get_params['Signature'].nil? || self.settings.nil? || self.settings.get_idp_cert.nil?
+        return true if get_params.nil? || get_params['Signature'].nil? || settings.nil? || settings.get_idp_cert.nil?
         
-        query_string = OneLogin::RubySaml::Utils.build_query('SAMLRequest',
-                                                          get_params['SAMLRequest'],
-                                                          get_params['RelayState']+'dadadadad',
-                                                          get_params['SigAlg'])
+        query_string = OneLogin::RubySaml::Utils.build_query(
+          :type        => 'SAMLRequest',
+          :data        => get_params['SAMLRequest'],
+          :relay_state => get_params['RelayState'],
+          :sig_alg     => get_params['SigAlg']
+        )
 
-        return OneLogin::RubySaml::Utils.verify_signature(self.settings.get_idp_cert,
-                                                          get_params['SigAlg'],
-                                                          Base64.encode64(get_params['Signature']),
-                                                          query_string)
+        return OneLogin::RubySaml::Utils.verify_signature(
+          :cert         => settings.get_idp_cert,
+          :sig_alg      => get_params['SigAlg'],
+          :signature    => Base64.encode64(get_params['Signature']),
+          :query_string => query_string
+        )
       end
 
     end

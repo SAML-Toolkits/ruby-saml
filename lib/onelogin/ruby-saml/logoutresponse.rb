@@ -29,7 +29,7 @@ module OneLogin
       #
       def initialize(response, settings = nil)
         raise ArgumentError.new("Logoutresponse cannot be nil") if response.nil?
-        self.settings = settings
+        @settings = settings
 
         @options = options
         @response = decode_raw_saml(response)
@@ -119,8 +119,8 @@ module OneLogin
       #
       def current_url
         @current_url ||= begin
-          unless self.settings.nil? or self.settings.single_logout_service_url.nil?
-            self.settings.single_logout_service_url
+          if settings && settings.single_logout_service_url
+            settings.single_logout_service_url
           end
         end
       end
@@ -188,7 +188,7 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_structure(soft = true)
-        valid = self.valid_saml?(self.document, soft)
+        valid = valid_saml?(document, soft)
         unless valid
           @errors << "Invalid Logout Response. Not match the saml-schema-protocol-2.0.xsd"
         end
@@ -202,22 +202,20 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_success_status(soft = true)
-        if success?
-          true
-        else
-          error_msg = 'The status code of the Logout Response was not Success'
-          unless status_code.nil?
-            printable_code = status_code.split(':').pop
-            error_msg +=  ', was ' + printable_code
-          end
+        return true if success?
 
-          unless status_message.nil?
-            error_msg +=  ' -> ' + status_message
-          end
-
-          @errors << error_msg
-          soft ? false : validation_error(error_msg)
+        error_msg = 'The status code of the Logout Response was not Success'
+        unless status_code.nil?
+          printable_code = status_code.split(':').pop
+          error_msg +=  ', was ' + printable_code
         end
+
+        unless status_message.nil?
+          error_msg +=  ' -> ' + status_message
+        end
+
+        @errors << error_msg
+        soft ? false : validation_error(error_msg)
       end
 
       # Validates if the provided request_id match the inResponseTo value.
@@ -246,10 +244,10 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_destination(soft = true)
-        return true if destination.nil? or destination.empty? or settings.single_logout_service_url.nil? or settings.single_logout_service_url.empty?
+        return true if destination.nil? || destination.empty? || settings.single_logout_service_url.nil? || settings.single_logout_service_url.empty?
 
         unless destination == current_url
-          error_msg = "The Logout Response was received at #{self.destination} instead of #{current_url}"
+          error_msg = "The Logout Response was received at #{destination} instead of #{current_url}"
           @errors << error_msg
           return soft ? false : validation_error(error_msg)
         end
@@ -264,10 +262,10 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def valid_issuer?(soft = true)
-        return true if self.settings.idp_entity_id.nil? or self.issuer.nil?
+        return true if settings.idp_entity_id.nil? or issuer.nil?
 
-        unless URI.parse(self.issuer) == URI.parse(self.settings.idp_entity_id)
-          error_msg = "Doesn't match the issuer, expected: <#{self.settings.idp_entity_id}>, but was: <#{issuer}>"
+        unless URI.parse(issuer) == URI.parse(settings.idp_entity_id)
+          error_msg = "Doesn't match the issuer, expected: <#{settings.idp_entity_id}>, but was: <#{issuer}>"
           @errors << error_msg
           return soft ? false : validation_error(error_msg)
         end
@@ -282,21 +280,20 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #      
       def validate_signature(soft = true, get_params = nil)
-        return true if get_params.nil? || get_params['Signature'].nil? || self.settings.nil? || self.settings.get_idp_cert.nil?
+        return true if get_params.nil? || get_params['Signature'].nil? || settings.nil? || settings.get_idp_cert.nil?
         
-        require "byebug"
-        debugger
-
-        query_string = OneLogin::RubySaml::Utils.build_query('SAMLResponse',
-                                                          get_params['SAMLResponse'],
-                                                          get_params['RelayState'],
-                                                          get_params['SigAlg']
+        query_string = OneLogin::RubySaml::Utils.build_query(
+          :type        => 'SAMLResponse',
+          :data        => get_params['SAMLResponse'],
+          :relay_state => get_params['RelayState'],
+          :sig_alg     => get_params['SigAlg']
         )
 
-        return OneLogin::RubySaml::Utils.verify_signature(self.settings.get_idp_cert,
-                                                          get_params['SigAlg'],
-                                                          Base64.encode64(get_params['Signature']),
-                                                          query_string
+        return OneLogin::RubySaml::Utils.verify_signature(
+          :cert         => settings.get_idp_cert,
+          :sig_alg      => get_params['SigAlg'],
+          :signature    => Base64.encode64(get_params['Signature']),
+          :query_string => query_string
         )
       end
     end
