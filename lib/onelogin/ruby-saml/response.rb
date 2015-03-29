@@ -384,11 +384,16 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails 
       #
       def validate_structure(soft = true)
-        valid = valid_saml?(document, soft)
-        unless valid
-          @errors << "Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd"
-        end
-        valid
+        begin 
+          valid = valid_saml?(document, soft)
+          unless valid
+            @errors << "Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd"
+          end
+          valid
+        rescue OneLogin::RubySaml::ValidationError => e
+          @errors << e.message
+          raise e
+        end        
       end
 
       # Validates if the provided request_id match the inResponseTo value.

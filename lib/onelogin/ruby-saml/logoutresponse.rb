@@ -28,6 +28,7 @@ module OneLogin
       # @raise [ArgumentError]
       #
       def initialize(response, settings = nil)
+        @errors = []
         raise ArgumentError.new("Logoutresponse cannot be nil") if response.nil?
         @settings = settings
 
@@ -188,11 +189,16 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_structure(soft = true)
-        valid = valid_saml?(document, soft)
-        unless valid
-          @errors << "Invalid Logout Response. Not match the saml-schema-protocol-2.0.xsd"
+        begin 
+          valid = valid_saml?(document, soft)
+          unless valid
+            @errors << "Invalid Logout Response. Not match the saml-schema-protocol-2.0.xsd"
+          end
+          valid
+        rescue OneLogin::RubySaml::ValidationError => e
+          @errors << e.message
+          raise e
         end
-        valid
       end
 
       # Validates the Status of the Logout Response
@@ -289,12 +295,19 @@ module OneLogin
           :sig_alg     => get_params['SigAlg']
         )
 
-        return OneLogin::RubySaml::Utils.verify_signature(
+        valid = OneLogin::RubySaml::Utils.verify_signature(
           :cert         => settings.get_idp_cert,
           :sig_alg      => get_params['SigAlg'],
-          :signature    => Base64.encode64(get_params['Signature']),
+          :signature    => get_params['Signature'],
           :query_string => query_string
         )
+
+        unless valid
+          error_msg = "Invalid Signature on Logout Response"
+          @errors << error_msg
+          return soft ? false : validation_error(error_msg)
+        end
+        true        
       end
     end
   end

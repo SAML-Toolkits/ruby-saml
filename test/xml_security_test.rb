@@ -78,7 +78,53 @@ class XmlSecurityTest < Minitest::Test
     end
   end
 
-  describe "Algorithms" do
+  describe "#canon_algorithm" do
+    it "C14N_EXCLUSIVE_1_0" do
+      canon_algorithm = Nokogiri::XML::XML_C14N_EXCLUSIVE_1_0
+      assert_equal canon_algorithm, XMLSecurity::BaseDocument.new.canon_algorithm("http://www.w3.org/2001/10/xml-exc-c14n#")
+      assert_equal canon_algorithm, XMLSecurity::BaseDocument.new.canon_algorithm("http://www.w3.org/2001/10/xml-exc-c14n#WithComments")
+      assert_equal canon_algorithm, XMLSecurity::BaseDocument.new.canon_algorithm("other")
+    end
+
+    it "C14N_1_0" do
+      canon_algorithm = Nokogiri::XML::XML_C14N_1_0
+      assert_equal canon_algorithm, XMLSecurity::BaseDocument.new.canon_algorithm("http://www.w3.org/TR/2001/REC-xml-c14n-20010315")
+    end
+
+    it "XML_C14N_1_1" do
+      canon_algorithm = Nokogiri::XML::XML_C14N_1_1
+      assert_equal canon_algorithm, XMLSecurity::BaseDocument.new.canon_algorithm("http://www.w3.org/2006/12/xml-c14n11")
+    end
+  end
+
+  describe "#algorithm" do    
+    it "SHA1" do
+      alg = OpenSSL::Digest::SHA1
+      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2000/09/xmldsig#rsa-sha1")
+      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2000/09/xmldsig#sha1")
+      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("other")
+    end
+
+    it "SHA256" do
+      alg = OpenSSL::Digest::SHA256
+      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#rsa-sha256")
+      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#sha256")
+    end
+
+    it "SHA384" do
+      alg = OpenSSL::Digest::SHA384
+      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#rsa-sha384")
+      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#sha384")
+    end
+
+    it "SHA512" do
+      alg = OpenSSL::Digest::SHA512
+      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#rsa-sha512")
+      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#sha512")
+    end        
+  end
+
+  describe "Validate with different algorithms" do
     it "validate using SHA1" do
       @document = XMLSecurity::SignedDocument.new(fixture(:adfs_response_sha1, false))
       assert @document.validate_document("F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72")

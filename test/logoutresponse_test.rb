@@ -161,9 +161,11 @@ class RubySamlTest < Minitest::Test
       it "raises validation error when response initiated with blank" do
         logoutresponse = OneLogin::RubySaml::Logoutresponse.new("", settings)
 
-        assert_raises(OneLogin::RubySaml::ValidationError, "Blank Logout Response") do
+        expected_error_msg = "Blank Logout Response"
+        assert_raises(OneLogin::RubySaml::ValidationError, expected_error_msg) do
           logoutresponse.validate!
         end
+        assert logoutresponse.errors.include? expected_error_msg
       end
 
       it "raises validation error when matching for wrong request id" do
@@ -171,25 +173,44 @@ class RubySamlTest < Minitest::Test
 
         logoutresponse = OneLogin::RubySaml::Logoutresponse.new(valid_response, settings)
 
-        assert_raises(OneLogin::RubySaml::ValidationError, "Logout Response does not match the request ID, expected: <{expected_request_id}>, but was: <{logoutresponse.in_response_to}>") do
+        expected_error_msg = "Logout Response does not match the request ID, expected: <#{expected_request_id}>, but was: <#{logoutresponse.in_response_to}>"
+        assert_raises(OneLogin::RubySaml::ValidationError, expected_error_msg) do
           logoutresponse.validate!(false, expected_request_id)
         end
+        assert logoutresponse.errors.include? expected_error_msg
       end
 
       it "raise validation error for wrong request status" do
         logoutresponse = OneLogin::RubySaml::Logoutresponse.new(unsuccessful_response, settings)
 
-        assert_raises(OneLogin::RubySaml::ValidationError, "The status code of the Logout Response was not Success, was Requester") do
+        expected_error_msg = "The status code of the Logout Response was not Success, was Requester"
+        assert_raises(OneLogin::RubySaml::ValidationError, expected_error_msg) do
           logoutresponse.validate!
         end
+        assert logoutresponse.errors.include? expected_error_msg
+      end
+
+      it "raise validation error for wrong request status and status_message" do
+        unsuccessful_response_with_status_message = unsuccessful_response
+        unsuccessful_response_with_status_message = unsuccessful_response_with_status_message.gsub('</samlp:Status>', '<samlp:StatusMessage>It was requester</samlp:StatusMessage></samlp:Status>')
+
+        logoutresponse = OneLogin::RubySaml::Logoutresponse.new(unsuccessful_response_with_status_message, settings)
+
+        expected_error_msg = "The status code of the Logout Response was not Success, was Requester -> It was requester"
+        assert_raises(OneLogin::RubySaml::ValidationError, expected_error_msg) do
+          logoutresponse.validate!
+        end
+        assert logoutresponse.errors.include? expected_error_msg
       end
 
       it "raise validation error when in bad state" do
         logoutresponse = OneLogin::RubySaml::Logoutresponse.new(unsuccessful_response)
 
-        assert_raises(OneLogin::RubySaml::ValidationError, "No settings on Logout Response") do
+        expected_error_msg = "No settings on Logout Response"
+        assert_raises(OneLogin::RubySaml::ValidationError, expected_error_msg) do
           logoutresponse.validate!
         end
+        assert logoutresponse.errors.include? expected_error_msg
       end
 
       it "raise validation error when in lack of issuer setting" do
@@ -197,9 +218,11 @@ class RubySamlTest < Minitest::Test
         bad_settings.issuer = nil
         logoutresponse = OneLogin::RubySaml::Logoutresponse.new(unsuccessful_response, bad_settings)
 
-        assert_raises(OneLogin::RubySaml::ValidationError, "No issuer in settings") do
+        expected_error_msg = "No issuer in settings"
+        assert_raises(OneLogin::RubySaml::ValidationError, expected_error_msg) do
           logoutresponse.validate!
         end
+        assert logoutresponse.errors.include? expected_error_msg
       end
 
       it "raise validation error when responses with wrong issuer" do
@@ -208,17 +231,21 @@ class RubySamlTest < Minitest::Test
         bad_settings.idp_entity_id = 'http://invalid.issuer.example.com/'
         logoutresponse = OneLogin::RubySaml::Logoutresponse.new(valid_response({:uuid => in_relation_to_request_id}), bad_settings)
 
-        assert_raises(OneLogin::RubySaml::ValidationError, "Doesn't match the issuer, expected: <#{logoutresponse.settings.idp_entity_id}>, but was: <http://app.muda.no>") do
+        expected_error_msg = "Doesn't match the issuer, expected: <#{logoutresponse.settings.idp_entity_id}>, but was: <http://app.muda.no>"
+        assert_raises(OneLogin::RubySaml::ValidationError, expected_error_msg) do
           logoutresponse.validate!
         end
+        assert logoutresponse.errors.include? expected_error_msg
       end
 
       it "raise error for invalid xml" do
         logoutresponse = OneLogin::RubySaml::Logoutresponse.new(invalid_xml_response, settings)
 
-        assert_raises(OneLogin::RubySaml::ValidationError, "OneLogin::RubySaml::ValidationError: Element '{urn:oasis:names:tc:SAML:2.0:protocol}LogoutResponse': The attribute 'IssueInstant' is required but missing.") do
+        expected_error_msg = "Element '{urn:oasis:names:tc:SAML:2.0:protocol}LogoutResponse': The attribute 'IssueInstant' is required but missing."
+        assert_raises(OneLogin::RubySaml::ValidationError, expected_error_msg) do
           logoutresponse.validate!
         end
+        assert logoutresponse.errors[0].include? expected_error_msg
       end
 
       it "raise when the destination of the Logout Response not match the service logout url" do
@@ -227,11 +254,61 @@ class RubySamlTest < Minitest::Test
         logoutresponse = OneLogin::RubySaml::Logoutresponse.new(valid_response, bad_settings)
         logoutresponse.document.root.attributes['Destination'] = 'http://sp.example.com/sls'
 
-        assert_raises(OneLogin::RubySaml::ValidationError, "The Logout Response was received at #{logoutresponse.destination} instead of #{logoutresponse.settings.single_logout_service_url}") do
+        expected_error_msg = "The Logout Response was received at #{logoutresponse.destination} instead of #{logoutresponse.settings.single_logout_service_url}"
+        assert_raises(OneLogin::RubySaml::ValidationError, expected_error_msg) do
           logoutresponse.validate!
         end
+        assert logoutresponse.errors.include? expected_error_msg
+      end
+    end
+
+    describe "#validate_signature" do
+      before do
+        settings.idp_slo_target_url = "http://example.com?field=value"
+        settings.security[:logout_responses_signed] = true
+        settings.security[:embed_sign] = false        
+        settings.certificate = ruby_saml_cert_text
+        settings.private_key = ruby_saml_key_text
+        settings.idp_cert = ruby_saml_cert_text
       end
 
+      it "return true when valid RSA_SHA1 Signature" do
+        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+        params = OneLogin::RubySaml::SloLogoutresponse.new.create_params(settings, random_id, "Custom Logout Message", :RelayState => 'http://example.com')
+        params['RelayState'] = params[:RelayState]
+        logoutresponse_sign_test = OneLogin::RubySaml::Logoutresponse.new(params['SAMLResponse'], settings)
+        assert logoutresponse_sign_test.send(:validate_signature, true, params)
+      end
+
+      it "return true when valid RSA_SHA256 Signature" do
+        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
+        params = OneLogin::RubySaml::SloLogoutresponse.new.create_params(settings, random_id, "Custom Logout Message", :RelayState => 'http://example.com')
+        params['RelayState'] = params[:RelayState]
+        logoutresponse_sign_test = OneLogin::RubySaml::Logoutresponse.new(params['SAMLResponse'], settings)
+        assert logoutresponse_sign_test.send(:validate_signature, true, params)
+      end
+
+      it "return false when invalid RSA_SHA1 Signature" do
+        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+        params = OneLogin::RubySaml::SloLogoutresponse.new.create_params(settings, random_id, "Custom Logout Message", :RelayState => 'http://example.com')
+        params['RelayState'] = 'http://invalid.example.com'
+        logoutresponse_sign_test = OneLogin::RubySaml::Logoutresponse.new(params['SAMLResponse'], settings)
+        assert !logoutresponse_sign_test.send(:validate_signature, true, params)
+      end
+
+      it "raise when invalid RSA_SHA1 Signature" do
+        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+        params = OneLogin::RubySaml::SloLogoutresponse.new.create_params(settings, random_id, "Custom Logout Message", :RelayState => 'http://example.com')
+        params['RelayState'] = 'http://invalid.example.com'
+        logoutresponse_sign_test = OneLogin::RubySaml::Logoutresponse.new(params['SAMLResponse'], settings)
+
+        expected_error_msg = "Invalid Signature on Logout Response"
+        assert_raises(OneLogin::RubySaml::ValidationError, expected_error_msg) do
+          logoutresponse_sign_test.send(:validate_signature, false, params)
+        end
+        assert logoutresponse_sign_test.errors.include? expected_error_msg        
+      end
     end
+
   end
 end
