@@ -178,11 +178,12 @@ class RubySamlTest < Minitest::Test
       end
     end
 
-    it "return true, valid cert but with bad format (with heads) formated" do
+    it "true, valid cert but with bad format (with heads) formated" do
       cert = ruby_saml_cert_text
       cert = cert.gsub("\n", "\n ")
 
-      x509 = OpenSSL::X509::Certificate.new(OneLogin::RubySaml::Utils.format_cert(cert))
+      cert_pem = OpenSSL::X509::Certificate.new(OneLogin::RubySaml::Utils.format_cert(cert)).to_pem
+      assert_equal ruby_saml_cert_text, cert_pem
     end
 
     it "valid false, valid cert but with without head and footer" do
@@ -196,22 +197,15 @@ class RubySamlTest < Minitest::Test
       end
     end
 
-    it "valid true, valid cert but with bad without head and footer formated" do
+    it "true,  cert but with bad without head and footer formated" do
       cert = ruby_saml_cert_text
       cert = cert.delete("\n\r\x0D")
       cert = cert.gsub('-----BEGIN CERTIFICATE-----', '')
       cert = cert.gsub('-----END CERTIFICATE-----', '')      
 
-      x509 = OpenSSL::X509::Certificate.new(OneLogin::RubySaml::Utils.format_cert(cert))
+      cert_pem = OpenSSL::X509::Certificate.new(OneLogin::RubySaml::Utils.format_cert(cert)).to_pem
+      assert_equal ruby_saml_cert_text, cert_pem
     end
-  end
-
-  describe "#build_query" do
-
-  end
-
-  describe "#verify_signature" do
-    
   end
 
 end

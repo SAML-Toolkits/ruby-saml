@@ -60,7 +60,7 @@ class RubySamlTest < Minitest::Test
         logoutresponse = OneLogin::RubySaml::Logoutresponse.new("", settings)
 
         assert !logoutresponse.validate!(true)
-        assert logoutresponse.errors.include? "Blank Logout Response"
+        assert_includes logoutresponse.errors, "Blank Logout Response"
       end
 
       it "invalidate response when initiated with no idp cert or fingerprint" do
@@ -69,7 +69,7 @@ class RubySamlTest < Minitest::Test
         bad_settings.idp_cert = nil
         logoutresponse = OneLogin::RubySaml::Logoutresponse.new(valid_response, bad_settings)
         assert !logoutresponse.validate!(true)
-        assert logoutresponse.errors.include? "No fingerprint or certificate on settings"
+        assert_includes logoutresponse.errors, "No fingerprint or certificate on settings"
       end
 
       it "invalidate responses with wrong id when given option :matches_uuid" do
@@ -87,7 +87,7 @@ class RubySamlTest < Minitest::Test
 
         assert !logoutresponse.validate!(true)
         assert !logoutresponse.success?
-        assert logoutresponse.errors.include? "The status code of the Logout Response was not Success, was Requester"
+        assert_includes logoutresponse.errors, "The status code of the Logout Response was not Success, was Requester"
       end
 
       it "invalidate responses with wrong issuer" do
@@ -97,14 +97,14 @@ class RubySamlTest < Minitest::Test
         logoutresponse = OneLogin::RubySaml::Logoutresponse.new(valid_response({:uuid => in_relation_to_request_id}), bad_settings)
 
         assert !logoutresponse.validate!(true)
-        assert logoutresponse.errors.include? "Doesn't match the issuer, expected: <#{logoutresponse.settings.idp_entity_id}>, but was: <http://app.muda.no>"
+        assert_includes logoutresponse.errors, "Doesn't match the issuer, expected: <#{logoutresponse.settings.idp_entity_id}>, but was: <http://app.muda.no>"
       end
 
       it "invalidate responses when invalid logout response xml" do
         logoutresponse = OneLogin::RubySaml::Logoutresponse.new(invalid_xml_response, settings)
 
         assert !logoutresponse.validate!(true)
-        assert logoutresponse.errors.include? "Invalid Logout Response. Not match the saml-schema-protocol-2.0.xsd"
+        assert_includes logoutresponse.errors, "Invalid Logout Response. Not match the saml-schema-protocol-2.0.xsd"
       end
 
       it "return false when the destination of the Logout Response does not match the service logout url" do
@@ -113,7 +113,7 @@ class RubySamlTest < Minitest::Test
         logoutresponse = OneLogin::RubySaml::Logoutresponse.new(valid_response, bad_settings)
         logoutresponse.document.root.attributes['Destination'] = 'http://sp.example.com/sls'
         assert !logoutresponse.validate!(true)
-        assert logoutresponse.errors.include? "The Logout Response was received at #{logoutresponse.destination} instead of #{logoutresponse.settings.single_logout_service_url}"
+        assert_includes logoutresponse.errors, "The Logout Response was received at #{logoutresponse.destination} instead of #{logoutresponse.settings.single_logout_service_url}"
       end
     end
 
@@ -137,14 +137,14 @@ class RubySamlTest < Minitest::Test
 
         assert !logoutresponse.is_valid?
         assert !logoutresponse.success?
-        assert logoutresponse.errors.include? "The status code of the Logout Response was not Success, was Requester"
+        assert_includes logoutresponse.errors, "The status code of the Logout Response was not Success, was Requester"
       end
 
       it "invalidate responses when invalid logout response xml" do
         logoutresponse = OneLogin::RubySaml::Logoutresponse.new(invalid_xml_response, settings)
 
         assert !logoutresponse.is_valid?
-        assert logoutresponse.errors.include? "Invalid Logout Response. Not match the saml-schema-protocol-2.0.xsd"
+        assert_includes logoutresponse.errors, "Invalid Logout Response. Not match the saml-schema-protocol-2.0.xsd"
       end
     end
 
@@ -165,7 +165,7 @@ class RubySamlTest < Minitest::Test
         assert_raises(OneLogin::RubySaml::ValidationError, expected_error_msg) do
           logoutresponse.validate!
         end
-        assert logoutresponse.errors.include? expected_error_msg
+        assert_includes logoutresponse.errors, expected_error_msg
       end
 
       it "raises validation error when matching for wrong request id" do
@@ -177,7 +177,7 @@ class RubySamlTest < Minitest::Test
         assert_raises(OneLogin::RubySaml::ValidationError, expected_error_msg) do
           logoutresponse.validate!(false, expected_request_id)
         end
-        assert logoutresponse.errors.include? expected_error_msg
+        assert_includes logoutresponse.errors, expected_error_msg
       end
 
       it "raise validation error for wrong request status" do
@@ -187,10 +187,12 @@ class RubySamlTest < Minitest::Test
         assert_raises(OneLogin::RubySaml::ValidationError, expected_error_msg) do
           logoutresponse.validate!
         end
-        assert logoutresponse.errors.include? expected_error_msg
+        assert_includes logoutresponse.errors, expected_error_msg
       end
 
       it "raise validation error for wrong request status and status_message" do
+        # Instead of creating a new unsuccessful_response example file,
+        # It tooks an existed example and changed it, making it a unsuccessful_response_with_status_message. 
         unsuccessful_response_with_status_message = unsuccessful_response
         unsuccessful_response_with_status_message = unsuccessful_response_with_status_message.gsub('</samlp:Status>', '<samlp:StatusMessage>It was requester</samlp:StatusMessage></samlp:Status>')
 
@@ -200,7 +202,7 @@ class RubySamlTest < Minitest::Test
         assert_raises(OneLogin::RubySaml::ValidationError, expected_error_msg) do
           logoutresponse.validate!
         end
-        assert logoutresponse.errors.include? expected_error_msg
+        assert_includes logoutresponse.errors, expected_error_msg
       end
 
       it "raise validation error when in bad state" do
@@ -210,7 +212,7 @@ class RubySamlTest < Minitest::Test
         assert_raises(OneLogin::RubySaml::ValidationError, expected_error_msg) do
           logoutresponse.validate!
         end
-        assert logoutresponse.errors.include? expected_error_msg
+        assert_includes logoutresponse.errors, expected_error_msg
       end
 
       it "raise validation error when in lack of issuer setting" do
@@ -222,7 +224,7 @@ class RubySamlTest < Minitest::Test
         assert_raises(OneLogin::RubySaml::ValidationError, expected_error_msg) do
           logoutresponse.validate!
         end
-        assert logoutresponse.errors.include? expected_error_msg
+        assert_includes logoutresponse.errors, expected_error_msg
       end
 
       it "raise validation error when responses with wrong issuer" do
@@ -235,7 +237,7 @@ class RubySamlTest < Minitest::Test
         assert_raises(OneLogin::RubySaml::ValidationError, expected_error_msg) do
           logoutresponse.validate!
         end
-        assert logoutresponse.errors.include? expected_error_msg
+        assert_includes logoutresponse.errors, expected_error_msg
       end
 
       it "raise error for invalid xml" do
@@ -245,7 +247,6 @@ class RubySamlTest < Minitest::Test
         assert_raises(OneLogin::RubySaml::ValidationError, expected_error_msg) do
           logoutresponse.validate!
         end
-        assert logoutresponse.errors[0].include? expected_error_msg
       end
 
       it "raise when the destination of the Logout Response not match the service logout url" do
@@ -258,7 +259,7 @@ class RubySamlTest < Minitest::Test
         assert_raises(OneLogin::RubySaml::ValidationError, expected_error_msg) do
           logoutresponse.validate!
         end
-        assert logoutresponse.errors.include? expected_error_msg
+        assert_includes logoutresponse.errors, expected_error_msg
       end
     end
 

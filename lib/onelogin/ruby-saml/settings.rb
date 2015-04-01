@@ -49,7 +49,7 @@ module OneLogin
       attr_accessor :assertion_consumer_logout_service_url
       attr_accessor :assertion_consumer_logout_service_binding
 
-      def single_logout_service_url()
+      def single_logout_service_url
         val = nil
         if @single_logout_service_url.nil?
           if @assertion_consumer_logout_service_url
@@ -66,7 +66,7 @@ module OneLogin
         @single_logout_service_url = val
       end
 
-      def single_logout_service_binding()
+      def single_logout_service_binding
         val = nil
         if @single_logout_service_binding.nil?
           if @assertion_consumer_logout_service_binding

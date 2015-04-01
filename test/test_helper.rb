@@ -174,12 +174,12 @@ class Minitest::Test
     @signature2 ||= File.read(File.join(File.dirname(__FILE__), 'certificates', 'r1_certificate2_base64'))
   end
 
-  def idp_metadata
+  def idp_metadata_https
     @idp_metadata ||= File.read(File.join(File.dirname(__FILE__), 'metadata', 'idp_descriptor.xml'))
   end
 
-  def idp_metadata_2
-    @idp_metadata_2 ||= File.read(File.join(File.dirname(__FILE__), 'metadata', 'idp_descriptor_2.xml'))
+  def idp_metadata_http
+    @idp_metadata_http ||= File.read(File.join(File.dirname(__FILE__), 'metadata', 'idp_descriptor_2.xml'))
   end
 
   def logout_request_xml

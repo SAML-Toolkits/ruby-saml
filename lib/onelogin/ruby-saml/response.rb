@@ -40,6 +40,18 @@ module OneLogin
         @document = XMLSecurity::SignedDocument.new(@response, @errors)
       end
 
+      # Append the cause to the errors array, and based on the value of soft, return false and raise
+      # an exception
+      def append_error(soft, error_msg)
+        @errors << error_msg
+        return soft ? false : validation_error(error_msg)
+      end
+
+      # Reset the errors array
+      def reset_errors!
+        @errors = []
+      end
+
       # Validates the SAML Response with the default values (soft = true)
       # @return [Boolean] TRUE if the SAML Response is valid
       #
@@ -137,7 +149,11 @@ module OneLogin
       #
       def status_code
         @status_code ||= begin
-          node = REXML::XPath.first(document, "/p:Response/p:Status/p:StatusCode", { "p" => PROTOCOL, "a" => ASSERTION })
+          node = REXML::XPath.first(
+            document,
+            "/p:Response/p:Status/p:StatusCode",
+            { "p" => PROTOCOL, "a" => ASSERTION }
+          )
           node.attributes["Value"] if node && node.attributes
         end
       end
@@ -146,7 +162,11 @@ module OneLogin
       #
       def status_message
         @status_message ||= begin
-          node = REXML::XPath.first(document, "/p:Response/p:Status/p:StatusMessage", { "p" => PROTOCOL, "a" => ASSERTION })
+          node = REXML::XPath.first(
+            document,
+            "/p:Response/p:Status/p:StatusMessage",
+            { "p" => PROTOCOL, "a" => ASSERTION }
+          )
           node.text if node
         end
       end
@@ -180,9 +200,13 @@ module OneLogin
       def issuers
         @issuers ||= begin
           issuers = []
-          nodes = REXML::XPath.match(document, "/p:Response/a:Issuer | /p:Response/a:Assertion/a:Issuer", { "p" => PROTOCOL, "a" => ASSERTION })
+          nodes = REXML::XPath.match(
+            document,
+            "/p:Response/a:Issuer | /p:Response/a:Assertion/a:Issuer",
+            { "p" => PROTOCOL, "a" => ASSERTION }
+          )
           nodes.each do |node|
-            issuers << node.text if not node.text.nil?
+            issuers << node.text if node.text
           end
           issuers.uniq
         end
@@ -192,7 +216,11 @@ module OneLogin
       #
       def in_response_to
         @in_response_to ||= begin
-          node = REXML::XPath.first(document, "/p:Response", { "p" => PROTOCOL })
+          node = REXML::XPath.first(
+            document,
+            "/p:Response",
+            { "p" => PROTOCOL }
+          )
           node.nil? ? nil : node.attributes['InResponseTo']
         end
       end
@@ -201,7 +229,11 @@ module OneLogin
       #
       def destination
         @destination ||= begin
-          node = REXML::XPath.first(document, "/p:Response", { "p" => PROTOCOL })
+          node = REXML::XPath.first(
+            document,
+            "/p:Response",
+            { "p" => PROTOCOL }
+          )
           node.nil? ? nil : node.attributes['Destination']
         end
       end
@@ -224,14 +256,18 @@ module OneLogin
       private
 
       # Gets the expected current_url
-      # (Right now we read this url from the Assertion Consumer Service of the Settings)
       # TODO: Calculate the real current_url and use it.
+      #       (Right now we assume that the current url is the Assertion Consumer Service URL)
       # @return [String] The current url
       #
       def current_url
-        @current_url ||= begin
-          settings.assertion_consumer_service_url
-        end
+        settings && settings.assertion_consumer_service_url
+      end
+
+      # returns the allowed clock drift on timing validation
+      # @return [Integer]
+      def allowed_clock_drift
+        return options[:allowed_clock_drift] || 0
       end
 
       # Validates the SAML Response (calls several validation methods)
@@ -242,23 +278,24 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate(soft = true, request_id = nil)
-        @errors = []
+        reset_errors!
+
         validate_response_state(soft) &&
-        validate_id                   &&
-        validate_version              &&
-        validate_success_status(soft) &&
-        validate_num_assertion        &&
-        validate_no_encrypted_attributes(soft)    &&
-        validate_signed_elements()    &&
-        validate_structure(soft)      &&
-        validate_in_response_to(request_id, soft) &&
-        validate_conditions(soft)     &&
-        validate_destination(soft)    &&
-        validate_audience(soft)       &&
-        validate_issuer(soft)         &&
-        validate_session_expiration(soft) &&
-        validate_subject_confirmation(soft) &&
-        document.validate_document(get_fingerprint, soft)
+          validate_id &&
+          validate_version &&
+          validate_success_status(soft) &&
+          validate_num_assertion &&
+          validate_no_encrypted_attributes(soft) &&
+          validate_signed_elements &&
+          validate_structure(soft) &&
+          validate_in_response_to(request_id, soft) &&
+          validate_conditions(soft)     &&
+          validate_destination(soft) &&
+          validate_audience(soft) &&
+          validate_issuer(soft) &&
+          validate_session_expiration(soft) &&
+          validate_subject_confirmation(soft) &&
+          document.validate_document(get_fingerprint, soft)
       end
 
       # Validates that the SAML Response provided in the initialization is not empty, 
@@ -291,7 +328,7 @@ module OneLogin
       # If fails, the error is added to the errors array.
       # @return [Boolean] True if the SAML Response contains an ID, otherwise returns False
       #
-      def validate_id()
+      def validate_id
         unless id(document)
           @errors << "Missing ID attribute on SAML Response"
           return false
@@ -303,7 +340,7 @@ module OneLogin
       # If fails, the error is added to the errors array.
       # @return [Boolean] True if the SAML Response is 2.0, otherwise returns False
       #
-      def validate_version()
+      def validate_version
         unless version(document) == "2.0"
           @errors << "Unsupported SAML version"
           return false
@@ -315,9 +352,17 @@ module OneLogin
       # If fails, the error is added to the errors array.
       # @return [Boolean] True if the SAML Response contains one unique Assertion, otherwise False
       #
-      def validate_num_assertion()
-        assertions = REXML::XPath.match(document, "//a:Assertion", { "a" => ASSERTION })
-        encrypted_assertions = REXML::XPath.match(document, "//a:EncryptedAssertion", { "a" => ASSERTION })
+      def validate_num_assertion
+        assertions = REXML::XPath.match(
+          document,
+          "//a:Assertion",
+          { "a" => ASSERTION }
+        )
+        encrypted_assertions = REXML::XPath.match(
+          document,
+          "//a:EncryptedAssertion",
+          { "a" => ASSERTION }
+        )
 
         unless assertions.size + encrypted_assertions.size == 1
           @errors << "SAML Response must contain 1 assertion"
@@ -333,22 +378,11 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_success_status(soft = true)
-        if success?
-          true
-        else
-          error_msg = 'The status code of the Response was not Success'
-          unless status_code.nil?
-            printable_code = status_code.split(':').pop
-            error_msg +=  ', was ' + printable_code
-          end
+        return true if success?
 
-          unless status_message.nil?
-            error_msg +=  ' -> ' + status_message
-          end
-
-          @errors << error_msg
-          soft ? false : validation_error(error_msg)
-        end
+        error_msg = 'The status code of the Response was not Success'
+        status_error_msg = OneLogin::RubySaml::Utils.status_error_msg(error_msg, status_code, status_message)
+        append_error(soft, status_error_msg)
       end
 
       # Validates the Signed elements
@@ -356,20 +390,23 @@ module OneLogin
       # @return [Boolean] True if there is 1 or 2 Elements signed in the SAML Response
       #                                   an are a Response or an Assertion Element, otherwise False if soft=True
       #
-      def validate_signed_elements()
-        signature_nodes = REXML::XPath.match(@document, "//ds:Signature", {"ds"=>DSIG})
-
+      def validate_signed_elements
+        signature_nodes = REXML::XPath.match(
+          document,
+          "//ds:Signature",
+          {"ds"=>DSIG}
+        )
         signed_elements = []
         signature_nodes.each do |signature_node|
           signed_element = signature_node.parent.name
-          if signed_element != 'Response' and signed_element != 'Assertion'
+          if signed_element != 'Response' && signed_element != 'Assertion'
             @errors << "Found an unexpected Signature Element. SAML Response rejected"
             return false
           end
           signed_elements << signed_element
         end
 
-        unless signature_nodes.length < 3 and not signed_elements.empty?
+        unless signature_nodes.length < 3 && !signed_elements.empty?
           @errors << "Found an unexpected number of Signature Element. SAML Response rejected"
           return false
         end
@@ -384,16 +421,12 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails 
       #
       def validate_structure(soft = true)
-        begin 
-          valid = valid_saml?(document, soft)
-          unless valid
-            @errors << "Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd"
-          end
-          valid
-        rescue OneLogin::RubySaml::ValidationError => e
-          @errors << e.message
-          raise e
-        end        
+        valid = valid_saml?(document, soft)
+        unless valid
+          @errors << "Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd"
+        end
+
+        valid
       end
 
       # Validates if the provided request_id match the inResponseTo value.
@@ -411,8 +444,7 @@ module OneLogin
         end
 
         error_msg = "The InResponseTo of the Response: #{in_response_to}, does not match the ID of the AuthNRequest sent by the SP: #{request_id}"
-        @errors << error_msg
-        return soft ? false : validation_error(error_msg)
+        append_error(soft, error_msg)
       end
 
       # Validates that there are not EncryptedAttribute (not supported)
@@ -422,8 +454,12 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_no_encrypted_attributes(soft = true)
-        nodes = REXML::XPath.match(@document, "/p:Response/a:Assertion/a:AttributeStatement/a:EncryptedAttribute" , { "p" => PROTOCOL, "a" => ASSERTION })
-        if nodes and nodes.length > 0
+        nodes = REXML::XPath.match(
+          document,
+          "/p:Response/a:Assertion/a:AttributeStatement/a:EncryptedAttribute",
+          { "p" => PROTOCOL, "a" => ASSERTION }
+        )
+        if nodes && nodes.length > 0
           @errors << "There is an EncryptedAttribute in the Response and this SP not support them"
           return soft ? false : validation_error("There is an EncryptedAttribute in the Response and this SP not support them")
         end
@@ -441,8 +477,7 @@ module OneLogin
 
         unless destination == current_url
           error_msg = "The response was received at #{destination} instead of #{current_url}"
-          @errors << error_msg
-          return soft ? false : validation_error(error_msg)
+          return append_error(soft, error_msg)
         end
 
         true
@@ -459,8 +494,7 @@ module OneLogin
 
         unless audiences.include? settings.issuer
           error_msg = "#{settings.issuer} is not a valid audience for this Response"
-          @errors << error_msg
-          return soft ? false : validation_error(error_msg)
+          return append_error(soft, error_msg)
         end
 
         true
@@ -533,12 +567,12 @@ module OneLogin
 
         now = Time.now.utc
 
-        if not_before && not_before > (now + (options[:allowed_clock_drift] || 0))
-          @errors << "Current time is earlier than NotBefore condition #{(now + (options[:allowed_clock_drift] || 0))} < #{not_before})"
+        if not_before && not_before > (now + (allowed_clock_drift))
+          @errors << "Current time is earlier than NotBefore condition #{(now + allowed_clock_drift)} < #{not_before})"
           return soft ? false : validation_error("Current time is earlier than NotBefore condition")
         end
 
-        if not_on_or_after && now >= (not_on_or_after + (options[:allowed_clock_drift] || 0))
+        if not_on_or_after && now >= (not_on_or_after + allowed_clock_drift)
           @errors << "Current time is on or after NotOnOrAfter condition (#{now} >= #{not_on_or_after})"
           return soft ? false : validation_error("Current time is on or after NotOnOrAfter condition")
         end
@@ -558,8 +592,7 @@ module OneLogin
         issuers.each do |issuer|
           unless URI.parse(issuer) == URI.parse(settings.idp_entity_id)
             error_msg = "Doesn't match the issuer, expected: <#{settings.idp_entity_id}>, but was: <#{issuer}>"
-            @errors << error_msg
-            return soft ? false : validation_error(error_msg)
+            return append_error(soft, error_msg)
           end
         end
 
@@ -577,10 +610,9 @@ module OneLogin
         return true if session_expires_at.nil?
 
         now = Time.now.utc
-        unless session_expires_at > (now + (options[:allowed_clock_drift] || 0))
+        unless session_expires_at > (now + allowed_clock_drift)
           error_msg = "The attributes have expired, based on the SessionNotOnOrAfter of the AttributeStatement of this Response"
-          @errors << error_msg
-          return soft ? false : validation_error(error_msg)
+          return append_error(soft, error_msg)
         end
 
         true
@@ -604,26 +636,27 @@ module OneLogin
             next
           end
 
-          confirmation_data_node = REXML::XPath.first(subject_confirmation, 'a:SubjectConfirmationData', { "a" => ASSERTION })
+          confirmation_data_node = REXML::XPath.first(
+            subject_confirmation,
+            'a:SubjectConfirmationData',
+            { "a" => ASSERTION }
+          )
 
-          if not confirmation_data_node
-            next
-          else
-            attrs = confirmation_data_node.attributes
-            next if (attrs.include? "InResponseTo" and attrs['InResponseTo'] != in_response_to) ||
-                    (attrs.include? "Recipient" and attrs['Recipient'] != current_url) ||
-                    (attrs.include? "NotOnOrAfter" and (parse_time(confirmation_data_node, "NotOnOrAfter") + (options[:allowed_clock_drift] || 0)) <= now) ||
-                    (attrs.include? "NotBefore" and parse_time(confirmation_data_node, "NotBefore") > (now + (options[:allowed_clock_drift] || 0)))
-            
-            valid_subject_confirmation = true
-            break
-          end
+          next unless confirmation_data_node
+
+          attrs = confirmation_data_node.attributes
+          next if (attrs.include? "InResponseTo" and attrs['InResponseTo'] != in_response_to) ||
+                  (attrs.include? "Recipient" and attrs['Recipient'] != current_url) ||
+                  (attrs.include? "NotOnOrAfter" and (parse_time(confirmation_data_node, "NotOnOrAfter") + allowed_clock_drift) <= now) ||
+                  (attrs.include? "NotBefore" and parse_time(confirmation_data_node, "NotBefore") > (now + allowed_clock_drift))
+          
+          valid_subject_confirmation = true
+          break
         end
 
-        if not valid_subject_confirmation
+        if !valid_subject_confirmation
           error_msg = "A valid SubjectConfirmation was not found on this Response"
-          @errors << error_msg
-          return soft ? false : validation_error(error_msg)
+          return append_error(soft, error_msg)
         end
 
         true

@@ -82,28 +82,44 @@ module OneLogin
       # @return [String|nil] IdP Entity ID value if exists
       #
       def idp_entity_id
-        node = REXML::XPath.first(document, "/md:EntityDescriptor/@entityID", { "md" => METADATA })
+        node = REXML::XPath.first(
+          document,
+          "/md:EntityDescriptor/@entityID",
+          { "md" => METADATA }
+        )
         node.value if node
       end
 
       # @return [String|nil] IdP Name ID Format value if exists
       #
       def idp_name_id_format
-        node = REXML::XPath.first(document, "/md:EntityDescriptor/md:IDPSSODescriptor/md:NameIDFormat", { "md" => METADATA })
+        node = REXML::XPath.first(
+          document,
+          "/md:EntityDescriptor/md:IDPSSODescriptor/md:NameIDFormat",
+          { "md" => METADATA }
+        )
         node.text if node
       end
 
       # @return [String|nil] SingleSignOnService endpoint if exists
       #
       def single_signon_service_url
-        node = REXML::XPath.first(document, "/md:EntityDescriptor/md:IDPSSODescriptor/md:SingleSignOnService/@Location", { "md" => METADATA })
+        node = REXML::XPath.first(
+          document,
+          "/md:EntityDescriptor/md:IDPSSODescriptor/md:SingleSignOnService/@Location",
+          { "md" => METADATA }
+        )
         node.value if node
       end
 
       # @return [String|nil] SingleLogoutService endpoint if exists
       #
       def single_logout_service_url
-        node = REXML::XPath.first(document, "/md:EntityDescriptor/md:IDPSSODescriptor/md:SingleLogoutService/@Location", { "md" => METADATA })
+        node = REXML::XPath.first(
+          document,
+          "/md:EntityDescriptor/md:IDPSSODescriptor/md:SingleLogoutService/@Location",
+          { "md" => METADATA }
+        )
         node.value if node
       end
 
@@ -111,7 +127,11 @@ module OneLogin
       #
       def certificate
         @certificate ||= begin
-          node = REXML::XPath.first(document, "/md:EntityDescriptor/md:IDPSSODescriptor/md:KeyDescriptor[@use='signing']/ds:KeyInfo/ds:X509Data/ds:X509Certificate", { "md" => METADATA, "ds" => DSIG })
+          node = REXML::XPath.first(
+            document,
+            "/md:EntityDescriptor/md:IDPSSODescriptor/md:KeyDescriptor[@use='signing']/ds:KeyInfo/ds:X509Data/ds:X509Certificate",
+            { "md" => METADATA, "ds" => DSIG }
+          )
           Base64.decode64(node.text) if node
         end
       end

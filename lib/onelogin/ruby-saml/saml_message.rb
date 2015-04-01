@@ -23,7 +23,11 @@ module OneLogin
       #
       def version(document)
         @recipient ||= begin
-          node = REXML::XPath.first(document, "/p:AuthnRequest | /p:Response | /p:LogoutResponse | /p:LogoutRequest", { "p" => PROTOCOL })
+          node = REXML::XPath.first(
+            document,
+            "/p:AuthnRequest | /p:Response | /p:LogoutResponse | /p:LogoutRequest",
+            { "p" => PROTOCOL }
+          )
           node.nil? ? nil : node.attributes['Version']
         end
       end
@@ -32,7 +36,11 @@ module OneLogin
       #
       def id(document)
         @id ||= begin
-          node = REXML::XPath.first(document, "/p:AuthnRequest | /p:Response | /p:LogoutResponse | /p:LogoutRequest", { "p" => PROTOCOL })
+          node = REXML::XPath.first(
+            document,
+            "/p:AuthnRequest | /p:Response | /p:LogoutResponse | /p:LogoutRequest",
+            { "p" => PROTOCOL }
+          )
           node.nil? ? nil : node.attributes['ID']
         end
       end

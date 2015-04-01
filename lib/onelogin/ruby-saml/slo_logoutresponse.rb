@@ -72,8 +72,9 @@ module OneLogin
             :data        => base64_response,
             :relay_state => relay_state,
             :sig_alg     => params['SigAlg']
-          )          
-          signature           = settings.get_sp_key().sign(XMLSecurity::BaseDocument.new.algorithm(settings.security[:signature_method]).new, url_string)
+          )
+          sign_algorithm = XMLSecurity::BaseDocument.new.algorithm(settings.security[:signature_method])
+          signature = settings.get_sp_key.sign(sign_algorithm.new, url_string)
           params['Signature'] = encode(signature)
         end
 
@@ -122,8 +123,8 @@ module OneLogin
 
         # embed signature
         if settings.security[:logout_responses_signed] && settings.private_key && settings.certificate && settings.security[:embed_sign]
-          private_key = settings.get_sp_key()
-          cert = settings.get_sp_cert()
+          private_key = settings.get_sp_key
+          cert = settings.get_sp_cert
           response_doc.sign_document(private_key, cert, settings.security[:signature_method], settings.security[:digest_method])
         end
 

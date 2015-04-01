@@ -42,7 +42,7 @@ class RubySamlTest < Minitest::Test
       response.settings = settings
       assert_nil response.name_id
       response.send(:validate_structure)
-      assert response.errors.include? "Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd"
+      assert_includes response.errors, "Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd"
     end
   end
 
@@ -176,13 +176,13 @@ class RubySamlTest < Minitest::Test
     it "return false when no settings asigned to the response" do
       response = OneLogin::RubySaml::Response.new(response_document)
       assert !response.send(:validate_response_state, true)
-      assert response.errors.include? "No settings on SAML Response"
+      assert_includes response.errors, "No settings on SAML Response"
     end
 
     it "return false when response is initialized with blank data" do
       response = OneLogin::RubySaml::Response.new('')
       assert !response.send(:validate_response_state, true)
-      assert response.errors.include? "Blank SAML Response"
+      assert_includes response.errors, "Blank SAML Response"
     end
 
     it "return false when No fingerprint or certificate on settings" do
@@ -192,7 +192,7 @@ class RubySamlTest < Minitest::Test
       settings_wrong.idp_cert = nil
       response.settings = settings_wrong
       assert !response.send(:validate_response_state, true)
-      assert response.errors.include? "No fingerprint or certificate on settings"
+      assert_includes response.errors, "No fingerprint or certificate on settings"
     end
 
     it "return true when correct settings asigned to the response" do
@@ -207,7 +207,7 @@ class RubySamlTest < Minitest::Test
     it "return false when encountering a SAML Response bad formatted" do
       response = OneLogin::RubySaml::Response.new(response_document_2)
       assert !response.send(:validate_structure, true)
-      assert response.errors.include? "Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd"
+      assert_includes response.errors, "Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd"
     end
 
     it "raise when encountering a SAML Response bad formatted" do
@@ -236,7 +236,7 @@ class RubySamlTest < Minitest::Test
     it "return false when no ID present in the SAML Response" do
       response = OneLogin::RubySaml::Response.new(response_no_id)
       assert !response.send(:validate_id)
-      assert response.errors.include? "Missing ID attribute on SAML Response"
+      assert_includes response.errors, "Missing ID attribute on SAML Response"
     end
   end
 
@@ -244,7 +244,7 @@ class RubySamlTest < Minitest::Test
     it "return false when no 2.0 Version present in the SAML Response" do
       response = OneLogin::RubySaml::Response.new(response_no_version)
       assert !response.send(:validate_version)
-      assert response.errors.include? "Unsupported SAML version"
+      assert_includes response.errors, "Unsupported SAML version"
     end
   end
 
@@ -252,7 +252,7 @@ class RubySamlTest < Minitest::Test
     it "return false when no 2.0 Version present in the SAML Response" do
       response = OneLogin::RubySaml::Response.new(response_multi_assertion)
       assert !response.send(:validate_num_assertion)
-      assert response.errors.include? "SAML Response must contain 1 assertion"
+      assert_includes response.errors, "SAML Response must contain 1 assertion"
     end
 
     it "return false when no Assertion found" do
@@ -263,7 +263,7 @@ class RubySamlTest < Minitest::Test
       settings.idp_cert_fingerprint = signature_fingerprint_1
       response.settings = settings
       assert !response.send(:validate_num_assertion)
-      assert response.errors.include? "SAML Response must contain 1 assertion"
+      assert_includes response.errors, "SAML Response must contain 1 assertion"
     end
   end
 
@@ -271,25 +271,25 @@ class RubySamlTest < Minitest::Test
     it "return false when the status if no Status provided" do
       response = OneLogin::RubySaml::Response.new(response_no_status)
       assert !response.send(:validate_success_status, true)
-      assert response.errors.include? "The status code of the Response was not Success"
+      assert_includes response.errors, "The status code of the Response was not Success"
     end
 
     it "return false when the status if no StatusCode provided" do
       response = OneLogin::RubySaml::Response.new(response_no_statuscode)
       assert !response.send(:validate_success_status, true)
-      assert response.errors.include? "The status code of the Response was not Success"
+      assert_includes response.errors, "The status code of the Response was not Success"
     end
 
     it "return false when the status is not 'Success'" do
       response = OneLogin::RubySaml::Response.new(response_statuscode_responder)
       assert !response.send(:validate_success_status, true)
-      assert response.errors.include? "The status code of the Response was not Success, was Responder"
+      assert_includes response.errors, "The status code of the Response was not Success, was Responder"
     end
 
     it "return false when the status is not 'Success', and shows the StatusMessage" do
       response = OneLogin::RubySaml::Response.new(response_statuscode_responder_and_msg)
       assert !response.send(:validate_success_status, true)
-      assert response.errors.include? "The status code of the Response was not Success, was Responder -> something_is_wrong"
+      assert_includes response.errors, "The status code of the Response was not Success, was Responder -> something_is_wrong"
     end
 
     it "return true when the status is 'Success'" do
@@ -320,7 +320,7 @@ class RubySamlTest < Minitest::Test
       response = OneLogin::RubySaml::Response.new(valid_signed_response)
       response.settings = settings
       assert !response.send(:validate_in_response_to, 'invalid_request_id', true)
-      assert response.errors.include? "The InResponseTo of the Response: _fc4a34b0-7efb-012e-caae-782bcb13bb38, does not match the ID of the AuthNRequest sent by the SP: invalid_request_id"
+      assert_includes response.errors, "The InResponseTo of the Response: _fc4a34b0-7efb-012e-caae-782bcb13bb38, does not match the ID of the AuthNRequest sent by the SP: invalid_request_id"
     end
 
     it "return true when the inResponseTo value matches the Request ID" do
@@ -343,7 +343,7 @@ class RubySamlTest < Minitest::Test
       response = OneLogin::RubySaml::Response.new(response_encrypted_attrs)
       response.settings = settings
       assert !response.send(:validate_no_encrypted_attributes, true)
-      assert response.errors.include? "There is an EncryptedAttribute in the Response and this SP not support them"
+      assert_includes response.errors, "There is an EncryptedAttribute in the Response and this SP not support them"
     end
 
     it "return true when the assertion does not contain encrypted attributes" do
@@ -359,21 +359,21 @@ class RubySamlTest < Minitest::Test
       response = OneLogin::RubySaml::Response.new(response_multiple_signed)
       response.settings = settings
       assert !response.send(:validate_signed_elements)
-      assert response.errors.include? "Found an unexpected number of Signature Element. SAML Response rejected"
+      assert_includes response.errors, "Found an unexpected number of Signature Element. SAML Response rejected"
     end
 
     it "return false when no signed elements" do
       response = OneLogin::RubySaml::Response.new(response_no_signed_elements)
       response.settings = settings
       assert !response.send(:validate_signed_elements)
-      assert response.errors.include? "Found an unexpected number of Signature Element. SAML Response rejected"
+      assert_includes response.errors, "Found an unexpected number of Signature Element. SAML Response rejected"
     end
 
     it "return false when invalid signed elements" do
       response = OneLogin::RubySaml::Response.new(response_invalid_signed_element)
       response.settings = settings
       assert !response.send(:validate_signed_elements)
-      assert response.errors.include? "Found an unexpected Signature Element. SAML Response rejected"
+      assert_includes response.errors, "Found an unexpected Signature Element. SAML Response rejected"
     end
 
     it "return true when there are the expected signed elements" do
@@ -389,7 +389,7 @@ class RubySamlTest < Minitest::Test
       response = OneLogin::RubySaml::Response.new(response_invalid_audience)
       response.settings = settings
       assert !response.send(:validate_audience)
-      assert response.errors.include? "#{response.settings.issuer} is not a valid audience for this Response"
+      assert_includes response.errors, "#{response.settings.issuer} is not a valid audience for this Response"
     end
 
     it "return true when the audience is valid" do
@@ -407,7 +407,7 @@ class RubySamlTest < Minitest::Test
       response.settings = settings
       response.settings.assertion_consumer_service_url = 'invalid_acs'
       assert !response.send(:validate_destination)
-      assert response.errors.include? "The response was received at #{response.destination} instead of #{response.settings.assertion_consumer_service_url}"
+      assert_includes response.errors, "The response was received at #{response.destination} instead of #{response.settings.assertion_consumer_service_url}"
     end
 
     it "return true when the destination of the SAML Response matches the assertion consumer service url" do
@@ -424,7 +424,7 @@ class RubySamlTest < Minitest::Test
       response.settings = settings
       response.settings.idp_entity_id = 'http://idp.example.com/'
       assert !response.send(:validate_issuer)
-      assert response.errors.include? "Doesn't match the issuer, expected: <#{response.settings.idp_entity_id}>, but was: <http://invalid.issuer.example.com/>"
+      assert_includes response.errors, "Doesn't match the issuer, expected: <#{response.settings.idp_entity_id}>, but was: <http://invalid.issuer.example.com/>"
     end
 
     it "return false when the issuer of the Assertion does not match the IdP entityId" do
@@ -432,7 +432,7 @@ class RubySamlTest < Minitest::Test
       response.settings = settings
       response.settings.idp_entity_id = 'http://idp.example.com/'
       assert !response.send(:validate_issuer)
-      assert response.errors.include? "Doesn't match the issuer, expected: <#{response.settings.idp_entity_id}>, but was: <http://invalid.issuer.example.com/>"
+      assert_includes response.errors, "Doesn't match the issuer, expected: <#{response.settings.idp_entity_id}>, but was: <http://invalid.issuer.example.com/>"
     end
 
     it "return true when the issuer of the Message/Assertion matches the IdP entityId" do
@@ -450,7 +450,7 @@ class RubySamlTest < Minitest::Test
       response = OneLogin::RubySaml::Response.new(response_no_subjectconfirmation_data)
       response.settings = settings
       assert !response.send(:validate_subject_confirmation)
-      assert response.errors.include? "A valid SubjectConfirmation was not found on this Response"
+      assert_includes response.errors, "A valid SubjectConfirmation was not found on this Response"
     end
 
     it "return false when no valid subject confirmation method" do
@@ -458,35 +458,35 @@ class RubySamlTest < Minitest::Test
       response.settings = settings
       response.send(:validate_subject_confirmation)
       assert !response.send(:validate_subject_confirmation)
-      assert response.errors.include? "A valid SubjectConfirmation was not found on this Response"
+      assert_includes response.errors, "A valid SubjectConfirmation was not found on this Response"
     end
 
     it "return false when invalid inresponse" do
       response = OneLogin::RubySaml::Response.new(response_invalid_subjectconfirmation_inresponse)
       response.settings = settings
       assert !response.send(:validate_subject_confirmation)
-      assert response.errors.include? "A valid SubjectConfirmation was not found on this Response"
+      assert_includes response.errors, "A valid SubjectConfirmation was not found on this Response"
     end
 
     it "return false when invalid recipient" do
       response = OneLogin::RubySaml::Response.new(response_invalid_subjectconfirmation_recipient)
       response.settings = settings
       assert !response.send(:validate_subject_confirmation)
-      assert response.errors.include? "A valid SubjectConfirmation was not found on this Response"
+      assert_includes response.errors, "A valid SubjectConfirmation was not found on this Response"
     end
 
     it "return false when invalid NotBefore" do
       response = OneLogin::RubySaml::Response.new(response_invalid_subjectconfirmation_nb)
       response.settings = settings
       assert !response.send(:validate_subject_confirmation)
-      assert response.errors.include? "A valid SubjectConfirmation was not found on this Response"
+      assert_includes response.errors, "A valid SubjectConfirmation was not found on this Response"
     end
 
     it "return false when invalid NotOnOrAfter" do
       response = OneLogin::RubySaml::Response.new(response_invalid_subjectconfirmation_noa)
       response.settings = settings
       assert !response.send(:validate_subject_confirmation)
-      assert response.errors.include? "A valid SubjectConfirmation was not found on this Response"
+      assert_includes response.errors, "A valid SubjectConfirmation was not found on this Response"
     end
 
     it "return true when valid subject confirmation" do
@@ -502,7 +502,7 @@ class RubySamlTest < Minitest::Test
       response = OneLogin::RubySaml::Response.new(response_document)
       response.settings = settings
       assert !response.send(:validate_session_expiration)
-      assert response.errors.include? "The attributes have expired, based on the SessionNotOnOrAfter of the AttributeStatement of this Response"
+      assert_includes response.errors, "The attributes have expired, based on the SessionNotOnOrAfter of the AttributeStatement of this Response"
     end
 
     it "return true when the session has not expired" do
@@ -516,7 +516,7 @@ class RubySamlTest < Minitest::Test
     it "return false if settings have not been set" do
       response = OneLogin::RubySaml::Response.new(valid_signed_response)
       assert !response.is_valid?
-      assert response.errors.include? "No settings on SAML Response"
+      assert_includes response.errors, "No settings on SAML Response"
     end
 
     it "return true when the response is initialized with valid data" do
@@ -524,13 +524,13 @@ class RubySamlTest < Minitest::Test
       response.stubs(:conditions).returns(nil)
       response.stubs(:validate_subject_confirmation).returns(true)
       assert !response.is_valid?
-      assert response.errors.include? "No settings on SAML Response"
+      assert_includes response.errors, "No settings on SAML Response"
       settings = OneLogin::RubySaml::Settings.new
       assert !response.is_valid?
-      assert response.errors.include? "No settings on SAML Response"       
+      assert_includes response.errors, "No settings on SAML Response"       
       response.settings = settings
       assert !response.is_valid?
-      assert response.errors.include? "No fingerprint or certificate on settings"
+      assert_includes response.errors, "No fingerprint or certificate on settings"
       settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
       assert response.is_valid?
     end
@@ -542,9 +542,9 @@ class RubySamlTest < Minitest::Test
       settings = OneLogin::RubySaml::Settings.new
       response.settings = settings
       assert !response.is_valid?
-      assert response.errors.include? "No fingerprint or certificate on settings"
+      assert_includes response.errors, "No fingerprint or certificate on settings"
       assert !response.is_valid?
-      assert response.errors.include? "No fingerprint or certificate on settings"
+      assert_includes response.errors, "No fingerprint or certificate on settings"
     end
 
     it "should be idempotent when the response is initialized with valid data" do
@@ -615,7 +615,7 @@ class RubySamlTest < Minitest::Test
       settings.idp_cert_fingerprint = signature_fingerprint_1
       response.settings = settings
       assert !response.is_valid?
-      assert response.errors.include? "Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd"
+      assert_includes response.errors, "Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd"
     end
 
   end

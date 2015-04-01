@@ -38,6 +38,18 @@ module OneLogin
 
       end
 
+      # Append the cause to the errors array, and based on the value of soft, return false and raise
+      # an exception
+      def append_error(soft, error_msg)
+        @errors << error_msg
+        return soft ? false : validation_error(error_msg)
+      end
+
+      # Reset the errors array
+      def reset_errors!
+        @errors = []
+      end
+
       # An aux function to validate the Logout Response with the default values (soft = true)
       # @return [Boolean] TRUE if the Logout Response is valid
       #
@@ -60,7 +72,11 @@ module OneLogin
       #
       def in_response_to
         @in_response_to ||= begin
-          node = REXML::XPath.first(document, "/p:LogoutResponse", { "p" => PROTOCOL, "a" => ASSERTION })
+          node = REXML::XPath.first(
+            document,
+            "/p:LogoutResponse",
+            { "p" => PROTOCOL, "a" => ASSERTION }
+          )
           node.nil? ? nil : node.attributes['InResponseTo']
         end
       end
@@ -69,7 +85,11 @@ module OneLogin
       #
       def destination
         @destination ||= begin
-          node = REXML::XPath.first(document, "/p:LogoutResponse", { "p" => PROTOCOL })
+          node = REXML::XPath.first(
+            document,
+            "/p:LogoutResponse",
+            { "p" => PROTOCOL }
+          )
           node.nil? ? nil : node.attributes['Destination']
         end
       end
@@ -78,7 +98,10 @@ module OneLogin
       #
       def issuer
         @issuer ||= begin
-          node = REXML::XPath.first(document, "/p:LogoutResponse/a:Issuer", { "p" => PROTOCOL, "a" => ASSERTION })
+          node = REXML::XPath.first(document,
+            "/p:LogoutResponse/a:Issuer",
+            { "p" => PROTOCOL, "a" => ASSERTION }
+          )
           node.nil? ? nil : node.text
         end
       end
@@ -90,7 +113,7 @@ module OneLogin
       # 
       def success?(soft = true)
         unless status_code == "urn:oasis:names:tc:SAML:2.0:status:Success"
-          return soft ? false : validation_error("Bad status code. Expected <urn:oasis:names:tc:SAML:2.0:status:Success>, but was: <#@status_code> ")
+          return soft ? false : validation_error("Bad status code. Expected <urn:oasis:names:tc:SAML:2.0:status:Success>, but was: <#{status_code}>")
         end
         true
       end
@@ -99,7 +122,11 @@ module OneLogin
       #
       def status_code
         @status_code ||= begin
-          node = REXML::XPath.first(document, "/p:LogoutResponse/p:Status/p:StatusCode", { "p" => PROTOCOL, "a" => ASSERTION })
+          node = REXML::XPath.first(
+            document,
+            "/p:LogoutResponse/p:Status/p:StatusCode",
+            { "p" => PROTOCOL, "a" => ASSERTION }
+          )
           node.nil? ? nil : node.attributes["Value"]
         end
       end
@@ -108,22 +135,22 @@ module OneLogin
       #
       def status_message
         @status_message ||= begin
-          node = REXML::XPath.first(document, "/p:LogoutResponse/p:Status/p:StatusMessage", { "p" => PROTOCOL, "a" => ASSERTION })
+          node = REXML::XPath.first(
+            document,
+            "/p:LogoutResponse/p:Status/p:StatusMessage",
+            { "p" => PROTOCOL, "a" => ASSERTION }
+          )
           node.text if node
         end
       end
 
       # Gets the expected current_url
-      # (Right now we read this url from the Sinle Logout Service of the Settings)
       # TODO: Calculate the real current_url and use it.
+      #       (Right now we assume that the current url is the Sinle Logout Service URL)
       # @return [String] The current url
       #
       def current_url
-        @current_url ||= begin
-          if settings && settings.single_logout_service_url
-            settings.single_logout_service_url
-          end
-        end
+        settings && settings.single_logout_service_url
       end
 
       # Validates the Logout Response (calls several validation methods)
@@ -135,14 +162,15 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate(soft = true, request_id = nil, get_params = nil)
-        @errors = []
-        valid_state?(soft)                      &&
-        validate_success_status(soft)           &&
-        validate_structure(soft)                &&
-        valid_in_response_to?(soft, request_id) &&
-        validate_destination(soft)              &&
-        valid_issuer?(soft)                     &&
-        validate_signature(soft, get_params)
+        reset_errors!
+
+        valid_state?(soft) &&
+          validate_success_status(soft) &&
+          validate_structure(soft) &&
+          valid_in_response_to?(soft, request_id) &&
+          validate_destination(soft) &&
+          valid_issuer?(soft) &&
+          validate_signature(soft, get_params)
       end
 
       private
@@ -155,28 +183,24 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def valid_state?(soft = true)
-        if response.nil? or response.empty?
+        if response.nil? || response.empty?
           error_msg = "Blank Logout Response"
-          @errors << error_msg
-          return soft ? false : validation_error(error_msg)
+          return append_error(soft, error_msg)
         end
 
         if settings.nil?
           error_msg = "No settings on Logout Response"
-          @errors << error_msg
-          return soft ? false : validation_error(error_msg)
+          return append_error(soft, error_msg)
         end
 
         if settings.issuer.nil?
           error_msg = "No issuer in settings"
-          @errors << error_msg
-          return soft ? false : validation_error(error_msg)
+          return append_error(soft, error_msg)
         end
 
         if settings.idp_cert_fingerprint.nil? && settings.idp_cert.nil?
           error_msg = "No fingerprint or certificate on settings"
-          @errors << error_msg
-          return soft ? false : validation_error(error_msg)
+          return append_error(soft, error_msg)
         end
 
         true
@@ -189,16 +213,12 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_structure(soft = true)
-        begin 
-          valid = valid_saml?(document, soft)
-          unless valid
-            @errors << "Invalid Logout Response. Not match the saml-schema-protocol-2.0.xsd"
-          end
-          valid
-        rescue OneLogin::RubySaml::ValidationError => e
-          @errors << e.message
-          raise e
+        valid = valid_saml?(document, soft)
+        unless valid
+          @errors << "Invalid Logout Response. Not match the saml-schema-protocol-2.0.xsd"
         end
+
+        valid
       end
 
       # Validates the Status of the Logout Response
@@ -211,17 +231,8 @@ module OneLogin
         return true if success?
 
         error_msg = 'The status code of the Logout Response was not Success'
-        unless status_code.nil?
-          printable_code = status_code.split(':').pop
-          error_msg +=  ', was ' + printable_code
-        end
-
-        unless status_message.nil?
-          error_msg +=  ' -> ' + status_message
-        end
-
-        @errors << error_msg
-        soft ? false : validation_error(error_msg)
+        status_error_msg = OneLogin::RubySaml::Utils.status_error_msg(error_msg, status_code, status_message)
+        append_error(soft, status_error_msg)
       end
 
       # Validates if the provided request_id match the inResponseTo value.
@@ -236,8 +247,7 @@ module OneLogin
 
         unless request_id == in_response_to
           error_msg = "Logout Response does not match the request ID, expected: <#{request_id}>, but was: <#{in_response_to}>"
-          @errors << error_msg
-          return soft ? false : validation_error(error_msg)
+          return append_error(soft, error_msg)
         end
 
         true
@@ -254,8 +264,7 @@ module OneLogin
 
         unless destination == current_url
           error_msg = "The Logout Response was received at #{destination} instead of #{current_url}"
-          @errors << error_msg
-          return soft ? false : validation_error(error_msg)
+          return append_error(soft, error_msg)
         end
 
         true
@@ -268,12 +277,11 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def valid_issuer?(soft = true)
-        return true if settings.idp_entity_id.nil? or issuer.nil?
+        return true if settings.idp_entity_id.nil? || issuer.nil?
 
         unless URI.parse(issuer) == URI.parse(settings.idp_entity_id)
           error_msg = "Doesn't match the issuer, expected: <#{settings.idp_entity_id}>, but was: <#{issuer}>"
-          @errors << error_msg
-          return soft ? false : validation_error(error_msg)
+          return append_error(soft, error_msg)
         end
 
         true
@@ -304,8 +312,7 @@ module OneLogin
 
         unless valid
           error_msg = "Invalid Signature on Logout Response"
-          @errors << error_msg
-          return soft ? false : validation_error(error_msg)
+          return append_error(soft, error_msg)
         end
         true        
       end

@@ -35,6 +35,18 @@ module OneLogin
         @document = REXML::Document.new(@request)
       end
 
+      # Append the cause to the errors array, and based on the value of soft, return false and raise
+      # an exception
+      def append_error(soft, error_msg)
+        @errors << error_msg
+        return soft ? false : validation_error(error_msg)
+      end
+
+      # Reset the errors array
+      def reset_errors!
+        @errors = []
+      end
+
       # Validates the Logout Request with the default values (soft = true)
       # @return [Boolean] TRUE if the Logout Request is valid
       #
@@ -62,7 +74,11 @@ module OneLogin
       #
       def name_id
         @name_id ||= begin
-          node = REXML::XPath.first(document, "/p:LogoutRequest/a:NameID", { "p" => PROTOCOL, "a" => ASSERTION })
+          node = REXML::XPath.first(
+            document,
+            "/p:LogoutRequest/a:NameID",
+            { "p" => PROTOCOL, "a" => ASSERTION }
+          )
           node.nil? ? nil : node.text
         end
       end
@@ -71,7 +87,11 @@ module OneLogin
       #
       def destination
         @destination ||= begin
-          node = REXML::XPath.first(document, "/p:LogoutRequest", { "p" => PROTOCOL })
+          node = REXML::XPath.first(
+            document,
+            "/p:LogoutRequest",
+            { "p" => PROTOCOL }
+          )
           node.nil? ? nil : node.attributes['Destination']
         end
       end
@@ -80,7 +100,11 @@ module OneLogin
       #
       def issuer
         @issuer ||= begin
-          node = REXML::XPath.first(document, "/p:LogoutRequest/a:Issuer", { "p" => PROTOCOL, "a" => ASSERTION })
+          node = REXML::XPath.first(
+            document,
+            "/p:LogoutRequest/a:Issuer",
+            { "p" => PROTOCOL, "a" => ASSERTION }
+          )
           node.nil? ? nil : node.text
         end
       end
@@ -89,11 +113,13 @@ module OneLogin
       #
       def not_on_or_after
         @not_on_or_after ||= begin
-          node = REXML::XPath.first(document, "/p:LogoutRequest", { "p" => PROTOCOL} )
+          node = REXML::XPath.first(
+            document,
+            "/p:LogoutRequest",
+            { "p" => PROTOCOL }
+          )
           if node && node.attributes["NotOnOrAfter"]
             Time.parse(node.attributes["NotOnOrAfter"])
-          else
-            nil
           end
         end
       end
@@ -101,30 +127,29 @@ module OneLogin
       # @return [Array] Gets the SessionIndex if exists (Supported multiple values). Empty Array if none found 
       #
       def session_indexes
-        session_index = []
-        nodes = REXML::XPath.match(document, "/p:LogoutRequest/p:SessionIndex", { "p" => PROTOCOL} )
+        s_indexes = []
+        nodes = REXML::XPath.match(
+          document,
+          "/p:LogoutRequest/p:SessionIndex",
+          { "p" => PROTOCOL }
+        )
 
-        if nodes
-          nodes.each { |node|
-            session_index << node.text
-          }
+        nodes.each do |node|
+          s_indexes << node.text
         end
-        session_index
+
+        s_indexes
       end
 
       private
 
         # Gets the expected current_url
-        # (Right now we read this url from the Sinle Logout Service of the Settings)
         # TODO: Calculate the real current_url and use it.
+        #       (Right now we assume that the current url is the Sinle Logout Service URL)
         # @return [String] The current url
         #
         def current_url
-          @current_url ||= begin
-            if settings && settings.single_logout_service_url
-              settings.single_logout_service_url
-            end
-          end
+          settings && settings.single_logout_service_url
         end
 
         # Validates the Logout Request (calls several validation methods)
@@ -135,22 +160,23 @@ module OneLogin
         # @raise [ValidationError] if soft == false and validation fails
         #
         def validate(soft = true, get_params = nil)
-          @errors = []
+          reset_errors!
+
           validate_request_state(soft) &&
-          validate_id                  &&
-          validate_version             &&
-          validate_structure(soft)     &&
-          validate_not_on_or_after     &&
-          validate_destination(soft)   &&
-          validate_issuer(soft)        &&
-          validate_signature(soft, get_params)
+            validate_id &&
+            validate_version &&
+            validate_structure(soft) &&
+            validate_not_on_or_after &&
+            validate_destination(soft) &&
+            validate_issuer(soft) &&
+            validate_signature(soft, get_params)
         end
 
         # Validates that the Logout Request contains an ID 
         # If fails, the error is added to the errors array.
         # @return [Boolean] True if the Logout Request contains an ID, otherwise returns False
         #
-        def validate_id()
+        def validate_id
           unless id
             @errors << "Missing ID attribute on Logout Request"
             return false
@@ -162,7 +188,7 @@ module OneLogin
         # If fails, the error is added to the errors array.
         # @return [Boolean] True if the Logout Request is 2.0, otherwise returns False
         #
-        def validate_version()
+        def validate_version
           unless version(document) == "2.0"
             @errors << "Unsupported SAML version"
             return false
@@ -195,8 +221,7 @@ module OneLogin
         def validate_request_state(soft = true)
           if request.nil? || request.empty?
             error_msg = "Blank Logout Request" 
-            @errors << error_msg
-            return soft ? false : validation_error(error_msg)
+            return append_error(soft, error_msg)
           end
           true
         end
@@ -208,16 +233,12 @@ module OneLogin
         # @raise [ValidationError] if soft == false and validation fails
         #
         def validate_structure(soft = true)
-          begin 
-            valid = valid_saml?(document, soft)
-            unless valid
-              @errors << "Invalid Logout Request. Not match the saml-schema-protocol-2.0.xsd"
-            end
-            valid
-          rescue OneLogin::RubySaml::ValidationError => e
-            @errors << e.message
-            raise e
+          valid = valid_saml?(document, soft)
+          unless valid
+            @errors << "Invalid Logout Request. Not match the saml-schema-protocol-2.0.xsd"
           end
+
+          valid
         end
 
         # Validates the Destination, (if the Logout Request is received where expected)
@@ -231,8 +252,7 @@ module OneLogin
 
           unless destination == current_url
             error_msg = "The Logout Request was received at #{destination} instead of #{current_url}"
-            @errors << error_msg
-            return soft ? false : validation_error(error_msg)
+            return append_error(soft, error_msg)
           end
 
           true
@@ -249,8 +269,7 @@ module OneLogin
 
           unless URI.parse(issuer) == URI.parse(settings.idp_entity_id)
             error_msg = "Doesn't match the issuer, expected: <#{settings.idp_entity_id}>, but was: <#{issuer}>"
-            @errors << error_msg
-            return soft ? false : validation_error(error_msg)
+            return append_error(soft, error_msg)
           end
 
           true
@@ -281,8 +300,7 @@ module OneLogin
 
         unless valid
           error_msg = "Invalid Signature on Logout Request"
-          @errors << error_msg
-          return soft ? false : validation_error(error_msg)
+          return append_error(soft, error_msg)
         end
         true
       end

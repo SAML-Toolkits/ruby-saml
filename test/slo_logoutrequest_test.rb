@@ -25,7 +25,7 @@ class RubySamlTest < Minitest::Test
       it "return false when logout request is initialized with blank data" do
         logout_request_blank = OneLogin::RubySaml::SloLogoutrequest.new('')
         assert !logout_request_blank.is_valid?
-        assert logout_request_blank.errors.include? 'Blank Logout Request'      
+        assert_includes logout_request_blank.errors, 'Blank Logout Request'      
       end
 
       it "return true when the logout request is initialized with valid data" do
@@ -113,7 +113,7 @@ class RubySamlTest < Minitest::Test
       it "return false when there is an invalid ID in the logout request" do
           logout_request_blank = OneLogin::RubySaml::SloLogoutrequest.new('')
           assert !logout_request_blank.send(:validate_id)
-          assert logout_request_blank.errors.include? "Missing ID attribute on Logout Request"
+          assert_includes logout_request_blank.errors, "Missing ID attribute on Logout Request"
       end
     end
 
@@ -125,7 +125,7 @@ class RubySamlTest < Minitest::Test
       it "return false when the logout request is not SAML 2.0 Version" do
           logout_request_blank = OneLogin::RubySaml::SloLogoutrequest.new('')
           assert !logout_request_blank.send(:validate_version)
-          assert logout_request_blank.errors.include? "Unsupported SAML version"
+          assert_includes logout_request_blank.errors, "Unsupported SAML version"
       end
     end
 
@@ -167,7 +167,7 @@ class RubySamlTest < Minitest::Test
       it "return false when invalid logout request xml" do
         logout_request_blank = OneLogin::RubySaml::SloLogoutrequest.new('')
         assert !logout_request_blank.send(:validate_request_state, true)
-        assert logout_request_blank.errors.include? "Blank Logout Request"
+        assert_includes logout_request_blank.errors, "Blank Logout Request"
       end
 
       it "raise error for invalid xml" do
@@ -187,7 +187,7 @@ class RubySamlTest < Minitest::Test
       it "return false when encountering a Logout Request bad formatted" do
         invalid_logout_request = OneLogin::RubySaml::SloLogoutrequest.new(invalid_logout_request_document)
         assert !invalid_logout_request.send(:validate_structure, true)
-        assert invalid_logout_request.errors.include? "Invalid Logout Request. Not match the saml-schema-protocol-2.0.xsd"
+        assert_includes invalid_logout_request.errors, "Invalid Logout Request. Not match the saml-schema-protocol-2.0.xsd"
       end
 
       it "raise when encountering a Logout Request bad formatted" do
@@ -213,7 +213,7 @@ class RubySamlTest < Minitest::Test
         logout_request.document.root.attributes['Destination'] = 'http://sp.example.com/sls'
         logout_request.settings.single_logout_service_url = 'invalid_sls'
         assert !logout_request.send(:validate_destination, true)
-        assert logout_request.errors.include? "The Logout Request was received at #{logout_request.destination} instead of #{logout_request.settings.single_logout_service_url}"
+        assert_includes logout_request.errors, "The Logout Request was received at #{logout_request.destination} instead of #{logout_request.settings.single_logout_service_url}"
       end
 
       it "raise when the destination of the Logout Request does not match the service logout url" do
@@ -234,7 +234,7 @@ class RubySamlTest < Minitest::Test
       it "return false when the issuer of the Logout Request does not match the IdP entityId" do
         logout_request.settings.idp_entity_id = 'http://idp.example.com/invalid'
         assert !logout_request.send(:validate_issuer, true)
-        assert logout_request.errors.include? "Doesn't match the issuer, expected: <#{logout_request.settings.idp_entity_id}>, but was: <https://app.onelogin.com/saml/metadata/SOMEACCOUNT>"
+        assert_includes logout_request.errors, "Doesn't match the issuer, expected: <#{logout_request.settings.idp_entity_id}>, but was: <https://app.onelogin.com/saml/metadata/SOMEACCOUNT>"
       end
 
       it "raise when the issuer of the Logout Request does not match the IdP entityId" do
