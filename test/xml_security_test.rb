@@ -90,7 +90,6 @@ class XmlSecurityTest < Minitest::Test
 
       assert response_fingerprint_test.document.validate_document(sha1_fingerprint_downcase)
       assert response_fingerprint_test.document.validate_document(sha1_fingerprint_downcase, true, :fingerprint_alg => XMLSecurity::Document::SHA1)
-      sha1_fingerprint_downcase
     end
 
     it "validate using SHA256" do
