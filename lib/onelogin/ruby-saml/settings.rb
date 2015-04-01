@@ -23,6 +23,7 @@ module OneLogin
       attr_accessor :idp_slo_target_url
       attr_accessor :idp_cert
       attr_accessor :idp_cert_fingerprint
+      attr_accessor :idp_cert_fingerprint_alg
       # SP Data
       attr_accessor :issuer
       attr_accessor :assertion_consumer_service_url
@@ -106,6 +107,7 @@ module OneLogin
       DEFAULTS = {
         :assertion_consumer_service_binding        => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST".freeze,
         :single_logout_service_binding             => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect".freeze,
+        :idp_cert_fingerprint_alg                  => XMLSecurity::Document::SHA1,
         :compress_request                          => true,
         :compress_response                         => true,
         :security                                  => {
