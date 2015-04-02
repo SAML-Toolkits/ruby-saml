@@ -1,6 +1,10 @@
 module OneLogin
   module RubySaml
     class Utils
+      # Return a properly formatted x509 certificate
+      #
+      # @param cert [String] The original certificate
+      # @return [String] The formatted certificate
       def self.format_cert(cert)
         # don't try to format an encoded certificate
         return cert if cert.match(/\x0d/)
@@ -13,6 +17,10 @@ module OneLogin
         "-----BEGIN CERTIFICATE-----\n#{cert}\n-----END CERTIFICATE-----"
       end
 
+      # Return a properly formatted private key
+      #
+      # @param key [String] The original private key
+      # @return [String] The formatted private key
       def self.format_private_key(key)
         # don't try to format an encoded certificate
         return key if key.match(/\x0d/)
