@@ -140,7 +140,7 @@ module OneLogin
         validate_response_state(soft) &&
         validate_conditions(soft)     &&
         validate_issuer(soft)         &&
-        document.validate_document(get_fingerprint, soft, :fingerprint_alg => settings.idp_cert_fingerprint_alg) &&
+        document.validate_document(get_fingerprint, soft, :fingerprint_alg => settings.idp_cert_fingerprint_algorithm) &&
         validate_success_status(soft)
       end
 
@@ -203,7 +203,7 @@ module OneLogin
       def get_fingerprint
         if settings.idp_cert
           cert = OpenSSL::X509::Certificate.new(settings.idp_cert)
-          fingerprint_alg = XMLSecurity::BaseDocument.new.algorithm(settings.idp_cert_fingerprint_alg).new
+          fingerprint_alg = XMLSecurity::BaseDocument.new.algorithm(settings.idp_cert_fingerprint_algorithm).new
           fingerprint_alg.hexdigest(cert.to_der).upcase.scan(/../).join(":")
         else
           settings.idp_cert_fingerprint
