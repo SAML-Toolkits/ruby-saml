@@ -124,7 +124,7 @@ def saml_settings
 
   # Optional bindings (defaults to Redirect for logout POST for acs)
   settings.assertion_consumer_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
-  settings.single_logout_service_url_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+  settings.assertion_consumer_logout_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
 
   settings
 end
