@@ -6,16 +6,16 @@ class LoggingTest < Minitest::Test
 
   describe "Logging" do
     before do
-      ENV.delete('ruby-saml/testing')
+      OneLogin::RubySaml::Logging.logger = nil
     end
 
     after do
-      ENV['ruby-saml/testing'] = '1'
+      OneLogin::RubySaml::Logging.logger = ::TEST_LOGGER
     end
 
     describe "given no specific logging setup" do
       it "prints to stdout" do
-        OneLogin::RubySaml::Logging.expects(:puts).with('hi mom')
+        OneLogin::RubySaml::Logging::DEFAULT_LOGGER.expects(:debug).with('hi mom')
         OneLogin::RubySaml::Logging.debug('hi mom')
       end
     end
@@ -33,6 +33,24 @@ class LoggingTest < Minitest::Test
       end
 
       it "delegates to Rails" do
+        logger.expects(:debug).with('hi mom')
+        logger.expects(:info).with('sup?')
+
+        OneLogin::RubySaml::Logging.debug('hi mom')
+        OneLogin::RubySaml::Logging.info('sup?')
+      end
+    end
+
+    describe "given a specific Logger" do
+      let(:logger) { mock('Logger') }
+
+      before { OneLogin::RubySaml::Logging.logger = logger }
+
+      after do
+        OneLogin::RubySaml::Logging.logger = ::TEST_LOGGER
+      end
+
+      it "delegates to the object" do
         logger.expects(:debug).with('hi mom')
         logger.expects(:info).with('sup?')
 
