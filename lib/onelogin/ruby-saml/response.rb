@@ -295,7 +295,7 @@ module OneLogin
           validate_issuer(soft) &&
           validate_session_expiration(soft) &&
           validate_subject_confirmation(soft) &&
-          document.validate_document(get_fingerprint, soft)
+          document.validate_document(get_fingerprint, soft, :fingerprint_alg => settings.idp_cert_fingerprint_algorithm)
       end
 
       # Validates that the SAML Response provided in the initialization is not empty, 
@@ -548,8 +548,9 @@ module OneLogin
         settings.idp_cert_fingerprint || begin
           if settings.idp_cert
             certificate = OneLogin::RubySaml::Utils.format_cert(settings.idp_cert)
-            x509 = OpenSSL::X509::Certificate.new(certificate)
-            Digest::SHA1.hexdigest(x509.to_der).upcase.scan(/../).join(":")
+            cert = OpenSSL::X509::Certificate.new(certificate)
+            fingerprint_alg = XMLSecurity::BaseDocument.new.algorithm(settings.idp_cert_fingerprint_algorithm).new
+            fingerprint_alg.hexdigest(cert.to_der).upcase.scan(/../).join(":")
           end
         end
       end

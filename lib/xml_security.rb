@@ -181,7 +181,7 @@ module XMLSecurity
       extract_signed_element_id
     end
 
-    def validate_document(idp_cert_fingerprint, soft = true)
+    def validate_document(idp_cert_fingerprint, soft = true, options = {})
       # get cert from response
       cert_element = REXML::XPath.first(
         self,
@@ -195,13 +195,18 @@ module XMLSecurity
           raise OneLogin::RubySaml::ValidationError.new("Certificate element missing in response (ds:X509Certificate)")
         end
       end
-      base64_cert  = cert_element.text
-      cert_text    = Base64.decode64(base64_cert)
-      cert         = OpenSSL::X509::Certificate.new(cert_text)
+      base64_cert = cert_element.text
+      cert_text = Base64.decode64(base64_cert)
+      cert = OpenSSL::X509::Certificate.new(cert_text)
+
+      if options[:fingerprint_alg]
+        fingerprint_alg = XMLSecurity::BaseDocument.new.algorithm(options[:fingerprint_alg]).new
+      else
+        fingerprint_alg = OpenSSL::Digest::SHA1.new
+      end
+      fingerprint = fingerprint_alg.hexdigest(cert.to_der)
 
       # check cert matches registered idp cert
-      fingerprint = Digest::SHA1.hexdigest(cert.to_der)
-
       if fingerprint != idp_cert_fingerprint.gsub(/[^a-zA-Z0-9]/,"").downcase
         @errors << "Fingerprint mismatch"
         return soft ? false : (raise OneLogin::RubySaml::ValidationError.new("Fingerprint mismatch"))
