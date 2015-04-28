@@ -3,16 +3,31 @@ require "uuid"
 require "onelogin/ruby-saml/logging"
 require "onelogin/ruby-saml/saml_message"
 
+# Only supports SAML 2.0
 module OneLogin
   module RubySaml
+
+    # SAML2 Logout Response (SLO SP initiated, Parser)
+    #
     class SloLogoutresponse < SamlMessage
 
-      attr_reader :uuid # Can be obtained if neccessary
+      # Logout Response ID
+      attr_reader :uuid
 
+      # Initializes the Logout Response. A SloLogoutresponse Object that is an extension of the SamlMessage class.
+      # Asigns an ID, a random uuid.
+      #
       def initialize
         @uuid = "_" + UUID.new.generate
       end
 
+      # Creates the Logout Response string.
+      # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @param request_id [String] The ID of the LogoutRequest sent by this SP to the IdP. That ID will be placed as the InResponseTo in the logout response
+      # @param logout_message [String] The Message to be placed as StatusMessage in the logout response
+      # @param params [Hash]   Some parameters to build the logout request
+      # @return [String] Logout Request string that includes the SAMLRequest
+      #
       def create(settings, request_id = nil, logout_message = nil, params = {})
         params = create_params(settings, request_id, logout_message, params)
         params_prefix = (settings.idp_slo_target_url =~ /\?/) ? '&' : '?'
@@ -25,6 +40,13 @@ module OneLogin
         @logout_url = settings.idp_slo_target_url + response_params
       end
 
+      # Creates the Get parameters for the logout response.
+      # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @param request_id [String] The ID of the LogoutRequest sent by this SP to the IdP. That ID will be placed as the InResponseTo in the logout response
+      # @param logout_message [String] The Message to be placed as StatusMessage in the logout response
+      # @param params [Hash]  Some parameters to build the logout response
+      # @return [Hash] Parameters
+      #
       def create_params(settings, request_id = nil, logout_message = nil, params = {})
         # The method expects :RelayState but sometimes we get 'RelayState' instead.
         # Based on the HashWithIndifferentAccess value in Rails we could experience
@@ -45,11 +67,14 @@ module OneLogin
 
         if settings.security[:logout_responses_signed] && !settings.security[:embed_sign] && settings.private_key
           params['SigAlg']    = settings.security[:signature_method]
-          url_string          = "SAMLResponse=#{CGI.escape(base64_response)}"
-          url_string         << "&RelayState=#{CGI.escape(relay_state)}" if relay_state
-          url_string         << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
-          private_key         = settings.get_sp_key()
-          signature           = private_key.sign(XMLSecurity::BaseDocument.new.algorithm(settings.security[:signature_method]).new, url_string)
+          url_string = OneLogin::RubySaml::Utils.build_query(
+            :type        => 'SAMLResponse',
+            :data        => base64_response,
+            :relay_state => relay_state,
+            :sig_alg     => params['SigAlg']
+          )
+          sign_algorithm = XMLSecurity::BaseDocument.new.algorithm(settings.security[:signature_method])
+          signature = settings.get_sp_key.sign(sign_algorithm.new, url_string)
           params['Signature'] = encode(signature)
         end
 
@@ -60,6 +85,12 @@ module OneLogin
         response_params
       end
 
+      # Creates the SAMLResponse String.
+      # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @param request_id [String] The ID of the LogoutRequest sent by this SP to the IdP. That ID will be placed as the InResponseTo in the logout response
+      # @param logout_message [String] The Message to be placed as StatusMessage in the logout response
+      # @return [String] The SAMLResponse String.
+      #
       def create_logout_response_xml_doc(settings, request_id = nil, logout_message = nil)
         time = Time.now.utc.strftime('%Y-%m-%dT%H:%M:%SZ')
 
@@ -92,8 +123,8 @@ module OneLogin
 
         # embed signature
         if settings.security[:logout_responses_signed] && settings.private_key && settings.certificate && settings.security[:embed_sign]
-          private_key = settings.get_sp_key()
-          cert = settings.get_sp_cert()
+          private_key = settings.get_sp_key
+          cert = settings.get_sp_cert
           response_doc.sign_document(private_key, cert, settings.security[:signature_method], settings.security[:digest_method])
         end
 

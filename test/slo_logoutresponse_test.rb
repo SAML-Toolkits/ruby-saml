@@ -6,125 +6,98 @@ class SloLogoutresponseTest < Minitest::Test
 
   describe "SloLogoutresponse" do
     let(:settings) { OneLogin::RubySaml::Settings.new }
+    let(:logout_request) { OneLogin::RubySaml::SloLogoutrequest.new(logout_request_document) }
 
-    it "create the deflated SAMLResponse URL parameter" do
+    before do
+      settings.idp_entity_id = 'https://app.onelogin.com/saml/metadata/SOMEACCOUNT'
       settings.idp_slo_target_url = "http://unauth.com/logout"
       settings.name_identifier_value = "f00f00"
       settings.compress_request = true
+      logout_request.settings = settings
+    end
 
-      request = OneLogin::RubySaml::SloLogoutrequest.new(logout_request_document)
-
-      assert request.is_valid?
-
-      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, request.id)
-      assert unauth_url =~ /^http:\/\/unauth\.com\/logout\?SAMLResponse=/
-
+    it "create the deflated SAMLResponse URL parameter" do
+      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, logout_request.id)
+      assert_match /^http:\/\/unauth\.com\/logout\?SAMLResponse=/, unauth_url
       inflated = decode_saml_response_payload(unauth_url)
-
       assert_match /^<samlp:LogoutResponse/, inflated
     end
 
     it "support additional params" do
-      settings.idp_slo_target_url = "http://unauth.com/logout"
-      settings.name_identifier_value = "f00f00"
-      settings.compress_request = true
+      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, nil, { :hello => nil })
+      assert_match /&hello=$/, unauth_url
 
-      request = OneLogin::RubySaml::SloLogoutrequest.new(logout_request_document)
+      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, nil, { :foo => "bar" })
+      assert_match /&foo=bar$/, unauth_url
 
-      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, request.id, nil, { :hello => nil })
-      assert unauth_url =~ /&hello=$/
-
-      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, request.id, nil, { :foo => "bar" })
-      assert unauth_url =~ /&foo=bar$/
-
-      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, request.id, nil, { :RelayState => "http://idp.example.com" })
-      assert unauth_url =~ /&RelayState=http%3A%2F%2Fidp.example.com$/
+      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, nil, { :RelayState => "http://idp.example.com" })
+      assert_match /&RelayState=http%3A%2F%2Fidp.example.com$/, unauth_url
     end
 
     it "set InResponseTo to the ID from the logout request" do
-      settings.idp_slo_target_url = "http://unauth.com/logout"
-      settings.name_identifier_value = "f00f00"
-      settings.compress_request = true
-
-      request = OneLogin::RubySaml::SloLogoutrequest.new(logout_request_document)
-      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, request.id)
-
+      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, logout_request.id)
       inflated = decode_saml_response_payload(unauth_url)
-
       assert_match /InResponseTo='_c0348950-935b-0131-1060-782bcb56fcaa'/, inflated
     end
 
     it "set a custom successful logout message on the response" do
-      settings.idp_slo_target_url = "http://unauth.com/logout"
-      settings.name_identifier_value = "f00f00"
-      settings.compress_request = true
-
-      request = OneLogin::RubySaml::SloLogoutrequest.new(logout_request_document)
-      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, request.id, "Custom Logout Message")
-
+      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, "Custom Logout Message")
       inflated = decode_saml_response_payload(unauth_url)
-
       assert_match /<samlp:StatusMessage>Custom Logout Message<\/samlp:StatusMessage>/, inflated
     end
 
     describe "when the settings indicate to sign (embedded) logout response" do
-      it "create a signed logout response" do
-        settings = OneLogin::RubySaml::Settings.new
-        settings.compress_response = false
-        settings.idp_slo_target_url = "http://example.com?field=value"
-        settings.security[:logout_responses_signed] = true
-        settings.security[:embed_sign] = true
-        settings.certificate  = ruby_saml_cert_text
-        settings.private_key = ruby_saml_key_text
+      let(:settings_embed_sign) { OneLogin::RubySaml::Settings.new }
 
-        request = OneLogin::RubySaml::SloLogoutrequest.new(logout_request_document)
-        params = OneLogin::RubySaml::SloLogoutresponse.new.create_params(settings, request.id, "Custom Logout Message")
+      before do
+        settings_embed_sign.compress_response = false
+        settings_embed_sign.idp_slo_target_url = "http://example.com?field=value"
+        settings_embed_sign.security[:logout_responses_signed] = true
+        settings_embed_sign.security[:embed_sign] = true
+        settings_embed_sign.certificate  = ruby_saml_cert_text
+        settings_embed_sign.private_key = ruby_saml_key_text
+      end
+
+      it "create a signed logout response" do
+        params = OneLogin::RubySaml::SloLogoutresponse.new.create_params(settings_embed_sign, logout_request.id, "Custom Logout Message")
 
         response_xml = Base64.decode64(params["SAMLResponse"])
         assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], response_xml
-        response_xml =~ /<ds:SignatureMethod Algorithm='http:\/\/www.w3.org\/2000\/09\/xmldsig#rsa-sha1'\/>/
-        response_xml =~ /<ds:DigestMethod Algorithm='http:\/\/www.w3.org\/2000\/09\/xmldsig#sha1'\/>/
+        assert_match /<ds:SignatureMethod Algorithm='http:\/\/www.w3.org\/2000\/09\/xmldsig#rsa-sha1'\/>/, response_xml
+        assert_match /<ds:DigestMethod Algorithm='http:\/\/www.w3.org\/2000\/09\/xmldsig#sha1'\/>/, response_xml
       end
 
       it "create a signed logout response with 256 digest and signature methods" do
-        settings = OneLogin::RubySaml::Settings.new
-        settings.compress_response = false
-        settings.idp_slo_target_url = "http://example.com?field=value"
-        settings.security[:logout_responses_signed] = true
-        settings.security[:embed_sign] = true
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
-        settings.security[:digest_method] = XMLSecurity::Document::SHA512
-        settings.certificate  = ruby_saml_cert_text
-        settings.private_key = ruby_saml_key_text
+        settings_embed_sign.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
+        settings_embed_sign.security[:digest_method] = XMLSecurity::Document::SHA512
 
-        request = OneLogin::RubySaml::SloLogoutrequest.new(logout_request_document)
-        params = OneLogin::RubySaml::SloLogoutresponse.new.create_params(settings, request.id, "Custom Logout Message")
+        params = OneLogin::RubySaml::SloLogoutresponse.new.create_params(settings_embed_sign, logout_request.id, "Custom Logout Message")
 
         response_xml = Base64.decode64(params["SAMLResponse"])
         assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], response_xml
-        response_xml =~ /<ds:SignatureMethod Algorithm='http:\/\/www.w3.org\/2001\/04\/xmldsig-more#rsa-sha256'\/>/
-        response_xml =~ /<ds:DigestMethod Algorithm='http:\/\/www.w3.org\/2001\/04\/xmldsig-more#rsa-sha512'\/>/
+        assert_match /<ds:SignatureMethod Algorithm='http:\/\/www.w3.org\/2001\/04\/xmldsig-more#rsa-sha256'\/>/, response_xml
+        assert_match /<ds:DigestMethod Algorithm='http:\/\/www.w3.org\/2001\/04\/xmldsig-more#sha512'\/>/, response_xml
       end
     end
 
     describe "#create_params when the settings indicate to sign the logout response" do
-      def setup
-        @settings = OneLogin::RubySaml::Settings.new
-        @settings.compress_response = false
-        @settings.idp_slo_target_url = "http://example.com?field=value"
-        @settings.assertion_consumer_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST-SimpleSign"
-        @settings.security[:logout_responses_signed] = true
-        @settings.security[:embed_sign] = false
-        @settings.certificate  = ruby_saml_cert_text
-        @settings.private_key = ruby_saml_key_text
-        @cert = OpenSSL::X509::Certificate.new(ruby_saml_cert_text)
-        @request = OneLogin::RubySaml::SloLogoutrequest.new(logout_request_document)
+      let(:settings_logout_signed) { OneLogin::RubySaml::Settings.new }
+      let(:cert)      { OpenSSL::X509::Certificate.new(ruby_saml_cert_text) }
+
+      before do
+        settings_logout_signed.compress_response = false
+        settings_logout_signed.idp_slo_target_url = "http://example.com?field=value"
+        settings_logout_signed.assertion_consumer_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST-SimpleSign"
+        settings_logout_signed.security[:logout_responses_signed] = true
+        settings_logout_signed.security[:embed_sign] = false
+        settings_logout_signed.certificate  = ruby_saml_cert_text
+        settings_logout_signed.private_key = ruby_saml_key_text
       end
 
       it "create a signature parameter with RSA_SHA1 and validate it" do
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+        settings_logout_signed.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
 
-        params = OneLogin::RubySaml::SloLogoutresponse.new.create_params(@settings, @request.id, "Custom Logout Message", :RelayState => 'http://example.com')
+        params = OneLogin::RubySaml::SloLogoutresponse.new.create_params(settings_logout_signed, logout_request.id, "Custom Logout Message", :RelayState => 'http://example.com')
         assert params['SAMLResponse']
         assert params[:RelayState]
         assert params['Signature']
@@ -136,17 +109,16 @@ class SloLogoutresponseTest < Minitest::Test
 
         signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
         assert_equal signature_algorithm, OpenSSL::Digest::SHA1
-        assert @cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
+        assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
       end
 
       it "create a signature parameter with RSA_SHA256 and validate it" do
-        @settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
+        settings_logout_signed.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
 
-        params = OneLogin::RubySaml::SloLogoutresponse.new.create_params(@settings, @request.id, "Custom Logout Message", :RelayState => 'http://example.com')
+        params = OneLogin::RubySaml::SloLogoutresponse.new.create_params(settings_logout_signed, logout_request.id, "Custom Logout Message", :RelayState => 'http://example.com')
         assert params['SAMLResponse']
         assert params[:RelayState]
         assert params['Signature']
-
         assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA256
 
         query_string = "SAMLResponse=#{CGI.escape(params['SAMLResponse'])}"
@@ -155,7 +127,7 @@ class SloLogoutresponseTest < Minitest::Test
 
         signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
         assert_equal signature_algorithm, OpenSSL::Digest::SHA256
-        assert @cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
+        assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
       end
 
     end

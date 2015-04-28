@@ -1,4 +1,4 @@
-$LOAD_PATH.push File.expand_path('../lib', __FILE__)
+$LOAD_PATH.push File.expand_path("../lib", __FILE__)
 require 'onelogin/ruby-saml/version'
 
 Gem::Specification.new do |s|
@@ -36,6 +36,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency('mocha',    '~> 0.14')
   s.add_development_dependency('rake',     '~> 10')
   s.add_development_dependency('shoulda',  '~> 2.11')
+  s.add_development_dependency('simplecov','~> 0.9.0')
   s.add_development_dependency('systemu',  '~> 2')
   s.add_development_dependency('timecop',  '<= 0.6.0')
 

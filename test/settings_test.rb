@@ -52,6 +52,33 @@ class SettingsTest < Minitest::Test
       end
     end
 
+    it "create settings from hash with assertion_consumer_logout" do
+
+      config = {
+          :assertion_consumer_logout_service_url => "http://app.muda.no/sso",
+          :assertion_consumer_logout_service_binding => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect',
+          :issuer => "http://muda.no",
+          :sp_name_qualifier => "http://sso.muda.no",
+          :idp_sso_target_url => "http://sso.muda.no/sso",
+          :idp_slo_target_url => "http://sso.muda.no/slo",
+          :idp_cert_fingerprint => "00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00",
+          :name_identifier_format => "urn:oasis:names:tc:SAML:2.0:nameid-format:transient",
+          :attributes_index => 30,
+          :passive => true,
+          :protocol_binding => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'
+      }
+      @settings = OneLogin::RubySaml::Settings.new(config)
+
+      config.each do |k,v|
+        assert_equal v, @settings.send(k)
+      end
+
+      assert_equal @settings.single_logout_service_url(), config[:assertion_consumer_logout_service_url]
+      assert_equal @settings.single_logout_service_binding(), config[:assertion_consumer_logout_service_binding]
+      @settings.single_logout_service_binding = nil
+      assert_equal @settings.single_logout_service_binding(), config[:assertion_consumer_logout_service_binding]
+    end
+
     it "configure attribute service attributes correctly" do
       @settings = OneLogin::RubySaml::Settings.new
       @settings.attribute_consuming_service.configure do
