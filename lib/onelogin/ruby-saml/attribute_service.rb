@@ -25,14 +25,14 @@ module OneLogin
         @attributes.length > 0 && !@name.nil?
       end
 
-      # Set a name 
+      # Set a name to the service
       # @param name [String] The service name
       #
       def service_name(name)
         @name = name
       end
 
-      # Set an index 
+      # Set an index to the service
       # @param index [Integer] An index
       #
       def service_index(index)

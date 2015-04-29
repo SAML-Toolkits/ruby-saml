@@ -34,7 +34,7 @@ module OneLogin
         @document = XMLSecurity::SignedDocument.new(@response)
       end
 
-      # Aux function to validate the Logout Response (soft = false)
+      # Hard aux function to validate the Logout Response (soft = false)
       # @return [Boolean] TRUE if the SAML Response is valid
       # @raise [ValidationError] If validation fails
       #

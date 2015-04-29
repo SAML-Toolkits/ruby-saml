@@ -72,7 +72,7 @@ module OneLogin
 
       private
 
-      # Validates the Logout Request
+      # Hard aux function to validate the Logout Request
       # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout request is invalid or not)
       # @return [Boolean] TRUE if the Logout Request is valid
       # @raise [ValidationError] if soft == false and validation fails

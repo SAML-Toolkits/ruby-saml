@@ -48,7 +48,7 @@ module OneLogin
         validate
       end
 
-      # Validates the SAML Response (soft = false)
+      # Hard aux function to validate the SAML Response (soft = false)
       # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the response is invalid or not)
       # @param request_id [String|nil] request_id The ID of the AuthNRequest sent by this SP to the IdP (if was sent any)
       # @return [Boolean] TRUE if the SAML Response is valid
@@ -70,7 +70,7 @@ module OneLogin
       # Gets the SessionIndex from the AuthnStatement.
       # Could be used to be stored in the local session in order
       # to be used in a future Logout Request that the SP could
-      # send to the SP, to set what specific session must be deleted
+      # send to the IdP, to set what specific session must be deleted
       # @return [String] SessionIndex Value
       #
       def sessionindex
