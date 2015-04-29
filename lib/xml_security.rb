@@ -256,7 +256,7 @@ module XMLSecurity
       REXML::XPath.each(@sig_element, "//ds:Reference", {"ds"=>DSIG}) do |ref|
         uri = ref.attributes.get_attribute("URI").value
 
-        hashed_element = document.at_xpath("//*[@ID='#{uri[1..-1]}']")
+        hashed_element = document.at_xpath("//*[@ID=$uri]", nil, { 'uri' => uri[1..-1] })
         canon_algorithm = canon_algorithm REXML::XPath.first(
           ref,
           '//ds:CanonicalizationMethod',
