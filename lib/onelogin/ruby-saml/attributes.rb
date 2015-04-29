@@ -53,7 +53,7 @@ module OneLogin
       
       # Return first value for an attribute
       # @param name [String] The attribute name
-      # return [String] The value (First occurrence)
+      # @return [String] The value (First occurrence)
       #
       def single(name)
         attributes[canonize_name(name)].first if include?(name)
@@ -61,7 +61,7 @@ module OneLogin
 
       # Return all values for an attribute
       # @param name [String] The attribute name
-      # return [Array] Values of the attribute
+      # @return [Array] Values of the attribute
       #
       def multi(name)
         attributes[canonize_name(name)]

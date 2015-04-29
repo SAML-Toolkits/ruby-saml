@@ -18,7 +18,7 @@ module OneLogin
       # Constructs the Logout Request. A Logout Request Object that is an extension of the SamlMessage class.
       # @param request [String] A UUEncoded Logout Request from the IdP.
       # @param options [Hash]   Some options for the logout request validation process like allow a clock drift when checking dates with :allowed_clock_drift
-      # @raise [ArgumentError]
+      # @raise [ArgumentError] If Request is nil
       #
       def initialize(request, options = {})
         raise ArgumentError.new("Request cannot be nil") if request.nil?
@@ -36,7 +36,7 @@ module OneLogin
 
       # Validates the Logout Request (soft = false)
       # @return [Boolean] TRUE if the Logout Request is valid
-      # @raise [ValidationError]
+      # @raise [ValidationError] if validation fails
       #
       def validate!
         validate(false)

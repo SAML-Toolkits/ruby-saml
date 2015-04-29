@@ -33,17 +33,24 @@ module OneLogin
       end
 
       # Set an index 
-      # @param name [Integer] An index
+      # @param index [Integer] An index
       #
       def service_index(index)
         @index = index
       end
 
-      # Add an attribute
-      # @param name [Hash] Attribute for the AttributeService
+      # Add an AttributeService
+      # @param options [Hash] AttributeService option values
+      #   add_attribute(
+      #                 :name => "Name",
+      #                 :name_format => "Name Format",
+      #                 :index => 1,
+      #                 :friendly_name => "Friendly Name",
+      #                 :attribute_value => "Attribute Value"
+      #                )
       #
       def add_attribute(options={})
-        attributes << options 
+        attributes << options
       end
     end
   end

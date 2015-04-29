@@ -20,7 +20,7 @@ module OneLogin
       # OneLogin::RubySaml::Settings Toolkit settings
       attr_accessor :settings
 
-      # Array with the causes
+      # Array with the causes [Array of strings]
       attr_accessor :errors
 
       attr_reader :options
@@ -254,7 +254,7 @@ module OneLogin
       # Extracts the first appearance that matchs the subelt (pattern)
       # Search on any Assertion that is signed, or has a Response parent signed
       # @param subelt [String] The XPath pattern
-      # @return [REXML::Element | nil] If any matchs, return the Element
+      # @return [REXML::Element | nil] If any matches, return the Element
       #
       def xpath_first_from_signed_assertion(subelt=nil)
         node = REXML::XPath.first(

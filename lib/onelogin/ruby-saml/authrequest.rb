@@ -25,7 +25,7 @@ module OneLogin
 
       # Creates the AuthNRequest string.
       # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
-      # @param params [Hash]   Some parameters to build the request
+      # @param params [Hash] Some extra parameters to be added in the GET for example the RelayState
       # @return [String] AuthNRequest string that includes the SAMLRequest
       #
       def create(settings, params = {})
@@ -41,7 +41,7 @@ module OneLogin
 
       # Creates the Get parameters for the request.
       # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
-      # @param params [Hash]   Some parameters to build the request
+      # @param params [Hash] Some extra parameters to be added in the GET for example the RelayState
       # @return [Hash] Parameters
       #
       def create_params(settings, params={})

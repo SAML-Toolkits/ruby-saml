@@ -23,7 +23,7 @@ module OneLogin
       # @param settings  [OneLogin::RubySaml::Settings|nil] Toolkit settings
       # @param options   [Hash] Extra parameters. 
       #                    :matches_request_id It will validate that the logout response matches the ID of the request.
-      # @raise [ArgumentError]
+      # @raise [ArgumentError] if response is nil
       #
       def initialize(response, settings = nil, options = {})
         raise ArgumentError.new("Logoutresponse cannot be nil") if response.nil?

@@ -69,10 +69,10 @@ module OneLogin
       end
 
       # Setter for the Single Logout Service URL.
-      # @param val [String].
+      # @param url [String].
       #
-      def single_logout_service_url=(val)
-        @single_logout_service_url = val
+      def single_logout_service_url=(url)
+        @single_logout_service_url = url
       end
 
       # @return [String] Single Logout Service Binding.
@@ -90,10 +90,12 @@ module OneLogin
       end
 
       # Setter for Single Logout Service Binding.
-      # @param val [String]
+      # 
+      # (Currently we only support "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect")
+      # @param url [String]
       #
-      def single_logout_service_binding=(val)
-        @single_logout_service_binding = val
+      def single_logout_service_binding=(url)
+        @single_logout_service_binding = url
       end
 
       # @return [OpenSSL::X509::Certificate|nil] Build the certificate from the Formatted SP certificate of the settings

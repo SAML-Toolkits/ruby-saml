@@ -82,19 +82,19 @@ module OneLogin
       end
 
       # Base 64 decode method
-      # @param saml [String] The string message
+      # @param string [String] The string message
       # @return [String] The decoded string
       #
-      def decode(encoded)
-        Base64.decode64(encoded)
+      def decode(string)
+        Base64.decode64(string)
       end
 
       # Base 64 encode method
-      # @param saml [String] The string
+      # @param string [String] The string
       # @return [String] The encoded string
       #
-      def encode(encoded)
-        Base64.encode64(encoded).gsub(/\n/, "")
+      def encode(string)
+        Base64.encode64(string).gsub(/\n/, "")
       end
 
       # Check if a string is base64 encoded
@@ -106,7 +106,7 @@ module OneLogin
       end
 
       # Inflate method
-      # @param saml [String] The string
+      # @param deflated [String] The string
       # @return [String] The inflated string
       #
       def inflate(deflated)
@@ -114,7 +114,7 @@ module OneLogin
       end
 
       # Deflate method
-      # @param saml [String] The string
+      # @param inflated [String] The string
       # @return [String] The deflated string
       #
       def deflate(inflated)
