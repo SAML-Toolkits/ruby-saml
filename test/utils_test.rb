@@ -6,6 +6,16 @@ class UtilsTest < Minitest::Test
       read_certificate("valid_certificate")
     end
 
+    it "return empty string when the cert is an empty string" do
+      cert = ""
+      assert_equal "", OneLogin::RubySaml::Utils.format_cert(cert)
+    end
+
+    it "return nil when the cert is nil" do
+      cert = nil
+      assert_equal nil, OneLogin::RubySaml::Utils.format_cert(cert)
+    end
+
     it "returns the certificate when it is valid" do
       assert_equal valid_certificate, OneLogin::RubySaml::Utils.format_cert(valid_certificate)
     end
@@ -29,6 +39,16 @@ class UtilsTest < Minitest::Test
   describe ".format_private_key" do
     let(:valid_private_key) do
       read_certificate("valid_private_key")
+    end
+
+    it "returns empty string when the private key is an empty string" do
+      private_key = ""
+      assert_equal "", OneLogin::RubySaml::Utils.format_private_key(private_key)
+    end
+
+    it "returns nil when the private key is nil" do
+      private_key = nil
+      assert_equal nil, OneLogin::RubySaml::Utils.format_private_key(private_key)
     end
 
     it "returns the private key when it is valid" do
