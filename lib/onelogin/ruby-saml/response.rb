@@ -8,40 +8,58 @@ require "nokogiri"
 module OneLogin
   module RubySaml
 
+    # SAML2 Authentication Response. SAML Response
+    #
     class Response < SamlMessage
       ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion"
       PROTOCOL  = "urn:oasis:names:tc:SAML:2.0:protocol"
       DSIG      = "http://www.w3.org/2000/09/xmldsig#"
 
-      # TODO: This should probably be ctor initialized too... WDYT?
+      # TODO: Settings should probably be initialized too... WDYT?
+
+      # OneLogin::RubySaml::Settings Toolkit settings
       attr_accessor :settings
+
+      # Array with the causes [Array of strings]
       attr_accessor :errors
 
       attr_reader :options
       attr_reader :response
       attr_reader :document
 
+      # Constructs the SAML Response. A Response Object that is an extension of the SamlMessage class.
+      # @param response [String] A UUEncoded SAML response from the IdP.
+      # @param options  [Hash]   Some options for the response validation process like skip the conditions validation
+      #                          with the :skip_conditions, or allow a clock_drift when checking dates with :allowed_clock_drift
+      #
       def initialize(response, options = {})
         @errors = []
+
         raise ArgumentError.new("Response cannot be nil") if response.nil?
         @options  = options
         @response = decode_raw_saml(response)
         @document = XMLSecurity::SignedDocument.new(@response, @errors)
       end
 
+      # Validates the SAML Response with the default values (soft = true)
+      # @return [Boolean] TRUE if the SAML Response is valid
+      #
       def is_valid?
         validate
       end
 
+      # Hard aux function to validate the SAML Response (soft = false)
+      # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the response is invalid or not)
+      # @param request_id [String|nil] request_id The ID of the AuthNRequest sent by this SP to the IdP (if was sent any)
+      # @return [Boolean] TRUE if the SAML Response is valid
+      # @raise [ValidationError] if soft == false and validation fails
+      #
       def validate!
         validate(false)
       end
 
-      def errors
-        @errors
-      end
-
-      # The value of the user identifier as designated by the initialization request response
+      # @return [String] the NameID provided by the SAML response from the IdP.
+      #
       def name_id
         @name_id ||= begin
           node = xpath_first_from_signed_assertion('/a:Subject/a:NameID')
@@ -49,6 +67,12 @@ module OneLogin
         end
       end
 
+      # Gets the SessionIndex from the AuthnStatement.
+      # Could be used to be stored in the local session in order
+      # to be used in a future Logout Request that the SP could
+      # send to the IdP, to set what specific session must be deleted
+      # @return [String] SessionIndex Value
+      #
       def sessionindex
         @sessionindex ||= begin
           node = xpath_first_from_signed_assertion('/a:AuthnStatement')
@@ -56,9 +80,9 @@ module OneLogin
         end
       end
 
-      # Returns OneLogin::RubySaml::Attributes enumerable collection.
-      # All attributes can be iterated over +attributes.each+ or returned as array by +attributes.all+
+      # Gets the Attributes from the AttributeStatement element.
       #
+      # All attributes can be iterated over +attributes.each+ or returned as array by +attributes.all+
       # For backwards compatibility ruby-saml returns by default only the first value for a given attribute with
       #    attributes['name']
       # To get all of the attributes, use:
@@ -67,6 +91,9 @@ module OneLogin
       #    OneLogin::RubySaml::Attributes.single_value_compatibility = false
       # Now this will return an array:
       #    attributes['name']
+      #
+      # @return [Attributes] OneLogin::RubySaml::Attributes enumerable collection.
+      #      
       def attributes
         @attr_statements ||= begin
           attributes = Attributes.new
@@ -89,7 +116,10 @@ module OneLogin
         end
       end
 
-      # When this user session should expire at latest
+      # Gets the SessionNotOnOrAfter from the AuthnStatement.
+      # Could be used to set the local session expiration (expire at latest)
+      # @return [String] The SessionNotOnOrAfter value
+      #
       def session_expires_at
         @expires_at ||= begin
           node = xpath_first_from_signed_assertion('/a:AuthnStatement')
@@ -97,7 +127,9 @@ module OneLogin
         end
       end
 
-      # Checks the status of the response for a "Success" code
+      # Checks if the Status has the "Success" code
+      # @return [Boolean] True if the StatusCode is Sucess
+      # 
       def success?
         @status_code ||= begin
           node = REXML::XPath.first(document, "/p:Response/p:Status/p:StatusCode", { "p" => PROTOCOL, "a" => ASSERTION })
@@ -105,6 +137,8 @@ module OneLogin
         end
       end
 
+      # @return [String] the StatusMessage value from a SAML Response.
+      #
       def status_message
         @status_message ||= begin
           node = REXML::XPath.first(document, "/p:Response/p:Status/p:StatusMessage", { "p" => PROTOCOL, "a" => ASSERTION })
@@ -112,19 +146,31 @@ module OneLogin
         end
       end
 
-      # Conditions (if any) for the assertion to run
+      # Gets the Condition Element of the SAML Response if exists.
+      # (returns the first node that matches the supplied xpath)
+      # @return [REXML::Element] Conditions Element if exists
+      #
       def conditions
         @conditions ||= xpath_first_from_signed_assertion('/a:Conditions')
       end
 
+      # Gets the NotBefore Condition Element value.
+      # @return [Time] The NotBefore value in Time format
+      #
       def not_before
         @not_before ||= parse_time(conditions, "NotBefore")
       end
 
+      # Gets the NotOnOrAfter Condition Element value.
+      # @return [Time] The NotOnOrAfter value in Time format
+      #
       def not_on_or_after
         @not_on_or_after ||= parse_time(conditions, "NotOnOrAfter")
       end
 
+      # Gets the Issuer from the Response or the Assertion.
+      # @return [String] The first Issuer found. First check Response, later the Assertion.
+      #
       def issuer
         @issuer ||= begin
           node = REXML::XPath.first(document, "/p:Response/a:Issuer", { "p" => PROTOCOL, "a" => ASSERTION })
@@ -135,6 +181,11 @@ module OneLogin
 
       private
 
+      # Validates the SAML Response (calls several validation methods)
+      # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the response is invalid or not)
+      # @return [Boolean] True if the SAML Response is valid, otherwise False if soft=True
+      # @raise [ValidationError] if soft == false and validation fails
+      #
       def validate(soft = true)
         valid_saml?(document, soft)      &&
         validate_response_state(soft) &&
@@ -144,6 +195,11 @@ module OneLogin
         validate_success_status(soft)
       end
 
+      # Validates the Status of the SAML Response
+      # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the response is invalid or not)
+      # @return [Boolean] True if the SAML Response contains a Success code, otherwise False if soft == false
+      # @raise [ValidationError] if soft == false and validation fails
+      #
       def validate_success_status(soft = true)
         if success?
           true
@@ -152,6 +208,11 @@ module OneLogin
         end
       end
 
+      # Validates the SAML Response against the specified schema.
+      # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the response is invalid or not)
+      # @return [Boolean] True if the XML is valid, otherwise False if soft=True
+      # @raise [ValidationError] if soft == false and validation fails 
+      #
       def validate_structure(soft = true)
         xml = Nokogiri::XML(self.document.to_s)
 
@@ -168,6 +229,12 @@ module OneLogin
         end
       end
 
+      # Validates that the SAML Response provided in the initialization is not empty,
+      # also check that the setting and the IdP cert were also provided
+      # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the response is invalid or not)
+      # @return [Boolean] True if the required info is found, otherwise False if soft=True
+      # @raise [ValidationError] if soft == false and validation fails
+      #
       def validate_response_state(soft = true)
         if response.empty?
           return soft ? false : validation_error("Blank response")
@@ -184,6 +251,11 @@ module OneLogin
         true
       end
 
+      # Extracts the first appearance that matchs the subelt (pattern)
+      # Search on any Assertion that is signed, or has a Response parent signed
+      # @param subelt [String] The XPath pattern
+      # @return [REXML::Element | nil] If any matches, return the Element
+      #
       def xpath_first_from_signed_assertion(subelt=nil)
         node = REXML::XPath.first(
             document,
@@ -200,6 +272,9 @@ module OneLogin
         node
       end
 
+      # Calculates the fingerprint of the IdP x509 certificate.
+      # @return [String] The fingerprint
+      #
       def get_fingerprint
         if settings.idp_cert
           cert = OpenSSL::X509::Certificate.new(settings.idp_cert)
@@ -210,6 +285,12 @@ module OneLogin
         end
       end
 
+      # Validates the Conditions. (If the response was initialized with the :skip_conditions option, this validation is skipped,
+      # If the response was initialized with the :allowed_clock_drift option, the timing validations are relaxed by the allowed_clock_drift value)
+      # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the response is invalid or not)
+      # @return [Boolean] True if satisfies the conditions, otherwise False if soft=True
+      # @raise [ValidationError] if soft == false and validation fails
+      #
       def validate_conditions(soft = true)
         return true if conditions.nil?
         return true if options[:skip_conditions]
@@ -229,6 +310,11 @@ module OneLogin
         true
       end
 
+      # Validates the Issuer (Of the SAML Response or of the SAML Assertion)
+      # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the response is invalid or not)
+      # @return [Boolean] True if the Issuer matchs the IdP entityId, otherwise False if soft=True
+      # @raise [ValidationError] if soft == false and validation fails
+      #
       def validate_issuer(soft = true)
         return true if settings.idp_entity_id.nil?
 
@@ -238,6 +324,11 @@ module OneLogin
         true
       end
 
+      # Parse the attribute of a given node in Time format
+      # @param node [REXML:Element] The node
+      # @param attribute [String] The attribute name
+      # @return [Time|nil] The parsed value
+      #
       def parse_time(node, attribute)
         if node && node.attributes[attribute]
           Time.parse(node.attributes[attribute])

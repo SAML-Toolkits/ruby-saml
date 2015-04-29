@@ -4,17 +4,30 @@ require "rexml/document"
 require "onelogin/ruby-saml/logging"
 require "onelogin/ruby-saml/saml_message"
 
+# Only supports SAML 2.0
 module OneLogin
   module RubySaml
   include REXML
+
+    # SAML2 Authentication. AuthNRequest (SSO SP initiated, Builder)
+    #
     class Authrequest < SamlMessage
 
-      attr_reader :uuid # Can be obtained if neccessary
+      # AuthNRequest ID
+      attr_reader :uuid
 
+      # Initializes the AuthNRequest. An Authrequest Object that is an extension of the SamlMessage class.
+      # Asigns an ID, a random uuid.
+      #
       def initialize
         @uuid = "_" + UUID.new.generate
       end
 
+      # Creates the AuthNRequest string.
+      # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @param params [Hash] Some extra parameters to be added in the GET for example the RelayState
+      # @return [String] AuthNRequest string that includes the SAMLRequest
+      #
       def create(settings, params = {})
         params = create_params(settings, params)
         params_prefix = (settings.idp_sso_target_url =~ /\?/) ? '&' : '?'
@@ -26,6 +39,11 @@ module OneLogin
         @login_url = settings.idp_sso_target_url + request_params
       end
 
+      # Creates the Get parameters for the request.
+      # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @param params [Hash] Some extra parameters to be added in the GET for example the RelayState
+      # @return [Hash] Parameters
+      #
       def create_params(settings, params={})
         # The method expects :RelayState but sometimes we get 'RelayState' instead.
         # Based on the HashWithIndifferentAccess value in Rails we could experience
@@ -49,7 +67,7 @@ module OneLogin
           url_string          = "SAMLRequest=#{CGI.escape(base64_request)}"
           url_string         << "&RelayState=#{CGI.escape(relay_state)}" if relay_state
           url_string         << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
-          private_key         = settings.get_sp_key()
+          private_key         = settings.get_sp_key
           signature           = private_key.sign(XMLSecurity::BaseDocument.new.algorithm(settings.security[:signature_method]).new, url_string)
           params['Signature'] = encode(signature)
         end
@@ -61,6 +79,10 @@ module OneLogin
         request_params
       end
 
+      # Creates the SAMLRequest String.
+      # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @return [String] The SAMLRequest String.
+      #
       def create_authentication_xml_doc(settings)
         time = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -118,8 +140,8 @@ module OneLogin
 
         # embed signature
         if settings.security[:authn_requests_signed] && settings.private_key && settings.certificate && settings.security[:embed_sign] 
-          private_key = settings.get_sp_key()
-          cert = settings.get_sp_cert()
+          private_key = settings.get_sp_key
+          cert = settings.get_sp_cert
           request_doc.sign_document(private_key, cert, settings.security[:signature_method], settings.security[:digest_method])
         end
 

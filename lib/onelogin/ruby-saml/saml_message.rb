@@ -6,8 +6,12 @@ require 'rexml/document'
 require 'rexml/xpath'
 require 'thread'
 
+# Only supports SAML 2.0
 module OneLogin
   module RubySaml
+
+    # SAML2 Message
+    #
     class SamlMessage
       include REXML
 
@@ -16,6 +20,8 @@ module OneLogin
 
       BASE64_FORMAT = %r(\A[A-Za-z0-9+/]{4}*[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=?\Z)
 
+      # @return [Nokogiri::XML::Schema] Gets the schema object of the SAML 2.0 Protocol schema
+      #
       def self.schema
         @schema ||= Mutex.new.synchronize do
           Dir.chdir(File.expand_path("../../../schemas", __FILE__)) do
@@ -24,6 +30,12 @@ module OneLogin
         end
       end
 
+      # Validates the SAML Message against the specified schema.
+      # @param document [REXML::Document] The message that will be validated
+      # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the message is invalid or not)
+      # @return [Boolean] True if the XML is valid, otherwise False, if soft=True
+      # @raise [ValidationError] if soft == false and validation fails 
+      #
       def valid_saml?(document, soft = true)
         xml = Nokogiri::XML(document.to_s)
 
@@ -33,20 +45,20 @@ module OneLogin
         end
       end
 
+      # Raise a ValidationError with the provided message
+      # @param message [String] Message of the exception
+      # @raise [ValidationError]
+      #
       def validation_error(message)
         raise ValidationError.new(message)
       end
 
       private
 
-      ##
-      # Take a SAML object provided by +saml+, determine its status and return
-      # a decoded XML as a String.
+      # Base64 decode and try also to inflate a SAML Message
+      # @param saml [String] The deflated and encoded SAML Message
+      # @return [String] The plain SAML Message
       #
-      # Since SAML decided to use the RFC1951 and therefor has no zlib markers,
-      # the only reliable method of deciding whether we have a zlib stream or not
-      # is to try and inflate it and fall back to the base64 decoded string if
-      # the stream contains errors.
       def decode_raw_saml(saml)
         return saml unless base64_encoded?(saml)
 
@@ -58,32 +70,53 @@ module OneLogin
         end
       end
 
+      # Deflate, base64 encode and url-encode a SAML Message (To be used in the HTTP-redirect binding)
+      # @param saml [String] The plain SAML Message
+      # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @return [String] The deflated and encoded SAML Message (encoded if the compression is requested)
+      #
       def encode_raw_saml(saml, settings)
         saml = deflate(saml) if settings.compress_request
 
         CGI.escape(Base64.encode64(saml))
       end
 
-      def decode(encoded)
-        Base64.decode64(encoded)
+      # Base 64 decode method
+      # @param string [String] The string message
+      # @return [String] The decoded string
+      #
+      def decode(string)
+        Base64.decode64(string)
       end
 
-      def encode(encoded)
-        Base64.encode64(encoded).gsub(/\n/, "")
+      # Base 64 encode method
+      # @param string [String] The string
+      # @return [String] The encoded string
+      #
+      def encode(string)
+        Base64.encode64(string).gsub(/\n/, "")
       end
 
       # Check if a string is base64 encoded
-      #
       # @param string [String] string to check the encoding of
       # @return [true, false] whether or not the string is base64 encoded
+      #
       def base64_encoded?(string)
         !!string.gsub(/[\r\n]|\\r|\\n/, "").match(BASE64_FORMAT)
       end
 
+      # Inflate method
+      # @param deflated [String] The string
+      # @return [String] The inflated string
+      #
       def inflate(deflated)
         Zlib::Inflate.new(-Zlib::MAX_WBITS).inflate(deflated)
       end
 
+      # Deflate method
+      # @param inflated [String] The string
+      # @return [String] The deflated string
+      #
       def deflate(inflated)
         Zlib::Deflate.deflate(inflated, 9)[2..-5]
       end

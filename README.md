@@ -110,7 +110,7 @@ def saml_settings
   settings = OneLogin::RubySaml::Settings.new
 
   settings.assertion_consumer_service_url = "http://#{request.host}/saml/finalize"
-  settings.issuer                         = request.host
+  settings.issuer                         = "http://#{request.host}/saml/metadata"
   settings.idp_sso_target_url             = "https://app.onelogin.com/saml/metadata/#{OneLoginAppId}"
   settings.idp_entity_id                  = "https://app.onelogin.com/saml/metadata/#{OneLoginAppId}"
   settings.idp_sso_target_url             = "https://app.onelogin.com/trust/saml2/http-post/sso/#{OneLoginAppId}"
@@ -160,7 +160,7 @@ class SamlController < ApplicationController
     settings = OneLogin::RubySaml::Settings.new
 
     settings.assertion_consumer_service_url = "http://#{request.host}/saml/consume"
-    settings.issuer                         = request.host
+    settings.issuer                         = "http://#{request.host}/saml/metadata"
     settings.idp_sso_target_url             = "https://app.onelogin.com/saml/signon/#{OneLoginAppId}"
     settings.idp_cert_fingerprint           = OneLoginAppCertFingerPrint
     settings.name_identifier_format         = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
@@ -196,7 +196,7 @@ def saml_settings
   settings = idp_metadata_parser.parse_remote("https://example.com/auth/saml2/idp/metadata")
 
   settings.assertion_consumer_service_url = "http://#{request.host}/saml/consume"
-  settings.issuer                         = request.host
+  settings.issuer                         = "http://#{request.host}/saml/metadata"
   settings.name_identifier_format         = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
   # Optional for most SAML IdPs
   settings.authn_context = "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport"
