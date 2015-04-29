@@ -15,7 +15,6 @@
 * [#179](https://github.com/onelogin/ruby-saml/pull/179) Add support for setting the entity ID and name ID format when parsing metadata
 * [#175](https://github.com/onelogin/ruby-saml/pull/175) Introduce thread safety to SAML schema validation
 * [#171](https://github.com/onelogin/ruby-saml/pull/171) Fix inconsistent results with using regex matches in decode_raw_saml
-* 
 
 ### 0.9.1 (Feb 10, 2015)
 * [#194](https://github.com/onelogin/ruby-saml/pull/194) Relax nokogiri gem requirements

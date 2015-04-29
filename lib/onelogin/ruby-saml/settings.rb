@@ -2,8 +2,12 @@ require "xml_security"
 require "onelogin/ruby-saml/attribute_service"
 require "onelogin/ruby-saml/utils"
 
+# Only supports SAML 2.0
 module OneLogin
   module RubySaml
+
+    # SAML2 Toolkit Settings
+    #
     class Settings
       def initialize(overrides = {})
         config = DEFAULTS.merge(overrides)
@@ -50,7 +54,9 @@ module OneLogin
       attr_accessor :assertion_consumer_logout_service_url
       attr_accessor :assertion_consumer_logout_service_binding
 
-      def single_logout_service_url()
+      # @return [String] Single Logout Service URL.
+      #
+      def single_logout_service_url
         val = nil
         if @single_logout_service_url.nil?
           if @assertion_consumer_logout_service_url
@@ -62,12 +68,16 @@ module OneLogin
         val
       end
 
-      # setter
-      def single_logout_service_url=(val)
-        @single_logout_service_url = val
+      # Setter for the Single Logout Service URL.
+      # @param url [String].
+      #
+      def single_logout_service_url=(url)
+        @single_logout_service_url = url
       end
 
-      def single_logout_service_binding()
+      # @return [String] Single Logout Service Binding.
+      #
+      def single_logout_service_binding
         val = nil
         if @single_logout_service_binding.nil?
           if @assertion_consumer_logout_service_binding
@@ -79,11 +89,17 @@ module OneLogin
         val
       end
 
-      # setter
-      def single_logout_service_binding=(val)
-        @single_logout_service_binding = val
+      # Setter for Single Logout Service Binding.
+      # 
+      # (Currently we only support "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect")
+      # @param url [String]
+      #
+      def single_logout_service_binding=(url)
+        @single_logout_service_binding = url
       end
 
+      # @return [OpenSSL::X509::Certificate|nil] Build the certificate from the Formatted SP certificate of the settings
+      #
       def get_sp_cert
         cert = nil
         if self.certificate
@@ -93,6 +109,8 @@ module OneLogin
         cert
       end
 
+      # @return [OpenSSL::PKey::RSA] Build the private key from the Formatted SP private key of the settings
+      #
       def get_sp_key
         private_key = nil
         if self.private_key

@@ -3,23 +3,27 @@ require "onelogin/ruby-saml/saml_message"
 
 require "time"
 
+# Only supports SAML 2.0
 module OneLogin
   module RubySaml
+
+    # SAML2 Logout Response (SLO IdP initiated, Parser)
+    #
     class Logoutresponse < SamlMessage
-      # For API compability, this is mutable.
+
+      # OneLogin::RubySaml::Settings Toolkit settings
       attr_accessor :settings
 
       attr_reader :document
       attr_reader :response
       attr_reader :options
 
-      #
-      # In order to validate that the response matches a given request, append
-      # the option:
-      #   :matches_request_id => REQUEST_ID
-      #
-      # It will validate that the logout response matches the ID of the request.
-      # You can also do this yourself through the in_response_to accessor.
+      # Constructs the Logout Response. A Logout Response Object that is an extension of the SamlMessage class.
+      # @param response  [String] A UUEncoded logout response from the IdP.
+      # @param settings  [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @param options   [Hash] Extra parameters. 
+      #                    :matches_request_id It will validate that the logout response matches the ID of the request.
+      # @raise [ArgumentError] if response is nil
       #
       def initialize(response, settings = nil, options = {})
         raise ArgumentError.new("Logoutresponse cannot be nil") if response.nil?
@@ -30,16 +34,29 @@ module OneLogin
         @document = XMLSecurity::SignedDocument.new(@response)
       end
 
+      # Hard aux function to validate the Logout Response (soft = false)
+      # @return [Boolean] TRUE if the SAML Response is valid
+      # @raise [ValidationError] If validation fails
+      #
       def validate!
         validate(false)
       end
 
+      # Aux function to validate the Logout Response
+      # @return [Boolean] TRUE if the SAML Response is valid
+      # @raise [ValidationError] if soft == false and validation fails
+      #
       def validate(soft = true)
         return false unless valid_saml?(document, soft) && valid_state?(soft)
 
         valid_in_response_to?(soft) && valid_issuer?(soft) && success?(soft)
       end
 
+      # Checks if the Status has the "Success" code
+      # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout response is invalid or not)
+      # @return [Boolean] True if the StatusCode is Sucess
+      # @raise [ValidationError] if soft == false and validation fails
+      # 
       def success?(soft = true)
         unless status_code == "urn:oasis:names:tc:SAML:2.0:status:Success"
           return soft ? false : validation_error("Bad status code. Expected <urn:oasis:names:tc:SAML:2.0:status:Success>, but was: <#@status_code> ")
@@ -47,6 +64,8 @@ module OneLogin
         true
       end
 
+      # @return [String|nil] Gets the InResponseTo attribute from the Logout Response if exists.
+      #
       def in_response_to
         @in_response_to ||= begin
           node = REXML::XPath.first(document, "/p:LogoutResponse", { "p" => PROTOCOL, "a" => ASSERTION })
@@ -54,6 +73,8 @@ module OneLogin
         end
       end
 
+      # @return [String] Gets the Issuer from the Logout Response.
+      #
       def issuer
         @issuer ||= begin
           node = REXML::XPath.first(document, "/p:LogoutResponse/a:Issuer", { "p" => PROTOCOL, "a" => ASSERTION })
@@ -62,6 +83,8 @@ module OneLogin
         end
       end
 
+      # @return [String] Gets the StatusCode from a Logout Response.
+      #
       def status_code
         @status_code ||= begin
           node = REXML::XPath.first(document, "/p:LogoutResponse/p:Status/p:StatusCode", { "p" => PROTOCOL, "a" => ASSERTION })
@@ -71,6 +94,12 @@ module OneLogin
 
       private
 
+       # Validates that the Logout Response provided in the initialization is not empty,
+       # also check that the setting and the IdP cert were also provided
+       # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout response is invalid or not)
+       # @return [Boolean] True if the required info is found, otherwise False if soft=True
+       # @raise [ValidationError] if soft == false and validation fails
+       #
       def valid_state?(soft = true)
         if response.empty?
           return soft ? false : validation_error("Blank response")
@@ -91,6 +120,11 @@ module OneLogin
         true
       end
 
+      # Validates if a provided :matches_request_id matchs the inResponseTo value.
+      # @param soft [String|nil] request_id The ID of the Logout Request sent by this SP to the IdP (if was sent any)
+      # @return [Boolean] True if there is no request_id or it match, otherwise False if soft=True
+      # @raise [ValidationError] if soft == false and validation fails
+      #
       def valid_in_response_to?(soft = true)
         return true unless self.options.has_key? :matches_request_id
 
@@ -101,6 +135,11 @@ module OneLogin
         true
       end
 
+      # Validates the Issuer of the Logout Response
+      # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout response is invalid or not)
+      # @return [Boolean] True if the Issuer matchs the IdP entityId, otherwise False if soft=True
+      # @raise [ValidationError] if soft == false and validation fails
+      #
       def valid_issuer?(soft = true)
         return true if self.settings.idp_entity_id.nil? or self.issuer.nil?
 

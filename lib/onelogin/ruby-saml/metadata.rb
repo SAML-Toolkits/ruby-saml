@@ -3,13 +3,20 @@ require "uuid"
 
 require "onelogin/ruby-saml/logging"
 
-# Class to return SP metadata based on the settings requested.
-# Return this XML in a controller, then give that URL to the the
-# IdP administrator.  The IdP will poll the URL and your settings
-# will be updated automatically
+# Only supports SAML 2.0
 module OneLogin
   module RubySaml
+
+    # SAML2 Metadata. XML Metadata Builder
+    # 
     class Metadata
+
+      # Return SP metadata based on the settings.
+      # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @param pretty_print [Boolean] Pretty print or not the response 
+      #                               (No pretty print if you gonna validate the signature)
+      # @return [String] XML Metadata of the Service Provider
+      #
       def generate(settings, pretty_print=true)
         meta_doc = XMLSecurity::Document.new
         root = meta_doc.add_element "md:EntityDescriptor", {
@@ -48,7 +55,7 @@ module OneLogin
         end
 
         # Add KeyDescriptor if messages will be signed
-        cert = settings.get_sp_cert()
+        cert = settings.get_sp_cert
         if cert
           kd = sp_sso.add_element "md:KeyDescriptor", { "use" => "signing" }
           ki = kd.add_element "ds:KeyInfo", {"xmlns:ds" => "http://www.w3.org/2000/09/xmldsig#"}
@@ -87,7 +94,7 @@ module OneLogin
 
         # embed signature
         if settings.security[:metadata_signed] && settings.private_key && settings.certificate
-          private_key = settings.get_sp_key()
+          private_key = settings.get_sp_key
           meta_doc.sign_document(private_key, cert, settings.security[:signature_method], settings.security[:digest_method])
         end
 
