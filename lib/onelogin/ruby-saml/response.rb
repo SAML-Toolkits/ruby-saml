@@ -201,12 +201,10 @@ module OneLogin
       end
 
       def get_fingerprint
-        if settings.idp_cert
-          cert = OpenSSL::X509::Certificate.new(settings.idp_cert)
+        settings.idp_cert_fingerprint || begin
+          certificate = OneLogin::RubySaml::Utils.format_cert(settings.idp_cert)
           fingerprint_alg = XMLSecurity::BaseDocument.new.algorithm(settings.idp_cert_fingerprint_algorithm).new
           fingerprint_alg.hexdigest(cert.to_der).upcase.scan(/../).join(":")
-        else
-          settings.idp_cert_fingerprint
         end
       end
 
