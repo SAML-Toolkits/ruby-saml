@@ -6,12 +6,12 @@ class UtilsTest < Minitest::Test
       read_certificate("valid_certificate")
     end
 
-    it "return empty string when the cert is an empty string" do
+    it "returns empty string when the cert is an empty string" do
       cert = ""
       assert_equal "", OneLogin::RubySaml::Utils.format_cert(cert)
     end
 
-    it "return nil when the cert is nil" do
+    it "returns nil when the cert is nil" do
       cert = nil
       assert_equal nil, OneLogin::RubySaml::Utils.format_cert(cert)
     end

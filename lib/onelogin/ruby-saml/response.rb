@@ -191,7 +191,7 @@ module OneLogin
         validate_response_state(soft) &&
         validate_conditions(soft)     &&
         validate_issuer(soft)         &&
-        document.validate_document(get_fingerprint, soft, :fingerprint_alg => settings.idp_cert_fingerprint_algorithm) &&
+        document.validate_document(settings.get_fingerprint, soft, :fingerprint_alg => settings.idp_cert_fingerprint_algorithm) &&
         validate_success_status(soft)
       end
 
@@ -270,20 +270,6 @@ module OneLogin
             { 'id' => document.signed_element_id }
         )
         node
-      end
-
-      # Calculates the fingerprint of the IdP x509 certificate.
-      # @return [String] The fingerprint
-      #
-      def get_fingerprint
-        settings.idp_cert_fingerprint || begin
-          if settings.idp_cert
-            certificate = OneLogin::RubySaml::Utils.format_cert(settings.idp_cert)
-            cert = OpenSSL::X509::Certificate.new(certificate)
-            fingerprint_alg = XMLSecurity::BaseDocument.new.algorithm(settings.idp_cert_fingerprint_algorithm).new
-            fingerprint_alg.hexdigest(cert.to_der).upcase.scan(/../).join(":")
-          end
-        end
       end
 
       # Validates the Conditions. (If the response was initialized with the :skip_conditions option, this validation is skipped,

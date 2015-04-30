@@ -53,6 +53,18 @@ class RubySamlTest < Minitest::Test
           response.validate!
         end
       end
+
+      it "raise when No fingerprint or certificate on settings" do
+        response = OneLogin::RubySaml::Response.new(response_document)
+        settings2 = OneLogin::RubySaml::Settings.new
+        settings2.idp_cert_fingerprint = nil
+        settings2.idp_cert = nil
+        response.settings = settings2
+        assert_raises(OneLogin::RubySaml::ValidationError, "No fingerprint or certificate on settings") do
+          response.validate!
+        end
+      end
+
     end
 
     describe "#validate_structure" do
