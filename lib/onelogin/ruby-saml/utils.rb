@@ -32,7 +32,7 @@ module OneLogin
       #
       def self.format_private_key(key, heads=true)
         if key && !key.empty?
-          key = key.delete!("\n\r\x0D")
+          key.delete!("\n\r\x0D")
           if key.index('-----BEGIN PRIVATE KEY-----') != nil
             key = key.gsub('-----BEGIN PRIVATE KEY-----', '')
             key = key.gsub('-----END PRIVATE KEY-----', '')
