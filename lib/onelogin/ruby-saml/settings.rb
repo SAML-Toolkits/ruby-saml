@@ -98,26 +98,44 @@ module OneLogin
         @single_logout_service_binding = url
       end
 
-      # @return [OpenSSL::X509::Certificate|nil] Build the certificate from the Formatted SP certificate of the settings
+      # Calculates the fingerprint of the IdP x509 certificate.
+      # @return [String] The fingerprint
       #
-      def get_sp_cert
-        cert = nil
-        if self.certificate
-          formated_cert = OneLogin::RubySaml::Utils.format_cert(self.certificate)
-          cert = OpenSSL::X509::Certificate.new(formated_cert)
+      def get_fingerprint
+        self.idp_cert_fingerprint || begin
+          idp_cert = get_idp_cert
+          if idp_cert
+            fingerprint_alg = XMLSecurity::BaseDocument.new.algorithm(self.idp_cert_fingerprint_algorithm).new
+            fingerprint_alg.hexdigest(idp_cert.to_der).upcase.scan(/../).join(":")
+          end
         end
-        cert
       end
 
-      # @return [OpenSSL::PKey::RSA] Build the private key from the Formatted SP private key of the settings
+      # @return [OpenSSL::X509::Certificate|nil] Build the IdP certificate from the settings (previously format it)
+      #
+      def get_idp_cert
+        return nil if idp_cert.nil? || idp_cert.empty?
+
+        formated_cert = OneLogin::RubySaml::Utils.format_cert(idp_cert)
+        OpenSSL::X509::Certificate.new(formated_cert)
+      end
+
+      # @return [OpenSSL::X509::Certificate|nil] Build the SP certificate from the settings (previously format it)
+      #
+      def get_sp_cert
+        return nil if certificate.nil? || certificate.empty?
+
+        formated_cert = OneLogin::RubySaml::Utils.format_cert(certificate)
+        OpenSSL::X509::Certificate.new(formated_cert)
+      end
+
+      # @return [OpenSSL::PKey::RSA] Build the SP private from the settings (previously format it)
       #
       def get_sp_key
-        private_key = nil
-        if self.private_key
-          formated_private_key = OneLogin::RubySaml::Utils.format_private_key(self.private_key)
-          private_key = OpenSSL::PKey::RSA.new(formated_private_key)
-        end
-        private_key
+        return nil if private_key.nil? || private_key.empty?
+        
+        formated_private_key = OneLogin::RubySaml::Utils.format_private_key(private_key)
+        OpenSSL::PKey::RSA.new(formated_private_key)
       end
 
       private

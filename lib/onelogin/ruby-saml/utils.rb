@@ -4,58 +4,40 @@ module OneLogin
     # SAML2 Auxiliary class
     #    
     class Utils
-
-      # Return the x509 certificate string formatted
-      # @param cert [String] The original certificate 
-      # @param heads [Boolean] If true, the formatted certificate will include the
-      #                        "BEGIN CERTIFICATE" header and the footer.
+      # Return a properly formatted x509 certificate
+      #
+      # @param cert [String] The original certificate
       # @return [String] The formatted certificate
       #
-      def self.format_cert(cert, heads=true)
-        if cert && !cert.empty?
-          cert = cert.gsub(/\-{5}\s?(BEGIN|END) CERTIFICATE\s?\-{5}/, "")
-          cert = cert.gsub(/[\n\r\s]/, "")
-          cert = cert.scan(/.{1,64}/).join("\n")+"\n"
+      def self.format_cert(cert)
+        # don't try to format an encoded certificate or if is empty or nil
+        return cert if cert.nil? || cert.empty? || cert.match(/\x0d/)
 
-          if heads
-            cert = "-----BEGIN CERTIFICATE-----\n" + cert + "-----END CERTIFICATE-----\n"
-          end
-        end
-        cert
+        cert = cert.gsub(/\-{5}\s?(BEGIN|END) CERTIFICATE\s?\-{5}/, "")
+        cert = cert.gsub(/[\n\r\s]/, "")
+        cert = cert.scan(/.{1,64}/)
+        cert = cert.join("\n")
+        "-----BEGIN CERTIFICATE-----\n#{cert}\n-----END CERTIFICATE-----"
       end
 
-      # Return the private key string formatted
-      # @param key [String] The original private key 
-      # @param heads [Boolean] If true, the formatted private key will include the
-      #                  "BEGIN PRIVATE KEY" or the "BEGIN RSA PRIVATE KEY" header and the footer.
-      # @return [String] The formatted certificate
+      # Return a properly formatted private key
       #
-      def self.format_private_key(key, heads=true)
-        if key && !key.empty?
-          key = key.delete!("\n\r\x0D")
-          if key.index('-----BEGIN PRIVATE KEY-----') != nil
-            key = key.gsub('-----BEGIN PRIVATE KEY-----', '')
-            key = key.gsub('-----END PRIVATE KEY-----', '')
-            key = key.gsub(' ', '')
+      # @param key [String] The original private key
+      # @return [String] The formatted private key
+      #
+      def self.format_private_key(key)
+        # don't try to format an encoded private key or if is empty  
+        return key if key.nil? || key.empty? || key.match(/\x0d/)
 
-            key = key.scan(/.{1,64}/).join("\n")+"\n"
-            if heads
-              key = "-----BEGIN PRIVATE KEY-----\n" + key + "-----END PRIVATE KEY-----\n"
-            end
-          else
-            key = key.gsub('-----BEGIN RSA PRIVATE KEY-----', '')
-            key = key.gsub('-----END RSA PRIVATE KEY-----', '')
-            key = key.gsub(' ', '')
-
-            key = key.scan(/.{1,64}/).join("\n")+"\n"
-            if heads
-              key = "-----BEGIN RSA PRIVATE KEY-----\n" + key + "-----END RSA PRIVATE KEY-----\n"
-            end
-          end
-        end
-        key
+        # is this an rsa key?
+        rsa_key = key.match("RSA PRIVATE KEY")
+        key = key.gsub(/\-{5}\s?(BEGIN|END)( RSA)? PRIVATE KEY\s?\-{5}/, "")
+        key = key.gsub(/[\n\r\s]/, "")
+        key = key.scan(/.{1,64}/)
+        key = key.join("\n")
+        key_label = rsa_key ? "RSA PRIVATE KEY" : "PRIVATE KEY"
+        "-----BEGIN #{key_label}-----\n#{key}\n-----END #{key_label}-----"
       end
-
     end
   end
 end
