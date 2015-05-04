@@ -39,7 +39,10 @@ Gem::Specification.new do |s|
   s.add_development_dependency('systemu',  '~> 2')
   s.add_development_dependency('timecop',  '<= 0.6.0')
 
-  if RUBY_VERSION < '1.9'
+  if defined?(JRUBY_VERSION)
+    # All recent versions of JRuby play well with pry
+    s.add_development_dependency('pry')
+  elsif RUBY_VERSION < '1.9'
     # 1.8.7
     s.add_development_dependency('ruby-debug', '~> 0.10.4')
   elsif RUBY_VERSION < '2.0'
