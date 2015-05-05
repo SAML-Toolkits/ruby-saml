@@ -185,10 +185,12 @@ class RubySamlTest < Minitest::Test
         assert !response.send(:validate_conditions, true)
         response_time_updated = OneLogin::RubySaml::Response.new(response_document_without_recipient_with_time_updated)
         assert response_time_updated.send(:validate_conditions, true)
-        time = Time.parse("2011-06-14T18:25:01.516Z")
-        Time.stubs(:now).returns(time)
-        response_with_saml2_namespace = OneLogin::RubySaml::Response.new(response_document_with_saml2_namespace)
-        assert response_with_saml2_namespace.send(:validate_conditions, true)
+        time     = Time.parse("2011-06-14T18:25:01.516Z")
+
+        Timecop.freeze(Time.parse("2011-06-14T18:25:01.516Z")) do
+          response_with_saml2_namespace = OneLogin::RubySaml::Response.new(response_document_with_saml2_namespace)
+          assert response_with_saml2_namespace.send(:validate_conditions, true)
+        end
       end
 
       it "optionally allows for clock drift" do
@@ -377,9 +379,10 @@ class RubySamlTest < Minitest::Test
         signed_response = OneLogin::RubySaml::Response.new(document.to_s)
         settings.idp_cert = ruby_saml_cert_text
         signed_response.settings = settings
-        time = Time.parse("2015-03-18T04:50:24Z")
-        Time.stubs(:now).returns(time)
-        signed_response.validate!
+
+        Timecop.freeze(Time.parse("2015-03-18T04:50:24Z")) do
+          signed_response.validate!
+        end
       end
     end
   end
