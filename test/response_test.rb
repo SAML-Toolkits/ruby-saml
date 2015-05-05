@@ -68,10 +68,17 @@ class RubySamlTest < Minitest::Test
     end
 
     describe "#validate_structure" do
-      it "raise when encountering a condition that prevents the document from being valid" do
+      it "false when encountering a mailformed element that prevents the document from being valid" do
         response = OneLogin::RubySaml::Response.new(response_document_2)
-        response.send(:validate_structure)
-        assert response.errors.include? "Schema validation failed"
+        response.send(:validate_structure, true)
+        assert response.errors.include? "Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd"
+      end
+
+      it "raise when encountering a mailformed element that prevents the document from being valid" do
+        response = OneLogin::RubySaml::Response.new(response_document_2)
+        assert_raises(OneLogin::RubySaml::ValidationError) {
+          response.send(:validate_structure, false)
+        }
       end
     end
 
