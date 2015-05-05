@@ -134,6 +134,7 @@ class RubySamlTest < Minitest::Test
         no_signature_response.settings.idp_cert_fingerprint = "28:74:9B:E8:1F:E8:10:9C:A8:7C:A9:C3:E3:C5:01:6C:92:1C:B4:BA"
         XMLSecurity::SignedDocument.any_instance.expects(:validate_signature).returns(true)
         assert no_signature_response.validate!
+        XMLSecurity::SignedDocument.any_instance.unstub(:validate_signature)
       end
 
       it "validate ADFS assertions" do
