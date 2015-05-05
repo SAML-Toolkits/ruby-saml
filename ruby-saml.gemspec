@@ -30,7 +30,11 @@ Gem::Specification.new do |s|
   # Because runtime dependencies are determined at build time, we cannot make
   # Nokogiri's version dependent on the Ruby version, even though we would
   # have liked to constrain Ruby 1.8.7 to install only the 1.5.x versions.
-  s.add_runtime_dependency('nokogiri', '>= 1.5.10')
+  if defined?(JRUBY_VERSION)
+    s.add_runtime_dependency('nokogiri', '>= 1.6.0')
+  else
+    s.add_runtime_dependency('nokogiri', '>= 1.5.10')
+  end
 
   s.add_development_dependency('minitest', '~> 5.5')
   s.add_development_dependency('mocha',    '~> 0.14')
