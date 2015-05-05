@@ -23,7 +23,7 @@ module OneLogin
       # @return [Nokogiri::XML::Schema] Gets the schema object of the SAML 2.0 Protocol schema
       #
       def self.schema
-        @schema ||= Mutex.new.synchronize do
+        Mutex.new.synchronize do
           Dir.chdir(File.expand_path("../../../schemas", __FILE__)) do
             ::Nokogiri::XML::Schema(File.read("saml-schema-protocol-2.0.xsd"))
           end
