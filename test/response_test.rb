@@ -18,12 +18,11 @@ class RubySamlTest < Minitest::Test
     end
 
     it "be able to parse a document which contains ampersands" do
-      XMLSecurity::SignedDocument.any_instance.stubs(:digests_match?).returns(true)
-      OneLogin::RubySaml::Response.any_instance.stubs(:validate_conditions).returns(true)
-
       ampersands_response = OneLogin::RubySaml::Response.new(ampersands_document)
+      ampersands_response.stubs(:validate_conditions).returns(true)
+      settings = OneLogin::RubySaml::Settings.new
+      settings.idp_cert_fingerprint = 'c51985d947f1be57082025050846eb27f6cab783'
       ampersands_response.settings = settings
-      ampersands_response.settings.idp_cert_fingerprint = 'c51985d947f1be57082025050846eb27f6cab783'
       ampersands_response.validate!
     end
 
