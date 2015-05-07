@@ -2,6 +2,7 @@ require 'rubygems'
 require 'bundler'
 require 'minitest/autorun'
 require 'mocha/setup'
+require 'timecop'
 
 Bundler.require :default, :test
 
