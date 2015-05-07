@@ -24,6 +24,10 @@ class Minitest::Test
     File.read(File.join(File.dirname(__FILE__), "responses", response))
   end
 
+  def read_logout_request(request)
+    File.read(File.join(File.dirname(__FILE__), "logout_requests", request))
+  end
+
   def read_certificate(certificate)
     File.read(File.join(File.dirname(__FILE__), "certificates", certificate))
   end
@@ -91,7 +95,7 @@ class Minitest::Test
 
   def logout_request_document
     unless @logout_request_document
-      xml = read_response("slo_request.xml")
+      xml = read_logout_request("slo_request.xml")
       deflated = Zlib::Deflate.deflate(xml, 9)[2..-5]
       @logout_request_document = Base64.encode64(deflated)
     end
