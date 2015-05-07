@@ -19,6 +19,7 @@ We created a demo project for Rails4 that uses the latest version of this librar
 * 1.9.x
 * 2.1.x
 * 2.2.0
+* JRuby 1.7.19
 
 ## Adding Features, Pull Requests
 * Fork the repository
