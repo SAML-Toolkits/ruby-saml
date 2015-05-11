@@ -329,7 +329,9 @@ class RubySamlTest < Minitest::Test
     describe "#session_expires_at" do
       it "extract the value of the SessionNotOnOrAfter attribute" do
         assert response.session_expires_at.is_a?(Time)
+      end
 
+      it "return nil when the value of the SessionNotOnOrAfter is not set" do
         assert_nil response_without_attributes.session_expires_at
       end
     end
