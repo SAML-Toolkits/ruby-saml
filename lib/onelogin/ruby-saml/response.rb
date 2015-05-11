@@ -41,6 +41,18 @@ module OneLogin
         @document = XMLSecurity::SignedDocument.new(@response, @errors)
       end
 
+      # Append the cause to the errors array, and based on the value of soft, return false or raise
+      # an exception
+      def append_error(soft, error_msg)
+        @errors << error_msg
+        return soft ? false : validation_error(error_msg)
+      end
+
+      # Reset the errors array
+      def reset_errors!
+        @errors = []
+      end
+
       # Validates the SAML Response with the default values (soft = true)
       # @return [Boolean] TRUE if the SAML Response is valid
       #
@@ -187,10 +199,12 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate(soft = true)
-        valid_saml?(document, soft)      &&
+        reset_errors!
+
         validate_response_state(soft) &&
-        validate_conditions(soft)     &&
-        validate_issuer(soft)         &&
+        validate_structure(soft) &&
+        validate_conditions(soft) &&
+        validate_issuer(soft) &&
         document.validate_document(settings.get_fingerprint, soft, :fingerprint_alg => settings.idp_cert_fingerprint_algorithm) &&
         validate_success_status(soft)
       end
@@ -201,11 +215,9 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_success_status(soft = true)
-        if success?
-          true
-        else
-          soft ? false : validation_error(status_message)
-        end
+        return true if success?
+          
+        return append_error(soft, status_message)
       end
 
       # Validates the SAML Response against the specified schema.
@@ -214,19 +226,11 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails 
       #
       def validate_structure(soft = true)
-        xml = Nokogiri::XML(self.document.to_s)
-
-        SamlMessage.schema.validate(xml).map do |error|
-          if soft
-            @errors << "Schema validation failed"
-            break false
-          else
-            error_message = [error.message, xml.to_s].join("\n\n")
-
-            @errors << error_message
-            validation_error(error_message)
-          end
+        unless valid_saml?(document, soft)
+          return append_error(soft, "Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd")
         end
+
+        true
       end
 
       # Validates that the SAML Response provided in the initialization is not empty,
@@ -236,16 +240,12 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_response_state(soft = true)
-        if response.empty?
-          return soft ? false : validation_error("Blank response")
-        end
+        return append_error(soft, "Blank response") if response.empty?
 
-        if settings.nil?
-          return soft ? false : validation_error("No settings on response")
-        end
+        return append_error(soft, "No settings on response") if settings.nil?
 
         if settings.idp_cert_fingerprint.nil? && settings.idp_cert.nil?
-          return soft ? false : validation_error("No fingerprint or certificate on settings")
+          return append_error(soft, "No fingerprint or certificate on settings")
         end
 
         true
@@ -285,13 +285,13 @@ module OneLogin
         now = Time.now.utc
 
         if not_before && (now + (options[:allowed_clock_drift] || 0)) < not_before
-          @errors << "Current time is earlier than NotBefore condition #{(now + (options[:allowed_clock_drift] || 0))} < #{not_before})"
-          return soft ? false : validation_error("Current time is earlier than NotBefore condition")
+          error_msg = "Current time is earlier than NotBefore condition #{(now + (options[:allowed_clock_drift] || 0))} < #{not_before})"
+          return append_error(soft, error_msg)
         end
 
         if not_on_or_after && now >= not_on_or_after
-          @errors << "Current time is on or after NotOnOrAfter condition (#{now} >= #{not_on_or_after})"
-          return soft ? false : validation_error("Current time is on or after NotOnOrAfter condition")
+          error_msg = "Current time is on or after NotOnOrAfter condition (#{now} >= #{not_on_or_after})"
+          return append_error(soft, error_msg)
         end
 
         true
@@ -306,7 +306,7 @@ module OneLogin
         return true if settings.idp_entity_id.nil?
 
         unless URI.parse(issuer) == URI.parse(settings.idp_entity_id)
-          return soft ? false : validation_error("Doesn't match the issuer, expected: <#{settings.idp_entity_id}>, but was: <#{issuer}>")
+          return append_error(soft, "Doesn't match the issuer, expected: <#{settings.idp_entity_id}>, but was: <#{issuer}>")
         end
         true
       end

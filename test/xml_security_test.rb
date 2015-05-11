@@ -6,8 +6,11 @@ class XmlSecurityTest < Minitest::Test
   include XMLSecurity
 
   describe "XmlSecurity" do
+
+    let(:decoded_response) { Base64.decode64(response_document_without_recipient) }
+
     before do
-      @document = XMLSecurity::SignedDocument.new(Base64.decode64(response_document))
+      @document = XMLSecurity::SignedDocument.new(decoded_response)
       @base64cert = @document.elements["//ds:X509Certificate"].text
     end
 
@@ -26,9 +29,8 @@ class XmlSecurityTest < Minitest::Test
     end
 
     it "not raise an error when softly validating the document and the X509Certificate is missing" do
-      response = Base64.decode64(response_document)
-      response.sub!(/<ds:X509Certificate>.*<\/ds:X509Certificate>/, "")
-      document = XMLSecurity::SignedDocument.new(response)
+      decoded_response.sub!(/<ds:X509Certificate>.*<\/ds:X509Certificate>/, "")
+      document = XMLSecurity::SignedDocument.new(decoded_response)
       assert !document.validate_document("a fingerprint", true) # The fingerprint isn't relevant to this test
     end
 
@@ -49,10 +51,9 @@ class XmlSecurityTest < Minitest::Test
     end
 
     it "should raise Key validation error" do
-      response = Base64.decode64(response_document)
-      response.sub!("<ds:DigestValue>pJQ7MS/ek4KRRWGmv/H43ReHYMs=</ds:DigestValue>",
+      decoded_response.sub!("<ds:DigestValue>pJQ7MS/ek4KRRWGmv/H43ReHYMs=</ds:DigestValue>",
                     "<ds:DigestValue>b9xsAXLsynugg3Wc1CI3kpWku+0=</ds:DigestValue>")
-      document = XMLSecurity::SignedDocument.new(response)
+      document = XMLSecurity::SignedDocument.new(decoded_response)
       base64cert = document.elements["//ds:X509Certificate"].text
       exception = assert_raises(OneLogin::RubySaml::ValidationError) do
         document.validate_signature(base64cert, false)
@@ -68,9 +69,8 @@ class XmlSecurityTest < Minitest::Test
     end
 
     it "raise validation error when the X509Certificate is missing" do
-      response = Base64.decode64(response_document)
-      response.sub!(/<ds:X509Certificate>.*<\/ds:X509Certificate>/, "")
-      document = XMLSecurity::SignedDocument.new(response)
+      decoded_response.sub!(/<ds:X509Certificate>.*<\/ds:X509Certificate>/, "")
+      document = XMLSecurity::SignedDocument.new(decoded_response)
       exception = assert_raises(OneLogin::RubySaml::ValidationError) do
         document.validate_document("a fingerprint", false) # The fingerprint isn't relevant to this test
       end

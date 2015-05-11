@@ -32,59 +32,61 @@ class Minitest::Test
     File.read(File.join(File.dirname(__FILE__), "certificates", certificate))
   end
 
-  def response_document
-    @response_document ||= read_response("response1.xml.base64")
+  def response_document_without_recipient
+    @response_document_without_recipient ||= read_response("response_with_undefined_recipient.xml.base64")
   end
 
-  def response_document_2
-    @response_document2 ||= read_response("response2.xml.base64")
-  end
-
-  def response_document_3
-    @response_document3 ||= read_response("response3.xml.base64")
-  end
-
-  def response_document_4
-    @response_document4 ||= read_response("response4.xml.base64")
-  end
-
-  def response_document_5
-    @response_document5 ||= read_response("response5.xml.base64")
-  end
-
-  def r1_response_document_6
-    @response_document6 ||= read_response("r1_response6.xml.base64")
-  end
-
-  def ampersands_response
-    @ampersands_response ||= read_response("response_with_ampersands.xml.base64")
-  end
-
-  def response_document_6
-    doc = Base64.decode64(response_document)
+  def response_document_without_recipient_with_time_updated
+    doc = Base64.decode64(response_document_without_recipient)
     doc.gsub!(/NotBefore=\"(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z\"/, "NotBefore=\"#{(Time.now-300).getutc.strftime("%Y-%m-%dT%XZ")}\"")
     doc.gsub!(/NotOnOrAfter=\"(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z\"/, "NotOnOrAfter=\"#{(Time.now+300).getutc.strftime("%Y-%m-%dT%XZ")}\"")
     Base64.encode64(doc)
   end
 
-  def response_document_7
-    @response_document7 ||= Base64.encode64(read_response("response_no_cert_and_encrypted_attrs.xml"))
+  def response_document_without_attributes
+    @response_document_without_attributes ||= read_response("response_without_attributes.xml.base64")
   end
 
-  def wrapped_response_2
-    @wrapped_response_2 ||= read_response("wrapped_response_2.xml.base64")
+  def response_document_with_signed_assertion
+    @response_document_with_signed_assertion ||= read_response("response_with_signed_assertion.xml.base64")
+  end
+
+  def response_document_with_signed_assertion_2
+    @response_document_with_signed_assertion_2 ||= read_response("response_with_signed_assertion_2.xml.base64")
+  end
+
+  def response_document_unsigned
+    @response_document_unsigned ||= read_response("response_unsigned_xml_base64")
+  end
+
+  def response_document_with_saml2_namespace
+    @response_document_with_saml2_namespace ||= read_response("response_with_saml2_namespace.xml.base64")
+  end
+
+  def ampersands_document
+    @ampersands_response ||= read_response("response_with_ampersands.xml.base64")
+  end
+
+  def response_document_no_cert_and_encrypted_attrs
+    @response_document_no_cert_and_encrypted_attrs ||= Base64.encode64(read_response("response_no_cert_and_encrypted_attrs.xml"))
+  end
+
+  def response_document_wrapped
+    @response_document_wrapped ||= read_response("response_wrapped.xml.base64")
   end
 
   def signature_fingerprint_1
     @signature_fingerprint1 ||= "C5:19:85:D9:47:F1:BE:57:08:20:25:05:08:46:EB:27:F6:CA:B7:83"
   end
 
-  def signature_1
+  # certificate used on response_with_undefined_recipient
+  def signature_1  
     @signature1 ||= read_certificate("certificate1")
   end
 
-  def r1_signature_2
-    @signature2 ||= read_certificate("r1_certificate2_base64")
+  # certificate used on response_document_with_signed_assertion_2
+  def certificate_without_head_foot
+    @certificate_without_head_foot ||= read_certificate("certificate_without_head_foot")
   end
 
   def idp_metadata

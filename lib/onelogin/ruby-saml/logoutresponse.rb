@@ -14,6 +14,9 @@ module OneLogin
       # OneLogin::RubySaml::Settings Toolkit settings
       attr_accessor :settings
 
+      # Array with the causes
+      attr_accessor :errors
+
       attr_reader :document
       attr_reader :response
       attr_reader :options
@@ -26,12 +29,25 @@ module OneLogin
       # @raise [ArgumentError] if response is nil
       #
       def initialize(response, settings = nil, options = {})
+        @errors = []
         raise ArgumentError.new("Logoutresponse cannot be nil") if response.nil?
         self.settings = settings
 
         @options = options
         @response = decode_raw_saml(response)
         @document = XMLSecurity::SignedDocument.new(@response)
+      end
+
+      # Append the cause to the errors array, and based on the value of soft, return false or raise
+      # an exception
+      def append_error(soft, error_msg)
+        @errors << error_msg
+        return soft ? false : validation_error(error_msg)
+      end
+
+      # Reset the errors array
+      def reset_errors!
+        @errors = []
       end
 
       # Hard aux function to validate the Logout Response (soft = false)
@@ -47,9 +63,13 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate(soft = true)
-        return false unless valid_saml?(document, soft) && valid_state?(soft)
+        reset_errors!
 
-        valid_in_response_to?(soft) && valid_issuer?(soft) && success?(soft)
+        validate_structure(soft) &&
+        valid_state?(soft) &&
+        valid_in_response_to?(soft) &&
+        valid_issuer?(soft) &&
+        success?(soft)
       end
 
       # Checks if the Status has the "Success" code
@@ -59,7 +79,7 @@ module OneLogin
       # 
       def success?(soft = true)
         unless status_code == "urn:oasis:names:tc:SAML:2.0:status:Success"
-          return soft ? false : validation_error("Bad status code. Expected <urn:oasis:names:tc:SAML:2.0:status:Success>, but was: <#@status_code> ")
+          return append_error(soft, "Bad status code. Expected <urn:oasis:names:tc:SAML:2.0:status:Success>, but was: <#@status_code> ")
         end
         true
       end
@@ -94,6 +114,19 @@ module OneLogin
 
       private
 
+      # Validates the Logout Response against the specified schema.
+      # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout response is invalid or not)
+      # @return [Boolean] True if the XML is valid, otherwise False if soft=True
+      # @raise [ValidationError] if soft == false and validation fails 
+      #
+      def validate_structure(soft = true)
+        unless valid_saml?(document, soft)
+          return append_error(soft, "Invalid SAML Logout Response. Not match the saml-schema-protocol-2.0.xsd")
+        end
+
+        true
+      end
+
        # Validates that the Logout Response provided in the initialization is not empty,
        # also check that the setting and the IdP cert were also provided
        # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout response is invalid or not)
@@ -101,20 +134,14 @@ module OneLogin
        # @raise [ValidationError] if soft == false and validation fails
        #
       def valid_state?(soft = true)
-        if response.empty?
-          return soft ? false : validation_error("Blank response")
-        end
+        return append_error(soft, "Blank response") if response.empty?
 
-        if settings.nil?
-          return soft ? false : validation_error("No settings on response")
-        end
+        return append_error(soft, "No settings on response") if settings.nil?
 
-        if settings.issuer.nil?
-          return soft ? false : validation_error("No issuer in settings")
-        end
+        return append_error(soft, "No issuer in settings") if settings.issuer.nil?
 
         if settings.idp_cert_fingerprint.nil? && settings.idp_cert.nil?
-          return soft ? false : validation_error("No fingerprint or certificate on settings")
+          return append_error(soft, "No fingerprint or certificate on settings")
         end
 
         true
@@ -129,7 +156,7 @@ module OneLogin
         return true unless self.options.has_key? :matches_request_id
 
         unless self.options[:matches_request_id] == in_response_to
-          return soft ? false : validation_error("Response does not match the request ID, expected: <#{self.options[:matches_request_id]}>, but was: <#{in_response_to}>")
+          return append_error(soft, "Response does not match the request ID, expected: <#{self.options[:matches_request_id]}>, but was: <#{in_response_to}>")
         end
 
         true
@@ -144,7 +171,7 @@ module OneLogin
         return true if self.settings.idp_entity_id.nil? or self.issuer.nil?
 
         unless URI.parse(self.issuer) == URI.parse(self.settings.idp_entity_id)
-          return soft ? false : validation_error("Doesn't match the issuer, expected: <#{self.settings.issuer}>, but was: <#{issuer}>")
+          append_error(soft, "Doesn't match the issuer, expected: <#{self.settings.issuer}>, but was: <#{issuer}>")
         end
         true
       end
