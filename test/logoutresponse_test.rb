@@ -30,7 +30,7 @@ class RubySamlTest < Minitest::Test
       end
     end
 
-    describe "#validate" do
+    describe "#validate soft=true" do
       it "validate the response" do
         in_relation_to_request_id = random_id
 
@@ -63,13 +63,17 @@ class RubySamlTest < Minitest::Test
       end
     end
 
-    describe "#validate!" do
+    describe "#validate soft=false" do
+      before do
+        settings.soft = false
+      end
+
       it "validates good responses" do
         in_relation_to_request_id = random_id
 
         logoutresponse = OneLogin::RubySaml::Logoutresponse.new(valid_response({:uuid => in_relation_to_request_id}), settings)
 
-        logoutresponse.validate!
+        logoutresponse.validate
       end
 
       it "raises validation error when matching for wrong request id" do
@@ -79,32 +83,32 @@ class RubySamlTest < Minitest::Test
 
         logoutresponse = OneLogin::RubySaml::Logoutresponse.new(valid_response, settings, opts)
 
-        assert_raises(OneLogin::RubySaml::ValidationError) { logoutresponse.validate! }
+        assert_raises(OneLogin::RubySaml::ValidationError) { logoutresponse.validate }
       end
 
       it "raise validation error for wrong request status" do
         logoutresponse = OneLogin::RubySaml::Logoutresponse.new(unsuccessful_response, settings)
 
-        assert_raises(OneLogin::RubySaml::ValidationError) { logoutresponse.validate! }
+        assert_raises(OneLogin::RubySaml::ValidationError) { logoutresponse.validate }
       end
 
       it "raise validation error when in bad state" do
         # no settings
-        logoutresponse = OneLogin::RubySaml::Logoutresponse.new(unsuccessful_response)
-        assert_raises(OneLogin::RubySaml::ValidationError) { logoutresponse.validate! }
+        logoutresponse = OneLogin::RubySaml::Logoutresponse.new(unsuccessful_response, settings)
+        assert_raises(OneLogin::RubySaml::ValidationError) { logoutresponse.validate }
       end
 
       it "raise validation error when in lack of issuer setting" do
         bad_settings = settings
         bad_settings.issuer = nil
         logoutresponse = OneLogin::RubySaml::Logoutresponse.new(unsuccessful_response, bad_settings)
-        assert_raises(OneLogin::RubySaml::ValidationError) { logoutresponse.validate! }
+        assert_raises(OneLogin::RubySaml::ValidationError) { logoutresponse.validate }
       end
 
       it "raise error for invalid xml" do
         logoutresponse = OneLogin::RubySaml::Logoutresponse.new(invalid_xml_response, settings)
 
-        assert_raises(OneLogin::RubySaml::ValidationError) { logoutresponse.validate! }
+        assert_raises(OneLogin::RubySaml::ValidationError) { logoutresponse.validate }
       end
     end
   end

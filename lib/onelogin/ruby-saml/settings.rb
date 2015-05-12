@@ -43,13 +43,15 @@ module OneLogin
       attr_accessor :protocol_binding
       attr_accessor :attributes_index
       attr_accessor :force_authn
-      attr_accessor :security
       attr_accessor :certificate
       attr_accessor :private_key
       attr_accessor :authn_context
       attr_accessor :authn_context_comparison
       attr_accessor :authn_context_decl_ref
       attr_reader :attribute_consuming_service
+      # Work-flow
+      attr_accessor :security
+      attr_accessor :soft
       # Compability
       attr_accessor :assertion_consumer_logout_service_url
       attr_accessor :assertion_consumer_logout_service_binding
@@ -146,6 +148,7 @@ module OneLogin
         :idp_cert_fingerprint_algorithm            => XMLSecurity::Document::SHA1,
         :compress_request                          => true,
         :compress_response                         => true,
+        :soft                                      => true,
         :security                                  => {
           :authn_requests_signed    => false,
           :logout_requests_signed   => false,
