@@ -121,7 +121,7 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_request_state(soft = true)
-        return append_error(soft, "Blank request") if request.empty?
+        return append_error(soft, "Blank logout request") if request.empty?
 
         true
       end

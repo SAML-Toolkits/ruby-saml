@@ -31,7 +31,7 @@ module OneLogin
       def initialize(response, settings = nil, options = {})
         @errors = []
         raise ArgumentError.new("Logoutresponse cannot be nil") if response.nil?
-        self.settings = settings
+        @settings = settings
 
         @options = options
         @response = decode_raw_saml(response)
@@ -98,7 +98,6 @@ module OneLogin
       def issuer
         @issuer ||= begin
           node = REXML::XPath.first(document, "/p:LogoutResponse/a:Issuer", { "p" => PROTOCOL, "a" => ASSERTION })
-          node ||= REXML::XPath.first(document, "/p:LogoutResponse/a:Assertion/a:Issuer", { "p" => PROTOCOL, "a" => ASSERTION })
           node.nil? ? nil : node.text
         end
       end
@@ -134,14 +133,14 @@ module OneLogin
        # @raise [ValidationError] if soft == false and validation fails
        #
       def valid_state?(soft = true)
-        return append_error(soft, "Blank response") if response.empty?
+        return append_error(soft, "Blank logout response") if response.empty?
 
-        return append_error(soft, "No settings on response") if settings.nil?
+        return append_error(soft, "No settings on logout response") if settings.nil?
 
-        return append_error(soft, "No issuer in settings") if settings.issuer.nil?
+        return append_error(soft, "No issuer in settings of the logout response") if settings.issuer.nil?
 
         if settings.idp_cert_fingerprint.nil? && settings.idp_cert.nil?
-          return append_error(soft, "No fingerprint or certificate on settings")
+          return append_error(soft, "No fingerprint or certificate on settings of the logout response")
         end
 
         true
@@ -153,10 +152,10 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def valid_in_response_to?(soft = true)
-        return true unless self.options.has_key? :matches_request_id
+        return true unless options.has_key? :matches_request_id
 
-        unless self.options[:matches_request_id] == in_response_to
-          return append_error(soft, "Response does not match the request ID, expected: <#{self.options[:matches_request_id]}>, but was: <#{in_response_to}>")
+        unless options[:matches_request_id] == in_response_to
+          return append_error(soft, "Response does not match the request ID, expected: <#{options[:matches_request_id]}>, but was: <#{in_response_to}>")
         end
 
         true
@@ -168,10 +167,10 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def valid_issuer?(soft = true)
-        return true if self.settings.idp_entity_id.nil? or self.issuer.nil?
+        return true if settings.idp_entity_id.nil? || issuer.nil?
 
-        unless URI.parse(self.issuer) == URI.parse(self.settings.idp_entity_id)
-          append_error(soft, "Doesn't match the issuer, expected: <#{self.settings.issuer}>, but was: <#{issuer}>")
+        unless URI.parse(issuer) == URI.parse(settings.idp_entity_id)
+          append_error(soft, "Doesn't match the issuer, expected: <#{settings.issuer}>, but was: <#{issuer}>")
         end
         true
       end
