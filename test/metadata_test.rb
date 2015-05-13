@@ -27,7 +27,7 @@ class MetadataTest < Minitest::Test
 
       assert_equal "urn:oasis:names:tc:SAML:2.0:protocol", spsso_descriptor.attribute("protocolSupportEnumeration").value
       assert_equal "false", spsso_descriptor.attribute("AuthnRequestsSigned").value
-      assert_equal "false", spsso_descriptor.attribute("WantAssertionsSigned").value
+      assert_equal "true", spsso_descriptor.attribute("WantAssertionsSigned").value
 
       assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress", REXML::XPath.first(xml_doc, "//md:NameIDFormat").text.strip
 
@@ -44,7 +44,7 @@ class MetadataTest < Minitest::Test
 
       assert_equal "urn:oasis:names:tc:SAML:2.0:protocol", spsso_descriptor.attribute("protocolSupportEnumeration").value
       assert_equal "false", spsso_descriptor.attribute("AuthnRequestsSigned").value
-      assert_equal "false", spsso_descriptor.attribute("WantAssertionsSigned").value
+      assert_equal "true", spsso_descriptor.attribute("WantAssertionsSigned").value
 
       assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress", REXML::XPath.first(xml_doc, "//md:NameIDFormat").text.strip
 
