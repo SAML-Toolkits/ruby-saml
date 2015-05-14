@@ -74,6 +74,19 @@ Using RubyGems
 gem install nokogiri --version '~> 1.5.10'
 ````
 
+### Configuring Logging
+
+When troubleshooting SAML integration issues, you will find it extremely helpful to examine the
+output of this gem's business logic. By default, log messages are emitted to RAILS_DEFAULT_LOGGER
+when the gem is used in a Rails context, and to STDOUT when the gem is used outside of Rails.
+
+To override the default behavior and control the destination of log messages, provide
+a ruby Logger object to the gem's logging singleton:
+
+```ruby
+OneLogin::RubySaml::Logging.logger = Logger.new(File.open('/var/log/ruby-saml.log', 'w')
+```
+
 ## The Initialization Phase
 
 This is the first request you will get from the identity provider. It will hit your application at a specific URL (that you've announced as being your SAML initialization point). The response to this initialization, is a redirect back to the identity provider, which can look something like this (ignore the saml_settings method call for now):
