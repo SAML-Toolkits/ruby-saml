@@ -12,30 +12,45 @@ module OneLogin
     #
     class SloLogoutrequest < SamlMessage
 
+      # OneLogin::RubySaml::Settings Toolkit settings
+      attr_accessor :settings
+
       # Array with the causes [Array of strings]
       attr_accessor :errors
 
-      attr_reader :options
-      attr_reader :request
       attr_reader :document
+      attr_reader :request
+      attr_reader :options
+
+      attr_accessor :soft
 
       # Constructs the Logout Request. A Logout Request Object that is an extension of the SamlMessage class.
       # @param request [String] A UUEncoded Logout Request from the IdP.
-      # @param options [Hash]   Some options for the logout request validation process like allow a clock drift when checking dates with :allowed_clock_drift
+      # @param options [Hash]  :settings to provide the OneLogin::RubySaml::Settings object 
+      #                        Or :allowed_clock_drift for the logout request validation process to allow a clock drift when checking dates with
+      #
       # @raise [ArgumentError] If Request is nil
       #
       def initialize(request, options = {})
         @errors = []
-
         raise ArgumentError.new("Request cannot be nil") if request.nil?
         @options  = options
+
+        @soft = true
+        if !options.empty? || !options[:settings].nil?
+          @settings = options[:settings].settings
+          if !options[:settings].soft.nil? 
+            @soft = options[:settings].soft
+          end
+        end
+
         @request = decode_raw_saml(request)
         @document = REXML::Document.new(@request)
       end
 
       # Append the cause to the errors array, and based on the value of soft, return false or raise
       # an exception
-      def append_error(soft, error_msg)
+      def append_error(error_msg)
         @errors << error_msg
         return soft ? false : validation_error(error_msg)
       end
@@ -50,14 +65,6 @@ module OneLogin
       #
       def is_valid?
         validate
-      end
-
-      # Validates the Logout Request (soft = false)
-      # @return [Boolean] TRUE if the Logout Request is valid
-      # @raise [ValidationError] if validation fails
-      #
-      def validate!
-        validate(false)
       end
 
       # @return [String] Gets the NameID of the Logout Request.
@@ -91,37 +98,34 @@ module OneLogin
       private
 
       # Hard aux function to validate the Logout Request
-      # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout request is invalid or not)
       # @return [Boolean] TRUE if the Logout Request is valid
       # @raise [ValidationError] if soft == false and validation fails
       #
-      def validate(soft = true)
+      def validate
         reset_errors!
 
-        validate_request_state(soft) &&
-        validate_structure(soft)
+        validate_request_state &&
+        validate_structure
       end
 
       # Validates the Logout Request against the specified schema.
-      # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the request is invalid or not)
       # @return [Boolean] True if the XML is valid, otherwise False if soft=True
       # @raise [ValidationError] if soft == false and validation fails 
       #
-      def validate_structure(soft = true)
+      def validate_structure
         unless valid_saml?(document, soft)
-          return append_error(soft, "Invalid SAML Logout Request. Not match the saml-schema-protocol-2.0.xsd")
+          return append_error("Invalid SAML Logout Request. Not match the saml-schema-protocol-2.0.xsd")
         end
 
         true
       end
 
       # Validates that the Logout Request provided in the initialization is not empty, 
-      # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the logout request is invalid or not)
       # @return [Boolean] True if the required info is found, otherwise False if soft=True
       # @raise [ValidationError] if soft == false and validation fails
       #
-      def validate_request_state(soft = true)
-        return append_error(soft, "Blank logout request") if request.empty?
+      def validate_request_state
+        return append_error("Blank logout request") if request.empty?
 
         true
       end
