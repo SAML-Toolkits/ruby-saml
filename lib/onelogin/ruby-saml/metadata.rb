@@ -17,7 +17,7 @@ module OneLogin
       #                               (No pretty print if you gonna validate the signature)
       # @return [String] XML Metadata of the Service Provider
       #
-      def generate(settings, pretty_print=true)
+      def generate(settings, pretty_print=false)
         meta_doc = XMLSecurity::Document.new
         root = meta_doc.add_element "md:EntityDescriptor", {
             "xmlns:md" => "urn:oasis:names:tc:SAML:2.0:metadata"
