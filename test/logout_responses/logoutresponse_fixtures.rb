@@ -9,7 +9,7 @@ def default_logout_response_opts
 end
 
 def valid_logout_response_document(opts = {})
-  opts = default_logout_response_opts.merge!(opts)
+  opts = default_logout_response_opts.merge(opts)
 
   "<samlp:LogoutResponse
         xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\"
@@ -27,7 +27,7 @@ def valid_logout_response_document(opts = {})
 end
 
 def unsuccessful_logout_response_document(opts = {})
-  opts = default_logout_response_opts.merge!(opts)
+  opts = default_logout_response_opts.merge(opts)
 
   "<samlp:LogoutResponse
         xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\"

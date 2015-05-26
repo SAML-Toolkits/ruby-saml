@@ -24,7 +24,7 @@ class RubySamlTest < Minitest::Test
       ampersands_response = OneLogin::RubySaml::Response.new(ampersands_document)
       ampersands_response.settings = settings
       ampersands_response.settings.idp_cert_fingerprint = 'c51985d947f1be57082025050846eb27f6cab783'
-      ampersands_response.is_valid?
+      assert ampersands_response.is_valid?
     end
 
     it "adapt namespace" do
@@ -371,7 +371,7 @@ class RubySamlTest < Minitest::Test
         malicious_response_document = fixture('response_eval', false)
         malicious_response = OneLogin::RubySaml::Response.new(malicious_response_document)
         malicious_response.send(:xpath_first_from_signed_assertion)
-        assert_equal($evalled, nil)
+        assert_nil $evalled
       end
     end
 
@@ -393,7 +393,7 @@ class RubySamlTest < Minitest::Test
         signed_response.settings = settings
         time = Time.parse("2015-03-18T04:50:24Z")
         Time.stubs(:now).returns(time)
-        signed_response.is_valid?
+        assert signed_response.is_valid?
       end
     end
   end
