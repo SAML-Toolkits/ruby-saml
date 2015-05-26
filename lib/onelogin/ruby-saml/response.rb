@@ -23,13 +23,16 @@ module OneLogin
       # Array with the causes [Array of strings]
       attr_accessor :errors
 
-      attr_reader :options
-      attr_reader :response
       attr_reader :document
+      attr_reader :response
+      attr_reader :options
+
+      attr_accessor :soft
 
       # Constructs the SAML Response. A Response Object that is an extension of the SamlMessage class.
       # @param response [String] A UUEncoded SAML response from the IdP.
-      # @param options  [Hash]   Some options for the response validation process like skip the conditions validation
+      # @param options  [Hash]   :settings to provide the OneLogin::RubySaml::Settings object 
+      #                          Or some options for the response validation process like skip the conditions validation
       #                          with the :skip_conditions, or allow a clock_drift when checking dates with :allowed_clock_drift
       #
       def initialize(response, options = {})
@@ -37,13 +40,22 @@ module OneLogin
 
         raise ArgumentError.new("Response cannot be nil") if response.nil?
         @options  = options
+
+        @soft = true
+        if !options.empty? && !options[:settings].nil?
+          @settings = options[:settings]
+          if !options[:settings].soft.nil? 
+            @soft = options[:settings].soft
+          end
+        end
+
         @response = decode_raw_saml(response)
         @document = XMLSecurity::SignedDocument.new(@response, @errors)
       end
 
       # Append the cause to the errors array, and based on the value of soft, return false or raise
       # an exception
-      def append_error(soft, error_msg)
+      def append_error(error_msg)
         @errors << error_msg
         return soft ? false : validation_error(error_msg)
       end
@@ -58,16 +70,6 @@ module OneLogin
       #
       def is_valid?
         validate
-      end
-
-      # Hard aux function to validate the SAML Response (soft = false)
-      # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the response is invalid or not)
-      # @param request_id [String|nil] request_id The ID of the AuthNRequest sent by this SP to the IdP (if was sent any)
-      # @return [Boolean] TRUE if the SAML Response is valid
-      # @raise [ValidationError] if soft == false and validation fails
-      #
-      def validate!
-        validate(false)
       end
 
       # @return [String] the NameID provided by the SAML response from the IdP.
@@ -194,40 +196,37 @@ module OneLogin
       private
 
       # Validates the SAML Response (calls several validation methods)
-      # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the response is invalid or not)
       # @return [Boolean] True if the SAML Response is valid, otherwise False if soft=True
       # @raise [ValidationError] if soft == false and validation fails
       #
-      def validate(soft = true)
+      def validate
         reset_errors!
 
-        validate_response_state(soft) &&
-        validate_structure(soft) &&
-        validate_conditions(soft) &&
-        validate_issuer(soft) &&
+        validate_response_state &&
+        validate_structure &&
+        validate_conditions &&
+        validate_issuer &&
         document.validate_document(settings.get_fingerprint, soft, :fingerprint_alg => settings.idp_cert_fingerprint_algorithm) &&
-        validate_success_status(soft)
+        validate_success_status
       end
 
       # Validates the Status of the SAML Response
-      # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the response is invalid or not)
       # @return [Boolean] True if the SAML Response contains a Success code, otherwise False if soft == false
       # @raise [ValidationError] if soft == false and validation fails
       #
-      def validate_success_status(soft = true)
+      def validate_success_status
         return true if success?
           
-        return append_error(soft, status_message)
+        return append_error(status_message)
       end
 
       # Validates the SAML Response against the specified schema.
-      # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the response is invalid or not)
       # @return [Boolean] True if the XML is valid, otherwise False if soft=True
       # @raise [ValidationError] if soft == false and validation fails 
       #
-      def validate_structure(soft = true)
+      def validate_structure
         unless valid_saml?(document, soft)
-          return append_error(soft, "Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd")
+          return append_error("Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd")
         end
 
         true
@@ -240,12 +239,12 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_response_state(soft = true)
-        return append_error(soft, "Blank response") if response.empty?
+        return append_error("Blank response") if response.empty?
 
-        return append_error(soft, "No settings on response") if settings.nil?
+        return append_error("No settings on response") if settings.nil?
 
         if settings.idp_cert_fingerprint.nil? && settings.idp_cert.nil?
-          return append_error(soft, "No fingerprint or certificate on settings")
+          return append_error("No fingerprint or certificate on settings")
         end
 
         true
@@ -274,11 +273,10 @@ module OneLogin
 
       # Validates the Conditions. (If the response was initialized with the :skip_conditions option, this validation is skipped,
       # If the response was initialized with the :allowed_clock_drift option, the timing validations are relaxed by the allowed_clock_drift value)
-      # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the response is invalid or not)
       # @return [Boolean] True if satisfies the conditions, otherwise False if soft=True
       # @raise [ValidationError] if soft == false and validation fails
       #
-      def validate_conditions(soft = true)
+      def validate_conditions
         return true if conditions.nil?
         return true if options[:skip_conditions]
 
@@ -286,27 +284,26 @@ module OneLogin
 
         if not_before && (now + (options[:allowed_clock_drift] || 0)) < not_before
           error_msg = "Current time is earlier than NotBefore condition #{(now + (options[:allowed_clock_drift] || 0))} < #{not_before})"
-          return append_error(soft, error_msg)
+          return append_error(error_msg)
         end
 
         if not_on_or_after && now >= not_on_or_after
           error_msg = "Current time is on or after NotOnOrAfter condition (#{now} >= #{not_on_or_after})"
-          return append_error(soft, error_msg)
+          return append_error(error_msg)
         end
 
         true
       end
 
       # Validates the Issuer (Of the SAML Response or of the SAML Assertion)
-      # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the response is invalid or not)
       # @return [Boolean] True if the Issuer matchs the IdP entityId, otherwise False if soft=True
       # @raise [ValidationError] if soft == false and validation fails
       #
-      def validate_issuer(soft = true)
+      def validate_issuer
         return true if settings.idp_entity_id.nil?
 
         unless URI.parse(issuer) == URI.parse(settings.idp_entity_id)
-          return append_error(soft, "Doesn't match the issuer, expected: <#{settings.idp_entity_id}>, but was: <#{issuer}>")
+          return append_error("Doesn't match the issuer, expected: <#{settings.idp_entity_id}>, but was: <#{issuer}>")
         end
         true
       end

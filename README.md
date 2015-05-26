@@ -109,7 +109,7 @@ In the above there are a few assumptions in place, one being that the response.n
 def saml_settings
   settings = OneLogin::RubySaml::Settings.new
 
-  settings.assertion_consumer_service_url = "http://#{request.host}/saml/finalize"
+  settings.assertion_consumer_service_url = "http://#{request.host}/saml/consume"
   settings.issuer                         = "http://#{request.host}/saml/metadata"
   settings.idp_sso_target_url             = "https://app.onelogin.com/saml/metadata/#{OneLoginAppId}"
   settings.idp_entity_id                  = "https://app.onelogin.com/saml/metadata/#{OneLoginAppId}"
