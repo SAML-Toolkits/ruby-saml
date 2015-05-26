@@ -24,7 +24,7 @@ class RubySamlTest < Minitest::Test
       ampersands_response = OneLogin::RubySaml::Response.new(ampersands_document)
       ampersands_response.settings = settings
       ampersands_response.settings.idp_cert_fingerprint = 'c51985d947f1be57082025050846eb27f6cab783'
-      ampersands_response.validate!
+      ampersands_response.is_valid?
     end
 
     it "adapt namespace" do
@@ -48,10 +48,11 @@ class RubySamlTest < Minitest::Test
       end
     end
 
-    describe "#validate!" do
+    describe "#is_valid?" do
       it "raise when encountering a condition that prevents the document from being valid" do
+        response.soft = false
         assert_raises(OneLogin::RubySaml::ValidationError) do
-          response.validate!
+          response.is_valid?
         end
       end
 
@@ -59,8 +60,9 @@ class RubySamlTest < Minitest::Test
         settings.idp_cert_fingerprint = nil
         settings.idp_cert = nil
         response.settings = settings
+        response.soft = false
         assert_raises(OneLogin::RubySaml::ValidationError, "No fingerprint or certificate on settings") do
-          response.validate!
+          response.is_valid?
         end
       end
 
@@ -68,13 +70,15 @@ class RubySamlTest < Minitest::Test
 
     describe "#validate_structure" do
       it "false when encountering a mailformed element that prevents the document from being valid" do
-        response_without_attributes.send(:validate_structure, true)
+        response_without_attributes.soft = true
+        response_without_attributes.send(:validate_structure)
         assert response_without_attributes.errors.include? "Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd"
       end
 
       it "raise when encountering a mailformed element that prevents the document from being valid" do
+        response_without_attributes.soft = false
         assert_raises(OneLogin::RubySaml::ValidationError) {
-          response_without_attributes.send(:validate_structure, false)
+          response_without_attributes.send(:validate_structure)
         }
       end
     end
@@ -82,10 +86,12 @@ class RubySamlTest < Minitest::Test
     describe "#is_valid?" do
       it "return false when response is initialized with blank data" do
         blank_response = OneLogin::RubySaml::Response.new('')
+        blank_response.soft = true
         assert !blank_response.is_valid?
       end
 
       it "return false if settings have not been set" do
+        response.soft = true
         assert !response.is_valid?
       end
 
@@ -134,7 +140,8 @@ class RubySamlTest < Minitest::Test
         no_signature_response.settings = settings
         no_signature_response.settings.idp_cert_fingerprint = "28:74:9B:E8:1F:E8:10:9C:A8:7C:A9:C3:E3:C5:01:6C:92:1C:B4:BA"
         XMLSecurity::SignedDocument.any_instance.expects(:validate_signature).returns(true)
-        assert no_signature_response.validate!
+        no_signature_response.soft = true
+        assert no_signature_response.is_valid?
       end
 
       it "validate ADFS assertions" do
@@ -142,7 +149,8 @@ class RubySamlTest < Minitest::Test
         adfs_response.stubs(:conditions).returns(nil)
         settings.idp_cert_fingerprint = "28:74:9B:E8:1F:E8:10:9C:A8:7C:A9:C3:E3:C5:01:6C:92:1C:B4:BA"
         adfs_response.settings = settings
-        assert adfs_response.validate!
+        adfs_response.soft = true
+        assert adfs_response.is_valid?
       end
 
       it "validate the digest" do
@@ -150,7 +158,7 @@ class RubySamlTest < Minitest::Test
         response_with_signed_assertion_2.stubs(:conditions).returns(nil)
         settings.idp_cert = Base64.decode64(certificate_without_head_foot)
         response_with_signed_assertion_2.settings = settings
-        assert response_with_signed_assertion_2.validate!
+        assert response_with_signed_assertion_2.is_valid?
       end
 
       it "validate SAML 2.0 XML structure" do
@@ -159,7 +167,8 @@ class RubySamlTest < Minitest::Test
         response_unsigned_mod.stubs(:conditions).returns(nil)
         settings.idp_cert_fingerprint = signature_fingerprint_1
         response_unsigned_mod.settings = settings
-        assert_raises(OneLogin::RubySaml::ValidationError, 'Digest mismatch'){ response_unsigned_mod.validate! }
+        response_unsigned_mod.soft = false
+        assert_raises(OneLogin::RubySaml::ValidationError, 'Digest mismatch'){ response_unsigned_mod.is_valid? }
       end
     end
 
@@ -182,23 +191,28 @@ class RubySamlTest < Minitest::Test
 
     describe "#check_conditions" do
       it "check time conditions" do
-        assert !response.send(:validate_conditions, true)
+        response.soft = true
+        assert !response.send(:validate_conditions)
         response_time_updated = OneLogin::RubySaml::Response.new(response_document_without_recipient_with_time_updated)
-        assert response_time_updated.send(:validate_conditions, true)
+        response_time_updated.soft = true
+        assert response_time_updated.send(:validate_conditions)
         time = Time.parse("2011-06-14T18:25:01.516Z")
         Time.stubs(:now).returns(time)
         response_with_saml2_namespace = OneLogin::RubySaml::Response.new(response_document_with_saml2_namespace)
-        assert response_with_saml2_namespace.send(:validate_conditions, true)
+        response_with_saml2_namespace.soft = true
+        assert response_with_saml2_namespace.send(:validate_conditions)
       end
 
       it "optionally allows for clock drift" do
         # The NotBefore condition in the document is 2011-06-14T18:21:01.516Z
         Timecop.freeze(Time.parse("2011-06-14T18:21:01Z")) do
+          settings.soft = true
           special_response_with_saml2_namespace = OneLogin::RubySaml::Response.new(
             response_document_with_saml2_namespace,
-            :allowed_clock_drift => 0.515
+            :allowed_clock_drift => 0.515,
+            :settings => settings
           )
-          assert !special_response_with_saml2_namespace.send(:validate_conditions, true)
+          assert !special_response_with_saml2_namespace.send(:validate_conditions)
         end
 
         Timecop.freeze(Time.parse("2011-06-14T18:21:01Z")) do
@@ -206,7 +220,7 @@ class RubySamlTest < Minitest::Test
             response_document_with_saml2_namespace,
             :allowed_clock_drift => 0.516
           )
-          assert special_response_with_saml2_namespace.send(:validate_conditions, true)
+          assert special_response_with_saml2_namespace.send(:validate_conditions)
         end
       end
     end
@@ -379,7 +393,7 @@ class RubySamlTest < Minitest::Test
         signed_response.settings = settings
         time = Time.parse("2015-03-18T04:50:24Z")
         Time.stubs(:now).returns(time)
-        signed_response.validate!
+        signed_response.is_valid?
       end
     end
   end

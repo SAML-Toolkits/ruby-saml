@@ -166,7 +166,7 @@ class XmlSecurityTest < Minitest::Test
         response.settings = settings
         assert !response.is_valid?
         settings.idp_cert_fingerprint = "e6 38 9a 20 b7 4f 13 db 6a bc b1 42 6a e7 52 1d d6 56 d4 1b".upcase.gsub(" ", ":")
-        assert response.validate!
+        assert response.is_valid?
       end
 
       it "return an empty list when inclusive namespace element is missing" do
@@ -240,7 +240,7 @@ class XmlSecurityTest < Minitest::Test
 
       it "be able to validate a good response" do
         Timecop.freeze Time.parse('2012-11-28 17:55:00 UTC') do
-          assert @response.validate!
+          assert @response.is_valid?
         end
       end
 
