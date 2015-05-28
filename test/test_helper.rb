@@ -1,3 +1,10 @@
+require 'simplecov'
+
+SimpleCov.start do
+ add_filter "test/"
+ add_filter "lib/onelogin/ruby-saml/logging.rb"
+end
+
 require 'rubygems'
 require 'bundler'
 require 'minitest/autorun'
