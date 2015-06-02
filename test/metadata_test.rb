@@ -112,6 +112,26 @@ class MetadataTest < Minitest::Test
         assert_equal "Friendly Name", req_attr.attribute("FriendlyName").value
         assert_equal "Attribute Value", REXML::XPath.first(xml_doc, "//md:AttributeValue").text.strip
       end
+
+      describe "#service_name" do
+        before do
+          settings.attribute_consuming_service.service_name("Test2 Service")
+        end
+
+        it "change service name" do
+          assert_equal REXML::XPath.first(xml_doc, "//md:ServiceName").text.strip, "Test2 Service"
+        end
+      end
+
+      describe "#service_index" do
+        before do
+          settings.attribute_consuming_service.service_index(2)
+        end
+
+        it "change service index" do
+          assert_equal "2", attr_svc.attribute("index").value
+        end
+      end
     end
 
     describe "when the settings indicate to sign (embedded) metadata" do
