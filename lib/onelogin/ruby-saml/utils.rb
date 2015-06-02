@@ -77,11 +77,11 @@ module OneLogin
       def self.status_error_msg(error_msg, status_code = nil, status_message = nil)
         unless status_code.nil?
           printable_code = status_code.split(':').last
-          error_msg += ', was ' + printable_code
+          error_msg << ', was ' + printable_code
         end
 
         unless status_message.nil?
-          error_msg += ' -> ' + status_message
+          error_msg << ' -> ' + status_message
         end
 
         error_msg

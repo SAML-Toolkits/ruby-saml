@@ -109,6 +109,19 @@ class Minitest::Test
     @logout_request_document
   end
 
+  def logout_request_xml_with_session_index
+    @logout_request_xml_with_session_index ||= File.read(File.join(File.dirname(__FILE__), 'logout_requests', 'slo_request_with_session_index.xml'))
+  end
+
+  def invalid_logout_request_document
+    unless @invalid_logout_request_document
+      xml = File.read(File.join(File.dirname(__FILE__), 'logout_requests', 'invalid_slo_request.xml'))
+      deflated = Zlib::Deflate.deflate(xml, 9)[2..-5]
+      @invalid_logout_request_document = Base64.encode64(deflated)
+    end
+    @invalid_logout_request_document
+  end
+
   def ruby_saml_cert
     @ruby_saml_cert ||= OpenSSL::X509::Certificate.new(ruby_saml_cert_text)
   end

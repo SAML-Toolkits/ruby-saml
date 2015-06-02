@@ -30,6 +30,32 @@ module OneLogin
         end
       end
 
+      # @return [String|nil] Gets the Version attribute from the SAML Message if exists.
+      #
+      def version(document)
+        @version ||= begin
+          node = REXML::XPath.first(
+            document,
+            "/p:AuthnRequest | /p:Response | /p:LogoutResponse | /p:LogoutRequest",
+            { "p" => PROTOCOL }
+          )
+          node.nil? ? nil : node.attributes['Version']
+        end
+      end
+
+      # @return [String|nil] Gets the ID attribute from the SAML Message if exists.
+      #
+      def id(document)
+        @id ||= begin
+          node = REXML::XPath.first(
+            document,
+            "/p:AuthnRequest | /p:Response | /p:LogoutResponse | /p:LogoutRequest",
+            { "p" => PROTOCOL }
+          )
+          node.nil? ? nil : node.attributes['ID']
+        end
+      end
+
       # Validates the SAML Message against the specified schema.
       # @param document [REXML::Document] The message that will be validated
       # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the message is invalid or not)
