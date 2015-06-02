@@ -77,6 +77,24 @@ class SettingsTest < Minitest::Test
       assert_equal new_settings.security[:signature_method], XMLSecurity::Document::RSA_SHA1
     end
 
+    describe "#single_logout_service_url" do
+      it "when single_logout_service_url is nil but assertion_consumer_logout_service_url returns its value" do
+        settings.single_logout_service_url = nil
+        settings.assertion_consumer_logout_service_url = "http://app.muda.no/sls"
+
+        assert_equal "http://app.muda.no/sls", settings.single_logout_service_url
+      end
+    end
+
+    describe "#single_logout_service_binding" do
+      it "when single_logout_service_binding is nil but assertion_consumer_logout_service_binding returns its value" do
+        settings.single_logout_service_binding = nil
+        settings.assertion_consumer_logout_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+
+        assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", settings.single_logout_service_binding
+      end
+    end    
+
     describe "#get_idp_cert" do
       it "returns nil when the cert is an empty string" do
         @settings = OneLogin::RubySaml::Settings.new

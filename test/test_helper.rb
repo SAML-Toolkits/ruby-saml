@@ -122,6 +122,14 @@ class Minitest::Test
     @invalid_logout_request_document
   end
 
+  def logout_request_base64
+    @logout_request_base64 ||= File.read(File.join(File.dirname(__FILE__), 'logout_requests', 'slo_request.xml.base64'))
+  end
+
+  def logout_request_deflated_base64
+    @logout_request_deflated_base64 ||= File.read(File.join(File.dirname(__FILE__), 'logout_requests', 'slo_request_deflated.xml.base64'))
+  end
+
   def ruby_saml_cert
     @ruby_saml_cert ||= OpenSSL::X509::Certificate.new(ruby_saml_cert_text)
   end
