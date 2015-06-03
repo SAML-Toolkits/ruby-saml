@@ -39,6 +39,10 @@ class Minitest::Test
     File.read(File.join(File.dirname(__FILE__), "certificates", certificate))
   end
 
+  def response_document_valid_signed
+    @response_document_valid_signed ||= read_response("valid_response.xml.base64")
+  end
+
   def response_document_without_recipient
     @response_document_without_recipient ||= read_response("response_with_undefined_recipient.xml.base64")
   end
@@ -80,6 +84,10 @@ class Minitest::Test
 
   def response_document_wrapped
     @response_document_wrapped ||= read_response("response_wrapped.xml.base64")
+  end
+
+  def response_document_assertion_wrapped
+    @response_document_assertion_wrapped ||= read_response("response_assertion_wrapped.xml.base64")
   end
 
   def signature_fingerprint_1

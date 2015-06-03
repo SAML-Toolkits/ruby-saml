@@ -40,7 +40,7 @@ class XmlSecurityTest < Minitest::Test
         document.validate_document("no:fi:ng:er:pr:in:t", false)
       end
       assert_equal("Fingerprint mismatch", exception.message)
-      assert document.errors.include? "Fingerprint mismatch"
+      assert_includes document.errors, "Fingerprint mismatch"
     end
 
     it "should raise Digest mismatch" do
@@ -48,7 +48,7 @@ class XmlSecurityTest < Minitest::Test
         document.validate_signature(@base64cert, false)
       end
       assert_equal("Digest mismatch", exception.message)
-      assert document.errors.include? "Digest mismatch"
+      assert_includes document.errors, "Digest mismatch"
     end
 
     it "should raise Key validation error" do
@@ -60,7 +60,7 @@ class XmlSecurityTest < Minitest::Test
         mod_document.validate_signature(base64cert, false)
       end
       assert_equal("Key validation error", exception.message)
-      assert mod_document.errors.include? "Key validation error"
+      assert_includes mod_document.errors, "Key validation error"
     end
 
     it "correctly obtain the digest method with alternate namespace declaration" do
@@ -77,6 +77,52 @@ class XmlSecurityTest < Minitest::Test
       end
       assert_equal("Certificate element missing in response (ds:X509Certificate)", exception.message)
     end
+  end
+
+  describe "#canon_algorithm" do
+    it "C14N_EXCLUSIVE_1_0" do
+      canon_algorithm = Nokogiri::XML::XML_C14N_EXCLUSIVE_1_0
+      assert_equal canon_algorithm, XMLSecurity::BaseDocument.new.canon_algorithm("http://www.w3.org/2001/10/xml-exc-c14n#")
+      assert_equal canon_algorithm, XMLSecurity::BaseDocument.new.canon_algorithm("http://www.w3.org/2001/10/xml-exc-c14n#WithComments")
+      assert_equal canon_algorithm, XMLSecurity::BaseDocument.new.canon_algorithm("other")
+    end
+
+    it "C14N_1_0" do
+      canon_algorithm = Nokogiri::XML::XML_C14N_1_0
+      assert_equal canon_algorithm, XMLSecurity::BaseDocument.new.canon_algorithm("http://www.w3.org/TR/2001/REC-xml-c14n-20010315")
+    end
+
+    it "XML_C14N_1_1" do
+      canon_algorithm = Nokogiri::XML::XML_C14N_1_1
+      assert_equal canon_algorithm, XMLSecurity::BaseDocument.new.canon_algorithm("http://www.w3.org/2006/12/xml-c14n11")
+    end
+  end
+
+  describe "#algorithm" do    
+    it "SHA1" do
+      alg = OpenSSL::Digest::SHA1
+      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2000/09/xmldsig#rsa-sha1")
+      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2000/09/xmldsig#sha1")
+      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("other")
+    end
+
+    it "SHA256" do
+      alg = OpenSSL::Digest::SHA256
+      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#rsa-sha256")
+      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#sha256")
+    end
+
+    it "SHA384" do
+      alg = OpenSSL::Digest::SHA384
+      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#rsa-sha384")
+      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#sha384")
+    end
+
+    it "SHA512" do
+      alg = OpenSSL::Digest::SHA512
+      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#rsa-sha512")
+      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#sha512")
+    end        
   end
 
   describe "Fingerprint Algorithms" do
@@ -194,10 +240,15 @@ class XmlSecurityTest < Minitest::Test
       it "sign an AuthNRequest" do
         request = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
         request.sign_document(ruby_saml_key, ruby_saml_cert)
-
         # verify our signature
         signed_doc = XMLSecurity::SignedDocument.new(request.to_s)
         assert signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
+
+        request2 = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+        request2.sign_document(ruby_saml_key, ruby_saml_cert_text)
+        # verify our signature
+        signed_doc2 = XMLSecurity::SignedDocument.new(request2.to_s)
+        assert signed_doc2.validate_document(ruby_saml_cert_fingerprint, false)
       end
 
       it "sign an AuthNRequest with certificate as text" do
@@ -212,19 +263,31 @@ class XmlSecurityTest < Minitest::Test
       it "sign a LogoutRequest" do
         logout_request = OneLogin::RubySaml::Logoutrequest.new.create_logout_request_xml_doc(settings)
         logout_request.sign_document(ruby_saml_key, ruby_saml_cert)
-
         # verify our signature
         signed_doc = XMLSecurity::SignedDocument.new(logout_request.to_s)
         assert signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
+
+        logout_request2 = OneLogin::RubySaml::Logoutrequest.new.create_logout_request_xml_doc(settings)
+        logout_request2.sign_document(ruby_saml_key, ruby_saml_cert_text)
+        # verify our signature
+        signed_doc2 = XMLSecurity::SignedDocument.new(logout_request2.to_s)
+        signed_doc2.validate_document(ruby_saml_cert_fingerprint, false)        
+        assert signed_doc2.validate_document(ruby_saml_cert_fingerprint, false)
       end
 
       it "sign a LogoutResponse" do
         logout_response = OneLogin::RubySaml::SloLogoutresponse.new.create_logout_response_xml_doc(settings, 'request_id_example', "Custom Logout Message")
         logout_response.sign_document(ruby_saml_key, ruby_saml_cert)
-
         # verify our signature
         signed_doc = XMLSecurity::SignedDocument.new(logout_response.to_s)
         assert signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
+
+        logout_response2 = OneLogin::RubySaml::SloLogoutresponse.new.create_logout_response_xml_doc(settings, 'request_id_example', "Custom Logout Message")
+        logout_response2.sign_document(ruby_saml_key, ruby_saml_cert_text)
+        # verify our signature
+        signed_doc2 = XMLSecurity::SignedDocument.new(logout_response2.to_s)
+        signed_doc2.validate_document(ruby_saml_cert_fingerprint, false)        
+        assert signed_doc2.validate_document(ruby_saml_cert_fingerprint, false)
       end
     end
 
@@ -237,19 +300,28 @@ class XmlSecurityTest < Minitest::Test
 
       it "be able to validate a good response" do
         Timecop.freeze Time.parse('2012-11-28 17:55:00 UTC') do
+          response.stubs(:validate_subject_confirmation).returns(true)
           assert response.is_valid?
         end
       end
 
       it "fail before response is valid" do
         Timecop.freeze Time.parse('2012-11-20 17:55:00 UTC') do
-          assert ! response.is_valid?
+          assert !response.is_valid?
+
+          contains_expected_error = response.errors.include? "Current time is earlier than NotBefore condition 2012-11-20 17:55:00 UTC < 2012-11-28 17:53:45 UTC)"
+          contains_expected_error ||= response.errors.include? "Current time is earlier than NotBefore condition Tue Nov 20 17:55:00 UTC 2012 < Wed Nov 28 17:53:45 UTC 2012)"
+          assert contains_expected_error
         end
       end
 
       it "fail after response expires" do
         Timecop.freeze Time.parse('2012-11-30 17:55:00 UTC') do
-          assert ! response.is_valid?
+          assert !response.is_valid?
+
+          contains_expected_error = response.errors.include? "Current time is on or after NotOnOrAfter condition (2012-11-30 17:55:00 UTC >= 2012-11-28 18:33:45 UTC)"
+          contains_expected_error ||= response.errors.include? "Current time is on or after NotOnOrAfter condition (Fri Nov 30 17:55:00 UTC 2012 >= Wed Nov 28 18:33:45 UTC 2012)"
+          assert contains_expected_error
         end
       end
     end

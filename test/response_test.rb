@@ -12,6 +12,7 @@ class RubySamlTest < Minitest::Test
     let(:response_unsigned) { OneLogin::RubySaml::Response.new(response_document_unsigned) }
     let(:response_wrapped) { OneLogin::RubySaml::Response.new(response_document_wrapped) }
     let(:response_multiple_attr_values) { OneLogin::RubySaml::Response.new(fixture(:response_with_multiple_attribute_values)) }
+    let(:response_valid_signed) { OneLogin::RubySaml::Response.new(response_document_valid_signed) }
 
     it "raise an exception when response is initialized with nil" do
       assert_raises(ArgumentError) { OneLogin::RubySaml::Response.new(nil) }
@@ -24,7 +25,9 @@ class RubySamlTest < Minitest::Test
       ampersands_response = OneLogin::RubySaml::Response.new(ampersands_document)
       ampersands_response.settings = settings
       ampersands_response.settings.idp_cert_fingerprint = 'c51985d947f1be57082025050846eb27f6cab783'
-      assert ampersands_response.is_valid?
+
+      assert !ampersands_response.is_valid?
+      assert_includes ampersands_response.errors, "SAML Response must contain 1 assertion"
     end
 
     it "adapt namespace" do
@@ -96,12 +99,15 @@ class RubySamlTest < Minitest::Test
       end
 
       it "return true when the response is initialized with valid data" do
-        response_unsigned.stubs(:conditions).returns(nil)
-        assert !response_unsigned.is_valid?
-        response_unsigned.settings = settings
-        assert !response_unsigned.is_valid?
-        response_unsigned.settings.idp_cert_fingerprint = signature_fingerprint_1
-        assert response_unsigned.is_valid?
+        response_valid_signed.stubs(:conditions).returns(nil)
+        assert !response_valid_signed.is_valid?
+        assert_includes response_valid_signed.errors, "No settings on response"
+        response_valid_signed.settings = settings
+        assert !response_valid_signed.is_valid?
+        assert_includes response_valid_signed.errors, "No fingerprint or certificate on settings"
+        response_valid_signed.settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
+        assert response_valid_signed.is_valid?
+        assert_empty response_valid_signed.errors
       end
 
       it "should be idempotent when the response is initialized with invalid data" do
@@ -112,53 +118,46 @@ class RubySamlTest < Minitest::Test
       end
 
       it "should be idempotent when the response is initialized with valid data" do
-        response_unsigned.stubs(:conditions).returns(nil)
-        response_unsigned.settings = settings
-        response_unsigned.settings.idp_cert_fingerprint = signature_fingerprint_1
-        assert response_unsigned.is_valid?
-        assert response_unsigned.is_valid?
+        response_valid_signed.stubs(:conditions).returns(nil)
+        response_valid_signed.settings = settings
+        response_valid_signed.settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
+        assert response_valid_signed.is_valid?
+        assert response_valid_signed.is_valid?
       end
 
       it "return true when using certificate instead of fingerprint" do
-        response_unsigned.stubs(:conditions).returns(nil)
-        response_unsigned.settings = settings
-        response_unsigned.settings.idp_cert = signature_1
-        assert response_unsigned.is_valid?
+        response_valid_signed.stubs(:conditions).returns(nil)
+        response_valid_signed.settings = settings
+        response_valid_signed.settings.idp_cert = ruby_saml_cert_text
+        assert response_valid_signed.is_valid?
       end
 
       it "not allow signature wrapping attack" do
-        response_unsigned.stubs(:conditions).returns(nil)
+        response_wrapped.stubs(:conditions).returns(nil)
+        response_wrapped.stubs(:validate_subject_confirmation).returns(true)
         settings.idp_cert_fingerprint = signature_fingerprint_1
-        response_unsigned.settings = settings
-        assert response_unsigned.is_valid?
-        assert_equal response_unsigned.name_id, "test@onelogin.com"
+        response_wrapped.settings = settings
+        assert !response_wrapped.is_valid?
       end
 
       it "support dynamic namespace resolution on signature elements" do
         no_signature_response = OneLogin::RubySaml::Response.new(fixture("no_signature_ns.xml"))
         no_signature_response.stubs(:conditions).returns(nil)
+        no_signature_response.stubs(:validate_subject_confirmation).returns(true)
         no_signature_response.settings = settings
         no_signature_response.settings.idp_cert_fingerprint = "28:74:9B:E8:1F:E8:10:9C:A8:7C:A9:C3:E3:C5:01:6C:92:1C:B4:BA"
         XMLSecurity::SignedDocument.any_instance.expects(:validate_signature).returns(true)
-        no_signature_response.soft = true
         assert no_signature_response.is_valid?
       end
 
       it "validate ADFS assertions" do
         adfs_response = OneLogin::RubySaml::Response.new(fixture(:adfs_response_sha256))
         adfs_response.stubs(:conditions).returns(nil)
+        adfs_response.stubs(:validate_subject_confirmation).returns(true)
         settings.idp_cert_fingerprint = "28:74:9B:E8:1F:E8:10:9C:A8:7C:A9:C3:E3:C5:01:6C:92:1C:B4:BA"
         adfs_response.settings = settings
         adfs_response.soft = true
         assert adfs_response.is_valid?
-      end
-
-      it "validate the digest" do
-        response_with_signed_assertion_2 = OneLogin::RubySaml::Response.new(response_document_with_signed_assertion_2)
-        response_with_signed_assertion_2.stubs(:conditions).returns(nil)
-        settings.idp_cert = Base64.decode64(certificate_without_head_foot)
-        response_with_signed_assertion_2.settings = settings
-        assert response_with_signed_assertion_2.is_valid?
       end
 
       it "validate SAML 2.0 XML structure" do
@@ -350,13 +349,13 @@ class RubySamlTest < Minitest::Test
       end
     end
 
-    describe "#issuer" do
+    describe "#issuers" do
       it "return the issuer inside the response assertion" do
-        assert_equal "https://app.onelogin.com/saml/metadata/13590", response.issuer
+        assert_includes response.issuers, "https://app.onelogin.com/saml/metadata/13590"
       end
 
       it "return the issuer inside the response" do
-        assert_equal "wibble", response_without_attributes.issuer
+        assert_includes response_without_attributes.issuers, "wibble"
       end
     end
 
