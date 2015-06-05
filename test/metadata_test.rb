@@ -36,7 +36,24 @@ class MetadataTest < Minitest::Test
     end
 
     it "generates Service Provider Metadata" do
-      # assert correct xml declaration
+      settings.single_logout_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+      settings.single_logout_service_url = "https://foo.example/saml/sls"
+      xml_metadata = OneLogin::RubySaml::Metadata.new.generate(settings, false)
+
+      start = "<?xml version='1.0' encoding='UTF-8'?><md:EntityDescriptor"
+      assert_equal xml_metadata[0..start.length-1],start
+
+      doc_metadata = REXML::Document.new(xml_metadata)
+      sls = REXML::XPath.first(doc_metadata, "//md:SingleLogoutService")
+
+      assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", sls.attribute("Binding").value
+      assert_equal "https://foo.example/saml/sls", sls.attribute("Location").value
+      assert_equal "https://foo.example/saml/sls", sls.attribute("ResponseLocation").value
+      assert sls.attribute("isDefault").value
+      assert_equal "0", sls.attribute("index").value
+    end
+
+    it "generates Service Provider Metadata with single logout service" do
       start = "<?xml version='1.0' encoding='UTF-8'?><md:EntityDescriptor"
       assert_equal xml_text[0..start.length-1], start
 
@@ -94,6 +111,26 @@ class MetadataTest < Minitest::Test
         assert_equal "Name Format", req_attr.attribute("NameFormat").value
         assert_equal "Friendly Name", req_attr.attribute("FriendlyName").value
         assert_equal "Attribute Value", REXML::XPath.first(xml_doc, "//md:AttributeValue").text.strip
+      end
+
+      describe "#service_name" do
+        before do
+          settings.attribute_consuming_service.service_name("Test2 Service")
+        end
+
+        it "change service name" do
+          assert_equal REXML::XPath.first(xml_doc, "//md:ServiceName").text.strip, "Test2 Service"
+        end
+      end
+
+      describe "#service_index" do
+        before do
+          settings.attribute_consuming_service.service_index(2)
+        end
+
+        it "change service index" do
+          assert_equal "2", attr_svc.attribute("index").value
+        end
       end
     end
 

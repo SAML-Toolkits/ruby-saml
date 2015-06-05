@@ -39,6 +39,10 @@ class Minitest::Test
     File.read(File.join(File.dirname(__FILE__), "certificates", certificate))
   end
 
+  def response_document_valid_signed
+    @response_document_valid_signed ||= read_response("valid_response.xml.base64")
+  end
+
   def response_document_without_recipient
     @response_document_without_recipient ||= read_response("response_with_undefined_recipient.xml.base64")
   end
@@ -82,6 +86,10 @@ class Minitest::Test
     @response_document_wrapped ||= read_response("response_wrapped.xml.base64")
   end
 
+  def response_document_assertion_wrapped
+    @response_document_assertion_wrapped ||= read_response("response_assertion_wrapped.xml.base64")
+  end
+
   def signature_fingerprint_1
     @signature_fingerprint1 ||= "C5:19:85:D9:47:F1:BE:57:08:20:25:05:08:46:EB:27:F6:CA:B7:83"
   end
@@ -107,6 +115,27 @@ class Minitest::Test
       @logout_request_document = Base64.encode64(deflated)
     end
     @logout_request_document
+  end
+
+  def logout_request_xml_with_session_index
+    @logout_request_xml_with_session_index ||= File.read(File.join(File.dirname(__FILE__), 'logout_requests', 'slo_request_with_session_index.xml'))
+  end
+
+  def invalid_logout_request_document
+    unless @invalid_logout_request_document
+      xml = File.read(File.join(File.dirname(__FILE__), 'logout_requests', 'invalid_slo_request.xml'))
+      deflated = Zlib::Deflate.deflate(xml, 9)[2..-5]
+      @invalid_logout_request_document = Base64.encode64(deflated)
+    end
+    @invalid_logout_request_document
+  end
+
+  def logout_request_base64
+    @logout_request_base64 ||= File.read(File.join(File.dirname(__FILE__), 'logout_requests', 'slo_request.xml.base64'))
+  end
+
+  def logout_request_deflated_base64
+    @logout_request_deflated_base64 ||= File.read(File.join(File.dirname(__FILE__), 'logout_requests', 'slo_request_deflated.xml.base64'))
   end
 
   def ruby_saml_cert
