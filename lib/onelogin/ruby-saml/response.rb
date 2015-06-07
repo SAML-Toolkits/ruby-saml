@@ -421,7 +421,7 @@ module OneLogin
         return true if options[:matches_request_id].nil? || options[:matches_request_id].empty?
         return true unless options[:matches_request_id] != in_response_to
 
-        error_msg = "The InResponseTo of the Response: #{in_response_to}, does not match the ID of the AuthNRequest sent by the SP: #{request_id}"
+        error_msg = "The InResponseTo of the Response: #{in_response_to}, does not match the ID of the AuthNRequest sent by the SP: #{options[:matches_request_id]}"
         append_error(error_msg)
       end
 
