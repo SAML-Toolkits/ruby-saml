@@ -259,8 +259,8 @@ module OneLogin
         reset_errors!
 
         validate_response_state &&
-        validate_id &&
         validate_version &&
+        validate_id &&
         validate_success_status &&
         validate_num_assertion &&
         validate_no_encrypted_attributes &&
@@ -549,7 +549,9 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_signature
-        unless document.validate_document(settings.get_fingerprint, soft, :fingerprint_alg => settings.idp_cert_fingerprint_algorithm)
+        fingerprint = settings.get_fingerprint
+
+        unless fingerprint && document.validate_document(fingerprint, soft, :fingerprint_alg => settings.idp_cert_fingerprint_algorithm)
           error_msg = "Invalid Signature on SAML Response"
           return append_error(error_msg)
         end
