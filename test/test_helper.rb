@@ -31,6 +31,10 @@ class Minitest::Test
     File.read(File.join(File.dirname(__FILE__), "responses", response))
   end
 
+  def read_invalid_response(response)
+    File.read(File.join(File.dirname(__FILE__), "responses", "invalids", response))
+  end
+
   def read_logout_request(request)
     File.read(File.join(File.dirname(__FILE__), "logout_requests", request))
   end
