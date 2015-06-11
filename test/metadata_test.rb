@@ -70,24 +70,41 @@ class MetadataTest < Minitest::Test
     end
 
     describe "when auth requests are signed" do
-      let(:cert_node) do
-        REXML::XPath.first(
+      let(:key_descriptors) do
+        REXML::XPath.match(
+          xml_doc,
+          "//md:KeyDescriptor",
+          "md" => "urn:oasis:names:tc:SAML:2.0:metadata"
+        )
+      end
+      let(:cert_nodes) do
+        REXML::XPath.match(
           xml_doc,
           "//md:KeyDescriptor/ds:KeyInfo/ds:X509Data/ds:X509Certificate",
           "md" => "urn:oasis:names:tc:SAML:2.0:metadata",
           "ds" => "http://www.w3.org/2000/09/xmldsig#"
         )
       end
-      let(:cert)  { OpenSSL::X509::Certificate.new(Base64.decode64(cert_node.text)) }
+      let(:cert)  { OpenSSL::X509::Certificate.new(Base64.decode64(cert_nodes[0].text)) }
 
       before do
-        settings.security[:authn_requests_signed] = true
         settings.certificate = ruby_saml_cert_text
       end
 
-      it "generates Service Provider Metadata with X509Certificate" do
+      it "generates Service Provider Metadata with AuthnRequestsSigned" do
+        settings.security[:authn_requests_signed] = true
         assert_equal "true", spsso_descriptor.attribute("AuthnRequestsSigned").value
         assert_equal ruby_saml_cert.to_der, cert.to_der
+      end
+
+      it "generates Service Provider Metadata with X509Certificate for sign and encrypt" do
+        assert_equal 2, key_descriptors.length
+        assert_equal "signing", key_descriptors[0].attribute("use").value
+        assert_equal "encryption", key_descriptors[1].attribute("use").value
+
+        assert_equal 2, cert_nodes.length
+        assert_equal ruby_saml_cert.to_der, cert.to_der
+        assert_equal cert_nodes[0].text, cert_nodes[1].text
       end
     end
 

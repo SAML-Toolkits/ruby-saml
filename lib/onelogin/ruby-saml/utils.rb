@@ -4,6 +4,10 @@ module OneLogin
     # SAML2 Auxiliary class
     #    
     class Utils
+
+      DSIG      = "http://www.w3.org/2000/09/xmldsig#"
+      XENC      = "http://www.w3.org/2001/04/xmlenc#"
+
       # Return a properly formatted x509 certificate
       #
       # @param cert [String] The original certificate
@@ -86,6 +90,64 @@ module OneLogin
 
         error_msg
       end
+
+      # Obtains the decrypted string from an Encrypted element
+      # @param encrypted_node [REXML::Element]     The Encrypted element
+      # @param private_key    [OpenSSL::PKey::RSA] The Service provider private key
+      # @return [String] The decrypted data
+      def self.decrypt_data(encrypted_node, private_key)
+        cipher_data = REXML::XPath.first(encrypted_node, "./xenc:EncryptedData", { 'xenc' => XENC })
+        symmetric_key = retrieve_symmetric_key(cipher_data, private_key)
+        cipher_value = REXML::XPath.first(cipher_data, "./xenc:CipherData/xenc:CipherValue", { 'xenc' => XENC })
+        encrypted_assertion_node = Base64.decode64(cipher_value.text)
+        enc_method = REXML::XPath.first(cipher_data, "./xenc:EncryptionMethod", { 'xenc' => XENC })
+        algorithm = enc_method.attributes['Algorithm']
+        assertion_plaintext = retrieve_plaintext(encrypted_assertion_node, symmetric_key, algorithm)        
+      end
+
+      # Obtains the symmetric key from the EncryptedData element
+      # @param cipher_data [REXML::Element]     The EncryptedData element
+      # @param private_key [OpenSSL::PKey::RSA] The Service provider private key
+      # @return [String] The symmetric key
+      def self.retrieve_symmetric_key(cipher_data, private_key)
+        encrypted_symmetric_key_element = REXML::XPath.first(cipher_data, "./ds:KeyInfo/xenc:EncryptedKey/xenc:CipherData/xenc:CipherValue", { "ds" => DSIG, "xenc" => XENC })
+        encrypted_symmetric_key = Base64.decode64(encrypted_symmetric_key_element.text)
+        private_key.private_decrypt(encrypted_symmetric_key, OpenSSL::PKey::RSA::PKCS1_OAEP_PADDING)
+      end
+
+      # Obtains the deciphered text
+      # @param cipher_text [String]   The ciphered text
+      # @param symmetric_key [String] The symetric key used to encrypt the text
+      # @param algorithm [String]     The encrypted algorithm
+      # @return [String] The deciphered text
+      def self.retrieve_plaintext(cipher_text, symmetric_key, algorithm)
+        case algorithm
+          when 'http://www.w3.org/2001/04/xmlenc#tripledes-cbc' then cipher = OpenSSL::Cipher.new('DES-EDE3-CBC').decrypt
+          when 'http://www.w3.org/2001/04/xmlenc#aes128-cbc' then cipher = OpenSSL::Cipher.new('AES-128-CBC').decrypt
+          when 'http://www.w3.org/2001/04/xmlenc#aes192-cbc' then cipher = OpenSSL::Cipher.new('AES-192-CBC').decrypt
+          when 'http://www.w3.org/2001/04/xmlenc#aes256-cbc' then cipher = OpenSSL::Cipher.new('AES-256-CBC').decrypt
+          when 'http://www.w3.org/2001/04/xmlenc#rsa-1_5' then rsa = symmetric_key
+          when 'http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p' then oaep = symmetric_key
+        end
+
+        if cipher
+          iv = cipher_text[0..15]
+          data = cipher_text[16..-1]
+          cipher.padding, cipher.key, cipher.iv = 0, symmetric_key, iv
+          assertion_plaintext = cipher.update(data)
+          assertion_plaintext << cipher.final
+          # We get some problematic noise in the plaintext after decrypting.
+          # This quick regexp parse will grab only the assertion and discard the noise.
+          assertion_plaintext.match(/(.*<\/(saml:|)Assertion>)/m)[0]
+        elsif rsa
+          rsa.private_decrypt(cipher_text)
+        elsif oaep
+          oaep.private_decrypt(cipher_text, OpenSSL::PKey::RSA::PKCS1_OAEP_PADDING)
+        else
+          cipher_text
+        end
+      end
+
     end
   end
 end
