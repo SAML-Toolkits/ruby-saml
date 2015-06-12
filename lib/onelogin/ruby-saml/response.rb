@@ -666,7 +666,11 @@ module OneLogin
           validation_error('An EncryptedAssertion found and no SP private key found on the settings to decrypt it')
         else
           assertion_plaintext = OneLogin::RubySaml::Utils.decrypt_data(encrypted_assertion_node, @settings.get_sp_key)
-          REXML::Document.new(assertion_plaintext)
+          # To avoid namespace errors if saml namespace is not defined at assertion_plaintext
+          # create a parent node first with the saml namespace defined
+          assertion_plaintext = '<node xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">'+ assertion_plaintext + '</node>'
+          doc = REXML::Document.new(assertion_plaintext)
+          doc.root[0]
         end
       end
 

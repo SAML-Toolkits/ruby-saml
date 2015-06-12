@@ -98,9 +98,9 @@ module OneLogin
       def self.decrypt_data(encrypted_node, private_key)
         cipher_data = REXML::XPath.first(encrypted_node, "./xenc:EncryptedData", { 'xenc' => XENC })
         symmetric_key = retrieve_symmetric_key(cipher_data, private_key)
-        cipher_value = REXML::XPath.first(cipher_data, "./xenc:CipherData/xenc:CipherValue", { 'xenc' => XENC })
+        cipher_value = REXML::XPath.first(cipher_data, "//xenc:EncryptedData/xenc:CipherData/xenc:CipherValue", { 'xenc' => XENC })
         encrypted_assertion_node = Base64.decode64(cipher_value.text)
-        enc_method = REXML::XPath.first(cipher_data, "./xenc:EncryptionMethod", { 'xenc' => XENC })
+        enc_method = REXML::XPath.first(cipher_data, "//xenc:EncryptedData/xenc:EncryptionMethod", { 'xenc' => XENC })
         algorithm = enc_method.attributes['Algorithm']
         assertion_plaintext = retrieve_plaintext(encrypted_assertion_node, symmetric_key, algorithm)        
       end
@@ -110,9 +110,11 @@ module OneLogin
       # @param private_key [OpenSSL::PKey::RSA] The Service provider private key
       # @return [String] The symmetric key
       def self.retrieve_symmetric_key(cipher_data, private_key)
-        encrypted_symmetric_key_element = REXML::XPath.first(cipher_data, "./ds:KeyInfo/xenc:EncryptedKey/xenc:CipherData/xenc:CipherValue", { "ds" => DSIG, "xenc" => XENC })
-        encrypted_symmetric_key = Base64.decode64(encrypted_symmetric_key_element.text)
-        private_key.private_decrypt(encrypted_symmetric_key, OpenSSL::PKey::RSA::PKCS1_OAEP_PADDING)
+        encrypted_symmetric_key_element = REXML::XPath.first(cipher_data, "//xenc:EncryptedData/ds:KeyInfo/xenc:EncryptedKey/xenc:CipherData/xenc:CipherValue", { "ds" => DSIG, "xenc" => XENC })
+        cipher_text = Base64.decode64(encrypted_symmetric_key_element.text)
+        enc_method = REXML::XPath.first(cipher_data, "//xenc:EncryptedData/ds:KeyInfo/xenc:EncryptedKey/xenc:EncryptionMethod", {"ds" => DSIG,  "xenc" => XENC })
+        algorithm = enc_method.attributes['Algorithm']
+        retrieve_plaintext(cipher_text, private_key, algorithm)        
       end
 
       # Obtains the deciphered text
@@ -130,13 +132,13 @@ module OneLogin
           when 'http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p' then oaep = symmetric_key
         end
 
-        if cipher
-          iv = cipher_text[0..15]
-          data = cipher_text[16..-1]
-          cipher.padding, cipher.key, cipher.iv = 0, symmetric_key, iv
+        if cipher          
+          iv_len = cipher.iv_len
+          data = cipher_text[iv_len..-1]
+          cipher.padding, cipher.key, cipher.iv = 0, symmetric_key, cipher_text[0..iv_len-1]
           assertion_plaintext = cipher.update(data)
           assertion_plaintext << cipher.final
-          # We get some problematic noise in the plaintext after decrypting.
+          # If we get some problematic noise in the plaintext after decrypting.
           # This quick regexp parse will grab only the assertion and discard the noise.
           assertion_plaintext.match(/(.*<\/(saml:|)Assertion>)/m)[0]
         elsif rsa

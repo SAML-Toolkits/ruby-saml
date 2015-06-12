@@ -973,41 +973,95 @@ class RubySamlTest < Minitest::Test
 
   describe "#decrypt_assertion" do
 
-    it "unable to decrypt the assertion if no private key" do
+    before do
       settings.private_key = ruby_saml_key_text
-      response = OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)        
+    end
 
-      encrypted_assertion_node = REXML::XPath.first(
-        response.document,
-        "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
-        { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
-      )
-      response.settings = nil
+    describe "check right settings" do
 
-      error_msg = "An EncryptedAssertion found and no SP private key found on the settings to decrypt it"
-      assert_raises(OneLogin::RubySaml::ValidationError, error_msg) do
+      it "unable to decrypt the assertion if no private key" do
+        response = OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)        
+
+        encrypted_assertion_node = REXML::XPath.first(
+          response.document,
+          "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
+          { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
+        )
+        response.settings.private_key = nil
+
+        error_msg = "An EncryptedAssertion found and no SP private key found on the settings to decrypt it"
+        assert_raises(OneLogin::RubySaml::ValidationError, error_msg) do
+          decrypted = response.send(:decrypt_assertion, encrypted_assertion_node)
+        end
+      end
+
+      it "able to decrypt the assertion if private key" do
+        response = OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)        
+
+        encrypted_assertion_node = REXML::XPath.first(
+          response.document,
+          "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
+          { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
+        )
         decrypted = response.send(:decrypt_assertion, encrypted_assertion_node)
+
+        encrypted_assertion_node2 = REXML::XPath.first(
+          decrypted,
+          "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
+          { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
+        )
+        assert_nil encrypted_assertion_node2
+        assert decrypted.name, "Assertion"
+      end
+
+      it "able to decrypt the assertion if private key but no saml namespace on the Assertion Element that is inside the EncryptedAssertion" do
+        unsigned_message_encrypted_assertion_without_saml_namespace = read_response('unsigned_message_encrypted_assertion_without_saml_namespace.xml.base64')
+        response = OneLogin::RubySaml::Response.new(unsigned_message_encrypted_assertion_without_saml_namespace, :settings => settings)
+        encrypted_assertion_node = REXML::XPath.first(
+          response.document,
+          "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
+          { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
+        )
+        decrypted = response.send(:decrypt_assertion, encrypted_assertion_node)
+
+        encrypted_assertion_node2 = REXML::XPath.first(
+          decrypted,
+          "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
+          { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
+        )
+        assert_nil encrypted_assertion_node2
+        assert decrypted.name, "Assertion"
       end
     end
 
-    it "able to decrypt the assertion if private key" do
-      settings.private_key = ruby_saml_key_text
-      response = OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)        
+    describe "check different encrypt methods supported" do
+      it "EncryptionMethod DES-192 && Key Encryption Algorithm RSA-1_5" do
+        unsigned_message_des192_encrypted_signed_assertion = read_response('unsigned_message_des192_encrypted_signed_assertion.xml.base64')
+        response = OneLogin::RubySaml::Response.new(unsigned_message_des192_encrypted_signed_assertion, :settings => settings)
+        assert_equal "test", response.attributes[:uid]
+        assert_equal "_ce3d2948b4cf20146dee0a0b3dd6f69b6cf86f62d7", response.name_id
+      end
 
-      encrypted_assertion_node = REXML::XPath.first(
-        response.document,
-        "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
-        { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
-      )
-      decrypted = response.send(:decrypt_assertion, encrypted_assertion_node)
+      it "EncryptionMethod AES-128 && Key Encryption Algorithm RSA-OAEP-MGF1P" do
+        unsigned_message_aes128_encrypted_signed_assertion = read_response('unsigned_message_aes128_encrypted_signed_assertion.xml.base64')
+        response = OneLogin::RubySaml::Response.new(unsigned_message_aes128_encrypted_signed_assertion, :settings => settings)
+        assert_equal "test", response.attributes[:uid]
+        assert_equal "_ce3d2948b4cf20146dee0a0b3dd6f69b6cf86f62d7", response.name_id
+      end
 
-      encrypted_assertion_node2 = REXML::XPath.first(
-        decrypted,
-        "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
-        { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
-      )
-      assert_nil encrypted_assertion_node2
-      assert decrypted.name, "Assertion"
+      it "EncryptionMethod AES-192 && Key Encryption Algorithm RSA-OAEP-MGF1P" do
+        unsigned_message_aes192_encrypted_signed_assertion = read_response('unsigned_message_aes192_encrypted_signed_assertion.xml.base64')
+        response = OneLogin::RubySaml::Response.new(unsigned_message_aes192_encrypted_signed_assertion, :settings => settings)
+        assert_equal "test", response.attributes[:uid]
+        assert_equal "_ce3d2948b4cf20146dee0a0b3dd6f69b6cf86f62d7", response.name_id
+      end
+
+      it "EncryptionMethod AES-256 && Key Encryption Algorithm RSA-OAEP-MGF1P" do
+        unsigned_message_aes256_encrypted_signed_assertion = read_response('unsigned_message_aes256_encrypted_signed_assertion.xml.base64')
+        response = OneLogin::RubySaml::Response.new(unsigned_message_aes256_encrypted_signed_assertion, :settings => settings)
+        assert_equal "test", response.attributes[:uid]
+        assert_equal "_ce3d2948b4cf20146dee0a0b3dd6f69b6cf86f62d7", response.name_id
+      end
     end
   end
 end
