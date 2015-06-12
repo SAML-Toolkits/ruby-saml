@@ -35,6 +35,7 @@ class RubySamlTest < Minitest::Test
     let(:response_invalid_subjectconfirmation_nb) { OneLogin::RubySaml::Response.new(read_invalid_response("invalid_subjectconfirmation_nb.xml.base64")) }
     let(:response_invalid_subjectconfirmation_noa) { OneLogin::RubySaml::Response.new(read_invalid_response("invalid_subjectconfirmation_noa.xml.base64")) }
     let(:response_invalid_signature_position) { OneLogin::RubySaml::Response.new(read_invalid_response("invalid_signature_position.xml.base64")) }
+    let(:response_encrypted_nameid) { OneLogin::RubySaml::Response.new(response_document_encrypted_nameid) }
 
     it "raise an exception when response is initialized with nil" do
       assert_raises(ArgumentError) { OneLogin::RubySaml::Response.new(nil) }
@@ -857,6 +858,28 @@ class RubySamlTest < Minitest::Test
         assert_empty signed_response.errors
       end
     end
+
+    describe "retrieve nameID" do
+      it 'able when nameID inside the assertion' do
+        response_valid_signed.settings = settings
+        assert_equal "test@onelogin.com", response_valid_signed.name_id
+      end
+
+      it 'unable when encryptID inside the assertion but no private key' do
+          response_encrypted_nameid.settings = settings
+          assert_raises(OneLogin::RubySaml::ValidationError, "An EncryptedID found and no SP private key found on the settings to decrypt it") do
+            assert_equal "test@onelogin.com", response_encrypted_nameid.name_id    
+          end
+      end
+
+      it 'able when encryptID inside the assertion and settings has the private key' do
+        settings.private_key = ruby_saml_key_text
+        response_encrypted_nameid.settings = settings
+        assert_equal "test@onelogin.com", response_encrypted_nameid.name_id
+      end
+
+    end
+
   end
 
   describe '#is_assertion_encrypted?' do
@@ -972,7 +995,6 @@ class RubySamlTest < Minitest::Test
   end
 
   describe "#decrypt_assertion" do
-
     before do
       settings.private_key = ruby_saml_key_text
     end

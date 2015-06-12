@@ -93,7 +93,12 @@ module OneLogin
       #
       def name_id
         @name_id ||= begin
-          node = xpath_first_from_signed_assertion('/a:Subject/a:NameID')
+          enc_node = xpath_first_from_signed_assertion('/a:Subject/a:EncryptedID')
+          if enc_node
+            node = decrypt_nameid(enc_node)
+          else
+            node = xpath_first_from_signed_assertion('/a:Subject/a:NameID')
+          end
           node.nil? ? nil : node.text
         end
       end
@@ -665,11 +670,34 @@ module OneLogin
         if settings.nil? || !settings.get_sp_key
           validation_error('An EncryptedAssertion found and no SP private key found on the settings to decrypt it')
         else
-          assertion_plaintext = OneLogin::RubySaml::Utils.decrypt_data(encrypted_assertion_node, @settings.get_sp_key)
+          assertion_plaintext = OneLogin::RubySaml::Utils.decrypt_data(encrypted_assertion_node, settings.get_sp_key)
+          # If we get some problematic noise in the plaintext after decrypting.
+          # This quick regexp parse will grab only the assertion and discard the noise.
+          assertion_plaintext = assertion_plaintext.match(/(.*<\/(saml:|)Assertion>)/m)[0]
           # To avoid namespace errors if saml namespace is not defined at assertion_plaintext
           # create a parent node first with the saml namespace defined
           assertion_plaintext = '<node xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">'+ assertion_plaintext + '</node>'
           doc = REXML::Document.new(assertion_plaintext)
+          doc.root[0]
+        end
+      end
+
+      # Decrypts an EncryptedID element
+      # @param encryptedid_node [REXML::Element] The EncryptedID element
+      # @return [REXML::Document] The decrypted EncrypedtID element
+      #
+      def decrypt_nameid(encryptedid_node)
+        if settings.nil? || !settings.get_sp_key
+          validation_error('An EncryptedID found and no SP private key found on the settings to decrypt it')
+        else
+          nameid_plaintext = OneLogin::RubySaml::Utils.decrypt_data(encryptedid_node, settings.get_sp_key)
+          # If we get some problematic noise in the plaintext after decrypting.
+          # This quick regexp parse will grab only the NameID and discard the noise.
+          nameid_plaintext = nameid_plaintext.match(/(.*<\/(saml:|)NameID>)/m)[0]
+          # To avoid namespace errors if saml namespace is not defined at assertion_plaintext
+          # create a parent node first with the saml namespace defined
+          nameid_plaintext = '<node xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">'+ nameid_plaintext + '</node>'
+          doc = REXML::Document.new(nameid_plaintext)
           doc.root[0]
         end
       end

@@ -96,23 +96,23 @@ module OneLogin
       # @param private_key    [OpenSSL::PKey::RSA] The Service provider private key
       # @return [String] The decrypted data
       def self.decrypt_data(encrypted_node, private_key)
-        cipher_data = REXML::XPath.first(encrypted_node, "./xenc:EncryptedData", { 'xenc' => XENC })
-        symmetric_key = retrieve_symmetric_key(cipher_data, private_key)
-        cipher_value = REXML::XPath.first(cipher_data, "//xenc:EncryptedData/xenc:CipherData/xenc:CipherValue", { 'xenc' => XENC })
-        encrypted_assertion_node = Base64.decode64(cipher_value.text)
-        enc_method = REXML::XPath.first(cipher_data, "//xenc:EncryptedData/xenc:EncryptionMethod", { 'xenc' => XENC })
+        encrypt_data = REXML::XPath.first(encrypted_node, "./xenc:EncryptedData", { 'xenc' => XENC })
+        symmetric_key = retrieve_symmetric_key(encrypt_data, private_key)
+        cipher_value = REXML::XPath.first(encrypt_data, "//xenc:EncryptedData/xenc:CipherData/xenc:CipherValue", { 'xenc' => XENC })
+        node = Base64.decode64(cipher_value.text)
+        enc_method = REXML::XPath.first(encrypt_data, "//xenc:EncryptedData/xenc:EncryptionMethod", { 'xenc' => XENC })
         algorithm = enc_method.attributes['Algorithm']
-        assertion_plaintext = retrieve_plaintext(encrypted_assertion_node, symmetric_key, algorithm)        
+        assertion_plaintext = retrieve_plaintext(node, symmetric_key, algorithm)        
       end
 
       # Obtains the symmetric key from the EncryptedData element
-      # @param cipher_data [REXML::Element]     The EncryptedData element
+      # @param encrypt_data [REXML::Element]     The EncryptedData element
       # @param private_key [OpenSSL::PKey::RSA] The Service provider private key
       # @return [String] The symmetric key
-      def self.retrieve_symmetric_key(cipher_data, private_key)
-        encrypted_symmetric_key_element = REXML::XPath.first(cipher_data, "//xenc:EncryptedData/ds:KeyInfo/xenc:EncryptedKey/xenc:CipherData/xenc:CipherValue", { "ds" => DSIG, "xenc" => XENC })
+      def self.retrieve_symmetric_key(encrypt_data, private_key)
+        encrypted_symmetric_key_element = REXML::XPath.first(encrypt_data, "//xenc:EncryptedData/ds:KeyInfo/xenc:EncryptedKey/xenc:CipherData/xenc:CipherValue", { "ds" => DSIG, "xenc" => XENC })
         cipher_text = Base64.decode64(encrypted_symmetric_key_element.text)
-        enc_method = REXML::XPath.first(cipher_data, "//xenc:EncryptedData/ds:KeyInfo/xenc:EncryptedKey/xenc:EncryptionMethod", {"ds" => DSIG,  "xenc" => XENC })
+        enc_method = REXML::XPath.first(encrypt_data, "//xenc:EncryptedData/ds:KeyInfo/xenc:EncryptedKey/xenc:EncryptionMethod", {"ds" => DSIG,  "xenc" => XENC })
         algorithm = enc_method.attributes['Algorithm']
         retrieve_plaintext(cipher_text, private_key, algorithm)        
       end
@@ -138,9 +138,6 @@ module OneLogin
           cipher.padding, cipher.key, cipher.iv = 0, symmetric_key, cipher_text[0..iv_len-1]
           assertion_plaintext = cipher.update(data)
           assertion_plaintext << cipher.final
-          # If we get some problematic noise in the plaintext after decrypting.
-          # This quick regexp parse will grab only the assertion and discard the noise.
-          assertion_plaintext.match(/(.*<\/(saml:|)Assertion>)/m)[0]
         elsif rsa
           rsa.private_decrypt(cipher_text)
         elsif oaep

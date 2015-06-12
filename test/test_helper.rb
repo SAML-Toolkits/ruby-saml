@@ -94,6 +94,10 @@ class Minitest::Test
     @response_document_assertion_wrapped ||= read_response("response_assertion_wrapped.xml.base64")
   end
 
+  def response_document_encrypted_nameid
+    @response_document_encrypted_nameid ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'response_encrypted_nameid.xml.base64'))
+  end
+
   def signed_message_encrypted_unsigned_assertion
     @signed_message_encrypted_unsigned_assertion ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'signed_message_encrypted_unsigned_assertion.xml.base64'))    
   end
