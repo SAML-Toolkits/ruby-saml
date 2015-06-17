@@ -92,6 +92,8 @@ module OneLogin
         end
       end
 
+      alias_method :nameid, :name_id
+
       # Gets the SessionIndex from the AuthnStatement.
       # Could be used to be stored in the local session in order
       # to be used in a future Logout Request that the SP could

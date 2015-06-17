@@ -94,7 +94,7 @@ def consume
   # We validate the SAML Response and check if the user already exists in the system
   if response.is_valid?
      # authorize_success, log the user
-     session[:userid] = response.name_id
+     session[:userid] = response.nameid
      session[:attributes] = response.attributes
   else
     authorize_failure  # This method shows an error message
@@ -102,7 +102,7 @@ def consume
 end
 ```
 
-In the above there are a few assumptions in place, one being that the response.name_id is an email address. This is all handled with how you specify the settings that are in play via the saml_settings method. That could be implemented along the lines of this:
+In the above there are a few assumptions in place, one being that the response.nameid is an email address. This is all handled with how you specify the settings that are in play via the saml_settings method. That could be implemented along the lines of this:
 
 If the assertion of the SAMLResponse is not encrypted, you can initialize the Response without the :settings parameter and set it later, 
 
@@ -156,7 +156,7 @@ class SamlController < ApplicationController
     # We validate the SAML Response and check if the user already exists in the system
     if response.is_valid?
        # authorize_success, log the user
-       session[:userid] = response.name_id
+       session[:userid] = response.nameid
        session[:attributes] = response.attributes
     else
       authorize_failure  # This method shows an error message

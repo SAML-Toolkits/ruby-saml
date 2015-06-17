@@ -42,8 +42,8 @@ module OneLogin
           }
         end
         if settings.name_identifier_format
-          name_id = sp_sso.add_element "md:NameIDFormat"
-          name_id.text = settings.name_identifier_format
+          nameid = sp_sso.add_element "md:NameIDFormat"
+          nameid.text = settings.name_identifier_format
         end
         if settings.assertion_consumer_service_url
           sp_sso.add_element "md:AssertionConsumerService", {

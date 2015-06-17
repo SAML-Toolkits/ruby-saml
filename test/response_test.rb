@@ -54,9 +54,9 @@ class RubySamlTest < Minitest::Test
     end
 
     it "adapt namespace" do
-      refute_nil response.name_id
-      refute_nil response_without_attributes.name_id
-      refute_nil response_with_signed_assertion.name_id
+      refute_nil response.nameid
+      refute_nil response_without_attributes.nameid
+      refute_nil response_with_signed_assertion.nameid
     end
 
     it "default to raw input when a response is not Base64 encoded" do
@@ -70,7 +70,7 @@ class RubySamlTest < Minitest::Test
         response_wrapped.stubs(:conditions).returns(nil)
         settings.idp_cert_fingerprint = signature_fingerprint_1
         response_wrapped.settings = settings
-        assert_nil response_wrapped.name_id
+        assert_nil response_wrapped.nameid
       end
     end
 
@@ -626,20 +626,20 @@ class RubySamlTest < Minitest::Test
       end
     end
 
-    describe "#name_id" do
+    describe "#nameid" do
       it "extract the value of the name id element" do
-        assert_equal "support@onelogin.com", response.name_id
-        assert_equal "someone@example.com", response_with_signed_assertion.name_id
+        assert_equal "support@onelogin.com", response.nameid
+        assert_equal "someone@example.com", response_with_signed_assertion.nameid
       end
 
       it "be extractable from an OpenSAML response" do
         response_open_saml = OneLogin::RubySaml::Response.new(fixture(:open_saml))
-        assert_equal "someone@example.org", response_open_saml.name_id
+        assert_equal "someone@example.org", response_open_saml.nameid
       end
 
       it "be extractable from a Simple SAML PHP response" do
         response_ssp = OneLogin::RubySaml::Response.new(fixture(:simple_saml_php))
-        assert_equal "someone@example.com", response_ssp.name_id
+        assert_equal "someone@example.com", response_ssp.nameid
       end
     end
 
@@ -862,20 +862,20 @@ class RubySamlTest < Minitest::Test
     describe "retrieve nameID" do
       it 'is possible  when nameID inside the assertion' do
         response_valid_signed.settings = settings
-        assert_equal "test@onelogin.com", response_valid_signed.name_id
+        assert_equal "test@onelogin.com", response_valid_signed.nameid
       end
 
       it 'is not possible when encryptID inside the assertion but no private key' do
           response_encrypted_nameid.settings = settings
           assert_raises(OneLogin::RubySaml::ValidationError, "An EncryptedID found and no SP private key found on the settings to decrypt it") do
-            assert_equal "test@onelogin.com", response_encrypted_nameid.name_id    
+            assert_equal "test@onelogin.com", response_encrypted_nameid.nameid    
           end
       end
 
       it 'is possible when encryptID inside the assertion and settings has the private key' do
         settings.private_key = ruby_saml_key_text
         response_encrypted_nameid.settings = settings
-        assert_equal "test@onelogin.com", response_encrypted_nameid.name_id
+        assert_equal "test@onelogin.com", response_encrypted_nameid.nameid
       end
 
     end
@@ -946,7 +946,7 @@ class RubySamlTest < Minitest::Test
         assert response.is_valid?
         assert_empty response.errors
         assert_equal "test", response.attributes[:uid]
-        assert_equal "98e2bb61075e951b37d6b3be6954a54b340d86c7", response.name_id
+        assert_equal "98e2bb61075e951b37d6b3be6954a54b340d86c7", response.nameid
       end
     end
 
@@ -956,7 +956,7 @@ class RubySamlTest < Minitest::Test
         assert response.is_valid?
         assert_empty response.errors
         assert_equal "test", response.attributes[:uid]
-        assert_equal "98e2bb61075e951b37d6b3be6954a54b340d86c7", response.name_id
+        assert_equal "98e2bb61075e951b37d6b3be6954a54b340d86c7", response.nameid
       end
     end
 
@@ -966,7 +966,7 @@ class RubySamlTest < Minitest::Test
         assert response.is_valid?
         assert_empty response.errors
         assert_equal "test", response.attributes[:uid]
-        assert_equal "98e2bb61075e951b37d6b3be6954a54b340d86c7", response.name_id
+        assert_equal "98e2bb61075e951b37d6b3be6954a54b340d86c7", response.nameid
       end
     end
 
@@ -1046,28 +1046,28 @@ class RubySamlTest < Minitest::Test
         unsigned_message_des192_encrypted_signed_assertion = read_response('unsigned_message_des192_encrypted_signed_assertion.xml.base64')
         response = OneLogin::RubySaml::Response.new(unsigned_message_des192_encrypted_signed_assertion, :settings => settings)
         assert_equal "test", response.attributes[:uid]
-        assert_equal "_ce3d2948b4cf20146dee0a0b3dd6f69b6cf86f62d7", response.name_id
+        assert_equal "_ce3d2948b4cf20146dee0a0b3dd6f69b6cf86f62d7", response.nameid
       end
 
       it "EncryptionMethod AES-128 && Key Encryption Algorithm RSA-OAEP-MGF1P" do
         unsigned_message_aes128_encrypted_signed_assertion = read_response('unsigned_message_aes128_encrypted_signed_assertion.xml.base64')
         response = OneLogin::RubySaml::Response.new(unsigned_message_aes128_encrypted_signed_assertion, :settings => settings)
         assert_equal "test", response.attributes[:uid]
-        assert_equal "_ce3d2948b4cf20146dee0a0b3dd6f69b6cf86f62d7", response.name_id
+        assert_equal "_ce3d2948b4cf20146dee0a0b3dd6f69b6cf86f62d7", response.nameid
       end
 
       it "EncryptionMethod AES-192 && Key Encryption Algorithm RSA-OAEP-MGF1P" do
         unsigned_message_aes192_encrypted_signed_assertion = read_response('unsigned_message_aes192_encrypted_signed_assertion.xml.base64')
         response = OneLogin::RubySaml::Response.new(unsigned_message_aes192_encrypted_signed_assertion, :settings => settings)
         assert_equal "test", response.attributes[:uid]
-        assert_equal "_ce3d2948b4cf20146dee0a0b3dd6f69b6cf86f62d7", response.name_id
+        assert_equal "_ce3d2948b4cf20146dee0a0b3dd6f69b6cf86f62d7", response.nameid
       end
 
       it "EncryptionMethod AES-256 && Key Encryption Algorithm RSA-OAEP-MGF1P" do
         unsigned_message_aes256_encrypted_signed_assertion = read_response('unsigned_message_aes256_encrypted_signed_assertion.xml.base64')
         response = OneLogin::RubySaml::Response.new(unsigned_message_aes256_encrypted_signed_assertion, :settings => settings)
         assert_equal "test", response.attributes[:uid]
-        assert_equal "_ce3d2948b4cf20146dee0a0b3dd6f69b6cf86f62d7", response.name_id
+        assert_equal "_ce3d2948b4cf20146dee0a0b3dd6f69b6cf86f62d7", response.nameid
       end
     end
   end

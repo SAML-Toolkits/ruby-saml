@@ -76,6 +76,8 @@ module OneLogin
         end
       end
 
+      alias_method :nameid, :name_id
+
       # @return [String|nil] Gets the ID attribute from the Logout Request. if exists.
       #
       def id
