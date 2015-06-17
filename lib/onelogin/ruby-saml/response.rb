@@ -54,20 +54,20 @@ module OneLogin
         @response = decode_raw_saml(response)
         @document = XMLSecurity::SignedDocument.new(@response, @errors)
 
-        if assertion_encrypted?
-          if @settings.nil? || !@settings.get_sp_key
-            validation_error('An EncryptedAssertion found and no SP private key found on the settings to decrypt it. Be sure you provided the :settings parameter at the initialize method')
-          end
-
-          # Marshal at Ruby 1.8.7 throw an Exception
-          if RUBY_VERSION < "1.9"
-            @decrypted_document = XMLSecurity::SignedDocument.new(@response, @errors)
-          else
-            @decrypted_document = Marshal.load(Marshal.dump(@document))
-          end
-
-          @decrypted_document = document_with_decrypted_assertion
+        return unless assertion_encrypted?
+        
+        if @settings.nil? || !@settings.get_sp_key
+          validation_error('An EncryptedAssertion found and no SP private key found on the settings to decrypt it. Be sure you provided the :settings parameter at the initialize method')
         end
+
+        # Marshal at Ruby 1.8.7 throw an Exception
+        if RUBY_VERSION < "1.9"
+          document_copy = XMLSecurity::SignedDocument.new(@response, @errors)
+        else
+          document_copy = Marshal.load(Marshal.dump(@document))
+        end
+
+        @decrypted_document = decrypt_assertion_from_document(document_copy)
       end
 
       # Append the cause to the errors array, and based on the value of soft, return false or raise
@@ -632,16 +632,17 @@ module OneLogin
       end
 
       # Obtains a SAML Response with the EncryptedAssertion element decrypted
+      # @param document_copy [XMLSecurity::SignedDocument] A copy of the original SAML Response with the encrypted assertion
       # @return [XMLSecurity::SignedDocument] The SAML Response with the assertion decrypted
       #
-      def document_with_decrypted_assertion
+      def decrypt_assertion_from_document(document_copy)
         response_node = REXML::XPath.first(
-          decrypted_document,
+          document_copy,
           "/p:Response/",
           { "p" => PROTOCOL }
         )
         encrypted_assertion_node = REXML::XPath.first(
-          decrypted_document,
+          document_copy,
           "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
           { "p" => PROTOCOL, "a" => ASSERTION }
         )
