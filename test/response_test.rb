@@ -860,19 +860,19 @@ class RubySamlTest < Minitest::Test
     end
 
     describe "retrieve nameID" do
-      it 'able when nameID inside the assertion' do
+      it 'is possible  when nameID inside the assertion' do
         response_valid_signed.settings = settings
         assert_equal "test@onelogin.com", response_valid_signed.name_id
       end
 
-      it 'unable when encryptID inside the assertion but no private key' do
+      it 'is not possible when encryptID inside the assertion but no private key' do
           response_encrypted_nameid.settings = settings
           assert_raises(OneLogin::RubySaml::ValidationError, "An EncryptedID found and no SP private key found on the settings to decrypt it") do
             assert_equal "test@onelogin.com", response_encrypted_nameid.name_id    
           end
       end
 
-      it 'able when encryptID inside the assertion and settings has the private key' do
+      it 'is possible when encryptID inside the assertion and settings has the private key' do
         settings.private_key = ruby_saml_key_text
         response_encrypted_nameid.settings = settings
         assert_equal "test@onelogin.com", response_encrypted_nameid.name_id
@@ -882,29 +882,16 @@ class RubySamlTest < Minitest::Test
 
   end
 
-  describe '#is_assertion_encrypted?' do
-    it 'return false if none encrypted assertion is found' do
-      settings.certificate = ruby_saml_cert_text
-      settings.private_key = ruby_saml_key_text
-      response = OneLogin::RubySaml::Response.new(response_document_valid_signed, :settings => settings)
-      assert !response.send(:assertion_encrypted?)
-
-      response2 = OneLogin::RubySaml::Response.new(response_document_valid_signed)
-      response2.settings = settings
-      assert !response.send(:assertion_encrypted?)
-    end
-
+  describe 'try to initialize an encrypted response' do
     it 'raise if an encrypted assertion is found and no sp private key to decrypt it' do
       error_msg = "An EncryptedAssertion found and no SP private key found on the settings to decrypt it. Be sure you provided the :settings parameter at the initialize method"
 
       assert_raises(OneLogin::RubySaml::ValidationError, error_msg) do
         response = OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion)
-        response.send(:assertion_encrypted?)
       end
 
       assert_raises(OneLogin::RubySaml::ValidationError, error_msg) do
         response2 = OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)
-        response2.send(:assertion_encrypted?)
       end
 
       settings.certificate = ruby_saml_cert_text
@@ -912,7 +899,6 @@ class RubySamlTest < Minitest::Test
       assert_raises(OneLogin::RubySaml::ValidationError, error_msg) do
         response3 = OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion)
         response3.settings
-        response3.send(:assertion_encrypted?)
       end
     end
 
@@ -924,7 +910,6 @@ class RubySamlTest < Minitest::Test
       error_msg = "Neither PUB key nor PRIV key: nested asn1 error"
       assert_raises(OpenSSL::PKey::RSAError, error_msg) do
         response = OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)
-        response.send(:assertion_encrypted?)
       end
    end
 
@@ -932,16 +917,16 @@ class RubySamlTest < Minitest::Test
       settings.certificate = ruby_saml_cert_text
       settings.private_key = ruby_saml_key_text
       response = OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)
-      assert response.send(:assertion_encrypted?)
+      assert response.decrypted_document
 
       response2 = OneLogin::RubySaml::Response.new(signed_message_encrypted_signed_assertion, :settings => settings)
-      assert response2.send(:assertion_encrypted?)
+      assert response2.decrypted_document
 
       response3 = OneLogin::RubySaml::Response.new(unsigned_message_encrypted_signed_assertion, :settings => settings)
-      assert response3.send(:assertion_encrypted?)
+      assert response3.decrypted_document
 
       response4 = OneLogin::RubySaml::Response.new(unsigned_message_encrypted_unsigned_assertion, :settings => settings)
-      assert response4.send(:assertion_encrypted?)
+      assert response4.decrypted_document
     end
   end
 
@@ -955,7 +940,7 @@ class RubySamlTest < Minitest::Test
       settings.private_key = ruby_saml_key_text
     end
 
-    it 'able when signed_message_encrypted_unsigned_assertion' do
+    it 'is possible when signed_message_encrypted_unsigned_assertion' do
       response = OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)
       Timecop.freeze(Time.parse("2015-03-19T14:30:31Z")) do
         assert response.is_valid?
@@ -965,7 +950,7 @@ class RubySamlTest < Minitest::Test
       end
     end
 
-    it 'able when signed_message_encrypted_signed_assertion' do
+    it 'is possible when signed_message_encrypted_signed_assertion' do
       response = OneLogin::RubySaml::Response.new(signed_message_encrypted_signed_assertion, :settings => settings)
       Timecop.freeze(Time.parse("2015-03-19T14:30:31Z")) do
         assert response.is_valid?
@@ -975,7 +960,7 @@ class RubySamlTest < Minitest::Test
       end
     end
 
-    it 'able when unsigned_message_encrypted_signed_assertion' do
+    it 'is possible when unsigned_message_encrypted_signed_assertion' do
       response = OneLogin::RubySaml::Response.new(unsigned_message_encrypted_signed_assertion, :settings => settings)
       Timecop.freeze(Time.parse("2015-03-19T14:30:31Z")) do
         assert response.is_valid?
@@ -985,7 +970,7 @@ class RubySamlTest < Minitest::Test
       end
     end
 
-    it 'unable when unsigned_message_encrypted_unsigned_assertion' do
+    it 'is not possible when unsigned_message_encrypted_unsigned_assertion' do
       response = OneLogin::RubySaml::Response.new(unsigned_message_encrypted_unsigned_assertion, :settings => settings)
       Timecop.freeze(Time.parse("2015-03-19T14:30:31Z")) do
         assert !response.is_valid?
@@ -1001,7 +986,7 @@ class RubySamlTest < Minitest::Test
 
     describe "check right settings" do
 
-      it "unable to decrypt the assertion if no private key" do
+      it "is not possible to decrypt the assertion if no private key" do
         response = OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)        
 
         encrypted_assertion_node = REXML::XPath.first(
@@ -1017,7 +1002,7 @@ class RubySamlTest < Minitest::Test
         end
       end
 
-      it "able to decrypt the assertion if private key" do
+      it "is possible to decrypt the assertion if private key" do
         response = OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)        
 
         encrypted_assertion_node = REXML::XPath.first(
@@ -1036,7 +1021,7 @@ class RubySamlTest < Minitest::Test
         assert decrypted.name, "Assertion"
       end
 
-      it "able to decrypt the assertion if private key but no saml namespace on the Assertion Element that is inside the EncryptedAssertion" do
+      it "is possible to decrypt the assertion if private key but no saml namespace on the Assertion Element that is inside the EncryptedAssertion" do
         unsigned_message_encrypted_assertion_without_saml_namespace = read_response('unsigned_message_encrypted_assertion_without_saml_namespace.xml.base64')
         response = OneLogin::RubySaml::Response.new(unsigned_message_encrypted_assertion_without_saml_namespace, :settings => settings)
         encrypted_assertion_node = REXML::XPath.first(

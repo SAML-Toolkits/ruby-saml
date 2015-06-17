@@ -54,20 +54,9 @@ module OneLogin
         @response = decode_raw_saml(response)
         @document = XMLSecurity::SignedDocument.new(@response, @errors)
 
-        return unless assertion_encrypted?
-        
-        if @settings.nil? || !@settings.get_sp_key
-          validation_error('An EncryptedAssertion found and no SP private key found on the settings to decrypt it. Be sure you provided the :settings parameter at the initialize method')
+        if assertion_encrypted?
+          @decrypted_document = generate_decrypted_document
         end
-
-        # Marshal at Ruby 1.8.7 throw an Exception
-        if RUBY_VERSION < "1.9"
-          document_copy = XMLSecurity::SignedDocument.new(@response, @errors)
-        else
-          document_copy = Marshal.load(Marshal.dump(@document))
-        end
-
-        @decrypted_document = decrypt_assertion_from_document(document_copy)
       end
 
       # Append the cause to the errors array, and based on the value of soft, return false or raise
@@ -93,9 +82,9 @@ module OneLogin
       #
       def name_id
         @name_id ||= begin
-          enc_node = xpath_first_from_signed_assertion('/a:Subject/a:EncryptedID')
-          if enc_node
-            node = decrypt_nameid(enc_node)
+          encrypted_node = xpath_first_from_signed_assertion('/a:Subject/a:EncryptedID')
+          if encrypted_node
+            node = decrypt_nameid(encrypted_node)
           else
             node = xpath_first_from_signed_assertion('/a:Subject/a:NameID')
           end
@@ -631,6 +620,24 @@ module OneLogin
         ))
       end
 
+      # Generates the decrypted_document
+      # @return [XMLSecurity::SignedDocument] The SAML Response with the assertion decrypted
+      #
+      def generate_decrypted_document
+        if settings.nil? || !settings.get_sp_key
+          validation_error('An EncryptedAssertion found and no SP private key found on the settings to decrypt it. Be sure you provided the :settings parameter at the initialize method')
+        end
+
+        # Marshal at Ruby 1.8.7 throw an Exception
+        if RUBY_VERSION < "1.9"
+          document_copy = XMLSecurity::SignedDocument.new(response, errors)
+        else
+          document_copy = Marshal.load(Marshal.dump(document))
+        end
+
+        decrypt_assertion_from_document(document_copy)
+      end
+
       # Obtains a SAML Response with the EncryptedAssertion element decrypted
       # @param document_copy [XMLSecurity::SignedDocument] A copy of the original SAML Response with the encrypted assertion
       # @return [XMLSecurity::SignedDocument] The SAML Response with the assertion decrypted
@@ -655,12 +662,11 @@ module OneLogin
       # @return [Boolean] True if the SAML Response contains an EncryptedAssertion element
       #
       def assertion_encrypted?
-        encrypted_node = REXML::XPath.first(
+        ! REXML::XPath.first(
           document,
           "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
           { "p" => PROTOCOL, "a" => ASSERTION }
-        )
-        !encrypted_node.nil?
+        ).nil?
       end
 
       # Decrypts an EncryptedAssertion element
@@ -668,19 +674,7 @@ module OneLogin
       # @return [REXML::Document] The decrypted EncryptedAssertion element
       #
       def decrypt_assertion(encrypted_assertion_node)
-        if settings.nil? || !settings.get_sp_key
-          validation_error('An EncryptedAssertion found and no SP private key found on the settings to decrypt it')
-        else
-          assertion_plaintext = OneLogin::RubySaml::Utils.decrypt_data(encrypted_assertion_node, settings.get_sp_key)
-          # If we get some problematic noise in the plaintext after decrypting.
-          # This quick regexp parse will grab only the assertion and discard the noise.
-          assertion_plaintext = assertion_plaintext.match(/(.*<\/(saml:|)Assertion>)/m)[0]
-          # To avoid namespace errors if saml namespace is not defined at assertion_plaintext
-          # create a parent node first with the saml namespace defined
-          assertion_plaintext = '<node xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">'+ assertion_plaintext + '</node>'
-          doc = REXML::Document.new(assertion_plaintext)
-          doc.root[0]
-        end
+        decrypt_element(encrypted_assertion_node, /(.*<\/(saml:|)Assertion>)/m)
       end
 
       # Decrypts an EncryptedID element
@@ -688,19 +682,27 @@ module OneLogin
       # @return [REXML::Document] The decrypted EncrypedtID element
       #
       def decrypt_nameid(encryptedid_node)
+        decrypt_element(encryptedid_node, /(.*<\/(saml:|)NameID>)/m)
+      end
+
+      # Decrypt an element
+      # @param encryptedid_node [REXML::Element] The encrypted element
+      # @return [REXML::Document] The decrypted element
+      #
+      def decrypt_element(encrypt_node, rgrex)
         if settings.nil? || !settings.get_sp_key
-          validation_error('An EncryptedID found and no SP private key found on the settings to decrypt it')
-        else
-          nameid_plaintext = OneLogin::RubySaml::Utils.decrypt_data(encryptedid_node, settings.get_sp_key)
-          # If we get some problematic noise in the plaintext after decrypting.
-          # This quick regexp parse will grab only the NameID and discard the noise.
-          nameid_plaintext = nameid_plaintext.match(/(.*<\/(saml:|)NameID>)/m)[0]
-          # To avoid namespace errors if saml namespace is not defined at assertion_plaintext
-          # create a parent node first with the saml namespace defined
-          nameid_plaintext = '<node xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">'+ nameid_plaintext + '</node>'
-          doc = REXML::Document.new(nameid_plaintext)
-          doc.root[0]
+          return validation_error('An ' + encrypt_node.name + ' found and no SP private key found on the settings to decrypt it')
         end
+
+        elem_plaintext = OneLogin::RubySaml::Utils.decrypt_data(encrypt_node, settings.get_sp_key)
+        # If we get some problematic noise in the plaintext after decrypting.
+        # This quick regexp parse will grab only the Element and discard the noise.
+        elem_plaintext = elem_plaintext.match(rgrex)[0]
+        # To avoid namespace errors if saml namespace is not defined at assertion_plaintext
+        # create a parent node first with the saml namespace defined
+        elem_plaintext = '<node xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">' + elem_plaintext + '</node>'
+        doc = REXML::Document.new(elem_plaintext)
+        doc.root[0]
       end
 
       # Parse the attribute of a given node in Time format

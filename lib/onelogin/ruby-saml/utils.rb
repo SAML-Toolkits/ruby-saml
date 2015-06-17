@@ -91,18 +91,30 @@ module OneLogin
         error_msg
       end
 
-      # Obtains the decrypted string from an Encrypted element
+      # Obtains the decrypted string from an Encrypted node element in XML
       # @param encrypted_node [REXML::Element]     The Encrypted element
       # @param private_key    [OpenSSL::PKey::RSA] The Service provider private key
       # @return [String] The decrypted data
       def self.decrypt_data(encrypted_node, private_key)
-        encrypt_data = REXML::XPath.first(encrypted_node, "./xenc:EncryptedData", { 'xenc' => XENC })
+        encrypt_data = REXML::XPath.first(
+          encrypted_node,
+          "./xenc:EncryptedData",
+          { 'xenc' => XENC }
+        )
         symmetric_key = retrieve_symmetric_key(encrypt_data, private_key)
-        cipher_value = REXML::XPath.first(encrypt_data, "//xenc:EncryptedData/xenc:CipherData/xenc:CipherValue", { 'xenc' => XENC })
+        cipher_value = REXML::XPath.first(
+          encrypt_data,
+          "//xenc:EncryptedData/xenc:CipherData/xenc:CipherValue",
+          { 'xenc' => XENC }
+        )
         node = Base64.decode64(cipher_value.text)
-        enc_method = REXML::XPath.first(encrypt_data, "//xenc:EncryptedData/xenc:EncryptionMethod", { 'xenc' => XENC })
-        algorithm = enc_method.attributes['Algorithm']
-        assertion_plaintext = retrieve_plaintext(node, symmetric_key, algorithm)        
+        encrypt_method = REXML::XPath.first(
+          encrypt_data,
+          "//xenc:EncryptedData/xenc:EncryptionMethod",
+          { 'xenc' => XENC }
+        )
+        algorithm = encrypt_method.attributes['Algorithm']
+        retrieve_plaintext(node, symmetric_key, algorithm)        
       end
 
       # Obtains the symmetric key from the EncryptedData element
@@ -110,10 +122,18 @@ module OneLogin
       # @param private_key [OpenSSL::PKey::RSA] The Service provider private key
       # @return [String] The symmetric key
       def self.retrieve_symmetric_key(encrypt_data, private_key)
-        encrypted_symmetric_key_element = REXML::XPath.first(encrypt_data, "//xenc:EncryptedData/ds:KeyInfo/xenc:EncryptedKey/xenc:CipherData/xenc:CipherValue", { "ds" => DSIG, "xenc" => XENC })
+        encrypted_symmetric_key_element = REXML::XPath.first(
+          encrypt_data,
+          "//xenc:EncryptedData/ds:KeyInfo/xenc:EncryptedKey/xenc:CipherData/xenc:CipherValue",
+          { "ds" => DSIG, "xenc" => XENC }
+        )
         cipher_text = Base64.decode64(encrypted_symmetric_key_element.text)
-        enc_method = REXML::XPath.first(encrypt_data, "//xenc:EncryptedData/ds:KeyInfo/xenc:EncryptedKey/xenc:EncryptionMethod", {"ds" => DSIG,  "xenc" => XENC })
-        algorithm = enc_method.attributes['Algorithm']
+        encrypt_method = REXML::XPath.first(
+          encrypt_data,
+          "//xenc:EncryptedData/ds:KeyInfo/xenc:EncryptedKey/xenc:EncryptionMethod",
+          {"ds" => DSIG,  "xenc" => XENC }
+        )
+        algorithm = encrypt_method.attributes['Algorithm']
         retrieve_plaintext(cipher_text, private_key, algorithm)        
       end
 
