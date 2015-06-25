@@ -14,6 +14,7 @@ module OneLogin
       ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion"
       PROTOCOL  = "urn:oasis:names:tc:SAML:2.0:protocol"
       DSIG      = "http://www.w3.org/2000/09/xmldsig#"
+      XENC      = "http://www.w3.org/2001/04/xmlenc#"
 
       # TODO: Settings should probably be initialized too... WDYT?
 
@@ -24,6 +25,7 @@ module OneLogin
       attr_accessor :errors
 
       attr_reader :document
+      attr_reader :decrypted_document
       attr_reader :response
       attr_reader :options
 
@@ -39,7 +41,7 @@ module OneLogin
         @errors = []
 
         raise ArgumentError.new("Response cannot be nil") if response.nil?
-        @options  = options
+        @options = options
 
         @soft = true
         if !options.empty? && !options[:settings].nil?
@@ -51,6 +53,10 @@ module OneLogin
 
         @response = decode_raw_saml(response)
         @document = XMLSecurity::SignedDocument.new(@response, @errors)
+
+        if assertion_encrypted?
+          @decrypted_document = generate_decrypted_document
+        end
       end
 
       # Append the cause to the errors array, and based on the value of soft, return false or raise
@@ -76,10 +82,17 @@ module OneLogin
       #
       def name_id
         @name_id ||= begin
-          node = xpath_first_from_signed_assertion('/a:Subject/a:NameID')
+          encrypted_node = xpath_first_from_signed_assertion('/a:Subject/a:EncryptedID')
+          if encrypted_node
+            node = decrypt_nameid(encrypted_node)
+          else
+            node = xpath_first_from_signed_assertion('/a:Subject/a:NameID')
+          end
           node.nil? ? nil : node.text
         end
       end
+
+      alias_method :nameid, :name_id
 
       # Gets the SessionIndex from the AuthnStatement.
       # Could be used to be stored in the local session in order
@@ -205,9 +218,10 @@ module OneLogin
           issuers = []
           nodes = REXML::XPath.match(
             document,
-            "/p:Response/a:Issuer | /p:Response/a:Assertion/a:Issuer",
+            "/p:Response/a:Issuer",
             { "p" => PROTOCOL, "a" => ASSERTION }
           )
+          nodes += xpath_from_signed_assertion("/a:Issuer")
           nodes.each do |node|
             issuers << node.text if node.text
           end
@@ -371,11 +385,7 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_no_encrypted_attributes
-        nodes = REXML::XPath.match(
-          document,
-          "/p:Response/a:Assertion/a:AttributeStatement/a:EncryptedAttribute",
-          { "p" => PROTOCOL, "a" => ASSERTION }
-        )
+        nodes = xpath_from_signed_assertion("/a:AttributeStatement/a:EncryptedAttribute")        
         if nodes && nodes.length > 0
           return append_error("There is an EncryptedAttribute in the Response and this SP not support them")
         end
@@ -391,7 +401,7 @@ module OneLogin
       #
       def validate_signed_elements
         signature_nodes = REXML::XPath.match(
-          document,
+          decrypted_document.nil? ? document : decrypted_document,
           "//ds:Signature",
           {"ds"=>DSIG}
         )
@@ -452,13 +462,13 @@ module OneLogin
 
         now = Time.now.utc
 
-        if not_before && (now + (options[:allowed_clock_drift] || 0)) < not_before
-          error_msg = "Current time is earlier than NotBefore condition #{(now + (options[:allowed_clock_drift] || 0))} < #{not_before})"
+        if not_before && (now + allowed_clock_drift) < not_before
+          error_msg = "Current time is earlier than NotBefore condition #{(now + allowed_clock_drift)} < #{not_before})"
           return append_error(error_msg)
         end
 
-        if not_on_or_after && now >= not_on_or_after
-          error_msg = "Current time is on or after NotOnOrAfter condition (#{now} >= #{not_on_or_after})"
+        if not_on_or_after && now >= (not_on_or_after + allowed_clock_drift)
+          error_msg = "Current time is on or after NotOnOrAfter condition (#{now} >= #{not_on_or_after + allowed_clock_drift})"
           return append_error(error_msg)
         end
 
@@ -551,7 +561,17 @@ module OneLogin
       def validate_signature
         fingerprint = settings.get_fingerprint
 
-        unless fingerprint && document.validate_document(fingerprint, soft, :fingerprint_alg => settings.idp_cert_fingerprint_algorithm)
+        # If the response contains the signature, and the assertion was encrypted, validate the original SAML Response
+        # otherwise, review if the decrypted assertion contains a signature
+        response_signed = REXML::XPath.first(
+          document,
+          "/p:Response[@ID=$id]",
+          { "p" => PROTOCOL, "ds" => DSIG },
+          { 'id' => document.signed_element_id }
+        )
+        doc = (response_signed || decrypted_document.nil?) ? document : decrypted_document
+
+        unless fingerprint && doc.validate_document(fingerprint, :fingerprint_alg => settings.idp_cert_fingerprint_algorithm)
           error_msg = "Invalid Signature on SAML Response"
           return append_error(error_msg)
         end
@@ -565,17 +585,18 @@ module OneLogin
       # @return [REXML::Element | nil] If any matches, return the Element
       #
       def xpath_first_from_signed_assertion(subelt=nil)
+        doc = decrypted_document.nil? ? document : decrypted_document
         node = REXML::XPath.first(
-            document,
+            doc,
             "/p:Response/a:Assertion[@ID=$id]#{subelt}",
             { "p" => PROTOCOL, "a" => ASSERTION },
-            { 'id' => document.signed_element_id }
+            { 'id' => doc.signed_element_id }
         )
         node ||= REXML::XPath.first(
-            document,
+            doc,
             "/p:Response[@ID=$id]/a:Assertion#{subelt}",
             { "p" => PROTOCOL, "a" => ASSERTION },
-            { 'id' => document.signed_element_id }
+            { 'id' => doc.signed_element_id }
         )
         node
       end
@@ -586,18 +607,104 @@ module OneLogin
       # @return [Array of REXML::Element] Return all matches
       #
       def xpath_from_signed_assertion(subelt=nil)
+        doc = decrypted_document.nil? ? document : decrypted_document
         node = REXML::XPath.match(
-            document,
+            doc,
             "/p:Response/a:Assertion[@ID=$id]#{subelt}",
             { "p" => PROTOCOL, "a" => ASSERTION },
-            { 'id' => document.signed_element_id }
+            { 'id' => doc.signed_element_id }
         )
         node.concat( REXML::XPath.match(
-            document,
+            doc,
             "/p:Response[@ID=$id]/a:Assertion#{subelt}",
             { "p" => PROTOCOL, "a" => ASSERTION },
-            { 'id' => document.signed_element_id }
+            { 'id' => doc.signed_element_id }
         ))
+      end
+
+      # Generates the decrypted_document
+      # @return [XMLSecurity::SignedDocument] The SAML Response with the assertion decrypted
+      #
+      def generate_decrypted_document
+        if settings.nil? || !settings.get_sp_key
+          validation_error('An EncryptedAssertion found and no SP private key found on the settings to decrypt it. Be sure you provided the :settings parameter at the initialize method')
+        end
+
+        # Marshal at Ruby 1.8.7 throw an Exception
+        if RUBY_VERSION < "1.9"
+          document_copy = XMLSecurity::SignedDocument.new(response, errors)
+        else
+          document_copy = Marshal.load(Marshal.dump(document))
+        end
+
+        decrypt_assertion_from_document(document_copy)
+      end
+
+      # Obtains a SAML Response with the EncryptedAssertion element decrypted
+      # @param document_copy [XMLSecurity::SignedDocument] A copy of the original SAML Response with the encrypted assertion
+      # @return [XMLSecurity::SignedDocument] The SAML Response with the assertion decrypted
+      #
+      def decrypt_assertion_from_document(document_copy)
+        response_node = REXML::XPath.first(
+          document_copy,
+          "/p:Response/",
+          { "p" => PROTOCOL }
+        )
+        encrypted_assertion_node = REXML::XPath.first(
+          document_copy,
+          "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
+          { "p" => PROTOCOL, "a" => ASSERTION }
+        )
+        response_node.add(decrypt_assertion(encrypted_assertion_node))
+        encrypted_assertion_node.remove
+        XMLSecurity::SignedDocument.new(response_node.to_s)
+      end
+
+      # Checks if the SAML Response contains or not an EncryptedAssertion element
+      # @return [Boolean] True if the SAML Response contains an EncryptedAssertion element
+      #
+      def assertion_encrypted?
+        ! REXML::XPath.first(
+          document,
+          "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
+          { "p" => PROTOCOL, "a" => ASSERTION }
+        ).nil?
+      end
+
+      # Decrypts an EncryptedAssertion element
+      # @param encrypted_assertion_node [REXML::Element] The EncryptedAssertion element
+      # @return [REXML::Document] The decrypted EncryptedAssertion element
+      #
+      def decrypt_assertion(encrypted_assertion_node)
+        decrypt_element(encrypted_assertion_node, /(.*<\/(saml2*:|)Assertion>)/m)
+      end
+
+      # Decrypts an EncryptedID element
+      # @param encryptedid_node [REXML::Element] The EncryptedID element
+      # @return [REXML::Document] The decrypted EncrypedtID element
+      #
+      def decrypt_nameid(encryptedid_node)
+        decrypt_element(encryptedid_node, /(.*<\/(saml2*:|)NameID>)/m)
+      end
+
+      # Decrypt an element
+      # @param encryptedid_node [REXML::Element] The encrypted element
+      # @return [REXML::Document] The decrypted element
+      #
+      def decrypt_element(encrypt_node, rgrex)
+        if settings.nil? || !settings.get_sp_key
+          return validation_error('An ' + encrypt_node.name + ' found and no SP private key found on the settings to decrypt it')
+        end
+
+        elem_plaintext = OneLogin::RubySaml::Utils.decrypt_data(encrypt_node, settings.get_sp_key)
+        # If we get some problematic noise in the plaintext after decrypting.
+        # This quick regexp parse will grab only the Element and discard the noise.
+        elem_plaintext = elem_plaintext.match(rgrex)[0]
+        # To avoid namespace errors if saml namespace is not defined at assertion_plaintext
+        # create a parent node first with the saml namespace defined
+        elem_plaintext = '<node xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">' + elem_plaintext + '</node>'
+        doc = REXML::Document.new(elem_plaintext)
+        doc.root[0]
       end
 
       # Parse the attribute of a given node in Time format

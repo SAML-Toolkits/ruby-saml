@@ -32,7 +32,7 @@ class RequestTest < Minitest::Test
       sessionidx = UUID.new.generate
       settings.sessionindex = sessionidx
 
-      unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings, { :name_id => "there" })
+      unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings, { :nameid => "there" })
       inflated = decode_saml_request_payload(unauth_url)
 
       assert_match /<samlp:SessionIndex/, inflated
@@ -44,7 +44,7 @@ class RequestTest < Minitest::Test
       name_identifier_value = "abc123"
       settings.name_identifier_value = name_identifier_value
 
-      unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings, { :name_id => "there" })
+      unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings, { :nameid => "there" })
       inflated = decode_saml_request_payload(unauth_url)
 
       assert_match /<saml:NameID/, inflated

@@ -89,13 +89,12 @@ Once you've redirected back to the identity provider, it will ensure that the us
 
 ```ruby
 def consume
-  response          = OneLogin::RubySaml::Response.new(params[:SAMLResponse])
-  response.settings = saml_settings
+  response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], :settings => saml_settings)
 
   # We validate the SAML Response and check if the user already exists in the system
   if response.is_valid?
      # authorize_success, log the user
-     session[:userid] = response.name_id
+     session[:userid] = response.nameid
      session[:attributes] = response.attributes
   else
     authorize_failure  # This method shows an error message
@@ -103,7 +102,17 @@ def consume
 end
 ```
 
-In the above there are a few assumptions in place, one being that the response.name_id is an email address. This is all handled with how you specify the settings that are in play via the saml_settings method. That could be implemented along the lines of this:
+In the above there are a few assumptions in place, one being that the response.nameid is an email address. This is all handled with how you specify the settings that are in play via the saml_settings method. That could be implemented along the lines of this:
+
+If the assertion of the SAMLResponse is not encrypted, you can initialize the Response without the :settings parameter and set it later, 
+
+```
+response = OneLogin::RubySaml::Response.new(params[:SAMLResponse])
+response.settings = saml_settings
+```
+but if the SAMLResponse contains an encrypted assertion, you need to provide the settings in the
+initialize method in order to be able to obtain the decrypted assertion, using the service provider private key in order to decrypt.
+If you don't know what expect, use always the first proposed way (always set the settings on the initialize method).
 
 ```ruby
 def saml_settings
@@ -147,7 +156,7 @@ class SamlController < ApplicationController
     # We validate the SAML Response and check if the user already exists in the system
     if response.is_valid?
        # authorize_success, log the user
-       session[:userid] = response.name_id
+       session[:userid] = response.nameid
        session[:attributes] = response.attributes
     else
       authorize_failure  # This method shows an error message
@@ -330,8 +339,8 @@ The Ruby Toolkit supports 2 different kinds of signature: Embeded and as GET par
 In order to be able to sign we need first to define the private key and the public cert of the service provider
 
 ```ruby
-  settings.certificate = "CERTIFICATE TEXT WITH HEADS"
-  settings.private_key = "PRIVATE KEY TEXT WITH HEADS"
+  settings.certificate = "CERTIFICATE TEXT WITH HEAD AND FOOT"
+  settings.private_key = "PRIVATE KEY TEXT WITH HEAD AND FOOT"
 ```
 
 The settings related to sign are stored in the `security` attribute of the settings:
@@ -354,6 +363,28 @@ Notice that the RelayState parameter is used when creating the Signature on the 
 remember to provide it to the Signature builder if you are sending a GET RelayState parameter or
 Signature validation process will fail at the Identity Provider.
 
+The Service Provider will sign the request/responses with its private key.
+The Identity Provider will validate the sign of the received request/responses with the public x500 cert of the
+Service Provider.
+
+Notice that this toolkit uses 'settings.certificate' and 'settings.private_key' for the sign and the decrypt process.
+
+
+## Decrypting
+
+The Ruby Toolkit supports EncryptedAssertion.
+
+In order to be able to decrypt a SAML Response that contains a EncryptedAssertion we need first to define the private key and the public cert of the service provider, and share this with the Identity Provider.
+
+```ruby
+  settings.certificate = "CERTIFICATE TEXT WITH HEAD AND FOOT"
+  settings.private_key = "PRIVATE KEY TEXT WITH HEAD AND FOOT"
+```
+
+The Identity Provider will encrypt the Assertion with the public cert of the Service Provider.
+The Service Provider will decrypt the EncryptedAssertion with its private key.
+
+Notice that this toolkit uses 'settings.certificate' and 'settings.private_key' for the sign and the decrypt process.
 
 ## Single Log Out
 

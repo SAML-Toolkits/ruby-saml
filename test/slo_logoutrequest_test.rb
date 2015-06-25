@@ -35,7 +35,7 @@ class RubySamlTest < Minitest::Test
       it "return true when the logout request is initialized with valid data" do
         assert logout_request.is_valid?
         assert_empty logout_request.errors
-        assert_equal 'someone@example.org', logout_request.name_id
+        assert_equal 'someone@example.org', logout_request.nameid
       end
 
       it "should be idempotent when the logout request is initialized with invalid data" do
@@ -58,9 +58,9 @@ class RubySamlTest < Minitest::Test
       end
     end
 
-    describe "#name_id" do
+    describe "#nameid" do
       it "extract the value of the name id element" do
-        assert_equal "someone@example.org", logout_request.name_id
+        assert_equal "someone@example.org", logout_request.nameid
       end
     end
 
