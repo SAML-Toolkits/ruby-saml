@@ -51,8 +51,8 @@ class MetadataTest < Minitest::Test
       assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", sls.attribute("Binding").value
       assert_equal "https://foo.example/saml/sls", sls.attribute("Location").value
       assert_equal "https://foo.example/saml/sls", sls.attribute("ResponseLocation").value
-      assert sls.attribute("isDefault").value
-      assert_equal "0", sls.attribute("index").value
+      assert_nil sls.attribute("isDefault")
+      assert_nil sls.attribute("index")
 
       validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
     end
@@ -137,7 +137,7 @@ class MetadataTest < Minitest::Test
         assert_equal "Name", req_attr.attribute("Name").value
         assert_equal "Name Format", req_attr.attribute("NameFormat").value
         assert_equal "Friendly Name", req_attr.attribute("FriendlyName").value
-        assert_equal "Attribute Value", REXML::XPath.first(xml_doc, "//md:AttributeValue").text.strip
+        assert_equal "Attribute Value", REXML::XPath.first(xml_doc, "//saml:AttributeValue").text.strip
 
         validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
       end
