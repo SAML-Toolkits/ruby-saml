@@ -1,8 +1,8 @@
 require 'simplecov'
 
 SimpleCov.start do
- add_filter "test/"
- add_filter "lib/onelogin/ruby-saml/logging.rb"
+  add_filter "test/"
+  add_filter "lib/onelogin/ruby-saml/logging.rb"
 end
 
 require 'rubygems'
@@ -215,5 +215,34 @@ class Minitest::Test
     zstream.finish
     zstream.close
     inflated
+  end
+
+  SCHEMA_DIR = File.expand_path(File.join(__FILE__, '../../lib/schemas'))
+
+  #
+  # validate an xml document against the given schema
+  #
+  def validate_xml!(document, schema)
+    Dir.chdir(SCHEMA_DIR) do
+      xsd = if schema.is_a? Nokogiri::XML::Schema
+              schema
+            else
+              Nokogiri::XML::Schema(File.read(schema))
+            end
+
+      xml = if document.is_a? Nokogiri::XML::Document
+              document
+            else
+              Nokogiri::XML(document) { |c| c.strict }
+            end
+
+      result = xsd.validate(xml)
+
+      if result.length != 0
+        raise "Schema validation failed! XSD validation errors: #{result.join(", ")}"
+      else
+        true
+      end
+    end
   end
 end
