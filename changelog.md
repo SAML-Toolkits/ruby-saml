@@ -1,4 +1,16 @@
 # RubySaml Changelog
+
+### 1.0.0 (June 29, 2015)
+* [#241](https://github.com/onelogin/ruby-saml/pull/241) Add decrypt support (EncryptID and EncryptedAssertion). Improve compatibility with namespaces. 
+* [#240](https://github.com/onelogin/ruby-saml/pull/240) [#238](https://github.com/onelogin/ruby-saml/pull/238) Improve test coverage and refactor.
+* [#239](https://github.com/onelogin/ruby-saml/pull/239) Improve security: Add more validations to SAMLResponse, LogoutRequest and LogoutResponse. Refactor code and improve tests coverage.
+* [#237](https://github.com/onelogin/ruby-saml/pull/237) Don't pretty print metadata by default.
+* [#235](https://github.com/onelogin/ruby-saml/pull/235) Remove the soft parameter from validation methods. Now can be configured on the settings and each class read it and store as an attribute of the class. Adding some validations and refactor old ones.
+* [#232](https://github.com/onelogin/ruby-saml/pull/232) Improve validations: Store the causes in the errors array, code refactor
+* [#231](https://github.com/onelogin/ruby-saml/pull/231) Refactor HTTP-Redirect Sign method, Move test data to right folder
+* [#226](https://github.com/onelogin/ruby-saml/pull/226) Ensure IdP certificate is formatted properly
+* [#225](https://github.com/onelogin/ruby-saml/pull/225) Add documentation to several methods. Fix xpath injection on xml_security.rb
+
 ### 0.9.2 (Apr 28, 2015)
 * [#216](https://github.com/onelogin/ruby-saml/pull/216) Add fingerprint algorithm support
 * [#218](https://github.com/onelogin/ruby-saml/pull/218) Update README.md
