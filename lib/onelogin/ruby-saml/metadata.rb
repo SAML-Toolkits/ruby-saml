@@ -19,9 +19,13 @@ module OneLogin
       #
       def generate(settings, pretty_print=false)
         meta_doc = XMLSecurity::Document.new
-        root = meta_doc.add_element "md:EntityDescriptor", {
+        namespaces = {
             "xmlns:md" => "urn:oasis:names:tc:SAML:2.0:metadata"
         }
+        if settings.attribute_consuming_service.configured?
+          namespaces["xmlns:saml"] = "urn:oasis:names:tc:SAML:2.0:assertion"
+        end
+        root = meta_doc.add_element "md:EntityDescriptor", namespaces
         sp_sso = root.add_element "md:SPSSODescriptor", {
             "protocolSupportEnumeration" => "urn:oasis:names:tc:SAML:2.0:protocol",
             "AuthnRequestsSigned" => settings.security[:authn_requests_signed],
@@ -36,9 +40,7 @@ module OneLogin
           sp_sso.add_element "md:SingleLogoutService", {
               "Binding" => settings.single_logout_service_binding,
               "Location" => settings.single_logout_service_url,
-              "ResponseLocation" => settings.single_logout_service_url,
-              "isDefault" => true,
-              "index" => 0
+              "ResponseLocation" => settings.single_logout_service_url
           }
         end
         if settings.name_identifier_format
@@ -87,7 +89,7 @@ module OneLogin
               "FriendlyName" => attribute[:friendly_name]
             }
             unless attribute[:attribute_value].nil?
-              sp_attr_val = sp_req_attr.add_element "md:AttributeValue"
+              sp_attr_val = sp_req_attr.add_element "saml:AttributeValue"
               sp_attr_val.text = attribute[:attribute_value]
             end
           end
