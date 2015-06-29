@@ -32,6 +32,24 @@ module OneLogin
             # However we would like assertions signed if idp_cert_fingerprint or idp_cert is set
             "WantAssertionsSigned" => !!(settings.idp_cert_fingerprint || settings.idp_cert)
         }
+
+        # Add KeyDescriptor if messages will be signed / encrypted
+        cert = settings.get_sp_cert
+        if cert
+          cert_text = Base64.encode64(cert.to_der).gsub("\n", '')
+          kd = sp_sso.add_element "md:KeyDescriptor", { "use" => "signing" }
+          ki = kd.add_element "ds:KeyInfo", {"xmlns:ds" => "http://www.w3.org/2000/09/xmldsig#"}
+          xd = ki.add_element "ds:X509Data"
+          xc = xd.add_element "ds:X509Certificate"
+          xc.text = cert_text
+
+          kd2 = sp_sso.add_element "md:KeyDescriptor", { "use" => "encryption" }
+          ki2 = kd2.add_element "ds:KeyInfo", {"xmlns:ds" => "http://www.w3.org/2000/09/xmldsig#"}
+          xd2 = ki2.add_element "ds:X509Data"
+          xc2 = xd2.add_element "ds:X509Certificate"
+          xc2.text = cert_text
+        end
+
         root.attributes["ID"] = "_" + UUID.new.generate
         if settings.issuer
           root.attributes["entityID"] = settings.issuer
@@ -54,23 +72,6 @@ module OneLogin
               "isDefault" => true,
               "index" => 0
           }
-        end
-
-        # Add KeyDescriptor if messages will be signed / encrypted
-        cert = settings.get_sp_cert
-        if cert
-          cert_text = Base64.encode64(cert.to_der).gsub("\n", '')
-          kd = sp_sso.add_element "md:KeyDescriptor", { "use" => "signing" }
-          ki = kd.add_element "ds:KeyInfo", {"xmlns:ds" => "http://www.w3.org/2000/09/xmldsig#"}
-          xd = ki.add_element "ds:X509Data"
-          xc = xd.add_element "ds:X509Certificate"
-          xc.text = cert_text
-
-          kd2 = sp_sso.add_element "md:KeyDescriptor", { "use" => "encryption" }
-          ki2 = kd2.add_element "ds:KeyInfo", {"xmlns:ds" => "http://www.w3.org/2000/09/xmldsig#"}
-          xd2 = ki2.add_element "ds:X509Data"
-          xc2 = xd2.add_element "ds:X509Certificate"
-          xc2.text = cert_text
         end
 
         if settings.attribute_consuming_service.configured?

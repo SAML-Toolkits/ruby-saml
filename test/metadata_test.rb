@@ -34,7 +34,7 @@ class MetadataTest < Minitest::Test
       assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST", acs.attribute("Binding").value
       assert_equal "https://foo.example/saml/consume", acs.attribute("Location").value      
 
-      validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
+      assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
     end
 
     it "generates Service Provider Metadata" do
@@ -54,7 +54,7 @@ class MetadataTest < Minitest::Test
       assert_nil sls.attribute("isDefault")
       assert_nil sls.attribute("index")
 
-      validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
+      assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
     end
 
     it "generates Service Provider Metadata with single logout service" do
@@ -72,7 +72,7 @@ class MetadataTest < Minitest::Test
       assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST", acs.attribute("Binding").value
       assert_equal "https://foo.example/saml/consume", acs.attribute("Location").value
 
-      validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
+      assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
     end
 
     describe "when auth requests are signed" do
@@ -102,7 +102,7 @@ class MetadataTest < Minitest::Test
         assert_equal "true", spsso_descriptor.attribute("AuthnRequestsSigned").value
         assert_equal ruby_saml_cert.to_der, cert.to_der
 
-        validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
+        assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
       end
 
       it "generates Service Provider Metadata with X509Certificate for sign and encrypt" do
@@ -114,7 +114,7 @@ class MetadataTest < Minitest::Test
         assert_equal ruby_saml_cert.to_der, cert.to_der
         assert_equal cert_nodes[0].text, cert_nodes[1].text
 
-        validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
+        assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
       end
     end
 
@@ -139,7 +139,7 @@ class MetadataTest < Minitest::Test
         assert_equal "Friendly Name", req_attr.attribute("FriendlyName").value
         assert_equal "Attribute Value", REXML::XPath.first(xml_doc, "//saml:AttributeValue").text.strip
 
-        validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
+        assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
       end
 
       describe "#service_name" do
@@ -177,7 +177,7 @@ class MetadataTest < Minitest::Test
         signed_metadata = XMLSecurity::SignedDocument.new(xml_text)
         assert signed_metadata.validate_document(ruby_saml_cert_fingerprint, false)        
 
-        validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
+        assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
       end
 
       describe "when digest and signature methods are specified" do
@@ -195,7 +195,7 @@ class MetadataTest < Minitest::Test
 
           assert signed_metadata_2.validate_document(ruby_saml_cert_fingerprint, false)          
 
-          validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
+          assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
         end
       end
     end
