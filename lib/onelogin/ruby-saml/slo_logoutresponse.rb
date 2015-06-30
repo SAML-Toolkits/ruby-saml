@@ -104,6 +104,11 @@ module OneLogin
         root.attributes['InResponseTo'] = request_id unless request_id.nil?
         root.attributes['Destination'] = settings.idp_slo_target_url unless settings.idp_slo_target_url.nil?
 
+        if settings.issuer != nil
+          issuer = root.add_element "saml:Issuer"
+          issuer.text = settings.issuer
+        end
+        
         # add success message
         status = root.add_element 'samlp:Status'
 
@@ -115,11 +120,6 @@ module OneLogin
         logout_message ||= 'Successfully Signed Out'
         status_message = status.add_element 'samlp:StatusMessage'
         status_message.text = logout_message
-
-        if settings.issuer != nil
-          issuer = root.add_element "saml:Issuer"
-          issuer.text = settings.issuer
-        end
 
         # embed signature
         if settings.security[:logout_responses_signed] && settings.private_key && settings.certificate && settings.security[:embed_sign]
