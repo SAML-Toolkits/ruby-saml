@@ -1,6 +1,7 @@
 # RubySaml Changelog
 
 ### 1.0.0 (June 29, 2015)
+* [#243](https://github.com/onelogin/ruby-saml/issues/243) and [#244](https://github.com/onelogin/ruby-saml/issues/244) Fix metadata builder errors. Fix metadata xsd.
 * [#241](https://github.com/onelogin/ruby-saml/pull/241) Add decrypt support (EncryptID and EncryptedAssertion). Improve compatibility with namespaces. 
 * [#240](https://github.com/onelogin/ruby-saml/pull/240) [#238](https://github.com/onelogin/ruby-saml/pull/238) Improve test coverage and refactor.
 * [#239](https://github.com/onelogin/ruby-saml/pull/239) Improve security: Add more validations to SAMLResponse, LogoutRequest and LogoutResponse. Refactor code and improve tests coverage.
@@ -10,6 +11,7 @@
 * [#231](https://github.com/onelogin/ruby-saml/pull/231) Refactor HTTP-Redirect Sign method, Move test data to right folder
 * [#226](https://github.com/onelogin/ruby-saml/pull/226) Ensure IdP certificate is formatted properly
 * [#225](https://github.com/onelogin/ruby-saml/pull/225) Add documentation to several methods. Fix xpath injection on xml_security.rb
+* [#223](https://github.com/onelogin/ruby-saml/pull/223) Allow logging to be delegated to an arbitrary Logger
 
 ### 0.9.2 (Apr 28, 2015)
 * [#216](https://github.com/onelogin/ruby-saml/pull/216) Add fingerprint algorithm support
