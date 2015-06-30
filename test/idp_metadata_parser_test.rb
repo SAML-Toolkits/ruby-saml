@@ -3,8 +3,17 @@ require File.expand_path(File.join(File.dirname(__FILE__), "test_helper"))
 require 'onelogin/ruby-saml/idp_metadata_parser'
 
 class IdpMetadataParserTest < Minitest::Test
+  class MockSuccessResponse < Net::HTTPSuccess
+    # override parent's initialize
+    def initialize; end
 
-  class MockResponse
+    attr_accessor :body
+  end
+
+  class MockFailureResponse < Net::HTTPNotFound
+    # override parent's initialize
+    def initialize; end
+
     attr_accessor :body
   end
 
@@ -24,7 +33,7 @@ class IdpMetadataParserTest < Minitest::Test
 
   describe "download and parse IdP descriptor file" do
     before do
-      mock_response = MockResponse.new
+      mock_response = MockSuccessResponse.new
       mock_response.body = idp_metadata
       @url = "https://example.com"
       uri = URI(@url)
@@ -33,7 +42,6 @@ class IdpMetadataParserTest < Minitest::Test
       Net::HTTP.expects(:new).returns(@http)
       @http.expects(:request).returns(mock_response)
     end
-
 
     it "extract settings from remote xml" do
       idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
@@ -49,10 +57,39 @@ class IdpMetadataParserTest < Minitest::Test
 
     it "accept self signed certificate if insturcted" do
       idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
-      settings = idp_metadata_parser.parse_remote(@url, false)
+      idp_metadata_parser.parse_remote(@url, false)
 
       assert_equal OpenSSL::SSL::VERIFY_NONE, @http.verify_mode
     end
   end
 
+  describe "download failure cases" do
+    it "raises an exception when the url has no scheme" do
+      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+
+      exception = assert_raises(ArgumentError) do
+        idp_metadata_parser.parse_remote("blahblah")
+      end
+
+      assert_equal("url must begin with http or https", exception.message)
+    end
+
+    it "raises an exception when unable to download metadata" do
+      mock_response = MockFailureResponse.new
+      @url = "https://example.com"
+      uri = URI(@url)
+
+      @http = Net::HTTP.new(uri.host, uri.port)
+      Net::HTTP.expects(:new).returns(@http)
+      @http.expects(:request).returns(mock_response)
+
+      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+
+      exception = assert_raises(OneLogin::RubySaml::HttpError) do
+        idp_metadata_parser.parse_remote("https://example.hello.com/access/saml/idp.xml")
+      end
+
+      assert_equal("Failed to fetch idp metadata", exception.message)
+    end
+  end
 end
