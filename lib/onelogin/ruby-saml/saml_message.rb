@@ -63,10 +63,17 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails 
       #
       def valid_saml?(document, soft = true)
-        xml = Nokogiri::XML(document.to_s)
+        begin
+          xml = Nokogiri::XML(document.to_s) do |config|
+            config.options = XMLSecurity::BaseDocument::NOKOGIRI_OPTIONS
+          end
+        rescue Exception => error
+          return false if soft
+          validation_error("XML load failed: #{error.message}")
+        end
 
         SamlMessage.schema.validate(xml).map do |error|
-          break false if soft
+          return false if soft
           validation_error("#{error.message}\n\n#{xml.to_s}")
         end
       end
