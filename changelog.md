@@ -1,6 +1,6 @@
 # RubySaml Changelog
 
-### 1.0.0 (June 29, 2015)
+### 1.0.0 (June 30, 2015)
 * [#247](https://github.com/onelogin/ruby-saml/pull/247) Avoid entity expansion (XEE attacks)
 * [#246](https://github.com/onelogin/ruby-saml/pull/246) Fix bug generating Logout Response (issuer was at wrong order)
 * [#243](https://github.com/onelogin/ruby-saml/issues/243) and [#244](https://github.com/onelogin/ruby-saml/issues/244) Fix metadata builder errors. Fix metadata xsd.
