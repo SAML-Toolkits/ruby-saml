@@ -53,6 +53,26 @@ class RubySamlTest < Minitest::Test
       assert_includes ampersands_response.errors, "SAML Response must contain 1 assertion"
     end
 
+    describe "Prevent XEE attack" do
+      before do
+        @response = OneLogin::RubySaml::Response.new(fixture(:attackxee))        
+      end
+
+      it "false when evil attack vector is present, soft = true" do
+        @response.soft = true
+        assert !@response.send(:validate_structure)
+        assert_includes @response.errors, "Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd"
+      end
+
+      it "raise when evil attack vector is present, soft = false " do
+        @response.soft = false
+
+        assert_raises(OneLogin::RubySaml::ValidationError) do
+          @response.send(:validate_structure)
+        end
+      end
+    end
+
     it "adapt namespace" do
       refute_nil response.nameid
       refute_nil response_without_attributes.nameid
