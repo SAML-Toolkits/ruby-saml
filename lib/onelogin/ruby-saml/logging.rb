@@ -1,25 +1,29 @@
+require 'logger'
+
 # Simplistic log class when we're running in Rails
 module OneLogin
   module RubySaml
     class Logging
+      DEFAULT_LOGGER = ::Logger.new(STDOUT)
+
+      def self.logger
+        @logger || (defined?(::Rails) && Rails.logger) || DEFAULT_LOGGER
+      end
+
+      def self.logger=(logger)
+        @logger = logger
+      end
+
       def self.debug(message)
         return if !!ENV["ruby-saml/testing"]
 
-        if defined? Rails
-          Rails.logger.debug message
-        else
-          puts message
-        end
+        logger.debug message
       end
 
       def self.info(message)
         return if !!ENV["ruby-saml/testing"]
 
-        if defined? Rails
-          Rails.logger.info message
-        else
-          puts message
-        end
+        logger.info message
       end
     end
   end
