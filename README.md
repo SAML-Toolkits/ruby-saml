@@ -3,8 +3,14 @@
 
 ## Updating from 0.9.x to 1.0.X
 
-Version `1.0` is a recommended update for all Ruby SAML users since include security fixes.
-Adds security improvements like entity expansion limitation, more saml message validations and other important improvements like decrypt support. For more details, please review [the changelog](changelog.md). Also notice that in this version the get_idp_metadata method raise an exception when not able to fetch the idp metadata, so review your integration if you are using this functionality.
+Version `1.0` is a recommended update for all Ruby SAML users as it includes security fixes.
+
+Version `1.0` adds security improvements like entity expansion limitation, more SAML message validations, and other important improvements like decrypt support.
+
+For more details, please review [the changelog](changelog.md).
+
+### Important Changes
+Please note the `get_idp_metadata` method raises an exception when it is not able to fetch the idp metadata, so review your integration if you are using this functionality.
 
 ## Updating from 0.8.x to 0.9.x
 Version `0.9` adds many new features and improvements.
@@ -24,7 +30,7 @@ We created a demo project for Rails4 that uses the latest version of this librar
 * 1.8.7
 * 1.9.x
 * 2.1.x
-* 2.2.0
+* 2.2.x
 
 ## Adding Features, Pull Requests
 * Fork the repository
@@ -41,7 +47,7 @@ Using `Gemfile`
 
 ```ruby
 # latest stable
-gem 'ruby-saml', '~> 0.9'
+gem 'ruby-saml', '~> 1.0.0'
 
 # or track master for bleeding-edge
 gem 'ruby-saml', :github => 'onelogin/ruby-saml'
@@ -123,7 +129,7 @@ end
 
 In the above there are a few assumptions in place, one being that the response.nameid is an email address. This is all handled with how you specify the settings that are in play via the saml_settings method. That could be implemented along the lines of this:
 
-If the assertion of the SAMLResponse is not encrypted, you can initialize the Response without the :settings parameter and set it later, 
+If the assertion of the SAMLResponse is not encrypted, you can initialize the Response without the :settings parameter and set it later,
 
 ```
 response = OneLogin::RubySaml::Response.new(params[:SAMLResponse])
