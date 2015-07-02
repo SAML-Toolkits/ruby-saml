@@ -1,4 +1,4 @@
-# Ruby SAML [![Build Status](https://secure.travis-ci.org/onelogin/ruby-saml.png)](http://travis-ci.org/onelogin/ruby-saml)
+# Ruby SAML [![Build Status](https://secure.travis-ci.org/onelogin/ruby-saml.png)](http://travis-ci.org/onelogin/ruby-saml) [![Coverage Status](https://coveralls.io/repos/onelogin/ruby-saml/badge.svg?branch=master%0A)](https://coveralls.io/r/onelogin/ruby-saml?branch=master%0A) [![Gem Version](https://badge.fury.io/rb/ruby-saml.svg)](http://badge.fury.io/rb/ruby-saml)
 
 
 ## Updating from 0.9.x to 1.0.X
@@ -394,6 +394,7 @@ Service Provider.
 
 Notice that this toolkit uses 'settings.certificate' and 'settings.private_key' for the sign and the decrypt process.
 
+Enable/disable the soft mode by the settings.soft parameter. When is set false, the saml validations errors will raise an exception.
 
 ## Decrypting
 
