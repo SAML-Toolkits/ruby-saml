@@ -1090,5 +1090,27 @@ class RubySamlTest < Minitest::Test
         assert_equal "_ce3d2948b4cf20146dee0a0b3dd6f69b6cf86f62d7", response.nameid
       end
     end
+    
+  end
+  describe "test qualified name id in attributes" do 
+
+    it "parsed the nameid" do
+     response = OneLogin::RubySaml::Response.new(read_response("signed_nameid_in_atts.xml"), :settings => settings)
+     response.settings.idp_cert_fingerprint = 'c51985d947f1be57082025050846eb27f6cab783'
+     assert_empty response.errors
+     assert_equal "test", response.attributes[:uid]
+     assert_equal "http://idp.example.com/metadata.php/ZdrjpwEdw22vKoxWAbZB78/gQ7s=", response.attributes.single('urn:oid:1.3.6.1.4.1.5923.1.1.1.10')
+    end
+  end
+
+  describe "test unqualified name id in attributes" do 
+
+    it "parsed the nameid" do
+     response = OneLogin::RubySaml::Response.new(read_response("signed_unqual_nameid_in_atts.xml"), :settings => settings)
+     response.settings.idp_cert_fingerprint = 'c51985d947f1be57082025050846eb27f6cab783'
+     assert_empty response.errors
+     assert_equal "test", response.attributes[:uid]
+     assert_equal "ZdrjpwEdw22vKoxWAbZB78/gQ7s=", response.attributes.single('urn:oid:1.3.6.1.4.1.5923.1.1.1.10')
+    end
   end
 end

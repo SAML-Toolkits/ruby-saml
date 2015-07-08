@@ -136,9 +136,13 @@ module OneLogin
                 # SAMLCore requires that nil AttributeValues MUST contain xsi:nil XML attribute set to "true" or "1"
                 # otherwise the value is to be regarded as empty.
                 ["true", "1"].include?(e.attributes['xsi:nil']) ? nil : e.text.to_s
+              # explicitly support saml2:NameID with saml2:NameQualifier if supplied in attributes
+              # this is useful for allowing eduPersonTargetedId to be passed as an opaque identifier to use to 
+              # identify the subject in an SP rather than email or other less opaque attributes
+              # NameQualifier, if present is prefixed with a "/" to the value
               else 
-                e.elements.collect{|f|
-                  ["true", "1"].include?(f.attributes['xsi:nil']) ? nil : f.attributes['NameQualifier']+"/"+f.text.to_s
+               REXML::XPath.match(e,'a:NameID', { "a" => ASSERTION }).collect{|n|
+                  (n.attributes['NameQualifier'] ? n.attributes['NameQualifier'] +"/" : '') + n.text.to_s
                 }
               end
             }
