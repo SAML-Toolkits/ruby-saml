@@ -94,6 +94,7 @@ module OneLogin
 
       alias_method :nameid, :name_id
 
+
       # Gets the SessionIndex from the AuthnStatement.
       # Could be used to be stored in the local session in order
       # to be used in a future Logout Request that the SP could
@@ -131,12 +132,18 @@ module OneLogin
           stmt_element.elements.each do |attr_element|
             name  = attr_element.attributes["Name"]
             values = attr_element.elements.collect{|e|
-              # SAMLCore requires that nil AttributeValues MUST contain xsi:nil XML attribute set to "true" or "1"
-              # otherwise the value is to be regarded as empty.
-              ["true", "1"].include?(e.attributes['xsi:nil']) ? nil : e.text.to_s
+              if (e.elements.nil? || e.elements.size == 0)
+                # SAMLCore requires that nil AttributeValues MUST contain xsi:nil XML attribute set to "true" or "1"
+                # otherwise the value is to be regarded as empty.
+                ["true", "1"].include?(e.attributes['xsi:nil']) ? nil : e.text.to_s
+              else 
+                e.elements.collect{|f|
+                  ["true", "1"].include?(f.attributes['xsi:nil']) ? nil : f.attributes['NameQualifier']+"/"+f.text.to_s
+                }
+              end
             }
 
-            attributes.add(name, values)
+            attributes.add(name, values.flatten)
           end
 
           attributes
