@@ -9,6 +9,7 @@ class RubySamlTest < Minitest::Test
     let(:settings) { OneLogin::RubySaml::Settings.new }
     let(:response) { OneLogin::RubySaml::Response.new(response_document_without_recipient) }
     let(:response_without_attributes) { OneLogin::RubySaml::Response.new(response_document_without_attributes) }
+    let(:response_without_reference_uri) { OneLogin::RubySaml::Response.new(response_document_without_reference_uri) }
     let(:response_with_signed_assertion) { OneLogin::RubySaml::Response.new(response_document_with_signed_assertion) }
     let(:response_unsigned) { OneLogin::RubySaml::Response.new(response_document_unsigned) }
     let(:response_wrapped) { OneLogin::RubySaml::Response.new(response_document_wrapped) }
@@ -383,6 +384,15 @@ class RubySamlTest < Minitest::Test
           error_msg = "Unsupported SAML version"
           response_no_version.is_valid?
           assert_includes response_no_version.errors, "Unsupported SAML version"
+        end
+
+        it "return true when a nil URI is given in the ds:Reference" do
+
+          response_without_reference_uri.stubs(:conditions).returns(nil)
+          response_without_reference_uri.settings = settings
+          response_without_reference_uri.settings.idp_cert_fingerprint = "19:4D:97:E4:D8:C9:C8:CF:A4:B7:21:E5:EE:49:7F:D9:66:0E:52:13"
+          assert response_without_reference_uri.is_valid?
+          assert_empty response_without_reference_uri.errors
         end
       end
     end
