@@ -344,7 +344,9 @@ module XMLSecurity
         {"ds"=>DSIG}
       )
 
-      sei = reference_element.attribute("URI").value[1..-1] unless reference_element.nil?
+      return nil if reference_element.nil?
+
+      sei = reference_element.attribute("URI").value[1..-1] 
       self.signed_element_id = sei.nil? ? self.root.attribute("ID") : sei
     end
 
