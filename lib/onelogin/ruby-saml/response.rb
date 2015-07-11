@@ -94,6 +94,7 @@ module OneLogin
 
       alias_method :nameid, :name_id
 
+
       # Gets the SessionIndex from the AuthnStatement.
       # Could be used to be stored in the local session in order
       # to be used in a future Logout Request that the SP could
@@ -131,12 +132,22 @@ module OneLogin
           stmt_element.elements.each do |attr_element|
             name  = attr_element.attributes["Name"]
             values = attr_element.elements.collect{|e|
-              # SAMLCore requires that nil AttributeValues MUST contain xsi:nil XML attribute set to "true" or "1"
-              # otherwise the value is to be regarded as empty.
-              ["true", "1"].include?(e.attributes['xsi:nil']) ? nil : e.text.to_s
+              if (e.elements.nil? || e.elements.size == 0)
+                # SAMLCore requires that nil AttributeValues MUST contain xsi:nil XML attribute set to "true" or "1"
+                # otherwise the value is to be regarded as empty.
+                ["true", "1"].include?(e.attributes['xsi:nil']) ? nil : e.text.to_s
+              # explicitly support saml2:NameID with saml2:NameQualifier if supplied in attributes
+              # this is useful for allowing eduPersonTargetedId to be passed as an opaque identifier to use to 
+              # identify the subject in an SP rather than email or other less opaque attributes
+              # NameQualifier, if present is prefixed with a "/" to the value
+              else 
+               REXML::XPath.match(e,'a:NameID', { "a" => ASSERTION }).collect{|n|
+                  (n.attributes['NameQualifier'] ? n.attributes['NameQualifier'] +"/" : '') + n.text.to_s
+                }
+              end
             }
 
-            attributes.add(name, values)
+            attributes.add(name, values.flatten)
           end
 
           attributes
