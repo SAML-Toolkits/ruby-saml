@@ -1,4 +1,4 @@
-require "xml_security"
+require "kl_xml_security"
 require "onelogin/kl-ruby-saml/attributes"
 
 require "time"

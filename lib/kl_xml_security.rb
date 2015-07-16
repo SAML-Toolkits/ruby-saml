@@ -31,7 +31,7 @@ require "digest/sha1"
 require "digest/sha2"
 require "onelogin/kl-ruby-saml/validation_error"
 
-module XMLSecurity
+module KlXMLSecurity
 
   class BaseDocument < REXML::Document
     REXML::Document::entity_expansion_limit = 0
@@ -110,7 +110,7 @@ module XMLSecurity
     #</Signature>
     def sign_document(private_key, certificate, signature_method = RSA_SHA1, digest_method = SHA1)
       noko = Nokogiri.parse(self.to_s) do |options|
-        options = XMLSecurity::BaseDocument::NOKOGIRI_OPTIONS
+        options = KlXMLSecurity::BaseDocument::NOKOGIRI_OPTIONS
       end
 
       signature_element = REXML::Element.new("ds:Signature").add_namespace('ds', DSIG)
@@ -134,7 +134,7 @@ module XMLSecurity
 
       # add SignatureValue
       noko_sig_element = Nokogiri.parse(signature_element.to_s) do |options|
-        options = XMLSecurity::BaseDocument::NOKOGIRI_OPTIONS
+        options = KlXMLSecurity::BaseDocument::NOKOGIRI_OPTIONS
       end
 
       noko_signed_info_element = noko_sig_element.at_xpath('//ds:Signature/ds:SignedInfo', 'ds' => DSIG)
@@ -211,7 +211,7 @@ module XMLSecurity
       cert = OpenSSL::X509::Certificate.new(cert_text)
 
       if options[:fingerprint_alg]
-        fingerprint_alg = XMLSecurity::BaseDocument.new.algorithm(options[:fingerprint_alg]).new
+        fingerprint_alg = KlXMLSecurity::BaseDocument.new.algorithm(options[:fingerprint_alg]).new
       else
         fingerprint_alg = OpenSSL::Digest::SHA1.new
       end
@@ -233,7 +233,7 @@ module XMLSecurity
       inclusive_namespaces = extract_inclusive_namespaces
 
       document = Nokogiri.parse(self.to_s) do |options|
-        options = XMLSecurity::BaseDocument::NOKOGIRI_OPTIONS
+        options = KlXMLSecurity::BaseDocument::NOKOGIRI_OPTIONS
       end
 
       # create a working copy so we don't modify the original

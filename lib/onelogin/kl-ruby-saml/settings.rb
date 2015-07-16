@@ -1,4 +1,4 @@
-require "xml_security"
+require "kl_xml_security"
 require "onelogin/kl-ruby-saml/attribute_service"
 require "onelogin/kl-ruby-saml/utils"
 

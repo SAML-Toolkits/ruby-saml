@@ -1,5 +1,5 @@
 require File.expand_path(File.join(File.dirname(__FILE__), "test_helper"))
-require 'xml_security'
+require 'kl_xml_security'
 require 'timecop'
 
 class XmlSecurityTest < Minitest::Test
