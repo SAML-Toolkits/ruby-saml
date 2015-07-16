@@ -103,8 +103,8 @@ class RequestTest < Minitest::Test
 
       it "create a signed logout request with 256 digest and signature method" do
         settings.compress_request = false
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
-        settings.security[:digest_method] = XMLSecurity::Document::SHA256
+        settings.security[:signature_method] = KlXMLSecurity::Document::RSA_SHA256
+        settings.security[:digest_method] = KlXMLSecurity::Document::SHA256
 
         params = OneLogin::KlRubySaml::Logoutrequest.new.create_params(settings)
         request_xml = Base64.decode64(params["SAMLRequest"])
@@ -116,8 +116,8 @@ class RequestTest < Minitest::Test
 
       it "create a signed logout request with 512 digest and signature method RSA_SHA384" do
         settings.compress_request = false
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA384
-        settings.security[:digest_method] = XMLSecurity::Document::SHA512
+        settings.security[:signature_method] = KlXMLSecurity::Document::RSA_SHA384
+        settings.security[:digest_method] = KlXMLSecurity::Document::SHA512
 
         params = OneLogin::KlRubySaml::Logoutrequest.new.create_params(settings)
         request_xml = Base64.decode64(params["SAMLRequest"])
@@ -141,67 +141,67 @@ class RequestTest < Minitest::Test
       end
 
       it "create a signature parameter with RSA_SHA1 / SHA1 and validate it" do
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+        settings.security[:signature_method] = KlXMLSecurity::Document::RSA_SHA1
 
         params = OneLogin::KlRubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
         assert params['SAMLRequest']
         assert params[:RelayState]
         assert params['Signature']
-        assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA1
+        assert_equal params['SigAlg'], KlXMLSecurity::Document::RSA_SHA1
 
         query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
         query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
         query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
-        signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
+        signature_algorithm = KlXMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
         assert_equal signature_algorithm, OpenSSL::Digest::SHA1
         assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
       end
 
       it "create a signature parameter with RSA_SHA256 / SHA256 and validate it" do
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
+        settings.security[:signature_method] = KlXMLSecurity::Document::RSA_SHA256
 
         params = OneLogin::KlRubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
         assert params['Signature']
-        assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA256
+        assert_equal params['SigAlg'], KlXMLSecurity::Document::RSA_SHA256
 
         query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
         query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
         query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
-        signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
+        signature_algorithm = KlXMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
         assert_equal signature_algorithm, OpenSSL::Digest::SHA256 
         assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string) 
       end
 
       it "create a signature parameter with RSA_SHA384 / SHA384 and validate it" do
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA384
+        settings.security[:signature_method] = KlXMLSecurity::Document::RSA_SHA384
 
         params = OneLogin::KlRubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
         assert params['Signature']
-        assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA384
+        assert_equal params['SigAlg'], KlXMLSecurity::Document::RSA_SHA384
 
         query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
         query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
         query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
-        signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
+        signature_algorithm = KlXMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
         assert_equal signature_algorithm, OpenSSL::Digest::SHA384 
         assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string) 
       end
 
       it "create a signature parameter with RSA_SHA512 / SHA512 and validate it" do
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA512
+        settings.security[:signature_method] = KlXMLSecurity::Document::RSA_SHA512
 
         params = OneLogin::KlRubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
         assert params['Signature']
-        assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA512
+        assert_equal params['SigAlg'], KlXMLSecurity::Document::RSA_SHA512
 
         query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
         query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
         query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
-        signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
+        signature_algorithm = KlXMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
         assert_equal signature_algorithm, OpenSSL::Digest::SHA512 
         assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string) 
       end

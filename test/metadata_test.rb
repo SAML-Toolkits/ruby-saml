@@ -174,7 +174,7 @@ class MetadataTest < Minitest::Test
         assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>]m, xml_text
         assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], xml_text
         assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2000/09/xmldsig#sha1'/>], xml_text
-        signed_metadata = XMLSecurity::SignedDocument.new(xml_text)
+        signed_metadata = KlXMLSecurity::SignedDocument.new(xml_text)
         assert signed_metadata.validate_document(ruby_saml_cert_fingerprint, false)        
 
         assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
@@ -182,8 +182,8 @@ class MetadataTest < Minitest::Test
 
       describe "when digest and signature methods are specified" do
         before do
-          settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
-          settings.security[:digest_method] = XMLSecurity::Document::SHA512
+          settings.security[:signature_method] = KlXMLSecurity::Document::RSA_SHA256
+          settings.security[:digest_method] = KlXMLSecurity::Document::SHA512
         end
 
         it "creates a signed metadata with specified digest and signature methods" do
@@ -191,7 +191,7 @@ class MetadataTest < Minitest::Test
           assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], xml_text
           assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#sha512'/>], xml_text
 
-          signed_metadata_2 = XMLSecurity::SignedDocument.new(xml_text)
+          signed_metadata_2 = KlXMLSecurity::SignedDocument.new(xml_text)
 
           assert signed_metadata_2.validate_document(ruby_saml_cert_fingerprint, false)          
 

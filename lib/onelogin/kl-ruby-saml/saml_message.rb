@@ -65,7 +65,7 @@ module OneLogin
       def valid_saml?(document, soft = true)
         begin
           xml = Nokogiri::XML(document.to_s) do |config|
-            config.options = XMLSecurity::BaseDocument::NOKOGIRI_OPTIONS
+            config.options = KlXMLSecurity::BaseDocument::NOKOGIRI_OPTIONS
           end
         rescue Exception => error
           return false if soft

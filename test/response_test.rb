@@ -43,7 +43,7 @@ class KlRubySamlTest < Minitest::Test
     end
 
     it "be able to parse a document which contains ampersands" do
-      XMLSecurity::SignedDocument.any_instance.stubs(:digests_match?).returns(true)
+      KlXMLSecurity::SignedDocument.any_instance.stubs(:digests_match?).returns(true)
       OneLogin::KlRubySaml::Response.any_instance.stubs(:validate_conditions).returns(true)
 
       ampersands_response = OneLogin::KlRubySaml::Response.new(ampersands_document)
@@ -301,7 +301,7 @@ class KlRubySamlTest < Minitest::Test
           no_signature_response.stubs(:validate_subject_confirmation).returns(true)
           no_signature_response.settings = settings
           no_signature_response.settings.idp_cert_fingerprint = "28:74:9B:E8:1F:E8:10:9C:A8:7C:A9:C3:E3:C5:01:6C:92:1C:B4:BA"
-          XMLSecurity::SignedDocument.any_instance.expects(:validate_signature).returns(true)
+          KlXMLSecurity::SignedDocument.any_instance.expects(:validate_signature).returns(true)
           assert no_signature_response.is_valid?
         end
 
@@ -870,7 +870,7 @@ class KlRubySamlTest < Minitest::Test
       it 'Sign an unsigned SAML Response XML and initiate the SAML object with it' do
         xml = Base64.decode64(fixture("test_sign.xml"))
 
-        document = XMLSecurity::Document.new(xml)
+        document = KlXMLSecurity::Document.new(xml)
 
         formated_cert = OneLogin::KlRubySaml::Utils.format_cert(ruby_saml_cert_text)
         cert = OpenSSL::X509::Certificate.new(formated_cert)

@@ -52,7 +52,7 @@ module OneLogin
         end
 
         @response = decode_raw_saml(response)
-        @document = XMLSecurity::SignedDocument.new(@response, @errors)
+        @document = KlXMLSecurity::SignedDocument.new(@response, @errors)
 
         if assertion_encrypted?
           @decrypted_document = generate_decrypted_document
@@ -623,7 +623,7 @@ module OneLogin
       end
 
       # Generates the decrypted_document
-      # @return [XMLSecurity::SignedDocument] The SAML Response with the assertion decrypted
+      # @return [KlXMLSecurity::SignedDocument] The SAML Response with the assertion decrypted
       #
       def generate_decrypted_document
         if settings.nil? || !settings.get_sp_key
@@ -632,7 +632,7 @@ module OneLogin
 
         # Marshal at Ruby 1.8.7 throw an Exception
         if RUBY_VERSION < "1.9"
-          document_copy = XMLSecurity::SignedDocument.new(response, errors)
+          document_copy = KlXMLSecurity::SignedDocument.new(response, errors)
         else
           document_copy = Marshal.load(Marshal.dump(document))
         end
@@ -641,8 +641,8 @@ module OneLogin
       end
 
       # Obtains a SAML Response with the EncryptedAssertion element decrypted
-      # @param document_copy [XMLSecurity::SignedDocument] A copy of the original SAML Response with the encrypted assertion
-      # @return [XMLSecurity::SignedDocument] The SAML Response with the assertion decrypted
+      # @param document_copy [KlXMLSecurity::SignedDocument] A copy of the original SAML Response with the encrypted assertion
+      # @return [KlXMLSecurity::SignedDocument] The SAML Response with the assertion decrypted
       #
       def decrypt_assertion_from_document(document_copy)
         response_node = REXML::XPath.first(
@@ -657,7 +657,7 @@ module OneLogin
         )
         response_node.add(decrypt_assertion(encrypted_assertion_node))
         encrypted_assertion_node.remove
-        XMLSecurity::SignedDocument.new(response_node.to_s)
+        KlXMLSecurity::SignedDocument.new(response_node.to_s)
       end
 
       # Checks if the SAML Response contains or not an EncryptedAssertion element

@@ -107,7 +107,7 @@ module OneLogin
         idp_cert_fingerprint || begin
           idp_cert = get_idp_cert
           if idp_cert
-            fingerprint_alg = XMLSecurity::BaseDocument.new.algorithm(idp_cert_fingerprint_algorithm).new
+            fingerprint_alg = KlXMLSecurity::BaseDocument.new.algorithm(idp_cert_fingerprint_algorithm).new
             fingerprint_alg.hexdigest(idp_cert.to_der).upcase.scan(/../).join(":")
           end
         end
@@ -145,7 +145,7 @@ module OneLogin
       DEFAULTS = {
         :assertion_consumer_service_binding        => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST".freeze,
         :single_logout_service_binding             => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect".freeze,
-        :idp_cert_fingerprint_algorithm            => XMLSecurity::Document::SHA1,
+        :idp_cert_fingerprint_algorithm            => KlXMLSecurity::Document::SHA1,
         :compress_request                          => true,
         :compress_response                         => true,
         :soft                                      => true,
@@ -155,8 +155,8 @@ module OneLogin
           :logout_responses_signed  => false,
           :metadata_signed          => false,
           :embed_sign               => false,
-          :digest_method            => XMLSecurity::Document::SHA1,
-          :signature_method         => XMLSecurity::Document::RSA_SHA1
+          :digest_method            => KlXMLSecurity::Document::SHA1,
+          :signature_method         => KlXMLSecurity::Document::RSA_SHA1
         }.freeze,
         :double_quote_xml_attribute_values         => false,
       }.freeze

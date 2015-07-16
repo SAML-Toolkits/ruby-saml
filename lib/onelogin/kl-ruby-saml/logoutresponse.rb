@@ -44,7 +44,7 @@ module OneLogin
 
         @options = options
         @response = decode_raw_saml(response)
-        @document = XMLSecurity::SignedDocument.new(@response)
+        @document = KlXMLSecurity::SignedDocument.new(@response)
       end
 
       # Append the cause to the errors array, and based on the value of soft, return false or raise

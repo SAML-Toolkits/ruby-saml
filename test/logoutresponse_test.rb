@@ -215,7 +215,7 @@ class KlRubySamlTest < Minitest::Test
         end
 
         it "return true when valid RSA_SHA1 Signature" do
-          settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+          settings.security[:signature_method] = KlXMLSecurity::Document::RSA_SHA1
           params['RelayState'] = params[:RelayState]
           options = {}
           options[:get_params] = params
@@ -224,7 +224,7 @@ class KlRubySamlTest < Minitest::Test
         end
 
         it "return true when valid RSA_SHA256 Signature" do
-          settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
+          settings.security[:signature_method] = KlXMLSecurity::Document::RSA_SHA256
           params['RelayState'] = params[:RelayState]
           options = {}
           options[:get_params] = params
@@ -233,7 +233,7 @@ class KlRubySamlTest < Minitest::Test
         end
 
         it "return false when invalid RSA_SHA1 Signature" do
-          settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+          settings.security[:signature_method] = KlXMLSecurity::Document::RSA_SHA1
           params['RelayState'] = 'http://invalid.example.com'
           options = {}
           options[:get_params] = params
@@ -242,7 +242,7 @@ class KlRubySamlTest < Minitest::Test
         end
 
         it "raise when invalid RSA_SHA1 Signature" do
-          settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+          settings.security[:signature_method] = KlXMLSecurity::Document::RSA_SHA1
           settings.soft = false
           params['RelayState'] = 'http://invalid.example.com'
           options = {}

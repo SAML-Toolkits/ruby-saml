@@ -18,7 +18,7 @@ module OneLogin
       # @return [String] XML Metadata of the Service Provider
       #
       def generate(settings, pretty_print=false)
-        meta_doc = XMLSecurity::Document.new
+        meta_doc = KlXMLSecurity::Document.new
         namespaces = {
             "xmlns:md" => "urn:oasis:names:tc:SAML:2.0:metadata"
         }

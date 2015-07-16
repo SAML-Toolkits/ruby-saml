@@ -70,7 +70,7 @@ module OneLogin
             :relay_state => relay_state,
             :sig_alg => params['SigAlg']
           )
-          sign_algorithm = XMLSecurity::BaseDocument.new.algorithm(settings.security[:signature_method])
+          sign_algorithm = KlXMLSecurity::BaseDocument.new.algorithm(settings.security[:signature_method])
           signature = settings.get_sp_key.sign(sign_algorithm.new, url_string)
           params['Signature'] = encode(signature)
         end
@@ -89,7 +89,7 @@ module OneLogin
       def create_authentication_xml_doc(settings)
         time = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-        request_doc = XMLSecurity::Document.new
+        request_doc = KlXMLSecurity::Document.new
         request_doc.uuid = uuid
 
         root = request_doc.add_element "samlp:AuthnRequest", { "xmlns:samlp" => "urn:oasis:names:tc:SAML:2.0:protocol", "xmlns:saml" => "urn:oasis:names:tc:SAML:2.0:assertion" }

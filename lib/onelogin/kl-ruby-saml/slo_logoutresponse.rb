@@ -73,7 +73,7 @@ module OneLogin
             :relay_state => relay_state,
             :sig_alg => params['SigAlg']
           )
-          sign_algorithm = XMLSecurity::BaseDocument.new.algorithm(settings.security[:signature_method])
+          sign_algorithm = KlXMLSecurity::BaseDocument.new.algorithm(settings.security[:signature_method])
           signature = settings.get_sp_key.sign(sign_algorithm.new, url_string)
           params['Signature'] = encode(signature)
         end
@@ -94,7 +94,7 @@ module OneLogin
       def create_logout_response_xml_doc(settings, request_id = nil, logout_message = nil)
         time = Time.now.utc.strftime('%Y-%m-%dT%H:%M:%SZ')
 
-        response_doc = XMLSecurity::Document.new
+        response_doc = KlXMLSecurity::Document.new
         response_doc.uuid = uuid
 
         root = response_doc.add_element 'samlp:LogoutResponse', { 'xmlns:samlp' => 'urn:oasis:names:tc:SAML:2.0:protocol', "xmlns:saml" => "urn:oasis:names:tc:SAML:2.0:assertion" }

@@ -3,12 +3,12 @@ require 'kl_xml_security'
 require 'timecop'
 
 class XmlSecurityTest < Minitest::Test
-  include XMLSecurity
+  include KlXMLSecurity
 
   describe "XmlSecurity" do
 
     let(:decoded_response) { Base64.decode64(response_document_without_recipient) }
-    let(:document) { XMLSecurity::SignedDocument.new(decoded_response) }
+    let(:document) { KlXMLSecurity::SignedDocument.new(decoded_response) }
     let(:settings) { OneLogin::KlRubySaml::Settings.new() }
 
     before do
@@ -31,7 +31,7 @@ class XmlSecurityTest < Minitest::Test
 
     it "not raise an error when softly validating the document and the X509Certificate is missing" do
       decoded_response.sub!(/<ds:X509Certificate>.*<\/ds:X509Certificate>/, "")
-      mod_document = XMLSecurity::SignedDocument.new(decoded_response)
+      mod_document = KlXMLSecurity::SignedDocument.new(decoded_response)
       assert !mod_document.validate_document("a fingerprint", true) # The fingerprint isn't relevant to this test
     end
 
@@ -54,7 +54,7 @@ class XmlSecurityTest < Minitest::Test
     it "should raise Key validation error" do
       decoded_response.sub!("<ds:DigestValue>pJQ7MS/ek4KRRWGmv/H43ReHYMs=</ds:DigestValue>",
                     "<ds:DigestValue>b9xsAXLsynugg3Wc1CI3kpWku+0=</ds:DigestValue>")
-      mod_document = XMLSecurity::SignedDocument.new(decoded_response)
+      mod_document = KlXMLSecurity::SignedDocument.new(decoded_response)
       base64cert = mod_document.elements["//ds:X509Certificate"].text
       exception = assert_raises(OneLogin::KlRubySaml::ValidationError) do
         mod_document.validate_signature(base64cert, false)
@@ -64,14 +64,14 @@ class XmlSecurityTest < Minitest::Test
     end
 
     it "correctly obtain the digest method with alternate namespace declaration" do
-      adfs_document = XMLSecurity::SignedDocument.new(fixture(:adfs_response_xmlns, false))
+      adfs_document = KlXMLSecurity::SignedDocument.new(fixture(:adfs_response_xmlns, false))
       base64cert = adfs_document.elements["//X509Certificate"].text
       assert adfs_document.validate_signature(base64cert, false)
     end
 
     it "raise validation error when the X509Certificate is missing" do
       decoded_response.sub!(/<ds:X509Certificate>.*<\/ds:X509Certificate>/, "")
-      mod_document = XMLSecurity::SignedDocument.new(decoded_response)
+      mod_document = KlXMLSecurity::SignedDocument.new(decoded_response)
       exception = assert_raises(OneLogin::KlRubySaml::ValidationError) do
         mod_document.validate_document("a fingerprint", false) # The fingerprint isn't relevant to this test
       end
@@ -82,46 +82,46 @@ class XmlSecurityTest < Minitest::Test
   describe "#canon_algorithm" do
     it "C14N_EXCLUSIVE_1_0" do
       canon_algorithm = Nokogiri::XML::XML_C14N_EXCLUSIVE_1_0
-      assert_equal canon_algorithm, XMLSecurity::BaseDocument.new.canon_algorithm("http://www.w3.org/2001/10/xml-exc-c14n#")
-      assert_equal canon_algorithm, XMLSecurity::BaseDocument.new.canon_algorithm("http://www.w3.org/2001/10/xml-exc-c14n#WithComments")
-      assert_equal canon_algorithm, XMLSecurity::BaseDocument.new.canon_algorithm("other")
+      assert_equal canon_algorithm, KlXMLSecurity::BaseDocument.new.canon_algorithm("http://www.w3.org/2001/10/xml-exc-c14n#")
+      assert_equal canon_algorithm, KlXMLSecurity::BaseDocument.new.canon_algorithm("http://www.w3.org/2001/10/xml-exc-c14n#WithComments")
+      assert_equal canon_algorithm, KlXMLSecurity::BaseDocument.new.canon_algorithm("other")
     end
 
     it "C14N_1_0" do
       canon_algorithm = Nokogiri::XML::XML_C14N_1_0
-      assert_equal canon_algorithm, XMLSecurity::BaseDocument.new.canon_algorithm("http://www.w3.org/TR/2001/REC-xml-c14n-20010315")
+      assert_equal canon_algorithm, KlXMLSecurity::BaseDocument.new.canon_algorithm("http://www.w3.org/TR/2001/REC-xml-c14n-20010315")
     end
 
     it "XML_C14N_1_1" do
       canon_algorithm = Nokogiri::XML::XML_C14N_1_1
-      assert_equal canon_algorithm, XMLSecurity::BaseDocument.new.canon_algorithm("http://www.w3.org/2006/12/xml-c14n11")
+      assert_equal canon_algorithm, KlXMLSecurity::BaseDocument.new.canon_algorithm("http://www.w3.org/2006/12/xml-c14n11")
     end
   end
 
   describe "#algorithm" do    
     it "SHA1" do
       alg = OpenSSL::Digest::SHA1
-      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2000/09/xmldsig#rsa-sha1")
-      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2000/09/xmldsig#sha1")
-      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("other")
+      assert_equal alg, KlXMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2000/09/xmldsig#rsa-sha1")
+      assert_equal alg, KlXMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2000/09/xmldsig#sha1")
+      assert_equal alg, KlXMLSecurity::BaseDocument.new.algorithm("other")
     end
 
     it "SHA256" do
       alg = OpenSSL::Digest::SHA256
-      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#rsa-sha256")
-      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#sha256")
+      assert_equal alg, KlXMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#rsa-sha256")
+      assert_equal alg, KlXMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#sha256")
     end
 
     it "SHA384" do
       alg = OpenSSL::Digest::SHA384
-      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#rsa-sha384")
-      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#sha384")
+      assert_equal alg, KlXMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#rsa-sha384")
+      assert_equal alg, KlXMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#sha384")
     end
 
     it "SHA512" do
       alg = OpenSSL::Digest::SHA512
-      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#rsa-sha512")
-      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#sha512")
+      assert_equal alg, KlXMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#rsa-sha512")
+      assert_equal alg, KlXMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#sha512")
     end        
   end
 
@@ -133,53 +133,53 @@ class XmlSecurityTest < Minitest::Test
       sha1_fingerprint_downcase = "f13c6b80905a030e6c913e5d15faddb016454872"
 
       assert response_fingerprint_test.document.validate_document(sha1_fingerprint)
-      assert response_fingerprint_test.document.validate_document(sha1_fingerprint, true, :fingerprint_alg => XMLSecurity::Document::SHA1)
+      assert response_fingerprint_test.document.validate_document(sha1_fingerprint, true, :fingerprint_alg => KlXMLSecurity::Document::SHA1)
 
       assert response_fingerprint_test.document.validate_document(sha1_fingerprint_downcase)
-      assert response_fingerprint_test.document.validate_document(sha1_fingerprint_downcase, true, :fingerprint_alg => XMLSecurity::Document::SHA1)
+      assert response_fingerprint_test.document.validate_document(sha1_fingerprint_downcase, true, :fingerprint_alg => KlXMLSecurity::Document::SHA1)
     end
 
     it "validate using SHA256" do
       sha256_fingerprint = "C4:C6:BD:41:EC:AD:57:97:CE:7B:7D:80:06:C3:E4:30:53:29:02:0B:DD:2D:47:02:9E:BD:85:AD:93:02:45:21"
 
       assert !response_fingerprint_test.document.validate_document(sha256_fingerprint)
-      assert response_fingerprint_test.document.validate_document(sha256_fingerprint, true, :fingerprint_alg => XMLSecurity::Document::SHA256)
+      assert response_fingerprint_test.document.validate_document(sha256_fingerprint, true, :fingerprint_alg => KlXMLSecurity::Document::SHA256)
     end
 
     it "validate using SHA384" do
       sha384_fingerprint = "98:FE:17:90:31:E7:68:18:8A:65:4D:DA:F5:76:E2:09:97:BE:8B:E3:7E:AA:8D:63:64:7C:0C:38:23:9A:AC:A2:EC:CE:48:A6:74:4D:E0:4C:50:80:40:B4:8D:55:14:14"
 
       assert !response_fingerprint_test.document.validate_document(sha384_fingerprint)
-      assert response_fingerprint_test.document.validate_document(sha384_fingerprint, true, :fingerprint_alg => XMLSecurity::Document::SHA384)
+      assert response_fingerprint_test.document.validate_document(sha384_fingerprint, true, :fingerprint_alg => KlXMLSecurity::Document::SHA384)
     end
 
     it "validate using SHA512" do
       sha512_fingerprint = "5A:AE:BA:D0:BA:9D:1E:25:05:01:1E:1A:C9:E9:FF:DB:ED:FA:6E:F7:52:EB:45:49:BD:DB:06:D8:A3:7E:CC:63:3A:04:A2:DD:DF:EE:61:05:D9:58:95:2A:77:17:30:4B:EB:4A:9F:48:4A:44:1C:D0:9E:0B:1E:04:77:FD:A3:D2"
 
       assert !response_fingerprint_test.document.validate_document(sha512_fingerprint)
-      assert response_fingerprint_test.document.validate_document(sha512_fingerprint, true, :fingerprint_alg => XMLSecurity::Document::SHA512)
+      assert response_fingerprint_test.document.validate_document(sha512_fingerprint, true, :fingerprint_alg => KlXMLSecurity::Document::SHA512)
     end
 
   end
 
   describe "Signature Algorithms" do
     it "validate using SHA1" do
-      document = XMLSecurity::SignedDocument.new(fixture(:adfs_response_sha1, false))
+      document = KlXMLSecurity::SignedDocument.new(fixture(:adfs_response_sha1, false))
       assert document.validate_document("F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72")
     end
 
     it "validate using SHA256" do
-      document = XMLSecurity::SignedDocument.new(fixture(:adfs_response_sha256, false))
+      document = KlXMLSecurity::SignedDocument.new(fixture(:adfs_response_sha256, false))
       assert document.validate_document("28:74:9B:E8:1F:E8:10:9C:A8:7C:A9:C3:E3:C5:01:6C:92:1C:B4:BA")
     end
 
     it "validate using SHA384" do
-      document = XMLSecurity::SignedDocument.new(fixture(:adfs_response_sha384, false))
+      document = KlXMLSecurity::SignedDocument.new(fixture(:adfs_response_sha384, false))
       assert document.validate_document("F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72")
     end
 
     it "validate using SHA512" do
-      document = XMLSecurity::SignedDocument.new(fixture(:adfs_response_sha512, false))
+      document = KlXMLSecurity::SignedDocument.new(fixture(:adfs_response_sha512, false))
       assert document.validate_document("F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72")
     end
   end
@@ -189,7 +189,7 @@ class XmlSecurityTest < Minitest::Test
     describe "#extract_inclusive_namespaces" do
       it "support explicit namespace resolution for exclusive canonicalization" do
         response = fixture(:open_saml_response, false)
-        document = XMLSecurity::SignedDocument.new(response)
+        document = KlXMLSecurity::SignedDocument.new(response)
         inclusive_namespaces = document.send(:extract_inclusive_namespaces)
 
         assert_equal %w[ xs ], inclusive_namespaces
@@ -197,7 +197,7 @@ class XmlSecurityTest < Minitest::Test
 
       it "support implicit namespace resolution for exclusive canonicalization" do
         response = fixture(:no_signature_ns, false)
-        document = XMLSecurity::SignedDocument.new(response)
+        document = KlXMLSecurity::SignedDocument.new(response)
         inclusive_namespaces = document.send(:extract_inclusive_namespaces)
 
         assert_equal %w[ #default saml ds xs xsi ], inclusive_namespaces
@@ -219,14 +219,14 @@ class XmlSecurityTest < Minitest::Test
         response = fixture(:no_signature_ns, false)
         response.slice! %r{<InclusiveNamespaces xmlns="http://www.w3.org/2001/10/xml-exc-c14n#" PrefixList="#default saml ds xs xsi"/>}
 
-        document = XMLSecurity::SignedDocument.new(response)
+        document = KlXMLSecurity::SignedDocument.new(response)
         inclusive_namespaces = document.send(:extract_inclusive_namespaces)
 
         assert inclusive_namespaces.empty?
       end
     end
 
-    describe "XMLSecurity::DSIG" do
+    describe "KlXMLSecurity::DSIG" do
       before do
         settings.idp_sso_target_url = "https://idp.example.com/sso"
         settings.protocol_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
@@ -241,13 +241,13 @@ class XmlSecurityTest < Minitest::Test
         request = OneLogin::KlRubySaml::Authrequest.new.create_authentication_xml_doc(settings)
         request.sign_document(ruby_saml_key, ruby_saml_cert)
         # verify our signature
-        signed_doc = XMLSecurity::SignedDocument.new(request.to_s)
+        signed_doc = KlXMLSecurity::SignedDocument.new(request.to_s)
         assert signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
 
         request2 = OneLogin::KlRubySaml::Authrequest.new.create_authentication_xml_doc(settings)
         request2.sign_document(ruby_saml_key, ruby_saml_cert_text)
         # verify our signature
-        signed_doc2 = XMLSecurity::SignedDocument.new(request2.to_s)
+        signed_doc2 = KlXMLSecurity::SignedDocument.new(request2.to_s)
         assert signed_doc2.validate_document(ruby_saml_cert_fingerprint, false)
       end
 
@@ -256,7 +256,7 @@ class XmlSecurityTest < Minitest::Test
         request.sign_document(ruby_saml_key, ruby_saml_cert_text)
 
         # verify our signature
-        signed_doc = XMLSecurity::SignedDocument.new(request.to_s)
+        signed_doc = KlXMLSecurity::SignedDocument.new(request.to_s)
         assert signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
       end
 
@@ -264,13 +264,13 @@ class XmlSecurityTest < Minitest::Test
         logout_request = OneLogin::KlRubySaml::Logoutrequest.new.create_logout_request_xml_doc(settings)
         logout_request.sign_document(ruby_saml_key, ruby_saml_cert)
         # verify our signature
-        signed_doc = XMLSecurity::SignedDocument.new(logout_request.to_s)
+        signed_doc = KlXMLSecurity::SignedDocument.new(logout_request.to_s)
         assert signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
 
         logout_request2 = OneLogin::KlRubySaml::Logoutrequest.new.create_logout_request_xml_doc(settings)
         logout_request2.sign_document(ruby_saml_key, ruby_saml_cert_text)
         # verify our signature
-        signed_doc2 = XMLSecurity::SignedDocument.new(logout_request2.to_s)
+        signed_doc2 = KlXMLSecurity::SignedDocument.new(logout_request2.to_s)
         signed_doc2.validate_document(ruby_saml_cert_fingerprint, false)        
         assert signed_doc2.validate_document(ruby_saml_cert_fingerprint, false)
       end
@@ -279,13 +279,13 @@ class XmlSecurityTest < Minitest::Test
         logout_response = OneLogin::KlRubySaml::SloLogoutresponse.new.create_logout_response_xml_doc(settings, 'request_id_example', "Custom Logout Message")
         logout_response.sign_document(ruby_saml_key, ruby_saml_cert)
         # verify our signature
-        signed_doc = XMLSecurity::SignedDocument.new(logout_response.to_s)
+        signed_doc = KlXMLSecurity::SignedDocument.new(logout_response.to_s)
         assert signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
 
         logout_response2 = OneLogin::KlRubySaml::SloLogoutresponse.new.create_logout_response_xml_doc(settings, 'request_id_example', "Custom Logout Message")
         logout_response2.sign_document(ruby_saml_key, ruby_saml_cert_text)
         # verify our signature
-        signed_doc2 = XMLSecurity::SignedDocument.new(logout_response2.to_s)
+        signed_doc2 = KlXMLSecurity::SignedDocument.new(logout_response2.to_s)
         signed_doc2.validate_document(ruby_saml_cert_fingerprint, false)        
         assert signed_doc2.validate_document(ruby_saml_cert_fingerprint, false)
       end
