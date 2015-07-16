@@ -1,5 +1,5 @@
 module OneLogin
-  module RubySaml
+  module KlRubySaml
 
     # SAML2 AttributeService. Auxiliary class to build the AttributeService of the SP Metadata
     #

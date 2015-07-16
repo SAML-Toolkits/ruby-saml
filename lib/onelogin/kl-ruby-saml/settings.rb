@@ -1,10 +1,10 @@
 require "xml_security"
-require "onelogin/ruby-saml/attribute_service"
-require "onelogin/ruby-saml/utils"
+require "onelogin/kl-ruby-saml/attribute_service"
+require "onelogin/kl-ruby-saml/utils"
 
 # Only supports SAML 2.0
 module OneLogin
-  module RubySaml
+  module KlRubySaml
 
     # SAML2 Toolkit Settings
     #
@@ -118,7 +118,7 @@ module OneLogin
       def get_idp_cert
         return nil if idp_cert.nil? || idp_cert.empty?
 
-        formated_cert = OneLogin::RubySaml::Utils.format_cert(idp_cert)
+        formated_cert = OneLogin::KlRubySaml::Utils.format_cert(idp_cert)
         OpenSSL::X509::Certificate.new(formated_cert)
       end
 
@@ -127,7 +127,7 @@ module OneLogin
       def get_sp_cert
         return nil if certificate.nil? || certificate.empty?
 
-        formated_cert = OneLogin::RubySaml::Utils.format_cert(certificate)
+        formated_cert = OneLogin::KlRubySaml::Utils.format_cert(certificate)
         OpenSSL::X509::Certificate.new(formated_cert)
       end
 
@@ -136,7 +136,7 @@ module OneLogin
       def get_sp_key
         return nil if private_key.nil? || private_key.empty?
         
-        formated_private_key = OneLogin::RubySaml::Utils.format_private_key(private_key)
+        formated_private_key = OneLogin::KlRubySaml::Utils.format_private_key(private_key)
         OpenSSL::PKey::RSA.new(formated_private_key)
       end
 

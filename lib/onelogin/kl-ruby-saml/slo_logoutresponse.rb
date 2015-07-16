@@ -1,11 +1,11 @@
 require "uuid"
 
-require "onelogin/ruby-saml/logging"
-require "onelogin/ruby-saml/saml_message"
+require "onelogin/kl-ruby-saml/logging"
+require "onelogin/kl-ruby-saml/saml_message"
 
 # Only supports SAML 2.0
 module OneLogin
-  module RubySaml
+  module KlRubySaml
 
     # SAML2 Logout Response (SLO SP initiated, Parser)
     #
@@ -22,7 +22,7 @@ module OneLogin
       end
 
       # Creates the Logout Response string.
-      # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @param settings [OneLogin::KlRubySaml::Settings|nil] Toolkit settings
       # @param request_id [String] The ID of the LogoutRequest sent by this SP to the IdP. That ID will be placed as the InResponseTo in the logout response
       # @param logout_message [String] The Message to be placed as StatusMessage in the logout response
       # @param params [Hash] Some extra parameters to be added in the GET for example the RelayState
@@ -41,7 +41,7 @@ module OneLogin
       end
 
       # Creates the Get parameters for the logout response.
-      # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @param settings [OneLogin::KlRubySaml::Settings|nil] Toolkit settings
       # @param request_id [String] The ID of the LogoutRequest sent by this SP to the IdP. That ID will be placed as the InResponseTo in the logout response
       # @param logout_message [String] The Message to be placed as StatusMessage in the logout response
       # @param params [Hash] Some extra parameters to be added in the GET for example the RelayState
@@ -67,7 +67,7 @@ module OneLogin
 
         if settings.security[:logout_responses_signed] && !settings.security[:embed_sign] && settings.private_key
           params['SigAlg']    = settings.security[:signature_method]
-          url_string = OneLogin::RubySaml::Utils.build_query(
+          url_string = OneLogin::KlRubySaml::Utils.build_query(
             :type => 'SAMLResponse',
             :data => base64_response,
             :relay_state => relay_state,
@@ -86,7 +86,7 @@ module OneLogin
       end
 
       # Creates the SAMLResponse String.
-      # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @param settings [OneLogin::KlRubySaml::Settings|nil] Toolkit settings
       # @param request_id [String] The ID of the LogoutRequest sent by this SP to the IdP. That ID will be placed as the InResponseTo in the logout response
       # @param logout_message [String] The Message to be placed as StatusMessage in the logout response
       # @return [String] The SAMLResponse String.

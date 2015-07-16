@@ -1,17 +1,17 @@
 require "xml_security"
-require "onelogin/ruby-saml/saml_message"
+require "onelogin/kl-ruby-saml/saml_message"
 
 require "time"
 
 # Only supports SAML 2.0
 module OneLogin
-  module RubySaml
+  module KlRubySaml
 
     # SAML2 Logout Response (SLO IdP initiated, Parser)
     #
     class Logoutresponse < SamlMessage
 
-      # OneLogin::RubySaml::Settings Toolkit settings
+      # OneLogin::KlRubySaml::Settings Toolkit settings
       attr_accessor :settings
 
       # Array with the causes
@@ -25,7 +25,7 @@ module OneLogin
 
       # Constructs the Logout Response. A Logout Response Object that is an extension of the SamlMessage class.
       # @param response  [String] A UUEncoded logout response from the IdP.
-      # @param settings  [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @param settings  [OneLogin::KlRubySaml::Settings|nil] Toolkit settings
       # @param options   [Hash] Extra parameters. 
       #                    :matches_request_id It will validate that the logout response matches the ID of the request.
       #                    :get_params GET Parameters, including the SAMLResponse
@@ -142,7 +142,7 @@ module OneLogin
         return true if success?
 
         error_msg = 'The status code of the Logout Response was not Success'
-        status_error_msg = OneLogin::RubySaml::Utils.status_error_msg(error_msg, status_code, status_message)
+        status_error_msg = OneLogin::KlRubySaml::Utils.status_error_msg(error_msg, status_code, status_message)
         append_error(status_error_msg)
       end
 
@@ -215,14 +215,14 @@ module OneLogin
         return true unless options[:get_params].has_key? 'Signature'
         return true if settings.nil? || settings.get_idp_cert.nil?
         
-        query_string = OneLogin::RubySaml::Utils.build_query(
+        query_string = OneLogin::KlRubySaml::Utils.build_query(
           :type        => 'SAMLResponse',
           :data        => options[:get_params]['SAMLResponse'],
           :relay_state => options[:get_params]['RelayState'],
           :sig_alg     => options[:get_params]['SigAlg']
         )
 
-        valid = OneLogin::RubySaml::Utils.verify_signature(
+        valid = OneLogin::KlRubySaml::Utils.verify_signature(
           :cert         => settings.get_idp_cert,
           :sig_alg      => options[:get_params]['SigAlg'],
           :signature    => options[:get_params]['Signature'],

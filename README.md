@@ -16,7 +16,7 @@ Please note the `get_idp_metadata` method raises an exception when it is not abl
 Version `0.9` adds many new features and improvements.
 
 ## Updating from 0.7.x to 0.8.x
-Version `0.8.x` changes the namespace of the gem from `OneLogin::Saml` to `OneLogin::RubySaml`.  Please update your implementations of the gem accordingly.
+Version `0.8.x` changes the namespace of the gem from `OneLogin::Saml` to `OneLogin::KlRubySaml`.  Please update your implementations of the gem accordingly.
 
 ## Overview
 
@@ -96,7 +96,7 @@ To override the default behavior and control the destination of log messages, pr
 a ruby Logger object to the gem's logging singleton:
 
 ```ruby
-OneLogin::RubySaml::Logging.logger = Logger.new(File.open('/var/log/ruby-saml.log', 'w')
+OneLogin::KlRubySaml::Logging.logger = Logger.new(File.open('/var/log/ruby-saml.log', 'w')
 ```
 
 ## The Initialization Phase
@@ -105,7 +105,7 @@ This is the first request you will get from the identity provider. It will hit y
 
 ```ruby
 def init
-  request = OneLogin::RubySaml::Authrequest.new
+  request = OneLogin::KlRubySaml::Authrequest.new
   redirect_to(request.create(saml_settings))
 end
 ```
@@ -114,7 +114,7 @@ Once you've redirected back to the identity provider, it will ensure that the us
 
 ```ruby
 def consume
-  response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], :settings => saml_settings)
+  response = OneLogin::KlRubySaml::Response.new(params[:SAMLResponse], :settings => saml_settings)
 
   # We validate the SAML Response and check if the user already exists in the system
   if response.is_valid?
@@ -132,7 +132,7 @@ In the above there are a few assumptions in place, one being that the response.n
 If the assertion of the SAMLResponse is not encrypted, you can initialize the Response without the :settings parameter and set it later,
 
 ```
-response = OneLogin::RubySaml::Response.new(params[:SAMLResponse])
+response = OneLogin::KlRubySaml::Response.new(params[:SAMLResponse])
 response.settings = saml_settings
 ```
 but if the SAMLResponse contains an encrypted assertion, you need to provide the settings in the
@@ -141,7 +141,7 @@ If you don't know what expect, use always the first proposed way (always set the
 
 ```ruby
 def saml_settings
-  settings = OneLogin::RubySaml::Settings.new
+  settings = OneLogin::KlRubySaml::Settings.new
 
   settings.assertion_consumer_service_url = "http://#{request.host}/saml/consume"
   settings.issuer                         = "http://#{request.host}/saml/metadata"
@@ -170,12 +170,12 @@ What's left at this point, is to wrap it all up in a controller and point the in
 # This controller expects you to use the URLs /saml/init and /saml/consume in your OneLogin application.
 class SamlController < ApplicationController
   def init
-    request = OneLogin::RubySaml::Authrequest.new
+    request = OneLogin::KlRubySaml::Authrequest.new
     redirect_to(request.create(saml_settings))
   end
 
   def consume
-    response          = OneLogin::RubySaml::Response.new(params[:SAMLResponse])
+    response          = OneLogin::KlRubySaml::Response.new(params[:SAMLResponse])
     response.settings = saml_settings
 
     # We validate the SAML Response and check if the user already exists in the system
@@ -191,7 +191,7 @@ class SamlController < ApplicationController
   private
 
   def saml_settings
-    settings = OneLogin::RubySaml::Settings.new
+    settings = OneLogin::KlRubySaml::Settings.new
 
     settings.assertion_consumer_service_url = "http://#{request.host}/saml/consume"
     settings.issuer                         = "http://#{request.host}/saml/metadata"
@@ -225,8 +225,8 @@ Using ```idp_metadata_parser.parse_remote``` IdP metadata will be added to the s
 ```ruby
 def saml_settings
 
-  idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
-  # Returns OneLogin::RubySaml::Settings prepopulated with idp metadata
+  idp_metadata_parser = OneLogin::KlRubySaml::IdpMetadataParser.new
+  # Returns OneLogin::KlRubySaml::Settings prepopulated with idp metadata
   settings = idp_metadata_parser.parse_remote("https://example.com/auth/saml2/idp/metadata")
 
   settings.assertion_consumer_service_url = "http://#{request.host}/saml/consume"
@@ -247,7 +247,7 @@ If you are using saml:AttributeStatement to transfer metadata, like the user nam
 `single_value_compatibility` (when activate, only one value returned, the first one)
 
 ```ruby
-response          = OneLogin::RubySaml::Response.new(params[:SAMLResponse])
+response          = OneLogin::KlRubySaml::Response.new(params[:SAMLResponse])
 response.settings = saml_settings
 
 response.attributes[:username]
@@ -284,7 +284,7 @@ Imagine this saml:AttributeStatement
 ```
 
 ```ruby
-pp(response.attributes)   # is an OneLogin::RubySaml::Attributes object
+pp(response.attributes)   # is an OneLogin::KlRubySaml::Attributes object
 # => @attributes=
   {"uid"=>["demo"],
    "another_value"=>["value1", "value2"],
@@ -293,7 +293,7 @@ pp(response.attributes)   # is an OneLogin::RubySaml::Attributes object
    "attribute_with_nils_and_empty_strings"=>["", "valuePresent", nil, nil]}>
 
 # Active single_value_compatibility
-OneLogin::RubySaml::Attributes.single_value_compatibility = true
+OneLogin::KlRubySaml::Attributes.single_value_compatibility = true
 
 pp(response.attributes[:uid])
 # => "demo"
@@ -323,7 +323,7 @@ pp(response.attributes.multi(:not_exists))
 # => nil
 
 # Deactive single_value_compatibility
-OneLogin::RubySaml::Attributes.single_value_compatibility = false
+OneLogin::KlRubySaml::Attributes.single_value_compatibility = false
 
 pp(response.attributes[:uid])
 # => ["demo"]
@@ -431,7 +431,7 @@ def sp_logout_request
 
     # Since we created a new SAML request, save the transaction_id
     # to compare it with the response we get back
-    logout_request = OneLogin::RubySaml::Logoutrequest.new()
+    logout_request = OneLogin::KlRubySaml::Logoutrequest.new()
     session[:transaction_id] = logout_request.uuid
     logger.info "New SP SLO for userid '#{session[:userid]}' transactionid '#{session[:transaction_id]}'"
 
@@ -454,9 +454,9 @@ def process_logout_response
   settings = Account.get_saml_settings
 
   if session.has_key? :transation_id
-    logout_response = OneLogin::RubySaml::Logoutresponse.new(params[:SAMLResponse], settings, :matches_request_id => session[:transation_id])
+    logout_response = OneLogin::KlRubySaml::Logoutresponse.new(params[:SAMLResponse], settings, :matches_request_id => session[:transation_id])
   else
-    logout_response = OneLogin::RubySaml::Logoutresponse.new(params[:SAMLResponse], settings)
+    logout_response = OneLogin::KlRubySaml::Logoutresponse.new(params[:SAMLResponse], settings)
   end
 
   logger.info "LogoutResponse is: #{logout_response.to_s}"
@@ -486,7 +486,7 @@ Here is an example that we could add to our previous controller to process a SAM
 # Method to handle IdP initiated logouts
 def idp_logout_request
   settings = Account.get_saml_settings
-  logout_request = OneLogin::RubySaml::SloLogoutrequest.new(params[:SAMLRequest])
+  logout_request = OneLogin::KlRubySaml::SloLogoutrequest.new(params[:SAMLRequest])
   if !logout_request.is_valid?
     logger.error "IdP initiated LogoutRequest was not valid!"
     render :inline => logger.error
@@ -498,7 +498,7 @@ def idp_logout_request
 
   # Generate a response to the IdP.
   logout_request_id = logout_request.id
-  logout_response = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, logout_request_id, nil, :RelayState => params[:RelayState])
+  logout_response = OneLogin::KlRubySaml::SloLogoutresponse.new.create(settings, logout_request_id, nil, :RelayState => params[:RelayState])
   redirect_to logout_response
 end
 ```
@@ -528,7 +528,7 @@ end
 To form a trusted pair relationship with the IdP, the SP (you) need to provide metadata XML
 to the IdP for various good reasons.  (Caching, certificate lookups, relaying party permissions, etc)
 
-The class `OneLogin::RubySaml::Metadata` takes care of this by reading the Settings and returning XML.  All you have to do is add a controller to return the data, then give this URL to the IdP administrator.
+The class `OneLogin::KlRubySaml::Metadata` takes care of this by reading the Settings and returning XML.  All you have to do is add a controller to return the data, then give this URL to the IdP administrator.
 
 The metdata will be polled by the IdP every few minutes, so updating your settings should propagate
 to the IdP settings.
@@ -538,7 +538,7 @@ class SamlController < ApplicationController
   # ... the rest of your controller definitions ...
   def metadata
     settings = Account.get_saml_settings
-    meta = OneLogin::RubySaml::Metadata.new
+    meta = OneLogin::KlRubySaml::Metadata.new
     render :xml => meta.generate(settings), :content_type => "application/samlmetadata+xml"
   end
 end
@@ -553,7 +553,7 @@ First, ensure that both systems synchronize their clocks, using for example the 
 Even then you may experience intermittent issues though, because the clock of the Identity Provider may drift slightly ahead of your system clocks. To allow for a small amount of clock drift you can initialize the response passing in an option named `:allowed_clock_drift`. Its value must be given in a number (and/or fraction) of seconds. The value given is added to the current time at which the response is validated before it's tested against the `NotBefore` assertion. For example:
 
 ```ruby
-response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], :allowed_clock_drift => 1.second)
+response = OneLogin::KlRubySaml::Response.new(params[:SAMLResponse], :allowed_clock_drift => 1.second)
 ```
 
 Make sure to keep the value as comfortably small as possible to keep security risks to a minimum.
@@ -563,7 +563,7 @@ Make sure to keep the value as comfortably small as possible to keep security ri
 To request attributes from the IdP the SP needs to provide an attribute service within it's metadata and reference the index in the assertion.
 
 ```ruby
-settings = OneLogin::RubySaml::Settings.new
+settings = OneLogin::KlRubySaml::Settings.new
 
 settings.attributes_index = 5
 settings.attribute_consuming_service.configure do

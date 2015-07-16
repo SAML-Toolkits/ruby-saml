@@ -35,7 +35,7 @@ task :default => :test
 #   end
 
 #   rdoc.rdoc_dir = 'rdoc'
-#   rdoc.title = "ruby-saml #{version}"
+#   rdoc.title = "kl-ruby-saml #{version}"
 #   rdoc.rdoc_files.include('README*')
 #   rdoc.rdoc_files.include('lib/**/*.rb')
 #end

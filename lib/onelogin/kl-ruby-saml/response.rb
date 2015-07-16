@@ -1,12 +1,12 @@
 require "xml_security"
-require "onelogin/ruby-saml/attributes"
+require "onelogin/kl-ruby-saml/attributes"
 
 require "time"
 require "nokogiri"
 
 # Only supports SAML 2.0
 module OneLogin
-  module RubySaml
+  module KlRubySaml
 
     # SAML2 Authentication Response. SAML Response
     #
@@ -18,7 +18,7 @@ module OneLogin
 
       # TODO: Settings should probably be initialized too... WDYT?
 
-      # OneLogin::RubySaml::Settings Toolkit settings
+      # OneLogin::KlRubySaml::Settings Toolkit settings
       attr_accessor :settings
 
       # Array with the causes [Array of strings]
@@ -33,7 +33,7 @@ module OneLogin
 
       # Constructs the SAML Response. A Response Object that is an extension of the SamlMessage class.
       # @param response [String] A UUEncoded SAML response from the IdP.
-      # @param options  [Hash]   :settings to provide the OneLogin::RubySaml::Settings object 
+      # @param options  [Hash]   :settings to provide the OneLogin::KlRubySaml::Settings object 
       #                          Or some options for the response validation process like skip the conditions validation
       #                          with the :skip_conditions, or allow a clock_drift when checking dates with :allowed_clock_drift
       #                          or :matches_request_id that will validate that the response matches the ID of the request.
@@ -110,16 +110,16 @@ module OneLogin
       # Gets the Attributes from the AttributeStatement element.
       #
       # All attributes can be iterated over +attributes.each+ or returned as array by +attributes.all+
-      # For backwards compatibility ruby-saml returns by default only the first value for a given attribute with
+      # For backwards compatibility kl-ruby-saml returns by default only the first value for a given attribute with
       #    attributes['name']
       # To get all of the attributes, use:
       #    attributes.multi('name')
       # Or turn off the compatibility:
-      #    OneLogin::RubySaml::Attributes.single_value_compatibility = false
+      #    OneLogin::KlRubySaml::Attributes.single_value_compatibility = false
       # Now this will return an array:
       #    attributes['name']
       #
-      # @return [Attributes] OneLogin::RubySaml::Attributes enumerable collection.
+      # @return [Attributes] OneLogin::KlRubySaml::Attributes enumerable collection.
       #      
       def attributes
         @attr_statements ||= begin
@@ -298,7 +298,7 @@ module OneLogin
         return true if success?
           
         error_msg = 'The status code of the Response was not Success'
-        status_error_msg = OneLogin::RubySaml::Utils.status_error_msg(error_msg, status_code, status_message)
+        status_error_msg = OneLogin::KlRubySaml::Utils.status_error_msg(error_msg, status_code, status_message)
         append_error(status_error_msg)
       end
 
@@ -696,7 +696,7 @@ module OneLogin
           return validation_error('An ' + encrypt_node.name + ' found and no SP private key found on the settings to decrypt it')
         end
 
-        elem_plaintext = OneLogin::RubySaml::Utils.decrypt_data(encrypt_node, settings.get_sp_key)
+        elem_plaintext = OneLogin::KlRubySaml::Utils.decrypt_data(encrypt_node, settings.get_sp_key)
         # If we get some problematic noise in the plaintext after decrypting.
         # This quick regexp parse will grab only the Element and discard the noise.
         elem_plaintext = elem_plaintext.match(rgrex)[0]

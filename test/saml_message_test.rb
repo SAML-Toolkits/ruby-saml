@@ -1,11 +1,11 @@
 require File.expand_path(File.join(File.dirname(__FILE__), "test_helper"))
 
-class RubySamlTest < Minitest::Test
+class KlRubySamlTest < Minitest::Test
 
   describe "SamlMessage" do
 
-    let(:settings) { OneLogin::RubySaml::Settings.new }
-    let(:saml_message) { OneLogin::RubySaml::SamlMessage.new }
+    let(:settings) { OneLogin::KlRubySaml::Settings.new }
+    let(:saml_message) { OneLogin::KlRubySaml::SamlMessage.new }
     let(:response_document) { read_response("response_unsigned_xml_base64") }
     let(:response_document_xml) { read_response("adfs_response_xmlns.xml") }
 

@@ -9,7 +9,7 @@ require "rexml/xpath"
 
 # Only supports SAML 2.0
 module OneLogin
-  module RubySaml
+  module KlRubySaml
     include REXML
 
     # Auxiliary class to retrieve and parse the Identity Provider Metadata
@@ -39,7 +39,7 @@ module OneLogin
       def parse(idp_metadata)
         @document = REXML::Document.new(idp_metadata)
 
-        OneLogin::RubySaml::Settings.new.tap do |settings|
+        OneLogin::KlRubySaml::Settings.new.tap do |settings|
           settings.idp_entity_id = idp_entity_id
           settings.name_identifier_format = idp_name_id_format
           settings.idp_sso_target_url = single_signon_service_url
@@ -83,7 +83,7 @@ module OneLogin
         end
 
         unless response.is_a? Net::HTTPSuccess
-          raise OneLogin::RubySaml::HttpError.new("Failed to fetch idp metadata")
+          raise OneLogin::KlRubySaml::HttpError.new("Failed to fetch idp metadata")
         end
 
         meta_text

@@ -1,5 +1,5 @@
 module OneLogin
-  module RubySaml
+  module KlRubySaml
     class HttpError < StandardError
     end
   end

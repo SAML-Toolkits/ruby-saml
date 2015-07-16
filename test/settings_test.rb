@@ -1,12 +1,12 @@
 require File.expand_path(File.join(File.dirname(__FILE__), "test_helper"))
 
-require 'onelogin/ruby-saml/settings'
+require 'onelogin/kl-ruby-saml/settings'
 
 class SettingsTest < Minitest::Test
 
   describe "Settings" do
     before do
-      @settings = OneLogin::RubySaml::Settings.new
+      @settings = OneLogin::KlRubySaml::Settings.new
     end
 
     it "should provide getters and settings" do
@@ -44,7 +44,7 @@ class SettingsTest < Minitest::Test
           :passive => true,
           :protocol_binding => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'
       }
-      @settings = OneLogin::RubySaml::Settings.new(config)
+      @settings = OneLogin::KlRubySaml::Settings.new(config)
 
       config.each do |k,v|
         assert_equal v, @settings.send(k)
@@ -52,7 +52,7 @@ class SettingsTest < Minitest::Test
     end
 
     it "configure attribute service attributes correctly" do
-      @settings = OneLogin::RubySaml::Settings.new
+      @settings = OneLogin::KlRubySaml::Settings.new
       @settings.attribute_consuming_service.configure do
         service_name "Test Service"
         add_attribute :name => "Name", :name_format => "Name Format", :friendly_name => "Friendly Name"
@@ -64,13 +64,13 @@ class SettingsTest < Minitest::Test
     end
 
     it "does not modify default security settings" do
-      settings = OneLogin::RubySaml::Settings.new
+      settings = OneLogin::KlRubySaml::Settings.new
       settings.security[:authn_requests_signed] = true
       settings.security[:embed_sign] = true
       settings.security[:digest_method] = XMLSecurity::Document::SHA256
       settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
 
-      new_settings = OneLogin::RubySaml::Settings.new
+      new_settings = OneLogin::KlRubySaml::Settings.new
       assert_equal new_settings.security[:authn_requests_signed], false
       assert_equal new_settings.security[:embed_sign], false
       assert_equal new_settings.security[:digest_method], XMLSecurity::Document::SHA1
@@ -97,19 +97,19 @@ class SettingsTest < Minitest::Test
 
     describe "#get_idp_cert" do
       it "returns nil when the cert is an empty string" do
-        @settings = OneLogin::RubySaml::Settings.new
+        @settings = OneLogin::KlRubySaml::Settings.new
         @settings.idp_cert = ""
         assert_equal nil, @settings.get_idp_cert
       end
 
       it "returns nil when the cert is nil" do
-        @settings = OneLogin::RubySaml::Settings.new
+        @settings = OneLogin::KlRubySaml::Settings.new
         @settings.idp_cert = nil
         assert_equal nil, @settings.get_idp_cert
       end
 
       it "returns the certificate when it is valid" do
-        @settings = OneLogin::RubySaml::Settings.new
+        @settings = OneLogin::KlRubySaml::Settings.new
         @settings.idp_cert = ruby_saml_cert_text
         assert @settings.get_idp_cert.kind_of? OpenSSL::X509::Certificate
       end
@@ -125,19 +125,19 @@ class SettingsTest < Minitest::Test
 
     describe "#get_sp_cert" do
       it "returns nil when the cert is an empty string" do
-        @settings = OneLogin::RubySaml::Settings.new
+        @settings = OneLogin::KlRubySaml::Settings.new
         @settings.certificate = ""
         assert_equal nil, @settings.get_sp_cert
       end
 
       it "returns nil when the cert is nil" do
-        @settings = OneLogin::RubySaml::Settings.new
+        @settings = OneLogin::KlRubySaml::Settings.new
         @settings.certificate = nil
         assert_equal nil, @settings.get_sp_cert
       end
 
       it "returns the certificate when it is valid" do
-        @settings = OneLogin::RubySaml::Settings.new
+        @settings = OneLogin::KlRubySaml::Settings.new
         @settings.certificate = ruby_saml_cert_text
         assert @settings.get_sp_cert.kind_of? OpenSSL::X509::Certificate
       end
@@ -154,19 +154,19 @@ class SettingsTest < Minitest::Test
 
     describe "#get_sp_key" do
       it "returns nil when the private key is an empty string" do
-        @settings = OneLogin::RubySaml::Settings.new
+        @settings = OneLogin::KlRubySaml::Settings.new
         @settings.private_key = ""
         assert_equal nil, @settings.get_sp_key
       end
 
       it "returns nil when the private key is nil" do
-        @settings = OneLogin::RubySaml::Settings.new
+        @settings = OneLogin::KlRubySaml::Settings.new
         @settings.private_key = nil
         assert_equal nil, @settings.get_sp_key
       end
 
       it "returns the private key when it is valid" do
-        @settings = OneLogin::RubySaml::Settings.new
+        @settings = OneLogin::KlRubySaml::Settings.new
         @settings.private_key = ruby_saml_key_text
         assert @settings.get_sp_key.kind_of? OpenSSL::PKey::RSA
       end
@@ -183,7 +183,7 @@ class SettingsTest < Minitest::Test
 
     describe "#get_fingerprint" do
       it "get the fingerprint value when cert and fingerprint in settings are nil" do
-        @settings = OneLogin::RubySaml::Settings.new
+        @settings = OneLogin::KlRubySaml::Settings.new
         @settings.idp_cert_fingerprint = nil
         @settings.idp_cert = nil
         fingerprint = @settings.get_fingerprint
@@ -191,7 +191,7 @@ class SettingsTest < Minitest::Test
       end
 
       it "get the fingerprint value when there is a cert at the settings" do
-        @settings = OneLogin::RubySaml::Settings.new
+        @settings = OneLogin::KlRubySaml::Settings.new
         @settings.idp_cert_fingerprint = nil
         @settings.idp_cert = ruby_saml_cert_text
         fingerprint = @settings.get_fingerprint
@@ -199,7 +199,7 @@ class SettingsTest < Minitest::Test
       end
 
       it "get the fingerprint value when there is a fingerprint at the settings" do
-        @settings = OneLogin::RubySaml::Settings.new
+        @settings = OneLogin::KlRubySaml::Settings.new
         @settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
         @settings.idp_cert = nil
         fingerprint = @settings.get_fingerprint
@@ -207,7 +207,7 @@ class SettingsTest < Minitest::Test
       end
 
       it "get the fingerprint value when there are cert and fingerprint at the settings" do
-        @settings = OneLogin::RubySaml::Settings.new
+        @settings = OneLogin::KlRubySaml::Settings.new
         @settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
         @settings.idp_cert = ruby_saml_cert_text
         fingerprint = @settings.get_fingerprint

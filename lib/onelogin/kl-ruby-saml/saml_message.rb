@@ -8,7 +8,7 @@ require 'thread'
 
 # Only supports SAML 2.0
 module OneLogin
-  module RubySaml
+  module KlRubySaml
 
     # SAML2 Message
     #
@@ -105,7 +105,7 @@ module OneLogin
 
       # Deflate, base64 encode and url-encode a SAML Message (To be used in the HTTP-redirect binding)
       # @param saml [String] The plain SAML Message
-      # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @param settings [OneLogin::KlRubySaml::Settings|nil] Toolkit settings
       # @return [String] The deflated and encoded SAML Message (encoded if the compression is requested)
       #
       def encode_raw_saml(saml, settings)

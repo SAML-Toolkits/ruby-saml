@@ -1,18 +1,18 @@
 require "uri"
 require "uuid"
 
-require "onelogin/ruby-saml/logging"
+require "onelogin/kl-ruby-saml/logging"
 
 # Only supports SAML 2.0
 module OneLogin
-  module RubySaml
+  module KlRubySaml
 
     # SAML2 Metadata. XML Metadata Builder
     # 
     class Metadata
 
       # Return SP metadata based on the settings.
-      # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @param settings [OneLogin::KlRubySaml::Settings|nil] Toolkit settings
       # @param pretty_print [Boolean] Pretty print or not the response 
       #                               (No pretty print if you gonna validate the signature)
       # @return [String] XML Metadata of the Service Provider

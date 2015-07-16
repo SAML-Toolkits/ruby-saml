@@ -2,17 +2,17 @@ require 'zlib'
 require 'time'
 require 'nokogiri'
 
-require "onelogin/ruby-saml/saml_message"
+require "onelogin/kl-ruby-saml/saml_message"
 
 # Only supports SAML 2.0
 module OneLogin
-  module RubySaml
+  module KlRubySaml
 
     # SAML2 Logout Request (SLO IdP initiated, Parser)
     #
     class SloLogoutrequest < SamlMessage
 
-      # OneLogin::RubySaml::Settings Toolkit settings
+      # OneLogin::KlRubySaml::Settings Toolkit settings
       attr_accessor :settings
 
       # Array with the causes [Array of strings]
@@ -26,7 +26,7 @@ module OneLogin
 
       # Constructs the Logout Request. A Logout Request Object that is an extension of the SamlMessage class.
       # @param request [String] A UUEncoded Logout Request from the IdP.
-      # @param options [Hash]  :settings to provide the OneLogin::RubySaml::Settings object 
+      # @param options [Hash]  :settings to provide the OneLogin::KlRubySaml::Settings object 
       #                        Or :allowed_clock_drift for the logout request validation process to allow a clock drift when checking dates with
       #
       # @raise [ArgumentError] If Request is nil
@@ -232,14 +232,14 @@ module OneLogin
         return true unless options[:get_params].has_key? 'Signature'
         return true if settings.nil? || settings.get_idp_cert.nil?
 
-        query_string = OneLogin::RubySaml::Utils.build_query(
+        query_string = OneLogin::KlRubySaml::Utils.build_query(
           :type        => 'SAMLRequest',
           :data        => options[:get_params]['SAMLRequest'],
           :relay_state => options[:get_params]['RelayState'],
           :sig_alg     => options[:get_params]['SigAlg']
         )
 
-        valid = OneLogin::RubySaml::Utils.verify_signature(
+        valid = OneLogin::KlRubySaml::Utils.verify_signature(
           :cert         => settings.get_idp_cert,
           :sig_alg      => options[:get_params]['SigAlg'],
           :signature    => options[:get_params]['Signature'],

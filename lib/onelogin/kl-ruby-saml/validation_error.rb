@@ -1,5 +1,5 @@
 module OneLogin
-  module RubySaml
+  module KlRubySaml
     class ValidationError < StandardError
     end
   end

@@ -1,12 +1,12 @@
 require File.expand_path(File.join(File.dirname(__FILE__), "test_helper"))
 
-require 'onelogin/ruby-saml/metadata'
+require 'onelogin/kl-ruby-saml/metadata'
 
 class MetadataTest < Minitest::Test
 
   describe 'Metadata' do
-    let(:settings)          { OneLogin::RubySaml::Settings.new }
-    let(:xml_text)          { OneLogin::RubySaml::Metadata.new.generate(settings, false) }
+    let(:settings)          { OneLogin::KlRubySaml::Settings.new }
+    let(:xml_text)          { OneLogin::KlRubySaml::Metadata.new.generate(settings, false) }
     let(:xml_doc)           { REXML::Document.new(xml_text) }
     let(:spsso_descriptor)  { REXML::XPath.first(xml_doc, "//md:SPSSODescriptor") }
     let(:acs)               { REXML::XPath.first(xml_doc, "//md:AssertionConsumerService") }
@@ -18,7 +18,7 @@ class MetadataTest < Minitest::Test
     end
 
     it "generates Pretty Print Service Provider Metadata" do
-      xml_text = OneLogin::RubySaml::Metadata.new.generate(settings, true)
+      xml_text = OneLogin::KlRubySaml::Metadata.new.generate(settings, true)
       # assert correct xml declaration
       start = "<?xml version='1.0' encoding='UTF-8'?>\n<md:EntityDescriptor"
       assert_equal xml_text[0..start.length-1],start
@@ -40,7 +40,7 @@ class MetadataTest < Minitest::Test
     it "generates Service Provider Metadata" do
       settings.single_logout_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
       settings.single_logout_service_url = "https://foo.example/saml/sls"
-      xml_metadata = OneLogin::RubySaml::Metadata.new.generate(settings, false)
+      xml_metadata = OneLogin::KlRubySaml::Metadata.new.generate(settings, false)
 
       start = "<?xml version='1.0' encoding='UTF-8'?><md:EntityDescriptor"
       assert_equal xml_metadata[0..start.length-1],start

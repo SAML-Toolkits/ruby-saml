@@ -1,11 +1,11 @@
 require "uuid"
 
-require "onelogin/ruby-saml/logging"
-require "onelogin/ruby-saml/saml_message"
+require "onelogin/kl-ruby-saml/logging"
+require "onelogin/kl-ruby-saml/saml_message"
 
 # Only supports SAML 2.0
 module OneLogin
-  module RubySaml
+  module KlRubySaml
 
     # SAML2 Logout Request (SLO SP initiated, Builder)
     #
@@ -22,7 +22,7 @@ module OneLogin
       end
 
       # Creates the Logout Request string.
-      # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @param settings [OneLogin::KlRubySaml::Settings|nil] Toolkit settings
       # @param params [Hash] Some extra parameters to be added in the GET for example the RelayState
       # @return [String] Logout Request string that includes the SAMLRequest
       #
@@ -38,7 +38,7 @@ module OneLogin
       end
 
       # Creates the Get parameters for the logout request.
-      # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @param settings [OneLogin::KlRubySaml::Settings|nil] Toolkit settings
       # @param params [Hash] Some extra parameters to be added in the GET for example the RelayState
       # @return [Hash] Parameters
       #
@@ -62,7 +62,7 @@ module OneLogin
 
         if settings.security[:logout_requests_signed] && !settings.security[:embed_sign] && settings.private_key
           params['SigAlg']    = settings.security[:signature_method]
-          url_string = OneLogin::RubySaml::Utils.build_query(
+          url_string = OneLogin::KlRubySaml::Utils.build_query(
             :type => 'SAMLRequest',
             :data => base64_request,
             :relay_state => relay_state,
@@ -81,7 +81,7 @@ module OneLogin
       end
 
       # Creates the SAMLRequest String.
-      # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @param settings [OneLogin::KlRubySaml::Settings|nil] Toolkit settings
       # @return [String] The SAMLRequest String.
       #
       def create_logout_request_xml_doc(settings)

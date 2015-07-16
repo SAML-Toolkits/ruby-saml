@@ -1,5 +1,5 @@
 module OneLogin
-  module RubySaml
+  module KlRubySaml
 
     # SAML2 Auxiliary class
     #    

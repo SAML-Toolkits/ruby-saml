@@ -1,4 +1,4 @@
-# RubySaml Changelog
+# KlRubySaml Changelog
 
 ### 1.0.0 (June 30, 2015)
 * [#247](https://github.com/onelogin/ruby-saml/pull/247) Avoid entity expansion (XEE attacks)
@@ -14,7 +14,7 @@
 * [#226](https://github.com/onelogin/ruby-saml/pull/226) Ensure IdP certificate is formatted properly
 * [#225](https://github.com/onelogin/ruby-saml/pull/225) Add documentation to several methods. Fix xpath injection on xml_security.rb
 * [#223](https://github.com/onelogin/ruby-saml/pull/223) Allow logging to be delegated to an arbitrary Logger
-* [#222](https://github.com/onelogin/ruby-saml/pull/222) No more silent failure fetching idp metadata (OneLogin::RubySaml::HttpError raised).
+* [#222](https://github.com/onelogin/ruby-saml/pull/222) No more silent failure fetching idp metadata (OneLogin::KlRubySaml::HttpError raised).
 
 ### 0.9.2 (Apr 28, 2015)
 * [#216](https://github.com/onelogin/ruby-saml/pull/216) Add fingerprint algorithm support
@@ -62,7 +62,7 @@
 * [#183](https://github.com/onelogin/ruby-saml/pull/183) Resolved a security vulnerability where string interpolation in a `REXML::XPath.first()` method call allowed for arbitrary code execution.
 
 ### 0.8.0 (Feb 21, 2014)
-**IMPORTANT**: This release changed namespace of the gem from `OneLogin::Saml` to `OneLogin::RubySaml`.  Please update your implementations of the gem accordingly.
+**IMPORTANT**: This release changed namespace of the gem from `OneLogin::Saml` to `OneLogin::KlRubySaml`.  Please update your implementations of the gem accordingly.
 
 * [#111](https://github.com/onelogin/ruby-saml/pull/111) `Onelogin::` is `OneLogin::`
 * [#108](https://github.com/onelogin/ruby-saml/pull/108) Change namespacing from `Onelogin::Saml` to `Onelogin::Rubysaml`

@@ -1,6 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__), "test_helper"))
 
-require 'onelogin/ruby-saml/idp_metadata_parser'
+require 'onelogin/kl-ruby-saml/idp_metadata_parser'
 
 class IdpMetadataParserTest < Minitest::Test
   class MockSuccessResponse < Net::HTTPSuccess
@@ -19,7 +19,7 @@ class IdpMetadataParserTest < Minitest::Test
 
   describe "parsing an IdP descriptor file" do
     it "extract settings details from xml" do
-      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata_parser = OneLogin::KlRubySaml::IdpMetadataParser.new
 
       settings = idp_metadata_parser.parse(idp_metadata)
 
@@ -44,7 +44,7 @@ class IdpMetadataParserTest < Minitest::Test
     end
 
     it "extract settings from remote xml" do
-      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata_parser = OneLogin::KlRubySaml::IdpMetadataParser.new
       settings = idp_metadata_parser.parse_remote(@url)
 
       assert_equal "https://example.hello.com/access/saml/idp.xml", settings.idp_entity_id
@@ -56,7 +56,7 @@ class IdpMetadataParserTest < Minitest::Test
     end
 
     it "accept self signed certificate if insturcted" do
-      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata_parser = OneLogin::KlRubySaml::IdpMetadataParser.new
       idp_metadata_parser.parse_remote(@url, false)
 
       assert_equal OpenSSL::SSL::VERIFY_NONE, @http.verify_mode
@@ -65,7 +65,7 @@ class IdpMetadataParserTest < Minitest::Test
 
   describe "download failure cases" do
     it "raises an exception when the url has no scheme" do
-      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata_parser = OneLogin::KlRubySaml::IdpMetadataParser.new
 
       exception = assert_raises(ArgumentError) do
         idp_metadata_parser.parse_remote("blahblah")
@@ -83,9 +83,9 @@ class IdpMetadataParserTest < Minitest::Test
       Net::HTTP.expects(:new).returns(@http)
       @http.expects(:request).returns(mock_response)
 
-      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata_parser = OneLogin::KlRubySaml::IdpMetadataParser.new
 
-      exception = assert_raises(OneLogin::RubySaml::HttpError) do
+      exception = assert_raises(OneLogin::KlRubySaml::HttpError) do
         idp_metadata_parser.parse_remote("https://example.hello.com/access/saml/idp.xml")
       end
 

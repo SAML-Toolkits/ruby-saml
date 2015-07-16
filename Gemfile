@@ -4,3 +4,7 @@
 source 'https://rubygems.org'
 
 gemspec
+
+gem 'timecop'
+gem 'json'
+

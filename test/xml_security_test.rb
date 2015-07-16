@@ -9,7 +9,7 @@ class XmlSecurityTest < Minitest::Test
 
     let(:decoded_response) { Base64.decode64(response_document_without_recipient) }
     let(:document) { XMLSecurity::SignedDocument.new(decoded_response) }
-    let(:settings) { OneLogin::RubySaml::Settings.new() }
+    let(:settings) { OneLogin::KlRubySaml::Settings.new() }
 
     before do
       @base64cert = document.elements["//ds:X509Certificate"].text
@@ -20,7 +20,7 @@ class XmlSecurityTest < Minitest::Test
     end
 
     it "should run validate with throwing NS related exceptions" do
-      assert_raises(OneLogin::RubySaml::ValidationError) do
+      assert_raises(OneLogin::KlRubySaml::ValidationError) do
         document.validate_signature(@base64cert, false)
       end
     end
@@ -36,7 +36,7 @@ class XmlSecurityTest < Minitest::Test
     end
 
     it "should raise Fingerprint mismatch" do
-      exception = assert_raises(OneLogin::RubySaml::ValidationError) do
+      exception = assert_raises(OneLogin::KlRubySaml::ValidationError) do
         document.validate_document("no:fi:ng:er:pr:in:t", false)
       end
       assert_equal("Fingerprint mismatch", exception.message)
@@ -44,7 +44,7 @@ class XmlSecurityTest < Minitest::Test
     end
 
     it "should raise Digest mismatch" do
-      exception = assert_raises(OneLogin::RubySaml::ValidationError) do
+      exception = assert_raises(OneLogin::KlRubySaml::ValidationError) do
         document.validate_signature(@base64cert, false)
       end
       assert_equal("Digest mismatch", exception.message)
@@ -56,7 +56,7 @@ class XmlSecurityTest < Minitest::Test
                     "<ds:DigestValue>b9xsAXLsynugg3Wc1CI3kpWku+0=</ds:DigestValue>")
       mod_document = XMLSecurity::SignedDocument.new(decoded_response)
       base64cert = mod_document.elements["//ds:X509Certificate"].text
-      exception = assert_raises(OneLogin::RubySaml::ValidationError) do
+      exception = assert_raises(OneLogin::KlRubySaml::ValidationError) do
         mod_document.validate_signature(base64cert, false)
       end
       assert_equal("Key validation error", exception.message)
@@ -72,7 +72,7 @@ class XmlSecurityTest < Minitest::Test
     it "raise validation error when the X509Certificate is missing" do
       decoded_response.sub!(/<ds:X509Certificate>.*<\/ds:X509Certificate>/, "")
       mod_document = XMLSecurity::SignedDocument.new(decoded_response)
-      exception = assert_raises(OneLogin::RubySaml::ValidationError) do
+      exception = assert_raises(OneLogin::KlRubySaml::ValidationError) do
         mod_document.validate_document("a fingerprint", false) # The fingerprint isn't relevant to this test
       end
       assert_equal("Certificate element missing in response (ds:X509Certificate)", exception.message)
@@ -126,7 +126,7 @@ class XmlSecurityTest < Minitest::Test
   end
 
   describe "Fingerprint Algorithms" do
-    let(:response_fingerprint_test) { OneLogin::RubySaml::Response.new(fixture(:adfs_response_sha1, false)) }
+    let(:response_fingerprint_test) { OneLogin::KlRubySaml::Response.new(fixture(:adfs_response_sha1, false)) }
 
     it "validate using SHA1" do
       sha1_fingerprint = "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72"
@@ -205,7 +205,7 @@ class XmlSecurityTest < Minitest::Test
 
       it 'support inclusive canonicalization' do
         skip('test not yet implemented')
-        response = OneLogin::RubySaml::Response.new(fixture("tdnf_response.xml"))
+        response = OneLogin::KlRubySaml::Response.new(fixture("tdnf_response.xml"))
         response.stubs(:conditions).returns(nil)
         assert !response.is_valid?
         assert !response.is_valid?
@@ -238,13 +238,13 @@ class XmlSecurityTest < Minitest::Test
 
 
       it "sign an AuthNRequest" do
-        request = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+        request = OneLogin::KlRubySaml::Authrequest.new.create_authentication_xml_doc(settings)
         request.sign_document(ruby_saml_key, ruby_saml_cert)
         # verify our signature
         signed_doc = XMLSecurity::SignedDocument.new(request.to_s)
         assert signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
 
-        request2 = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+        request2 = OneLogin::KlRubySaml::Authrequest.new.create_authentication_xml_doc(settings)
         request2.sign_document(ruby_saml_key, ruby_saml_cert_text)
         # verify our signature
         signed_doc2 = XMLSecurity::SignedDocument.new(request2.to_s)
@@ -252,7 +252,7 @@ class XmlSecurityTest < Minitest::Test
       end
 
       it "sign an AuthNRequest with certificate as text" do
-        request = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+        request = OneLogin::KlRubySaml::Authrequest.new.create_authentication_xml_doc(settings)
         request.sign_document(ruby_saml_key, ruby_saml_cert_text)
 
         # verify our signature
@@ -261,13 +261,13 @@ class XmlSecurityTest < Minitest::Test
       end
 
       it "sign a LogoutRequest" do
-        logout_request = OneLogin::RubySaml::Logoutrequest.new.create_logout_request_xml_doc(settings)
+        logout_request = OneLogin::KlRubySaml::Logoutrequest.new.create_logout_request_xml_doc(settings)
         logout_request.sign_document(ruby_saml_key, ruby_saml_cert)
         # verify our signature
         signed_doc = XMLSecurity::SignedDocument.new(logout_request.to_s)
         assert signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
 
-        logout_request2 = OneLogin::RubySaml::Logoutrequest.new.create_logout_request_xml_doc(settings)
+        logout_request2 = OneLogin::KlRubySaml::Logoutrequest.new.create_logout_request_xml_doc(settings)
         logout_request2.sign_document(ruby_saml_key, ruby_saml_cert_text)
         # verify our signature
         signed_doc2 = XMLSecurity::SignedDocument.new(logout_request2.to_s)
@@ -276,13 +276,13 @@ class XmlSecurityTest < Minitest::Test
       end
 
       it "sign a LogoutResponse" do
-        logout_response = OneLogin::RubySaml::SloLogoutresponse.new.create_logout_response_xml_doc(settings, 'request_id_example', "Custom Logout Message")
+        logout_response = OneLogin::KlRubySaml::SloLogoutresponse.new.create_logout_response_xml_doc(settings, 'request_id_example', "Custom Logout Message")
         logout_response.sign_document(ruby_saml_key, ruby_saml_cert)
         # verify our signature
         signed_doc = XMLSecurity::SignedDocument.new(logout_response.to_s)
         assert signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
 
-        logout_response2 = OneLogin::RubySaml::SloLogoutresponse.new.create_logout_response_xml_doc(settings, 'request_id_example', "Custom Logout Message")
+        logout_response2 = OneLogin::KlRubySaml::SloLogoutresponse.new.create_logout_response_xml_doc(settings, 'request_id_example', "Custom Logout Message")
         logout_response2.sign_document(ruby_saml_key, ruby_saml_cert_text)
         # verify our signature
         signed_doc2 = XMLSecurity::SignedDocument.new(logout_response2.to_s)
@@ -292,10 +292,10 @@ class XmlSecurityTest < Minitest::Test
     end
 
     describe "StarfieldTMS" do
-      let (:response) { OneLogin::RubySaml::Response.new(fixture(:starfield_response)) }
+      let (:response) { OneLogin::KlRubySaml::Response.new(fixture(:starfield_response)) }
 
       before do
-        response.settings = OneLogin::RubySaml::Settings.new( :idp_cert_fingerprint => "8D:BA:53:8E:A3:B6:F9:F1:69:6C:BB:D9:D8:BD:41:B3:AC:4F:9D:4D")
+        response.settings = OneLogin::KlRubySaml::Settings.new( :idp_cert_fingerprint => "8D:BA:53:8E:A3:B6:F9:F1:69:6C:BB:D9:D8:BD:41:B3:AC:4F:9D:4D")
       end
 
       it "be able to validate a good response" do
