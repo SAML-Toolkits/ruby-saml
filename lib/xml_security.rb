@@ -262,6 +262,12 @@ module XMLSecurity
         '//ds:CanonicalizationMethod',
         'ds' => DSIG
       )
+
+      noko_signed_info_reference_element_uri_attr = noko_signed_info_element.at_xpath('./ds:Reference', 'ds' => DSIG).attributes["URI"]
+      if (noko_signed_info_reference_element_uri_attr.value.empty?)
+        noko_signed_info_reference_element_uri_attr.value = "##{document.root.attribute('ID')}"
+      end
+
       canon_string = noko_signed_info_element.canonicalize(canon_algorithm)
       noko_sig_element.remove
 
@@ -269,7 +275,8 @@ module XMLSecurity
       REXML::XPath.each(@sig_element, "//ds:Reference", {"ds"=>DSIG}) do |ref|
         uri = ref.attributes.get_attribute("URI").value
 
-        hashed_element = document.at_xpath("//*[@ID=$uri]", nil, { 'uri' => uri[1..-1] })
+        hashed_element = uri.empty? ? document : document.at_xpath("//*[@ID=$uri]", nil, { 'uri' => uri[1..-1] })
+        # hashed_element = document.at_xpath("//*[@ID=$uri]", nil, { 'uri' => uri[1..-1] })
         canon_algorithm = canon_algorithm REXML::XPath.first(
           ref,
           '//ds:CanonicalizationMethod',
@@ -336,7 +343,11 @@ module XMLSecurity
         "//ds:Signature/ds:SignedInfo/ds:Reference",
         {"ds"=>DSIG}
       )
-      self.signed_element_id = reference_element.attribute("URI").value[1..-1] unless reference_element.nil?
+
+      return nil if reference_element.nil?
+
+      sei = reference_element.attribute("URI").value[1..-1] 
+      self.signed_element_id = sei.nil? ? self.root.attribute("ID") : sei
     end
 
     def extract_inclusive_namespaces

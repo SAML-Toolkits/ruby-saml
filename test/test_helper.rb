@@ -66,6 +66,10 @@ class Minitest::Test
     @response_document_without_attributes ||= read_response("response_without_attributes.xml.base64")
   end
 
+  def response_document_without_reference_uri
+    @response_document_without_reference_uri ||= read_response("response_without_reference_uri.xml.base64")
+  end
+
   def response_document_with_signed_assertion
     @response_document_with_signed_assertion ||= read_response("response_with_signed_assertion.xml.base64")
   end
