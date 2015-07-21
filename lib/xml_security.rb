@@ -227,42 +227,48 @@ module XMLSecurity
     end
 
     def validate_signature(base64_cert, soft = true)
-      # validate references
-
-      # check for inclusive namespaces
-      inclusive_namespaces = extract_inclusive_namespaces
 
       document = Nokogiri.parse(self.to_s) do |options|
         options = XMLSecurity::BaseDocument::NOKOGIRI_OPTIONS
       end
 
-      # create a working copy so we don't modify the original
+      # create a rexml document
       @working_copy ||= REXML::Document.new(self.to_s).root
 
-      # store and remove signature node
-      @sig_element ||= begin
-        element = REXML::XPath.first(
+      # get signature node
+      sig_element = REXML::XPath.first(
           @working_copy,
           "//ds:Signature",
           {"ds"=>DSIG}
-        )
-        element.remove
-      end
+      )
 
-      # verify signature
-      signed_info_element = REXML::XPath.first(
-        @sig_element,
-        "//ds:SignedInfo",
+      # signature method
+      sig_alg_value = REXML::XPath.first(
+        sig_element,
+        "./ds:SignedInfo/ds:SignatureMethod",
         {"ds"=>DSIG}
       )
-      noko_sig_element = document.at_xpath('//ds:Signature', 'ds' => DSIG)
-      noko_signed_info_element = noko_sig_element.at_xpath('./ds:SignedInfo', 'ds' => DSIG)
+      signature_algorithm = algorithm(sig_alg_value)
+
+      # get signature
+      base64_signature = REXML::XPath.first(
+        sig_element,
+        "./ds:SignatureValue",
+        {"ds" => DSIG}
+      ).text
+      signature = Base64.decode64(base64_signature)
+
+      # canonicalization method
       canon_algorithm = canon_algorithm REXML::XPath.first(
-        @sig_element,
-        '//ds:CanonicalizationMethod',
+        sig_element,
+        './ds:SignedInfo/ds:CanonicalizationMethod',
         'ds' => DSIG
       )
 
+      noko_sig_element = document.at_xpath('//ds:Signature', 'ds' => DSIG)
+      noko_signed_info_element = noko_sig_element.at_xpath('./ds:SignedInfo', 'ds' => DSIG)
+
+      # Handle when no URI
       noko_signed_info_reference_element_uri_attr = noko_signed_info_element.at_xpath('./ds:Reference', 'ds' => DSIG).attributes["URI"]
       if (noko_signed_info_reference_element_uri_attr.value.empty?)
         noko_signed_info_reference_element_uri_attr.value = "##{document.root.attribute('ID')}"
@@ -271,8 +277,11 @@ module XMLSecurity
       canon_string = noko_signed_info_element.canonicalize(canon_algorithm)
       noko_sig_element.remove
 
+      # get inclusive namespaces
+      inclusive_namespaces = extract_inclusive_namespaces
+
       # check digests
-      REXML::XPath.each(@sig_element, "//ds:Reference", {"ds"=>DSIG}) do |ref|
+      REXML::XPath.each(sig_element, "//ds:Reference", {"ds"=>DSIG}) do |ref|
         uri = ref.attributes.get_attribute("URI").value
 
         hashed_element = uri.empty? ? document : document.at_xpath("//*[@ID=$uri]", nil, { 'uri' => uri[1..-1] })
@@ -303,26 +312,11 @@ module XMLSecurity
         end
       end
 
-      base64_signature = REXML::XPath.first(
-        @sig_element,
-        "//ds:SignatureValue",
-        {"ds" => DSIG}
-      ).text
-
-      signature = Base64.decode64(base64_signature)
-
       # get certificate object
       cert_text = Base64.decode64(base64_cert)
       cert = OpenSSL::X509::Certificate.new(cert_text)
 
-      # signature method
-      sig_alg_value = REXML::XPath.first(
-        signed_info_element,
-        "//ds:SignatureMethod",
-        {"ds"=>DSIG}
-      )
-      signature_algorithm = algorithm(sig_alg_value)
-
+      # verify signature
       unless cert.public_key.verify(signature_algorithm.new, signature, canon_string)
         @errors << "Key validation error"
         return soft ? false : (raise OneLogin::RubySaml::ValidationError.new("Key validation error"))
@@ -347,7 +341,7 @@ module XMLSecurity
       return nil if reference_element.nil?
 
       sei = reference_element.attribute("URI").value[1..-1] 
-      self.signed_element_id = sei.nil? ? self.root.attribute("ID") : sei
+      sei.nil? ? self.root.attribute("ID") : sei
     end
 
     def extract_inclusive_namespaces
