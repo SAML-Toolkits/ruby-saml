@@ -6,7 +6,7 @@ rvm:
   - 2.1.5
   - 2.2.0
   - ree
-  - jruby-1.7.19
+  - jruby-9.0.0.0
 gemfile:
   - Gemfile
   - gemfiles/nokogiri-1.5.gemfile
@@ -16,5 +16,5 @@ matrix:
       gemfile: Gemfile
     - rvm: ree
       gemfile: Gemfile
-    - rvm: jruby-1.7.19
+    - rvm: jruby-9.0.0.0
       gemfile: gemfiles/nokogiri-1.5.gemfile
