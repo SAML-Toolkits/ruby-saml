@@ -6,6 +6,7 @@ rvm:
   - 2.1.5
   - 2.2.0
   - ree
+  - jruby-1.7.21
   - jruby-9.0.0.0
 gemfile:
   - Gemfile
