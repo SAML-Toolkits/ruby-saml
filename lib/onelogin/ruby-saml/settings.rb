@@ -13,9 +13,9 @@ module OneLogin
         config = DEFAULTS.merge(overrides)
         config.each do |k,v|
           acc = "#{k.to_s}=".to_sym
-          if self.respond_to? acc
+          if respond_to? acc
             value = v.is_a?(Hash) ? v.dup : v
-            self.send(acc, value)
+            send(acc, value)
           end
         end
         @attribute_consuming_service = AttributeService.new
@@ -43,13 +43,15 @@ module OneLogin
       attr_accessor :protocol_binding
       attr_accessor :attributes_index
       attr_accessor :force_authn
-      attr_accessor :security
       attr_accessor :certificate
       attr_accessor :private_key
       attr_accessor :authn_context
       attr_accessor :authn_context_comparison
       attr_accessor :authn_context_decl_ref
       attr_reader :attribute_consuming_service
+      # Work-flow
+      attr_accessor :security
+      attr_accessor :soft
       # Compability
       attr_accessor :assertion_consumer_logout_service_url
       attr_accessor :assertion_consumer_logout_service_binding
@@ -102,10 +104,10 @@ module OneLogin
       # @return [String] The fingerprint
       #
       def get_fingerprint
-        self.idp_cert_fingerprint || begin
+        idp_cert_fingerprint || begin
           idp_cert = get_idp_cert
           if idp_cert
-            fingerprint_alg = XMLSecurity::BaseDocument.new.algorithm(self.idp_cert_fingerprint_algorithm).new
+            fingerprint_alg = XMLSecurity::BaseDocument.new.algorithm(idp_cert_fingerprint_algorithm).new
             fingerprint_alg.hexdigest(idp_cert.to_der).upcase.scan(/../).join(":")
           end
         end
@@ -146,6 +148,7 @@ module OneLogin
         :idp_cert_fingerprint_algorithm            => XMLSecurity::Document::SHA1,
         :compress_request                          => true,
         :compress_response                         => true,
+        :soft                                      => true,
         :security                                  => {
           :authn_requests_signed    => false,
           :logout_requests_signed   => false,

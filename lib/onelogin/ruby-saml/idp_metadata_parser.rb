@@ -20,11 +20,14 @@ module OneLogin
       DSIG     = "http://www.w3.org/2000/09/xmldsig#"
 
       attr_reader :document
+      attr_reader :response
 
-      # Parse the Identity Provider metadata and update the settings with the IdP values
-      # @param url [String] Url where the XML of the Identity Provider Metadata is published.
-      # @param validate_cert [Boolean] If true and the URL is HTTPs, the cert of the domain is checked.
+      # Parse the Identity Provider metadata and update the settings with the
+      # IdP values
       #
+      # @param (see IdpMetadataParser#get_idp_metadata)
+      # @return (see IdpMetadataParser#get_idp_metadata)
+      # @raise (see IdpMetadataParser#get_idp_metadata)
       def parse_remote(url, validate_cert = true)
         idp_metadata = get_idp_metadata(url, validate_cert)
         parse(idp_metadata)
@@ -51,7 +54,7 @@ module OneLogin
       # @param url [String] Url where the XML of the Identity Provider Metadata is published.
       # @param validate_cert [Boolean] If true and the URL is HTTPs, the cert of the domain is checked.
       # @return [REXML::document] Parsed XML IdP metadata
-      #
+      # @raise [HttpError] Failure to fetch remote IdP metadata
       def get_idp_metadata(url, validate_cert)
         uri = URI.parse(url)
         if uri.scheme == "http"
@@ -75,7 +78,14 @@ module OneLogin
           get = Net::HTTP::Get.new(uri.request_uri)
           response = http.request(get)
           meta_text = response.body
+        else
+          raise ArgumentError.new("url must begin with http or https")
         end
+
+        unless response.is_a? Net::HTTPSuccess
+          raise OneLogin::RubySaml::HttpError.new("Failed to fetch idp metadata")
+        end
+
         meta_text
       end
 

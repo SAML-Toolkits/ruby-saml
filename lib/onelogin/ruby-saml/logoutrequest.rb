@@ -101,15 +101,15 @@ module OneLogin
           issuer.text = settings.issuer
         end
 
-        name_id = root.add_element "saml:NameID"
+        nameid = root.add_element "saml:NameID"
         if settings.name_identifier_value
-          name_id.attributes['NameQualifier'] = settings.sp_name_qualifier if settings.sp_name_qualifier
-          name_id.attributes['Format'] = settings.name_identifier_format if settings.name_identifier_format
-          name_id.text = settings.name_identifier_value
+          nameid.attributes['NameQualifier'] = settings.sp_name_qualifier if settings.sp_name_qualifier
+          nameid.attributes['Format'] = settings.name_identifier_format if settings.name_identifier_format
+          nameid.text = settings.name_identifier_value
         else
           # If no NameID is present in the settings we generate one
-          name_id.text = "_" + UUID.new.generate
-          name_id.attributes['Format'] = 'urn:oasis:names:tc:SAML:2.0:nameid-format:transient'
+          nameid.text = "_" + UUID.new.generate
+          nameid.attributes['Format'] = 'urn:oasis:names:tc:SAML:2.0:nameid-format:transient'
         end
 
         if settings.sessionindex

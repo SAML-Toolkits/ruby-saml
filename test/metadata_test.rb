@@ -33,10 +33,31 @@ class MetadataTest < Minitest::Test
 
       assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST", acs.attribute("Binding").value
       assert_equal "https://foo.example/saml/consume", acs.attribute("Location").value      
+
+      assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
     end
 
     it "generates Service Provider Metadata" do
-      # assert correct xml declaration
+      settings.single_logout_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+      settings.single_logout_service_url = "https://foo.example/saml/sls"
+      xml_metadata = OneLogin::RubySaml::Metadata.new.generate(settings, false)
+
+      start = "<?xml version='1.0' encoding='UTF-8'?><md:EntityDescriptor"
+      assert_equal xml_metadata[0..start.length-1],start
+
+      doc_metadata = REXML::Document.new(xml_metadata)
+      sls = REXML::XPath.first(doc_metadata, "//md:SingleLogoutService")
+
+      assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", sls.attribute("Binding").value
+      assert_equal "https://foo.example/saml/sls", sls.attribute("Location").value
+      assert_equal "https://foo.example/saml/sls", sls.attribute("ResponseLocation").value
+      assert_nil sls.attribute("isDefault")
+      assert_nil sls.attribute("index")
+
+      assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
+    end
+
+    it "generates Service Provider Metadata with single logout service" do
       start = "<?xml version='1.0' encoding='UTF-8'?><md:EntityDescriptor"
       assert_equal xml_text[0..start.length-1], start
 
@@ -50,27 +71,50 @@ class MetadataTest < Minitest::Test
 
       assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST", acs.attribute("Binding").value
       assert_equal "https://foo.example/saml/consume", acs.attribute("Location").value
+
+      assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
     end
 
     describe "when auth requests are signed" do
-      let(:cert_node) do
-        REXML::XPath.first(
+      let(:key_descriptors) do
+        REXML::XPath.match(
+          xml_doc,
+          "//md:KeyDescriptor",
+          "md" => "urn:oasis:names:tc:SAML:2.0:metadata"
+        )
+      end
+      let(:cert_nodes) do
+        REXML::XPath.match(
           xml_doc,
           "//md:KeyDescriptor/ds:KeyInfo/ds:X509Data/ds:X509Certificate",
           "md" => "urn:oasis:names:tc:SAML:2.0:metadata",
           "ds" => "http://www.w3.org/2000/09/xmldsig#"
         )
       end
-      let(:cert)  { OpenSSL::X509::Certificate.new(Base64.decode64(cert_node.text)) }
+      let(:cert)  { OpenSSL::X509::Certificate.new(Base64.decode64(cert_nodes[0].text)) }
 
       before do
-        settings.security[:authn_requests_signed] = true
         settings.certificate = ruby_saml_cert_text
       end
 
-      it "generates Service Provider Metadata with X509Certificate" do
+      it "generates Service Provider Metadata with AuthnRequestsSigned" do
+        settings.security[:authn_requests_signed] = true
         assert_equal "true", spsso_descriptor.attribute("AuthnRequestsSigned").value
         assert_equal ruby_saml_cert.to_der, cert.to_der
+
+        assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
+      end
+
+      it "generates Service Provider Metadata with X509Certificate for sign and encrypt" do
+        assert_equal 2, key_descriptors.length
+        assert_equal "signing", key_descriptors[0].attribute("use").value
+        assert_equal "encryption", key_descriptors[1].attribute("use").value
+
+        assert_equal 2, cert_nodes.length
+        assert_equal ruby_saml_cert.to_der, cert.to_der
+        assert_equal cert_nodes[0].text, cert_nodes[1].text
+
+        assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
       end
     end
 
@@ -93,7 +137,29 @@ class MetadataTest < Minitest::Test
         assert_equal "Name", req_attr.attribute("Name").value
         assert_equal "Name Format", req_attr.attribute("NameFormat").value
         assert_equal "Friendly Name", req_attr.attribute("FriendlyName").value
-        assert_equal "Attribute Value", REXML::XPath.first(xml_doc, "//md:AttributeValue").text.strip
+        assert_equal "Attribute Value", REXML::XPath.first(xml_doc, "//saml:AttributeValue").text.strip
+
+        assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
+      end
+
+      describe "#service_name" do
+        before do
+          settings.attribute_consuming_service.service_name("Test2 Service")
+        end
+
+        it "change service name" do
+          assert_equal REXML::XPath.first(xml_doc, "//md:ServiceName").text.strip, "Test2 Service"
+        end
+      end
+
+      describe "#service_index" do
+        before do
+          settings.attribute_consuming_service.service_index(2)
+        end
+
+        it "change service index" do
+          assert_equal "2", attr_svc.attribute("index").value
+        end
       end
     end
 
@@ -110,6 +176,8 @@ class MetadataTest < Minitest::Test
         assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2000/09/xmldsig#sha1'/>], xml_text
         signed_metadata = XMLSecurity::SignedDocument.new(xml_text)
         assert signed_metadata.validate_document(ruby_saml_cert_fingerprint, false)        
+
+        assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
       end
 
       describe "when digest and signature methods are specified" do
@@ -126,6 +194,8 @@ class MetadataTest < Minitest::Test
           signed_metadata_2 = XMLSecurity::SignedDocument.new(xml_text)
 
           assert signed_metadata_2.validate_document(ruby_saml_cert_fingerprint, false)          
+
+          assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
         end
       end
     end

@@ -1,3 +1,11 @@
+require 'simplecov'
+
+SimpleCov.start do
+  add_filter "test/"
+  add_filter "lib/onelogin/ruby-saml/logging.rb"
+end
+
+require 'stringio'
 require 'rubygems'
 require 'bundler'
 require 'minitest/autorun'
@@ -9,7 +17,10 @@ Bundler.require :default, :test
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 
-ENV["ruby-saml/testing"] = "1"
+require 'onelogin/ruby-saml/logging'
+
+TEST_LOGGER = Logger.new(StringIO.new)
+OneLogin::RubySaml::Logging.logger = TEST_LOGGER
 
 class Minitest::Test
   def fixture(document, base64 = true)
@@ -25,12 +36,20 @@ class Minitest::Test
     File.read(File.join(File.dirname(__FILE__), "responses", response))
   end
 
+  def read_invalid_response(response)
+    File.read(File.join(File.dirname(__FILE__), "responses", "invalids", response))
+  end
+
   def read_logout_request(request)
     File.read(File.join(File.dirname(__FILE__), "logout_requests", request))
   end
 
   def read_certificate(certificate)
     File.read(File.join(File.dirname(__FILE__), "certificates", certificate))
+  end
+
+  def response_document_valid_signed
+    @response_document_valid_signed ||= read_response("valid_response.xml.base64")
   end
 
   def response_document_without_recipient
@@ -46,6 +65,10 @@ class Minitest::Test
 
   def response_document_without_attributes
     @response_document_without_attributes ||= read_response("response_without_attributes.xml.base64")
+  end
+
+  def response_document_without_reference_uri
+    @response_document_without_reference_uri ||= read_response("response_without_reference_uri.xml.base64")
   end
 
   def response_document_with_signed_assertion
@@ -76,6 +99,30 @@ class Minitest::Test
     @response_document_wrapped ||= read_response("response_wrapped.xml.base64")
   end
 
+  def response_document_assertion_wrapped
+    @response_document_assertion_wrapped ||= read_response("response_assertion_wrapped.xml.base64")
+  end
+
+  def response_document_encrypted_nameid
+    @response_document_encrypted_nameid ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'response_encrypted_nameid.xml.base64'))
+  end
+
+  def signed_message_encrypted_unsigned_assertion
+    @signed_message_encrypted_unsigned_assertion ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'signed_message_encrypted_unsigned_assertion.xml.base64'))    
+  end
+
+  def signed_message_encrypted_signed_assertion
+    @signed_message_encrypted_signed_assertion ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'signed_message_encrypted_signed_assertion.xml.base64'))    
+  end
+
+  def unsigned_message_encrypted_signed_assertion
+    @unsigned_message_encrypted_signed_assertion ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'unsigned_message_encrypted_signed_assertion.xml.base64'))    
+  end
+
+  def unsigned_message_encrypted_unsigned_assertion
+    @unsigned_message_encrypted_unsigned_assertion ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'unsigned_message_encrypted_unsigned_assertion.xml.base64'))    
+  end
+
   def signature_fingerprint_1
     @signature_fingerprint1 ||= "C5:19:85:D9:47:F1:BE:57:08:20:25:05:08:46:EB:27:F6:CA:B7:83"
   end
@@ -101,6 +148,27 @@ class Minitest::Test
       @logout_request_document = Base64.encode64(deflated)
     end
     @logout_request_document
+  end
+
+  def logout_request_xml_with_session_index
+    @logout_request_xml_with_session_index ||= File.read(File.join(File.dirname(__FILE__), 'logout_requests', 'slo_request_with_session_index.xml'))
+  end
+
+  def invalid_logout_request_document
+    unless @invalid_logout_request_document
+      xml = File.read(File.join(File.dirname(__FILE__), 'logout_requests', 'invalid_slo_request.xml'))
+      deflated = Zlib::Deflate.deflate(xml, 9)[2..-5]
+      @invalid_logout_request_document = Base64.encode64(deflated)
+    end
+    @invalid_logout_request_document
+  end
+
+  def logout_request_base64
+    @logout_request_base64 ||= File.read(File.join(File.dirname(__FILE__), 'logout_requests', 'slo_request.xml.base64'))
+  end
+
+  def logout_request_deflated_base64
+    @logout_request_deflated_base64 ||= File.read(File.join(File.dirname(__FILE__), 'logout_requests', 'slo_request_deflated.xml.base64'))
   end
 
   def ruby_saml_cert
@@ -156,5 +224,34 @@ class Minitest::Test
     zstream.finish
     zstream.close
     inflated
+  end
+
+  SCHEMA_DIR = File.expand_path(File.join(__FILE__, '../../lib/schemas'))
+
+  #
+  # validate an xml document against the given schema
+  #
+  def validate_xml!(document, schema)
+    Dir.chdir(SCHEMA_DIR) do
+      xsd = if schema.is_a? Nokogiri::XML::Schema
+              schema
+            else
+              Nokogiri::XML::Schema(File.read(schema))
+            end
+
+      xml = if document.is_a? Nokogiri::XML::Document
+              document
+            else
+              Nokogiri::XML(document) { |c| c.strict }
+            end
+
+      result = xsd.validate(xml)
+
+      if result.length != 0
+        raise "Schema validation failed! XSD validation errors: #{result.join(", ")}"
+      else
+        true
+      end
+    end
   end
 end

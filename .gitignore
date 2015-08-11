@@ -4,6 +4,7 @@ coverage
 rdoc
 pkg
 Gemfile.lock
+gemfiles/*.lock
 .idea/*
 lib/Lib.iml
 test/Test.iml

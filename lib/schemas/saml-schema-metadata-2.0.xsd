@@ -247,8 +247,6 @@
                 <sequence>
                     <element ref="md:AssertionConsumerService" maxOccurs="unbounded"/>
                     <element ref="md:AttributeConsumingService" minOccurs="0" maxOccurs="unbounded"/>
-                    <element ref="md:SingleLogoutService" minOccurs="0" maxOccurs="unbounded"/>
-                    <element ref="md:KeyDescriptor" minOccurs="0" maxOccurs="unbounded"/>
                 </sequence>
                 <attribute name="AuthnRequestsSigned" type="boolean" use="optional"/>
                 <attribute name="WantAssertionsSigned" type="boolean" use="optional"/>
