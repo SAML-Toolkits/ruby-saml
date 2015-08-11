@@ -19,3 +19,5 @@ matrix:
       gemfile: Gemfile
     - rvm: jruby-9.0.0.0
       gemfile: gemfiles/nokogiri-1.5.gemfile
+    - rvm: jruby-1.7.21
+      gemfile: gemfiles/nokogiri-1.5.gemfile
