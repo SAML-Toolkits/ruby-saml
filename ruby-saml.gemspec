@@ -30,7 +30,12 @@ Gem::Specification.new do |s|
   # Because runtime dependencies are determined at build time, we cannot make
   # Nokogiri's version dependent on the Ruby version, even though we would
   # have liked to constrain Ruby 1.8.7 to install only the 1.5.x versions.
-  s.add_runtime_dependency('nokogiri', '>= 1.5.10')
+  if defined?(JRUBY_VERSION)
+    s.add_runtime_dependency('nokogiri', '>= 1.6.0')
+    s.add_runtime_dependency('jruby-openssl', '>= 0.9.8')
+  else
+    s.add_runtime_dependency('nokogiri', '>= 1.5.10')
+  end
 
   s.add_development_dependency('minitest', '~> 5.5')
   s.add_development_dependency('mocha',    '~> 0.14')
@@ -40,7 +45,10 @@ Gem::Specification.new do |s|
   s.add_development_dependency('systemu',  '~> 2')
   s.add_development_dependency('timecop',  '<= 0.6.0')
 
-  if RUBY_VERSION < '1.9'
+  if defined?(JRUBY_VERSION)
+    # All recent versions of JRuby play well with pry
+    s.add_development_dependency('pry')
+  elsif RUBY_VERSION < '1.9'
     # 1.8.7
     s.add_development_dependency('ruby-debug', '~> 0.10.4')
   elsif RUBY_VERSION < '2.0'

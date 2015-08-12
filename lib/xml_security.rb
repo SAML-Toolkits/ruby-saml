@@ -360,7 +360,7 @@ module XMLSecurity
         prefix_list = element.attributes.get_attribute("PrefixList").value
         prefix_list.split(" ")
       else
-        []
+        nil
       end
     end
 

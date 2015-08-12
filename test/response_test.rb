@@ -56,7 +56,7 @@ class RubySamlTest < Minitest::Test
 
     describe "Prevent XEE attack" do
       before do
-        @response = OneLogin::RubySaml::Response.new(fixture(:attackxee))        
+        @response = OneLogin::RubySaml::Response.new(fixture(:attackxee))
       end
 
       it "false when evil attack vector is present, soft = true" do
@@ -419,7 +419,7 @@ class RubySamlTest < Minitest::Test
         assert response_valid_signed.send(:validate_issuer)
 
         response_valid_signed.settings.idp_entity_id = 'https://app.onelogin.com/saml2'
-        assert response_valid_signed.send(:validate_issuer)        
+        assert response_valid_signed.send(:validate_issuer)
       end
 
       it "return false when the issuer of the Message does not match the IdP entityId" do
@@ -501,7 +501,7 @@ class RubySamlTest < Minitest::Test
         response = OneLogin::RubySaml::Response.new(response_document_valid_signed, :settings => settings, :matches_request_id => "_fc4a34b0-7efb-012e-caae-782bcb13bb38")
         assert response.send(:validate_in_response_to)
         assert_empty response.errors
-      end      
+      end
 
       it "return true when no Request ID is provided for checking" do
         response = OneLogin::RubySaml::Response.new(response_document_valid_signed, :settings => settings)
@@ -898,7 +898,7 @@ class RubySamlTest < Minitest::Test
       it 'is not possible when encryptID inside the assertion but no private key' do
           response_encrypted_nameid.settings = settings
           assert_raises(OneLogin::RubySaml::ValidationError, "An EncryptedID found and no SP private key found on the settings to decrypt it") do
-            assert_equal "test@onelogin.com", response_encrypted_nameid.nameid    
+            assert_equal "test@onelogin.com", response_encrypted_nameid.nameid
           end
       end
 
@@ -1017,7 +1017,7 @@ class RubySamlTest < Minitest::Test
     describe "check right settings" do
 
       it "is not possible to decrypt the assertion if no private key" do
-        response = OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)        
+        response = OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)
 
         encrypted_assertion_node = REXML::XPath.first(
           response.document,
@@ -1033,7 +1033,7 @@ class RubySamlTest < Minitest::Test
       end
 
       it "is possible to decrypt the assertion if private key" do
-        response = OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)        
+        response = OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)
 
         encrypted_assertion_node = REXML::XPath.first(
           response.document,
@@ -1100,9 +1100,9 @@ class RubySamlTest < Minitest::Test
         assert_equal "_ce3d2948b4cf20146dee0a0b3dd6f69b6cf86f62d7", response.nameid
       end
     end
-    
+
   end
-  describe "test qualified name id in attributes" do 
+  describe "test qualified name id in attributes" do
 
     it "parsed the nameid" do
      response = OneLogin::RubySaml::Response.new(read_response("signed_nameid_in_atts.xml"), :settings => settings)
@@ -1113,7 +1113,7 @@ class RubySamlTest < Minitest::Test
     end
   end
 
-  describe "test unqualified name id in attributes" do 
+  describe "test unqualified name id in attributes" do
 
     it "parsed the nameid" do
      response = OneLogin::RubySaml::Response.new(read_response("signed_unqual_nameid_in_atts.xml"), :settings => settings)
