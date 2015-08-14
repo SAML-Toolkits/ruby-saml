@@ -1,6 +1,6 @@
 require "xml_security"
 require "onelogin/ruby-saml/attribute_service"
-require "onelogin/ruby-saml/utils"
+require "onelogin/ruby-common-saml/utils"
 
 # Only supports SAML 2.0
 module OneLogin
@@ -158,7 +158,7 @@ module OneLogin
           :digest_method            => XMLSecurity::Document::SHA1,
           :signature_method         => XMLSecurity::Document::RSA_SHA1
         }.freeze,
-        :double_quote_xml_attribute_values         => false,
+        :double_quote_xml_attribute_values => false,
       }.freeze
     end
   end

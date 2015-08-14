@@ -1,7 +1,7 @@
 require "uri"
 require "uuid"
 
-require "onelogin/ruby-saml/logging"
+require "onelogin/ruby-common-saml/logging"
 
 # Only supports SAML 2.0
 module OneLogin

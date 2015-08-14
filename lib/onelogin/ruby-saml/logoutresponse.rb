@@ -1,5 +1,5 @@
 require "xml_security"
-require "onelogin/ruby-saml/saml_message"
+require "onelogin/ruby-common-saml/saml_message"
 
 require "time"
 

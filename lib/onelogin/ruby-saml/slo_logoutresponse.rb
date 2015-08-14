@@ -1,7 +1,7 @@
 require "uuid"
 
-require "onelogin/ruby-saml/logging"
-require "onelogin/ruby-saml/saml_message"
+require "onelogin/ruby-common-saml/logging"
+require "onelogin/ruby-common-saml/saml_message"
 
 # Only supports SAML 2.0
 module OneLogin

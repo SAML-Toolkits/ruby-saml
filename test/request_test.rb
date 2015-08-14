@@ -279,4 +279,29 @@ class RequestTest < Minitest::Test
       assert auth_doc.to_s =~ /<saml:AuthnContextDeclRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport<\/saml:AuthnContextDeclRef>/
     end
   end
+
+  describe "Signature Test" do
+    it "sign an AuthNRequest" do
+      request = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+      request.sign_document(ruby_saml_key, ruby_saml_cert)
+      # verify our signature
+      signed_doc = XMLSecurity::SignedDocument.new(request.to_s)
+      assert signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
+
+      request2 = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+      request2.sign_document(ruby_saml_key, ruby_saml_cert_text)
+      # verify our signature
+      signed_doc2 = XMLSecurity::SignedDocument.new(request2.to_s)
+      assert signed_doc2.validate_document(ruby_saml_cert_fingerprint, false)
+    end
+
+    it "sign an AuthNRequest with certificate as text" do
+      request = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+      request.sign_document(ruby_saml_key, ruby_saml_cert_text)
+
+      # verify our signature
+      signed_doc = XMLSecurity::SignedDocument.new(request.to_s)
+      assert signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
+    end
+  end
 end

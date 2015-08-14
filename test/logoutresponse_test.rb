@@ -201,6 +201,23 @@ class RubySamlTest < Minitest::Test
         end
       end
 
+      describe "Signature Test" do
+        it "sign a LogoutResponse" do
+          logout_response = OneLogin::RubySaml::SloLogoutresponse.new.create_logout_response_xml_doc(settings, 'request_id_example', "Custom Logout Message")
+          logout_response.sign_document(ruby_saml_key, ruby_saml_cert)
+          # verify our signature
+          signed_doc = XMLSecurity::SignedDocument.new(logout_response.to_s)
+          assert signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
+
+          logout_response2 = OneLogin::RubySaml::SloLogoutresponse.new.create_logout_response_xml_doc(settings, 'request_id_example', "Custom Logout Message")
+          logout_response2.sign_document(ruby_saml_key, ruby_saml_cert_text)
+          # verify our signature
+          signed_doc2 = XMLSecurity::SignedDocument.new(logout_response2.to_s)
+          signed_doc2.validate_document(ruby_saml_cert_fingerprint, false)        
+          assert signed_doc2.validate_document(ruby_saml_cert_fingerprint, false)
+        end
+      end
+
       describe "#validate_signature" do
         let (:params) { OneLogin::RubySaml::SloLogoutresponse.new.create_params(settings, random_id, "Custom Logout Message", :RelayState => 'http://example.com') }
 

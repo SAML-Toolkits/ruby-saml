@@ -210,6 +210,23 @@ class RubySamlTest < Minitest::Test
       end
     end
 
+    describe "Signature Test" do
+      it "sign a LogoutRequest" do
+        logout_request = OneLogin::RubySaml::Logoutrequest.new.create_logout_request_xml_doc(settings)
+        logout_request.sign_document(ruby_saml_key, ruby_saml_cert)
+        # verify our signature
+        signed_doc = XMLSecurity::SignedDocument.new(logout_request.to_s)
+        assert signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
+
+        logout_request2 = OneLogin::RubySaml::Logoutrequest.new.create_logout_request_xml_doc(settings)
+        logout_request2.sign_document(ruby_saml_key, ruby_saml_cert_text)
+        # verify our signature
+        signed_doc2 = XMLSecurity::SignedDocument.new(logout_request2.to_s)
+        signed_doc2.validate_document(ruby_saml_cert_fingerprint, false)        
+        assert signed_doc2.validate_document(ruby_saml_cert_fingerprint, false)
+      end
+    end
+
     describe "#validate_signature" do
       before do
         settings.idp_slo_target_url = "http://example.com?field=value"
