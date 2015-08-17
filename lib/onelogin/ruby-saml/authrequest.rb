@@ -148,9 +148,19 @@ module OneLogin
           request_doc.sign_document(private_key, cert, settings.security[:signature_method], settings.security[:digest_method])
         end
 
+        add_extensions(root, settings)
+
         request_doc
       end
 
+      private
+
+      def add_extensions(root, settings)
+        if extensions_builder = settings.authn_request_extensions_builder
+          extensions_context = root.add_element "samlp:Extensions"
+          extensions_builder.call(extensions_context)
+        end
+      end
     end
   end
 end
