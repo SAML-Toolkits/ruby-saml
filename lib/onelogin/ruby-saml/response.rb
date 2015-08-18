@@ -36,7 +36,8 @@ module OneLogin
       # @param options  [Hash]   :settings to provide the OneLogin::RubySaml::Settings object 
       #                          Or some options for the response validation process like skip the conditions validation
       #                          with the :skip_conditions, or allow a clock_drift when checking dates with :allowed_clock_drift
-      #                          or :matches_request_id that will validate that the response matches the ID of the request.
+      #                          or :matches_request_id that will validate that the response matches the ID of the request,
+      #                          or skip the subject confirmation validation with the :skip_subject_confirmation option
       def initialize(response, options = {})
         @errors = []
 
