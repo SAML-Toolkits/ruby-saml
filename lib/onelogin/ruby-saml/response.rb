@@ -524,12 +524,14 @@ module OneLogin
       end
 
       # Validates if exists valid SubjectConfirmation (If the response was initialized with the :allowed_clock_drift option,
-      # timimg validation are relaxed by the allowed_clock_drift value)
+      # timimg validation are relaxed by the allowed_clock_drift value. If the response was initialized with the 
+      # :skip_subject_confirmation option, this validation is skipped)
       # If fails, the error is added to the errors array
       # @return [Boolean] True if exists a valid SubjectConfirmation, otherwise False if soft=True
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_subject_confirmation
+        return true if options[:skip_subject_confirmation]
         valid_subject_confirmation = false
 
         subject_confirmation_nodes = xpath_from_signed_assertion('/a:Subject/a:SubjectConfirmation')
