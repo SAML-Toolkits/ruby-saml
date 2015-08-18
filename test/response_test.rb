@@ -630,6 +630,18 @@ class RubySamlTest < Minitest::Test
         assert !response.send(:validate_session_expiration)
         assert_includes response.errors, "The attributes have expired, based on the SessionNotOnOrAfter of the AttributeStatement of this Response"
       end
+      
+      it "returns true when the session has expired, but is still within the allowed_clock_drift" do
+        drift = (Time.now - Time.parse("2010-11-19T21:57:37Z")) * 60 # minutes ago that this assertion expired
+        drift += 10 # add a buffer of 10 minutes to make sure the test passes
+        opts = {}
+        opts[:allowed_clock_drift] = drift
+
+        response_with_drift = OneLogin::RubySaml::Response.new(response_document_without_recipient, opts)
+        response_with_drift.settings = settings
+        assert response_with_drift.send(:validate_session_expiration)
+        assert_empty response_with_drift.errors
+      end
     end
 
     describe "#validate_signature" do
