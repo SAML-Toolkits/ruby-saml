@@ -515,7 +515,7 @@ module OneLogin
         return true if session_expires_at.nil?
 
         now = Time.now.utc
-        unless session_expires_at > (now + allowed_clock_drift)
+        unless (session_expires_at + allowed_clock_drift) > now
           error_msg = "The attributes have expired, based on the SessionNotOnOrAfter of the AttributeStatement of this Response"
           return append_error(error_msg)
         end
