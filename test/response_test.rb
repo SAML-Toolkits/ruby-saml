@@ -616,6 +616,27 @@ class RubySamlTest < Minitest::Test
         assert !response_invalid_subjectconfirmation_noa.send(:validate_subject_confirmation)
         assert_includes response_invalid_subjectconfirmation_noa.errors, "A valid SubjectConfirmation was not found on this Response"
       end
+
+      it "return true when the skip_subject_confirmation option is passed and the subject confirmation is valid" do
+        opts = {}
+        opts[:skip_subject_confirmation] = true
+        response_with_skip = OneLogin::RubySaml::Response.new(response_document_valid_signed, opts)
+        response_with_skip.settings = settings
+        response_with_skip.settings.assertion_consumer_service_url = 'recipient'
+        Time.expects(:now).times(0) # ensures the test isn't run and thus Time.now.utc is never called within the test
+        assert response_with_skip.send(:validate_subject_confirmation)
+        assert_empty response_with_skip.errors
+      end
+
+      it "return true when the skip_subject_confirmation option is passed and the response has an invalid subject confirmation" do
+        opts = {}
+        opts[:skip_subject_confirmation] = true
+        response_with_skip = OneLogin::RubySaml::Response.new(read_invalid_response("invalid_subjectconfirmation_noa.xml.base64"), opts)
+        response_with_skip.settings = settings
+        Time.expects(:now).times(0) # ensures the test isn't run and thus Time.now.utc is never called within the test
+        assert response_with_skip.send(:validate_subject_confirmation)
+        assert_empty response_with_skip.errors
+      end
     end
 
     describe "#validate_session_expiration" do
@@ -630,10 +651,10 @@ class RubySamlTest < Minitest::Test
         assert !response.send(:validate_session_expiration)
         assert_includes response.errors, "The attributes have expired, based on the SessionNotOnOrAfter of the AttributeStatement of this Response"
       end
-      
+
       it "returns true when the session has expired, but is still within the allowed_clock_drift" do
-        drift = (Time.now - Time.parse("2010-11-19T21:57:37Z")) * 60 # minutes ago that this assertion expired
-        drift += 10 # add a buffer of 10 minutes to make sure the test passes
+        drift = (Time.now - Time.parse("2010-11-19T21:57:37Z")) * 60 # seconds ago that this assertion expired
+        drift += 10 # add a buffer of 10 seconds to make sure the test passes
         opts = {}
         opts[:allowed_clock_drift] = drift
 
