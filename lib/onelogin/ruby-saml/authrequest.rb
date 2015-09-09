@@ -29,14 +29,20 @@ module OneLogin
       # @return [String] AuthNRequest string that includes the SAMLRequest
       #
       def create(settings, params = {})
+        only_request_params = params[:only_request_params].present? ? true: false
+        params.delete(:only_request_params) if only_request_params
         params = create_params(settings, params)
         params_prefix = (settings.idp_sso_target_url =~ /\?/) ? '&' : '?'
-        saml_request = CGI.escape(params.delete("SAMLRequest"))
-        request_params = "#{params_prefix}SAMLRequest=#{saml_request}"
-        params.each_pair do |key, value|
-          request_params << "&#{key.to_s}=#{CGI.escape(value.to_s)}"
+        saml_request = params.delete("SAMLRequest")
+        if only_request_params
+          request_params = "#{saml_request}"
+        else
+          request_params = "#{params_prefix}SAMLRequest=#{CGI.escape(saml_request)}"
+          params.each_pair do |key, value|
+            request_params << "&#{key.to_s}=#{CGI.escape(value.to_s)}"
+          end
         end
-        @login_url = settings.idp_sso_target_url + request_params
+        @login_url = only_request_params ? request_params : settings.idp_sso_target_url + request_params
       end
 
       # Creates the Get parameters for the request.
