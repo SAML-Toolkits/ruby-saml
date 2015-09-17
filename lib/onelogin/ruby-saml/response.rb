@@ -574,6 +574,7 @@ module OneLogin
       #
       def validate_signature
         fingerprint = settings.get_fingerprint
+        idp_cert = settings.get_idp_cert
 
         # If the response contains the signature, and the assertion was encrypted, validate the original SAML Response
         # otherwise, review if the decrypted assertion contains a signature
@@ -585,7 +586,11 @@ module OneLogin
         )
         doc = (response_signed || decrypted_document.nil?) ? document : decrypted_document
 
-        unless fingerprint && doc.validate_document(fingerprint, :fingerprint_alg => settings.idp_cert_fingerprint_algorithm)
+        opts = {}
+        opts[:fingerprint_alg] = settings.idp_cert_fingerprint_algorithm
+        opts[:cert] = idp_cert
+
+        unless fingerprint && doc.validate_document(fingerprint, @soft, opts)
           error_msg = "Invalid Signature on SAML Response"
           return append_error(error_msg)
         end
