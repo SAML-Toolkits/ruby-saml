@@ -1,5 +1,5 @@
 require "uri"
-require "uuid"
+require "securerandom"
 
 require "onelogin/ruby-saml/logging"
 
@@ -8,12 +8,12 @@ module OneLogin
   module RubySaml
 
     # SAML2 Metadata. XML Metadata Builder
-    # 
+    #
     class Metadata
 
       # Return SP metadata based on the settings.
       # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
-      # @param pretty_print [Boolean] Pretty print or not the response 
+      # @param pretty_print [Boolean] Pretty print or not the response
       #                               (No pretty print if you gonna validate the signature)
       # @return [String] XML Metadata of the Service Provider
       #
@@ -50,7 +50,7 @@ module OneLogin
           xc2.text = cert_text
         end
 
-        root.attributes["ID"] = "_" + UUID.new.generate
+        root.attributes["ID"] = "_" + SecureRandom.uuid
         if settings.issuer
           root.attributes["entityID"] = settings.issuer
         end
@@ -77,7 +77,7 @@ module OneLogin
         if settings.attribute_consuming_service.configured?
           sp_acs = sp_sso.add_element "md:AttributeConsumingService", {
             "isDefault" => "true",
-            "index" => settings.attribute_consuming_service.index 
+            "index" => settings.attribute_consuming_service.index
           }
           srv_name = sp_acs.add_element "md:ServiceName", {
             "xml:lang" => "en"
@@ -86,7 +86,7 @@ module OneLogin
           settings.attribute_consuming_service.attributes.each do |attribute|
             sp_req_attr = sp_acs.add_element "md:RequestedAttribute", {
               "NameFormat" => attribute[:name_format],
-              "Name" => attribute[:name], 
+              "Name" => attribute[:name],
               "FriendlyName" => attribute[:friendly_name]
             }
             unless attribute[:attribute_value].nil?
@@ -112,7 +112,7 @@ module OneLogin
         # pretty print the XML so IdP administrators can easily see what the SP supports
         if pretty_print
           meta_doc.write(ret, 1)
-        else 
+        else
           ret = meta_doc.to_s
         end
 

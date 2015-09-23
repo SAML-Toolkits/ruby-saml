@@ -190,7 +190,7 @@ class Minitest::Test
   # logoutresponse fixtures
   #
   def random_id
-    "_#{UUID.new.generate}"
+    "_#{SecureRandom.uuid}"
   end
 
   #
