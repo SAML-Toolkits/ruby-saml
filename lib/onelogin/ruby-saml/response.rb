@@ -328,11 +328,9 @@ module OneLogin
 
       # Validates that the SAML Response provided in the initialization is not empty,
       # also check that the setting and the IdP cert were also provided
-      # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the response is invalid or not)
-      # @return [Boolean] True if the required info is found, otherwise False if soft=True
-      # @raise [ValidationError] if soft == false and validation fails
+      # @return [Boolean] True if the required info is found, false otherwise
       #
-      def validate_response_state(soft = true)
+      def validate_response_state
         return append_error("Blank response") if response.nil? || response.empty?
 
         return append_error("No settings on response") if settings.nil?
