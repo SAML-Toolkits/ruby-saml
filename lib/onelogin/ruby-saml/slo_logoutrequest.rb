@@ -11,12 +11,10 @@ module OneLogin
     # SAML2 Logout Request (SLO IdP initiated, Parser)
     #
     class SloLogoutrequest < SamlMessage
+      include ErrorHandling
 
       # OneLogin::RubySaml::Settings Toolkit settings
       attr_accessor :settings
-
-      # Array with the causes [Array of strings]
-      attr_accessor :errors
 
       attr_reader :document
       attr_reader :request
@@ -32,32 +30,20 @@ module OneLogin
       # @raise [ArgumentError] If Request is nil
       #
       def initialize(request, options = {})
-        @errors = []
         raise ArgumentError.new("Request cannot be nil") if request.nil?
-        @options  = options
 
+        @errors = []
+        @options = options
         @soft = true
-        if !options.empty? && !options[:settings].nil?
+        unless options[:settings].nil?
           @settings = options[:settings]
-          if !options[:settings].soft.nil? 
-            @soft = options[:settings].soft
+          unless @settings.soft.nil?
+            @soft = @settings.soft
           end
         end
 
         @request = decode_raw_saml(request)
         @document = REXML::Document.new(@request)
-      end
-
-      # Append the cause to the errors array, and based on the value of soft, return false or raise
-      # an exception
-      def append_error(error_msg)
-        @errors << error_msg
-        return soft ? false : validation_error(error_msg)
-      end
-
-      # Reset the errors array
-      def reset_errors!
-        @errors = []
       end
 
       # Validates the Logout Request with the default values (soft = true)
@@ -138,13 +124,15 @@ module OneLogin
       def validate
         reset_errors!
 
-        validate_request_state &&
-        validate_id &&
-        validate_version &&        
-        validate_structure &&
-        validate_not_on_or_after &&
-        validate_issuer &&
+        validate_request_state
+        validate_id
+        validate_version
+        validate_structure
+        validate_not_on_or_after
+        validate_issuer
         validate_signature
+
+        @errors.empty?
       end
 
       # Validates that the Logout Request contains an ID
@@ -213,7 +201,7 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_issuer
-        return true if settings.idp_entity_id.nil? || issuer.nil?
+        return true if settings.nil? || settings.idp_entity_id.nil? || issuer.nil?
 
         unless URI.parse(issuer) == URI.parse(settings.idp_entity_id)
           return append_error("Doesn't match the issuer, expected: <#{settings.idp_entity_id}>, but was: <#{issuer}>")
@@ -230,7 +218,7 @@ module OneLogin
         return true if options.nil?
         return true unless options.has_key? :get_params
         return true unless options[:get_params].has_key? 'Signature'
-        return true if settings.nil? || settings.get_idp_cert.nil?
+        return true if settings.get_idp_cert.nil?
 
         query_string = OneLogin::RubySaml::Utils.build_query(
           :type        => 'SAMLRequest',

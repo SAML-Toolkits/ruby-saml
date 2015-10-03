@@ -11,6 +11,8 @@ module OneLogin
     # SAML2 Authentication Response. SAML Response
     #
     class Response < SamlMessage
+      include ErrorHandling
+
       ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion"
       PROTOCOL  = "urn:oasis:names:tc:SAML:2.0:protocol"
       DSIG      = "http://www.w3.org/2000/09/xmldsig#"
@@ -20,9 +22,6 @@ module OneLogin
 
       # OneLogin::RubySaml::Settings Toolkit settings
       attr_accessor :settings
-
-      # Array with the causes [Array of strings]
-      attr_accessor :errors
 
       attr_reader :document
       attr_reader :decrypted_document
@@ -39,16 +38,15 @@ module OneLogin
       #                          or :matches_request_id that will validate that the response matches the ID of the request,
       #                          or skip the subject confirmation validation with the :skip_subject_confirmation option
       def initialize(response, options = {})
-        @errors = []
-
         raise ArgumentError.new("Response cannot be nil") if response.nil?
-        @options = options
 
+        @errors = []
+        @options = options
         @soft = true
-        if !options.empty? && !options[:settings].nil?
+        unless options[:settings].nil?
           @settings = options[:settings]
-          if !options[:settings].soft.nil? 
-            @soft = options[:settings].soft
+          unless @settings.soft.nil?
+            @soft = @settings.soft
           end
         end
 
@@ -58,18 +56,6 @@ module OneLogin
         if assertion_encrypted?
           @decrypted_document = generate_decrypted_document
         end
-      end
-
-      # Append the cause to the errors array, and based on the value of soft, return false or raise
-      # an exception
-      def append_error(error_msg)
-        @errors << error_msg
-        return soft ? false : validation_error(error_msg)
-      end
-
-      # Reset the errors array
-      def reset_errors!
-        @errors = []
       end
 
       # Validates the SAML Response with the default values (soft = true)
@@ -284,21 +270,23 @@ module OneLogin
       def validate
         reset_errors!
 
-        validate_response_state &&
-        validate_version &&
-        validate_id &&
-        validate_success_status &&
-        validate_num_assertion &&
-        validate_no_encrypted_attributes &&
-        validate_signed_elements &&
-        validate_structure &&
-        validate_in_response_to &&
-        validate_conditions &&
-        validate_audience &&
-        validate_issuer &&
-        validate_session_expiration &&
-        validate_subject_confirmation &&
+        return false unless validate_response_state
+        validate_version
+        validate_id
+        validate_success_status
+        validate_num_assertion
+        validate_no_encrypted_attributes
+        validate_signed_elements
+        validate_structure
+        validate_in_response_to
+        validate_conditions
+        validate_audience
+        validate_issuer
+        validate_session_expiration
+        validate_subject_confirmation
         validate_signature
+
+        @errors.empty?
       end
 
 
@@ -585,9 +573,8 @@ module OneLogin
         )
         doc = (response_signed || decrypted_document.nil?) ? document : decrypted_document
 
-        unless fingerprint && doc.validate_document(fingerprint, :fingerprint_alg => settings.idp_cert_fingerprint_algorithm)
-          error_msg = "Invalid Signature on SAML Response"
-          return append_error(error_msg)
+        unless fingerprint && doc.validate_document(fingerprint, true, :fingerprint_alg => settings.idp_cert_fingerprint_algorithm)
+          return append_error("Invalid Signature on SAML Response")
         end
 
         true
@@ -641,7 +628,7 @@ module OneLogin
       #
       def generate_decrypted_document
         if settings.nil? || !settings.get_sp_key
-          validation_error('An EncryptedAssertion found and no SP private key found on the settings to decrypt it. Be sure you provided the :settings parameter at the initialize method')
+          raise ValidationError.new('An EncryptedAssertion found and no SP private key found on the settings to decrypt it. Be sure you provided the :settings parameter at the initialize method')
         end
 
         # Marshal at Ruby 1.8.7 throw an Exception
@@ -707,7 +694,7 @@ module OneLogin
       #
       def decrypt_element(encrypt_node, rgrex)
         if settings.nil? || !settings.get_sp_key
-          return validation_error('An ' + encrypt_node.name + ' found and no SP private key found on the settings to decrypt it')
+          raise ValidationError.new('An ' + encrypt_node.name + ' found and no SP private key found on the settings to decrypt it')
         end
 
         elem_plaintext = OneLogin::RubySaml::Utils.decrypt_data(encrypt_node, settings.get_sp_key)

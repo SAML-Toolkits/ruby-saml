@@ -29,7 +29,7 @@ require "openssl"
 require 'nokogiri'
 require "digest/sha1"
 require "digest/sha2"
-require "onelogin/ruby-saml/validation_error"
+require "onelogin/ruby-saml/error_handling"
 
 module XMLSecurity
 
@@ -179,9 +179,9 @@ module XMLSecurity
   end
 
   class SignedDocument < BaseDocument
+    include OneLogin::RubySaml::ErrorHandling
 
     attr_accessor :signed_element_id
-    attr_accessor :errors
 
     def initialize(response, errors = [])
       super(response)
@@ -200,15 +200,15 @@ module XMLSecurity
         { "ds"=>DSIG }
       )
       unless cert_element
-        if soft
-          return false
-        else
-          raise OneLogin::RubySaml::ValidationError.new("Certificate element missing in response (ds:X509Certificate)")
-        end
+        return append_error("Certificate element missing in response (ds:X509Certificate)", soft)
       end
       base64_cert = cert_element.text
       cert_text = Base64.decode64(base64_cert)
-      cert = OpenSSL::X509::Certificate.new(cert_text)
+      begin
+        cert = OpenSSL::X509::Certificate.new(cert_text)
+      rescue OpenSSL::X509::CertificateError => e
+        return append_error("Certificate Error", soft)
+      end
 
       if options[:fingerprint_alg]
         fingerprint_alg = XMLSecurity::BaseDocument.new.algorithm(options[:fingerprint_alg]).new
@@ -219,8 +219,7 @@ module XMLSecurity
 
       # check cert matches registered idp cert
       if fingerprint != idp_cert_fingerprint.gsub(/[^a-zA-Z0-9]/,"").downcase
-        @errors << "Fingerprint mismatch"
-        return soft ? false : (raise OneLogin::RubySaml::ValidationError.new("Fingerprint mismatch"))
+        return append_error("Fingerprint mismatch", soft)
       end
 
       validate_signature(base64_cert, soft)
@@ -298,8 +297,7 @@ module XMLSecurity
         digest_value = Base64.decode64(encoded_digest_value)
 
         unless digests_match?(hash, digest_value)
-          @errors << "Digest mismatch"
-          return soft ? false : (raise OneLogin::RubySaml::ValidationError.new("Digest mismatch"))
+          return append_error("Digest mismatch", soft)
         end
       end
 
@@ -324,8 +322,7 @@ module XMLSecurity
       signature_algorithm = algorithm(sig_alg_value)
 
       unless cert.public_key.verify(signature_algorithm.new, signature, canon_string)
-        @errors << "Key validation error"
-        return soft ? false : (raise OneLogin::RubySaml::ValidationError.new("Key validation error"))
+        return append_error("Key validation error", soft)
       end
 
       return true

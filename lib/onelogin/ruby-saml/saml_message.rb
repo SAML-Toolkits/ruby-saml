@@ -69,21 +69,13 @@ module OneLogin
           end
         rescue Exception => error
           return false if soft
-          validation_error("XML load failed: #{error.message}")
+          raise ValidationError.new("XML load failed: #{error.message}")
         end
 
         SamlMessage.schema.validate(xml).map do |error|
           return false if soft
-          validation_error("#{error.message}\n\n#{xml.to_s}")
+          raise ValidationError.new("#{error.message}\n\n#{xml.to_s}")
         end
-      end
-
-      # Raise a ValidationError with the provided message
-      # @param message [String] Message of the exception
-      # @raise [ValidationError]
-      #
-      def validation_error(message)
-        raise ValidationError.new(message)
       end
 
       private
