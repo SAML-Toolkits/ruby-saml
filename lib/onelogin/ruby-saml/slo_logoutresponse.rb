@@ -1,4 +1,4 @@
-require "uuid"
+require "securerandom"
 
 require "onelogin/ruby-saml/logging"
 require "onelogin/ruby-saml/saml_message"
@@ -18,7 +18,7 @@ module OneLogin
       # Asigns an ID, a random uuid.
       #
       def initialize
-        @uuid = "_" + UUID.new.generate
+        @uuid = "_" + SecureRandom.uuid
       end
 
       # Creates the Logout Response string.
@@ -108,7 +108,7 @@ module OneLogin
           issuer = root.add_element "saml:Issuer"
           issuer.text = settings.issuer
         end
-        
+
         # add success message
         status = root.add_element 'samlp:Status'
 

@@ -1,0 +1,54 @@
+---
+- - :whitelist
+  - Apache 2.0
+  - :who: 
+    :why: 
+    :when: 2015-09-21 20:17:55.313322000 Z
+- - :whitelist
+  - Apache v2
+  - :who: 
+    :why: 
+    :when: 2015-09-21 20:18:03.416241000 Z
+- - :whitelist
+  - BSD
+  - :who: 
+    :why: 
+    :when: 2015-09-21 20:18:10.081875000 Z
+- - :whitelist
+  - BSD-3
+  - :who: 
+    :why: 
+    :when: 2015-09-21 20:18:16.479541000 Z
+- - :whitelist
+  - ISC
+  - :who: 
+    :why: 
+    :when: 2015-09-21 20:18:19.817193000 Z
+- - :whitelist
+  - MIT
+  - :who: 
+    :why: 
+    :when: 2015-09-21 20:18:22.405073000 Z
+- - :whitelist
+  - Ruby
+  - :who: 
+    :why: 
+    :when: 2015-09-21 20:18:28.778515000 Z
+- - :license
+  - bundler
+  - MIT
+  - :who: 
+    :why: 
+    :when: 2015-09-21 20:19:11.600440000 Z
+- - :license
+  - spoon
+  - Apache 2.0
+  - :who:
+    :why:
+    :when: 2015-09-21 20:19:19.562261000 Z
+- - :license
+  - rake
+  - MIT
+  - :who: 
+    :why: 
+    :when: 2015-09-21 20:19:19.562261000 Z

@@ -1,5 +1,4 @@
 require "base64"
-require "uuid"
 require "zlib"
 require "cgi"
 require "net/http"
@@ -34,7 +33,7 @@ module OneLogin
       end
 
       # Parse the Identity Provider metadata and update the settings with the IdP values
-      # @param idp_metadata [String] 
+      # @param idp_metadata [String]
       #
       def parse(idp_metadata)
         @document = REXML::Document.new(idp_metadata)

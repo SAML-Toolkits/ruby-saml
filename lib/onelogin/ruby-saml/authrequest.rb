@@ -1,5 +1,5 @@
-require "uuid"
 require "rexml/document"
+require "securerandom"
 
 require "onelogin/ruby-saml/logging"
 require "onelogin/ruby-saml/saml_message"
@@ -20,7 +20,7 @@ module OneLogin
       # Asigns an ID, a random uuid.
       #
       def initialize
-        @uuid = "_" + UUID.new.generate
+        @uuid = "_" + SecureRandom.uuid
       end
 
       # Creates the AuthNRequest string.
@@ -151,7 +151,7 @@ module OneLogin
 
       def sign_document(document, settings)
         # embed signature
-        if settings.security[:authn_requests_signed] && settings.private_key && settings.certificate && settings.security[:embed_sign] 
+        if settings.security[:authn_requests_signed] && settings.private_key && settings.certificate && settings.security[:embed_sign]
           private_key = settings.get_sp_key
           cert = settings.get_sp_cert
           document.sign_document(private_key, cert, settings.security[:signature_method], settings.security[:digest_method])
