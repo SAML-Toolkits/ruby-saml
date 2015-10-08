@@ -11,6 +11,7 @@ class RubySamlTest < Minitest::Test
     let(:response_without_attributes) { OneLogin::RubySaml::Response.new(response_document_without_attributes) }
     let(:response_without_reference_uri) { OneLogin::RubySaml::Response.new(response_document_without_reference_uri) }
     let(:response_with_signed_assertion) { OneLogin::RubySaml::Response.new(response_document_with_signed_assertion) }
+    let(:response_with_ds_namespace_at_the_root) { OneLogin::RubySaml::Response.new(response_document_with_ds_namespace_at_the_root)}
     let(:response_unsigned) { OneLogin::RubySaml::Response.new(response_document_unsigned) }
     let(:response_wrapped) { OneLogin::RubySaml::Response.new(response_document_wrapped) }
     let(:response_multiple_attr_values) { OneLogin::RubySaml::Response.new(fixture(:response_with_multiple_attribute_values)) }
@@ -671,6 +672,13 @@ class RubySamlTest < Minitest::Test
         response_valid_signed.settings = settings
         assert response_valid_signed.send(:validate_signature)
         assert_empty response_valid_signed.errors
+      end
+
+      it "return true when the signature is valid and ds namespace is at the root" do
+        settings.idp_cert_fingerprint = '5614657ab692b960480389723a36446a5fe1f7ec'
+        response_with_ds_namespace_at_the_root.settings = settings
+        assert response_with_ds_namespace_at_the_root.send(:validate_signature)
+        assert_empty response_with_ds_namespace_at_the_root.errors
       end
 
       it "return false when no fingerprint" do

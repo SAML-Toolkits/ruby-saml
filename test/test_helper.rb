@@ -79,6 +79,10 @@ class Minitest::Test
     @response_document_with_signed_assertion_2 ||= read_response("response_with_signed_assertion_2.xml.base64")
   end
 
+  def response_document_with_ds_namespace_at_the_root
+    @response_document_with_ds_namespace_at_the_root ||= read_response("response_with_ds_namespace_at_the_root.xml.base64")
+  end
+
   def response_document_unsigned
     @response_document_unsigned ||= read_response("response_unsigned_xml_base64")
   end
