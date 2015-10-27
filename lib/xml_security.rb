@@ -199,30 +199,35 @@ module XMLSecurity
         "//ds:X509Certificate",
         { "ds"=>DSIG }
       )
-      unless cert_element
-        if soft
-          return false
+
+      if cert_element        
+        base64_cert = cert_element.text
+        cert_text = Base64.decode64(base64_cert)
+        cert = OpenSSL::X509::Certificate.new(cert_text)
+
+        if options[:fingerprint_alg]
+          fingerprint_alg = XMLSecurity::BaseDocument.new.algorithm(options[:fingerprint_alg]).new
         else
-          raise OneLogin::RubySaml::ValidationError.new("Certificate element missing in response (ds:X509Certificate)")
+          fingerprint_alg = OpenSSL::Digest::SHA1.new
+        end
+        fingerprint = fingerprint_alg.hexdigest(cert.to_der)
+
+        # check cert matches registered idp cert
+        if fingerprint != idp_cert_fingerprint.gsub(/[^a-zA-Z0-9]/,"").downcase
+          @errors << "Fingerprint mismatch"
+          return soft ? false : (raise OneLogin::RubySaml::ValidationError.new("Fingerprint mismatch"))
+        end
+      else
+        if options[:cert]
+          base64_cert = Base64.encode64(options[:cert].to_pem)
+        else
+          if soft
+            return false
+          else
+            raise OneLogin::RubySaml::ValidationError.new("Certificate element missing in response (ds:X509Certificate) and not cert provided at settings")
+          end          
         end
       end
-      base64_cert = cert_element.text
-      cert_text = Base64.decode64(base64_cert)
-      cert = OpenSSL::X509::Certificate.new(cert_text)
-
-      if options[:fingerprint_alg]
-        fingerprint_alg = XMLSecurity::BaseDocument.new.algorithm(options[:fingerprint_alg]).new
-      else
-        fingerprint_alg = OpenSSL::Digest::SHA1.new
-      end
-      fingerprint = fingerprint_alg.hexdigest(cert.to_der)
-
-      # check cert matches registered idp cert
-      if fingerprint != idp_cert_fingerprint.gsub(/[^a-zA-Z0-9]/,"").downcase
-        @errors << "Fingerprint mismatch"
-        return soft ? false : (raise OneLogin::RubySaml::ValidationError.new("Fingerprint mismatch"))
-      end
-
       validate_signature(base64_cert, soft)
     end
 

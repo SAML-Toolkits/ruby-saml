@@ -16,6 +16,7 @@ class RubySamlTest < Minitest::Test
     let(:response_wrapped) { OneLogin::RubySaml::Response.new(response_document_wrapped) }
     let(:response_multiple_attr_values) { OneLogin::RubySaml::Response.new(fixture(:response_with_multiple_attribute_values)) }
     let(:response_valid_signed) { OneLogin::RubySaml::Response.new(response_document_valid_signed) }
+    let(:response_valid_signed_without_x509certificate) { OneLogin::RubySaml::Response.new(response_document_valid_signed_without_x509certificate) }
     let(:response_no_id) { OneLogin::RubySaml::Response.new(read_invalid_response("no_id.xml.base64")) }
     let(:response_no_version) { OneLogin::RubySaml::Response.new(read_invalid_response("no_saml2.xml.base64")) }
     let(:response_multi_assertion) { OneLogin::RubySaml::Response.new(read_invalid_response("multiple_assertions.xml.base64")) }
@@ -694,6 +695,30 @@ class RubySamlTest < Minitest::Test
         response.settings = settings
         assert !response.send(:validate_signature)
         assert_includes response.errors, "Invalid Signature on SAML Response"
+      end
+
+      it "return false when no X509Certificate and not cert provided at settings" do
+        settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
+        settings.idp_cert = nil
+        response_valid_signed_without_x509certificate.settings = settings
+        assert !response_valid_signed_without_x509certificate.send(:validate_signature)
+        assert_includes response_valid_signed_without_x509certificate.errors, "Invalid Signature on SAML Response"
+      end
+
+      it "return false when no X509Certificate and the cert provided at settings mismatches" do
+        settings.idp_cert_fingerprint = nil
+        settings.idp_cert = signature_1
+        response_valid_signed_without_x509certificate.settings = settings
+        assert !response_valid_signed_without_x509certificate.send(:validate_signature)
+        assert_includes response_valid_signed_without_x509certificate.errors, "Invalid Signature on SAML Response"        
+      end
+
+      it "return true when no X509Certificate and the cert provided at settings matches" do
+        settings.idp_cert_fingerprint = nil
+        settings.idp_cert = ruby_saml_cert_text
+        response_valid_signed_without_x509certificate.settings = settings
+        assert response_valid_signed_without_x509certificate.send(:validate_signature)
+        assert_empty response_valid_signed_without_x509certificate.errors
       end
     end
 
