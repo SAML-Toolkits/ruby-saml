@@ -4,7 +4,7 @@
 * [#273](https://github.com/onelogin/ruby-saml/pull/273) Support SAMLResponse without ds:x509certificate
 * [#270](https://github.com/onelogin/ruby-saml/pull/270) Allow SAML elements to come from any namespace (at decryption process)
 * [#261](https://github.com/onelogin/ruby-saml/pull/261) Allow validate_subject_confirmation Response validation to be skipped
-* [258](https://github.com/onelogin/ruby-saml/pull/258) Fix allowed_clock_drift on the validate_session_expiration test
+* [#258](https://github.com/onelogin/ruby-saml/pull/258) Fix allowed_clock_drift on the validate_session_expiration test
 * [#256](https://github.com/onelogin/ruby-saml/pull/256) Separate the create_authentication_xml_doc in two methods. 
 * [#255](https://github.com/onelogin/ruby-saml/pull/255) Refactor validate signature.
 * [#254](https://github.com/onelogin/ruby-saml/pull/254) Handle empty URI references 
