@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
   s.license = 'MIT'
   s.extra_rdoc_files = [
     "LICENSE",
-     "README.md"
+    "README.md"
   ]
   s.files = `git ls-files`.split("\n")
   s.homepage = %q{http://github.com/onelogin/ruby-saml}

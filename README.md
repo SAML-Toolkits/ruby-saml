@@ -1,13 +1,17 @@
 # Ruby SAML [![Build Status](https://secure.travis-ci.org/onelogin/ruby-saml.png)](http://travis-ci.org/onelogin/ruby-saml) [![Coverage Status](https://coveralls.io/repos/onelogin/ruby-saml/badge.svg?branch=master%0A)](https://coveralls.io/r/onelogin/ruby-saml?branch=master%0A) [![Gem Version](https://badge.fury.io/rb/ruby-saml.svg)](http://badge.fury.io/rb/ruby-saml)
 
 
+## Updating from 1.0.x to 1.1.X
+
+Version `1.1` adds some improvements on signature validation and solves some namespace conflicts.
+
+For more details, please review [the changelog](changelog.md).
+
 ## Updating from 0.9.x to 1.0.X
 
 Version `1.0` is a recommended update for all Ruby SAML users as it includes security fixes.
 
 Version `1.0` adds security improvements like entity expansion limitation, more SAML message validations, and other important improvements like decrypt support.
-
-For more details, please review [the changelog](changelog.md).
 
 ### Important Changes
 Please note the `get_idp_metadata` method raises an exception when it is not able to fetch the idp metadata, so review your integration if you are using this functionality.
