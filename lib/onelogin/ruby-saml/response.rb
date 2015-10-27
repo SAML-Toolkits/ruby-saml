@@ -688,7 +688,7 @@ module OneLogin
       # @return [REXML::Document] The decrypted EncryptedAssertion element
       #
       def decrypt_assertion(encrypted_assertion_node)
-        decrypt_element(encrypted_assertion_node, /(.*<\/(saml2*:|)Assertion>)/m)
+        decrypt_element(encrypted_assertion_node, /(.*<\/(\w+:)?Assertion>)/m)
       end
 
       # Decrypts an EncryptedID element
@@ -696,7 +696,7 @@ module OneLogin
       # @return [REXML::Document] The decrypted EncrypedtID element
       #
       def decrypt_nameid(encryptedid_node)
-        decrypt_element(encryptedid_node, /(.*<\/(saml2*:|)NameID>)/m)
+        decrypt_element(encryptedid_node, /(.*<\/(\w+:)?NameID>)/m)
       end
 
       # Decrypt an element
