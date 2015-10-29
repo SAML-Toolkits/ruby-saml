@@ -240,8 +240,7 @@ class XmlSecurityTest < Minitest::Test
         settings.issuer = "https://sp.example.com/saml2"
         settings.assertion_consumer_service_url = "https://sp.example.com/acs"
         settings.single_logout_service_url = "https://sp.example.com/sls"
-      end 
-
+      end
 
       it "sign an AuthNRequest" do
         request = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
@@ -328,6 +327,20 @@ class XmlSecurityTest < Minitest::Test
           contains_expected_error = response.errors.include? "Current time is on or after NotOnOrAfter condition (2012-11-30 17:55:00 UTC >= 2012-11-28 18:33:45 UTC)"
           contains_expected_error ||= response.errors.include? "Current time is on or after NotOnOrAfter condition (Fri Nov 30 17:55:00 UTC 2012 >= Wed Nov 28 18:33:45 UTC 2012)"
           assert contains_expected_error
+        end
+      end
+    end
+
+    describe '#validate_document' do
+      describe 'with valid document' do
+        describe 'when response has signed message and assertion' do
+          let(:document_data) { read_response('response_with_signed_message_and_assertion.xml') }
+          let(:document) { OneLogin::RubySaml::Response.new(document_data).document }
+          let(:fingerprint) { '4b68c453c7d994aad9025c99d5efcf566287fe8d' }
+
+          it 'is valid' do
+            assert document.validate_document(fingerprint, true), 'Document should be valid'
+          end
         end
       end
     end
