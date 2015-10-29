@@ -286,35 +286,34 @@ module XMLSecurity
       inclusive_namespaces = extract_inclusive_namespaces
 
       # check digests
-      REXML::XPath.each(sig_element, "//ds:Reference", {"ds"=>DSIG}) do |ref|
-        uri = ref.attributes.get_attribute("URI").value
+      ref = REXML::XPath.first(sig_element, "//ds:Reference", {"ds"=>DSIG})
+      uri = ref.attributes.get_attribute("URI").value
 
-        hashed_element = uri.empty? ? document : document.at_xpath("//*[@ID=$uri]", nil, { 'uri' => uri[1..-1] })
-        # hashed_element = document.at_xpath("//*[@ID=$uri]", nil, { 'uri' => uri[1..-1] })
-        canon_algorithm = canon_algorithm REXML::XPath.first(
-          ref,
-          '//ds:CanonicalizationMethod',
-          { "ds" => DSIG }
-        )
-        canon_hashed_element = hashed_element.canonicalize(canon_algorithm, inclusive_namespaces)
+      hashed_element = uri.empty? ? document : document.at_xpath("//*[@ID=$uri]", nil, { 'uri' => uri[1..-1] })
+      # hashed_element = document.at_xpath("//*[@ID=$uri]", nil, { 'uri' => uri[1..-1] })
+      canon_algorithm = canon_algorithm REXML::XPath.first(
+        ref,
+        '//ds:CanonicalizationMethod',
+        { "ds" => DSIG }
+      )
+      canon_hashed_element = hashed_element.canonicalize(canon_algorithm, inclusive_namespaces)
 
-        digest_algorithm = algorithm(REXML::XPath.first(
-          ref,
-          "//ds:DigestMethod",
-          { "ds" => DSIG }
-        ))
-        hash = digest_algorithm.digest(canon_hashed_element)
-        encoded_digest_value = REXML::XPath.first(
-          ref,
-          "//ds:DigestValue",
-          { "ds" => DSIG }
-        ).text
-        digest_value = Base64.decode64(encoded_digest_value)
+      digest_algorithm = algorithm(REXML::XPath.first(
+        ref,
+        "//ds:DigestMethod",
+        { "ds" => DSIG }
+      ))
+      hash = digest_algorithm.digest(canon_hashed_element)
+      encoded_digest_value = REXML::XPath.first(
+        ref,
+        "//ds:DigestValue",
+        { "ds" => DSIG }
+      ).text
+      digest_value = Base64.decode64(encoded_digest_value)
 
-        unless digests_match?(hash, digest_value)
-          @errors << "Digest mismatch"
-          return soft ? false : (raise OneLogin::RubySaml::ValidationError.new("Digest mismatch"))
-        end
+      unless digests_match?(hash, digest_value)
+        @errors << "Digest mismatch"
+        return soft ? false : (raise OneLogin::RubySaml::ValidationError.new("Digest mismatch"))
       end
 
       # get certificate object
