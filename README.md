@@ -102,7 +102,7 @@ To override the default behavior and control the destination of log messages, pr
 a ruby Logger object to the gem's logging singleton:
 
 ```ruby
-OneLogin::RubySaml::Logging.logger = Logger.new(File.open('/var/log/ruby-saml.log', 'w')
+OneLogin::RubySaml::Logging.logger = Logger.new(File.open('/var/log/ruby-saml.log', 'w'))
 ```
 
 ## The Initialization Phase
