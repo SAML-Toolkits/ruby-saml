@@ -115,23 +115,25 @@ module OneLogin
       # @return [String|nil] SingleSignOnService endpoint if exists
       #
       def single_signon_service_url
-        node = REXML::XPath.first(
+        nodes = REXML::XPath.match(
           document,
-          "/md:EntityDescriptor/md:IDPSSODescriptor/md:SingleSignOnService/@Location",
+          "/md:EntityDescriptor/md:IDPSSODescriptor/md:SingleSignOnService",
           { "md" => METADATA }
         )
-        node.value if node
+        node = nodes.detect { |n| n.attributes["Binding"] == "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"}
+        node.attributes["Location"] if node
       end
 
       # @return [String|nil] SingleLogoutService endpoint if exists
       #
       def single_logout_service_url
-        node = REXML::XPath.first(
+        nodes = REXML::XPath.match(
           document,
-          "/md:EntityDescriptor/md:IDPSSODescriptor/md:SingleLogoutService/@Location",
+          "/md:EntityDescriptor/md:IDPSSODescriptor/md:SingleLogoutService",
           { "md" => METADATA }
         )
-        node.value if node
+        node = nodes.detect { |n| n.attributes["Binding"] == "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"}
+        node.attributes["Location"] if node
       end
 
       # @return [String|nil] Unformatted Certificate if exists
