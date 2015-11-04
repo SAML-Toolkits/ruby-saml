@@ -120,7 +120,7 @@ module OneLogin
           "/md:EntityDescriptor/md:IDPSSODescriptor/md:SingleSignOnService",
           { "md" => METADATA }
         )
-        node = nodes.detect { |n| n.attributes["Binding"] == "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"}
+        node = nodes.detect { |n| n.attributes["Binding"] == "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"} || nodes.first
         node.attributes["Location"] if node
       end
 
@@ -132,7 +132,7 @@ module OneLogin
           "/md:EntityDescriptor/md:IDPSSODescriptor/md:SingleLogoutService",
           { "md" => METADATA }
         )
-        node = nodes.detect { |n| n.attributes["Binding"] == "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"}
+        node = nodes.detect { |n| n.attributes["Binding"] == "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"} || nodes.first
         node.attributes["Location"] if node
       end
 
