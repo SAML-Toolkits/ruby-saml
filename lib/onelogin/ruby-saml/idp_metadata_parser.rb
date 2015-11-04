@@ -113,6 +113,7 @@ module OneLogin
       end
 
       # @return [String|nil] SingleSignOnService endpoint if exists
+      # If multiple SingleSignonServices exist, return the HTTP-Redirect one
       #
       def single_signon_service_url
         nodes = REXML::XPath.match(
@@ -125,6 +126,7 @@ module OneLogin
       end
 
       # @return [String|nil] SingleLogoutService endpoint if exists
+      # If multiple SingleLogoutServices exist, return the HTTP-Redirect one
       #
       def single_logout_service_url
         nodes = REXML::XPath.match(
