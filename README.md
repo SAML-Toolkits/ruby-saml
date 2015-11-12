@@ -42,7 +42,7 @@ We created a demo project for Rails4 that uses the latest version of this librar
 * Fork the repository
 * Make your feature addition or bug fix
 * Add tests for your new features. This is important so we don't break any features in a future version unintentionally.
-* Ensure all tests pass.
+* Ensure all tests pass when you run `bundle exec rake test`
 * Do not change rakefile, version, or history.
 * Open a pull request, following [this template](https://gist.github.com/Lordnibbler/11002759).
 

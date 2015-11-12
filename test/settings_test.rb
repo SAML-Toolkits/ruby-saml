@@ -9,10 +9,10 @@ class SettingsTest < Minitest::Test
       @settings = OneLogin::RubySaml::Settings.new
     end
 
-    it "should provide getters and settings" do
+    it "should provide getters and setters" do
       accessors = [
         :idp_entity_id, :idp_sso_target_url, :idp_slo_target_url, :idp_cert, :idp_cert_fingerprint,
-        :issuer, :assertion_consumer_service_url, :assertion_consumer_service_binding,
+        :issuer, :sp_entity_id, :assertion_consumer_service_url, :assertion_consumer_service_binding,
         :single_logout_service_url, :single_logout_service_binding,
         :sp_name_qualifier, :name_identifier_format, :name_identifier_value,
         :sessionindex, :attributes_index, :passive, :force_authn,
