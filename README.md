@@ -252,9 +252,9 @@ def saml_settings
 end
 ```
 The following attributes are set:
-  * id_sso_target_url
+  * idp_sso_target_url
   * idp_slo_target_url
-  * id_cert_fingerpint
+  * idp_cert_fingerpint
 
 If you are using saml:AttributeStatement to transfer metadata, like the user name, you can access all the attributes through response.attributes. It contains all the saml:AttributeStatement with its 'Name' as a indifferent key the one/more saml:AttributeValue as value. The value returned depends on the value of the
 `single_value_compatibility` (when activate, only one value returned, the first one)
