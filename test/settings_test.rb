@@ -9,9 +9,10 @@ class SettingsTest < Minitest::Test
       @settings = OneLogin::RubySaml::Settings.new
     end
 
-    it "should provide getters and settings" do
+    it "should provide getters and setters" do
       accessors = [
-        :idp_entity_id, :idp_sso_target_url, :idp_slo_target_url, :idp_cert, :idp_cert_fingerprint,
+        :idp_entity_id, :idp_sso_target_url, :idp_slo_target_url, :idp_sso_target_url_bindings,
+        :idp_slo_target_url_bindings, :idp_cert, :idp_cert_fingerprint,
         :issuer, :assertion_consumer_service_url, :assertion_consumer_service_binding,
         :single_logout_service_url, :single_logout_service_binding,
         :sp_name_qualifier, :name_identifier_format, :name_identifier_value,
@@ -37,7 +38,15 @@ class SettingsTest < Minitest::Test
           :issuer => "http://muda.no",
           :sp_name_qualifier => "http://sso.muda.no",
           :idp_sso_target_url => "http://sso.muda.no/sso",
+          :idp_sso_target_url_bindings => [
+            "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
+            "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+          ],
           :idp_slo_target_url => "http://sso.muda.no/slo",
+          :idp_slo_target_url_bindings => [
+            "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
+            "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+          ],
           :idp_cert_fingerprint => "00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00",
           :name_identifier_format => "urn:oasis:names:tc:SAML:2.0:nameid-format:transient",
           :attributes_index => 30,

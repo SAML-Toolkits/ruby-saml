@@ -34,7 +34,7 @@ module OneLogin
       end
 
       # Parse the Identity Provider metadata and update the settings with the IdP values
-      # @param idp_metadata [String] 
+      # @param idp_metadata [String]
       #
       def parse(idp_metadata)
         @document = REXML::Document.new(idp_metadata)
@@ -43,7 +43,9 @@ module OneLogin
           settings.idp_entity_id = idp_entity_id
           settings.name_identifier_format = idp_name_id_format
           settings.idp_sso_target_url = single_signon_service_url
+          settings.idp_sso_target_url_bindings = single_signon_service_url_bindings
           settings.idp_slo_target_url = single_logout_service_url
+          settings.idp_slo_target_url_bindings = single_logout_service_url_bindings
           settings.idp_cert_fingerprint = fingerprint
         end
       end
@@ -131,6 +133,20 @@ module OneLogin
           { "md" => METADATA }
         )
         node.value if node
+      end
+
+      # @return [Array] List of SingleSignOnService bindings
+      #
+      def single_signon_service_url_bindings
+        nodes = REXML::XPath.match(document, "/md:EntityDescriptor/md:IDPSSODescriptor/md:SingleSignOnService/@Binding", { "md" => METADATA })
+        nodes.collect(&:value)
+      end
+
+      # @return [Array] List of SingleLogoutService bindings
+      #
+      def single_logout_service_url_bindings
+        nodes = REXML::XPath.match(document, "/md:EntityDescriptor/md:IDPSSODescriptor/md:SingleLogoutService/@Binding", { "md" => METADATA })
+        nodes.collect(&:value)
       end
 
       # @return [String|nil] X509Certificate if exists
