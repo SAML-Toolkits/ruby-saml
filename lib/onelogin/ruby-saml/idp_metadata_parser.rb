@@ -44,6 +44,7 @@ module OneLogin
           settings.name_identifier_format = idp_name_id_format
           settings.idp_sso_target_url = single_signon_service_url
           settings.idp_slo_target_url = single_logout_service_url
+          settings.idp_cert = certificate_base64
           settings.idp_cert_fingerprint = fingerprint
         end
       end
@@ -133,18 +134,27 @@ module OneLogin
         node.value if node
       end
 
+      # @return [String|nil] Unformatted Certificate if exists
+      #
+      def certificate_base64
+        @certificate_base64 ||= begin
+          node = REXML::XPath.first(
+              document,
+              "/md:EntityDescriptor/md:IDPSSODescriptor/md:KeyDescriptor[@use='signing']/ds:KeyInfo/ds:X509Data/ds:X509Certificate",
+              { "md" => METADATA, "ds" => DSIG }
+          )
+          node.text if node
+        end
+      end
+
       # @return [String|nil] X509Certificate if exists
       #
       def certificate
         @certificate ||= begin
-          node = REXML::XPath.first(
-            document,
-            "/md:EntityDescriptor/md:IDPSSODescriptor/md:KeyDescriptor[@use='signing']/ds:KeyInfo/ds:X509Data/ds:X509Certificate",
-            { "md" => METADATA, "ds" => DSIG }
-          )
-          Base64.decode64(node.text) if node
+          Base64.decode64(certificate_base64) if certificate_base64
         end
       end
+
 
       # @return [String|nil] the SHA-1 fingerpint of the X509Certificate if it exists
       #
