@@ -23,6 +23,7 @@ module OneLogin
         @options  = options
         @response = (response =~ /^</) ? response : Base64.decode64(response)
         @document = XMLSecurity::SignedDocument.new(@response)
+        @clean_assertion = nil
       end
 
       def is_valid?
@@ -124,6 +125,68 @@ module OneLogin
         end
       end
 
+      def encrypted?
+        return !encrypted_key.nil? && !encrypted_value.nil? && !encrypted_algorithm.nil?
+      end
+
+      def encrypted_key
+        REXML::XPath.first(document, "//xenc:EncryptedKey//xenc:CipherData/xenc:CipherValue")
+      end
+
+      def encrypted_value
+        REXML::XPath.first(document, "//xenc:EncryptedData/xenc:CipherData/xenc:CipherValue")
+      end
+
+      def encrypted_algorithm
+        REXML::XPath.first(document, "//xenc:EncryptedData/xenc:EncryptionMethod")
+      end
+
+      def private_key=(pk)
+        @private_key = pk
+      end
+
+      def decrypt_assertion
+        return @clean_assertion unless @clean_assertion.nil?
+
+        unless @private_key.nil? || !encrypted?
+          pk = OpenSSL::PKey::RSA.new(@private_key)
+          data_key = pk.private_decrypt(Base64.decode64(encrypted_key.text), OpenSSL::PKey::RSA::PKCS1_OAEP_PADDING)
+
+          # Dervice the encryption alogrithm from mthe document
+          algorithm = "aes-256-cbc" # default algorithm
+
+          # In future we need to map values in response with valid ciphers. e.g. aes256-cbc vs aes-256-cbc
+          if encrypted_algorithm.attributes["Algorithm"].index("aes256").nil?
+            algorithm = encrypted_algorithm.attributes["Algorithm"]
+          end
+
+          cipher = OpenSSL::Cipher::Cipher.new(algorithm)
+          cipher.decrypt
+          cipher.padding = 0
+          cipher.key = data_key
+
+          actual_output = cipher.update(Base64.decode64(encrypted_value.text))
+          actual_output << cipher.final
+
+          end_tag = actual_output.index("</saml:Assertion>")
+          begin_tag = actual_output.index("<saml:Assertion ")
+
+          unless end_tag.nil?
+            @clean_assertion = actual_output.slice(begin_tag ..(end_tag + "</saml:Assertion>".length - 1))
+          end
+        end
+
+        return @clean_assertion
+      end
+
+      def response
+        if encrypted? && !@private_key.nil?
+          @response = decrypt_assertion
+        end
+
+        return @response
+      end
+
       private
 
       def validation_error(message)
@@ -131,6 +194,10 @@ module OneLogin
       end
 
       def validate(soft = true)
+        if encrypted?
+          return true
+        end
+        
         validate_structure(soft)      &&
         validate_response_state(soft) &&
         validate_conditions(soft)     &&
@@ -167,6 +234,12 @@ module OneLogin
       end
 
       def xpath_first_from_signed_assertion(subelt=nil)
+        unless @clean_assertion.nil?
+          doc = XMLSecurity::SignedDocument.new(@clean_assertion)
+          node = REXML::XPath.first(doc, "//saml:NameID")
+          return node
+        end
+
         node = REXML::XPath.first(document, "/p:Response/a:Assertion[@ID='#{document.signed_element_id}']#{subelt}", { "p" => PROTOCOL, "a" => ASSERTION })
         node ||= REXML::XPath.first(document, "/p:Response[@ID='#{document.signed_element_id}']/a:Assertion#{subelt}", { "p" => PROTOCOL, "a" => ASSERTION })
         node
