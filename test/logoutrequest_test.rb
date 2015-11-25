@@ -29,7 +29,8 @@ class RequestTest < Minitest::Test
     end
 
     it "set sessionindex" do
-      sessionidx = UUID.new.generate
+      settings.idp_slo_target_url = "http://example.com"
+      sessionidx = OneLogin::RubySaml::Utils.uuid
       settings.sessionindex = sessionidx
 
       unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings, { :nameid => "there" })

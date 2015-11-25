@@ -1,5 +1,4 @@
 require "base64"
-require "uuid"
 require "zlib"
 require "cgi"
 require "net/http"

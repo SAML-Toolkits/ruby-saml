@@ -1,7 +1,6 @@
-require "uuid"
-
 require "onelogin/ruby-saml/logging"
 require "onelogin/ruby-saml/saml_message"
+require "onelogin/ruby-saml/utils"
 
 # Only supports SAML 2.0
 module OneLogin
@@ -18,7 +17,7 @@ module OneLogin
       # Asigns an ID, a random uuid.
       #
       def initialize
-        @uuid = "_" + UUID.new.generate
+        @uuid = OneLogin::RubySaml::Utils.uuid
       end
 
       # Creates the Logout Request string.
@@ -108,7 +107,7 @@ module OneLogin
           nameid.text = settings.name_identifier_value
         else
           # If no NameID is present in the settings we generate one
-          nameid.text = "_" + UUID.new.generate
+          nameid.text = OneLogin::RubySaml::Utils.uuid
           nameid.attributes['Format'] = 'urn:oasis:names:tc:SAML:2.0:nameid-format:transient'
         end
 

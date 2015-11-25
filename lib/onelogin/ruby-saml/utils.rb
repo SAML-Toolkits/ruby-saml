@@ -2,7 +2,7 @@ module OneLogin
   module RubySaml
 
     # SAML2 Auxiliary class
-    #    
+    #
     class Utils
 
       DSIG      = "http://www.w3.org/2000/09/xmldsig#"
@@ -30,7 +30,7 @@ module OneLogin
       # @return [String] The formatted private key
       #
       def self.format_private_key(key)
-        # don't try to format an encoded private key or if is empty  
+        # don't try to format an encoded private key or if is empty
         return key if key.nil? || key.empty? || key.match(/\x0d/)
 
         # is this an rsa key?
@@ -114,7 +114,7 @@ module OneLogin
           { 'xenc' => XENC }
         )
         algorithm = encrypt_method.attributes['Algorithm']
-        retrieve_plaintext(node, symmetric_key, algorithm)        
+        retrieve_plaintext(node, symmetric_key, algorithm)
       end
 
       # Obtains the symmetric key from the EncryptedData element
@@ -134,7 +134,7 @@ module OneLogin
           {"ds" => DSIG,  "xenc" => XENC }
         )
         algorithm = encrypt_method.attributes['Algorithm']
-        retrieve_plaintext(cipher_text, private_key, algorithm)        
+        retrieve_plaintext(cipher_text, private_key, algorithm)
       end
 
       # Obtains the deciphered text
@@ -152,7 +152,7 @@ module OneLogin
           when 'http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p' then oaep = symmetric_key
         end
 
-        if cipher          
+        if cipher
           iv_len = cipher.iv_len
           data = cipher_text[iv_len..-1]
           cipher.padding, cipher.key, cipher.iv = 0, symmetric_key, cipher_text[0..iv_len-1]
@@ -167,6 +167,9 @@ module OneLogin
         end
       end
 
+      def self.uuid
+        "_#{SecureRandom.uuid}"
+      end
     end
   end
 end
