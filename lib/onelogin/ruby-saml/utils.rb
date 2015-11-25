@@ -1,9 +1,16 @@
+if RUBY_VERSION < '1.9'
+  require 'uuid'
+else
+  require 'securerandom'
+end
+
 module OneLogin
   module RubySaml
 
     # SAML2 Auxiliary class
     #
     class Utils
+      @@uuid_generator = UUID.new if RUBY_VERSION < '1.9'
 
       DSIG      = "http://www.w3.org/2000/09/xmldsig#"
       XENC      = "http://www.w3.org/2001/04/xmlenc#"
@@ -168,7 +175,7 @@ module OneLogin
       end
 
       def self.uuid
-        "_#{SecureRandom.uuid}"
+        RUBY_VERSION < '1.9' ? "_#{@@uuid_generator.generate}" : "_#{SecureRandom.uuid}"
       end
     end
   end
