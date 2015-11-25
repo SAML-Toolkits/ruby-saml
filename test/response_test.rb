@@ -91,7 +91,7 @@ class RubySamlTest < Minitest::Test
     describe "Assertion" do
       it "only retreive an assertion with an ID that matches the signature's reference URI" do
         response_wrapped.stubs(:conditions).returns(nil)
-        settings.idp_cert_fingerprint = signature_fingerprint_1
+        settings.idp_cert_fingerprint = response_valid_signed_fingerprint
         response_wrapped.settings = settings
         assert_nil response_wrapped.nameid
       end
@@ -137,7 +137,7 @@ class RubySamlTest < Minitest::Test
         it "raise when signature wrapping attack" do
           response_wrapped.stubs(:conditions).returns(nil)
           response_wrapped.stubs(:validate_subject_confirmation).returns(true)
-          settings.idp_cert_fingerprint = signature_fingerprint_1
+          settings.idp_cert_fingerprint = response_valid_signed_fingerprint
           response_wrapped.settings = settings
           assert !response_wrapped.is_valid?
         end
@@ -146,7 +146,7 @@ class RubySamlTest < Minitest::Test
           resp_xml = Base64.decode64(response_document_unsigned).gsub(/emailAddress/,'test')
           response_unsigned_mod = OneLogin::RubySaml::Response.new(Base64.encode64(resp_xml))
           response_unsigned_mod.stubs(:conditions).returns(nil)
-          settings.idp_cert_fingerprint = signature_fingerprint_1
+          settings.idp_cert_fingerprint = response_valid_signed_fingerprint
           response_unsigned_mod.settings = settings
           response_unsigned_mod.soft = false
           assert_raises(OneLogin::RubySaml::ValidationError, 'Digest mismatch') do
@@ -166,7 +166,7 @@ class RubySamlTest < Minitest::Test
         end
 
         it "raise when encountering a SAML Response with bad formatted" do
-          settings.idp_cert_fingerprint = signature_fingerprint_1
+          settings.idp_cert_fingerprint = response_valid_signed_fingerprint
           response_without_attributes.settings = settings
           response_without_attributes.soft = false
           assert_raises(OneLogin::RubySaml::ValidationError) do
@@ -176,7 +176,7 @@ class RubySamlTest < Minitest::Test
 
         it "raise when the inResponseTo value does not match the Request ID" do
           settings.soft = false
-          settings.idp_cert_fingerprint = signature_fingerprint_1
+          settings.idp_cert_fingerprint = response_valid_signed_fingerprint
           opts = {}
           opts[:settings] = settings
           opts[:matches_request_id] = "invalid_request_id"
@@ -189,7 +189,7 @@ class RubySamlTest < Minitest::Test
         end
 
         it "raise when the assertion contains encrypted attributes" do
-          settings.idp_cert_fingerprint = signature_fingerprint_1
+          settings.idp_cert_fingerprint = response_valid_signed_fingerprint
           response_encrypted_attrs.settings = settings
           response_encrypted_attrs.soft = false
           error_msg = "There is an EncryptedAttribute in the Response and this SP not support them"
@@ -199,12 +199,20 @@ class RubySamlTest < Minitest::Test
           assert_includes response_encrypted_attrs.errors, error_msg
         end
 
-        it "raise when there is no valid audience" do
-          settings.idp_cert_fingerprint = signature_fingerprint_1
-          settings.issuer = 'invalid'
+        it "doesn't raise when there is a valid audience" do
+          settings.idp_cert_fingerprint = response_valid_signed_fingerprint
+          settings.sp_entity_id = 'https://someone.example.com/audience'
           response_valid_signed.settings = settings
           response_valid_signed.soft = false
-          error_msg = "#{response_valid_signed.settings.issuer} is not a valid audience for this Response"
+          assert response_valid_signed.is_valid?
+        end
+
+        it "raise when there is no valid audience" do
+          settings.idp_cert_fingerprint = response_valid_signed_fingerprint
+          settings.sp_entity_id = 'invalid'
+          response_valid_signed.settings = settings
+          response_valid_signed.soft = false
+          error_msg = "#{response_valid_signed.settings.sp_entity_id} is not a valid audience for this Response"
           assert_raises(OneLogin::RubySaml::ValidationError, error_msg) do
             response_valid_signed.is_valid?
           end
@@ -212,7 +220,7 @@ class RubySamlTest < Minitest::Test
         end
 
         it "raise when no ID present in the SAML Response" do
-          settings.idp_cert_fingerprint = signature_fingerprint_1
+          settings.idp_cert_fingerprint = response_valid_signed_fingerprint
           response_no_id.settings = settings
           response_no_id.soft = false
           error_msg = "Missing ID attribute on SAML Response"
@@ -223,7 +231,7 @@ class RubySamlTest < Minitest::Test
         end
 
         it "raise when no 2.0 Version present in the SAML Response" do
-          settings.idp_cert_fingerprint = signature_fingerprint_1
+          settings.idp_cert_fingerprint = response_valid_signed_fingerprint
           response_no_version.settings = settings
           response_no_version.soft = false
           error_msg = "Unsupported SAML version"
@@ -292,7 +300,7 @@ class RubySamlTest < Minitest::Test
         it "not allow signature wrapping attack" do
           response_wrapped.stubs(:conditions).returns(nil)
           response_wrapped.stubs(:validate_subject_confirmation).returns(true)
-          settings.idp_cert_fingerprint = signature_fingerprint_1
+          settings.idp_cert_fingerprint = response_valid_signed_fingerprint
           response_wrapped.settings = settings
           assert !response_wrapped.is_valid?
         end
@@ -321,7 +329,7 @@ class RubySamlTest < Minitest::Test
           resp_xml = Base64.decode64(response_document_unsigned).gsub(/emailAddress/,'test')
           response_unsigned_mod = OneLogin::RubySaml::Response.new(Base64.encode64(resp_xml))
           response_unsigned_mod.stubs(:conditions).returns(nil)
-          settings.idp_cert_fingerprint = signature_fingerprint_1
+          settings.idp_cert_fingerprint = response_valid_signed_fingerprint
           response_unsigned_mod.settings = settings
           response_unsigned_mod.soft = true
           assert !response_unsigned_mod.is_valid?
@@ -336,7 +344,7 @@ class RubySamlTest < Minitest::Test
         end
 
         it "return false when encountering a SAML Response with bad formatted" do
-          settings.idp_cert_fingerprint = signature_fingerprint_1
+          settings.idp_cert_fingerprint = response_valid_signed_fingerprint
           response_without_attributes.settings = settings
           response_without_attributes.soft = true
           error_msg = "Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd"
@@ -346,7 +354,7 @@ class RubySamlTest < Minitest::Test
 
         it "return false when the inResponseTo value does not match the Request ID" do
           settings.soft = true
-          settings.idp_cert_fingerprint = signature_fingerprint_1
+          settings.idp_cert_fingerprint = response_valid_signed_fingerprint
           opts = {}
           opts[:settings] = settings
           opts[:matches_request_id] = "invalid_request_id"
@@ -356,7 +364,7 @@ class RubySamlTest < Minitest::Test
         end
 
         it "return false when the assertion contains encrypted attributes" do
-          settings.idp_cert_fingerprint = signature_fingerprint_1
+          settings.idp_cert_fingerprint = response_valid_signed_fingerprint
           response_encrypted_attrs.settings = settings
           response_encrypted_attrs.soft = true
           response_encrypted_attrs.is_valid?
@@ -364,15 +372,15 @@ class RubySamlTest < Minitest::Test
         end
 
         it "return false when there is no valid audience" do
-          settings.idp_cert_fingerprint = signature_fingerprint_1
-          settings.issuer = 'invalid'
+          settings.idp_cert_fingerprint = response_valid_signed_fingerprint
+          settings.sp_entity_id = 'invalid'
           response_valid_signed.settings = settings
           response_valid_signed.is_valid?
-          assert_includes response_valid_signed.errors, "#{response_valid_signed.settings.issuer} is not a valid audience for this Response"
+          assert_includes response_valid_signed.errors, "#{response_valid_signed.settings.sp_entity_id} is not a valid audience for this Response"
         end
 
         it "return false when no ID present in the SAML Response" do
-          settings.idp_cert_fingerprint = signature_fingerprint_1
+          settings.idp_cert_fingerprint = response_valid_signed_fingerprint
           response_no_id.settings = settings
           response_no_id.soft = true
           response_no_id.is_valid?
@@ -380,7 +388,7 @@ class RubySamlTest < Minitest::Test
         end
 
         it "return false when no 2.0 Version present in the SAML Response" do
-          settings.idp_cert_fingerprint = signature_fingerprint_1
+          settings.idp_cert_fingerprint = response_valid_signed_fingerprint
           response_no_version.settings = settings
           response_no_version.soft = true
           error_msg = "Unsupported SAML version"
@@ -409,9 +417,9 @@ class RubySamlTest < Minitest::Test
 
       it "return false when the audience is valid" do
         response.settings = settings
-        response.settings.issuer = 'invalid_audience'
+        response.settings.sp_entity_id = 'invalid_audience'
         assert !response.send(:validate_audience)
-        assert_includes response.errors, "#{response.settings.issuer} is not a valid audience for this Response"
+        assert_includes response.errors, "#{response.settings.sp_entity_id} is not a valid audience for this Response"
       end
     end
 
@@ -549,9 +557,9 @@ class RubySamlTest < Minitest::Test
 
       it "return false when there is no valid audience" do
         response_invalid_audience.settings = settings
-        response_invalid_audience.settings.issuer = "https://invalid.example.com/audience"
+        response_invalid_audience.settings.sp_entity_id = "https://invalid.example.com/audience"
         assert !response_invalid_audience.send(:validate_audience)
-        assert_includes response_invalid_audience.errors, "#{response_invalid_audience.settings.issuer} is not a valid audience for this Response"
+        assert_includes response_invalid_audience.errors, "#{response_invalid_audience.settings.sp_entity_id} is not a valid audience for this Response"
       end
     end
 
@@ -700,7 +708,7 @@ class RubySamlTest < Minitest::Test
       end
 
       it "return false when the signature is invalid" do
-        settings.idp_cert_fingerprint = signature_fingerprint_1
+        settings.idp_cert_fingerprint = response_valid_signed_fingerprint
         response.settings = settings
         assert !response.send(:validate_signature)
         assert_includes response.errors, "Invalid Signature on SAML Response"

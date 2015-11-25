@@ -131,8 +131,8 @@ class Minitest::Test
     @unsigned_message_encrypted_unsigned_assertion ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'unsigned_message_encrypted_unsigned_assertion.xml.base64'))    
   end
 
-  def signature_fingerprint_1
-    @signature_fingerprint1 ||= "C5:19:85:D9:47:F1:BE:57:08:20:25:05:08:46:EB:27:F6:CA:B7:83"
+  def response_valid_signed_fingerprint
+    "4B:68:C4:53:C7:D9:94:AA:D9:02:5C:99:D5:EF:CF:56:62:87:FE:8D"
   end
 
   # certificate used on response_with_undefined_recipient
