@@ -46,6 +46,9 @@ module OneLogin
           settings.idp_slo_target_url = single_logout_service_url
           settings.idp_cert = certificate_base64
           settings.idp_cert_fingerprint = fingerprint
+
+          settings.idp_certs = certificates_base64
+          settings.idp_cert_fingerprints = fingerprints
         end
       end
 
@@ -147,6 +150,22 @@ module OneLogin
         end
       end
 
+      # @return Array of Unformatted Certificates
+      #
+      def certificates_base64
+        @certificates_base64 ||= begin
+          certs = []
+          REXML::XPath.each(
+              document,
+              "/md:EntityDescriptor/md:IDPSSODescriptor/md:KeyDescriptor[@use='signing']/ds:KeyInfo/ds:X509Data/ds:X509Certificate",
+              { "md" => METADATA, "ds" => DSIG }
+          ) do |node|
+            certs << node.text if node
+          end
+          certs
+        end
+      end
+
       # @return [String|nil] X509Certificate if exists
       #
       def certificate
@@ -155,6 +174,17 @@ module OneLogin
         end
       end
 
+      # @return Array of X509Certificates
+      #
+      def certificates
+        @certificates ||= begin
+          certs = []
+          certificates_base64.each do |certificate_base64|
+            certs << Base64.decode64(certificate_base64)
+          end
+          certs
+        end
+      end
 
       # @return [String|nil] the SHA-1 fingerpint of the X509Certificate if it exists
       #
@@ -164,6 +194,19 @@ module OneLogin
             cert = OpenSSL::X509::Certificate.new(certificate)
             Digest::SHA1.hexdigest(cert.to_der).upcase.scan(/../).join(":")
           end
+        end
+      end
+
+      # @return Array of the SHA-1 fingerpints of the X509Certificates
+      #
+      def fingerprints
+        @fingerprints ||= begin
+          fingers = []
+          certificates.each do |certificate|
+            cert = OpenSSL::X509::Certificate.new(certificate)
+            fingers << Digest::SHA1.hexdigest(cert.to_der).upcase.scan(/../).join(":")
+          end
+          fingers
         end
       end
     end

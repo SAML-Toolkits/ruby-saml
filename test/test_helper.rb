@@ -149,6 +149,10 @@ class Minitest::Test
     @idp_metadata ||= read_response("idp_descriptor.xml")
   end
 
+  def idp_metadata_with_multiple_certs
+    @idp_metadata_with_multiple_certs ||= read_response("idp_descriptor_multiple_certs.xml")
+  end
+
   def logout_request_document
     unless @logout_request_document
       xml = read_logout_request("slo_request.xml")
