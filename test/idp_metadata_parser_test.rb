@@ -56,6 +56,17 @@ class IdpMetadataParserTest < Minitest::Test
       assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", settings.idp_cert_fingerprint
     end
 
+    describe 'when xml contains multiple idp_certs' do
+      it 'extract all the fingerprints' do
+        idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+
+        settings = idp_metadata_parser.parse(idp_metadata_with_multiple_certs)
+
+        assert settings.idp_cert_fingerprints.kind_of? Array
+        assert_equal "92:B8:8C:3D:D9:81:BF:1E:BC:B2:44:FC:FA:63:C0:07:70:6C:79:E0", settings.idp_cert_fingerprints[0]
+        assert_equal "32:70:BF:55:97:00:4D:F3:39:A4:E6:22:24:73:1B:6B:D8:28:10:A6", settings.idp_cert_fingerprints[1]
+      end
+    end
   end
 
   describe "download and parse IdP descriptor file" do
