@@ -16,6 +16,9 @@ class RubySamlTest < Minitest::Test
     let(:response_wrapped) { OneLogin::RubySaml::Response.new(response_document_wrapped) }
     let(:response_multiple_attr_values) { OneLogin::RubySaml::Response.new(fixture(:response_with_multiple_attribute_values)) }
     let(:response_valid_signed) { OneLogin::RubySaml::Response.new(response_document_valid_signed) }
+    let(:response_valid_signed_2) { OneLogin::RubySaml::Response.new(response_document_valid_signed_2) }
+    let(:valid_fingerprint) { "32:70:BF:55:97:00:4D:F3:39:A4:E6:22:24:73:1B:6B:D8:28:10:A6" }
+    let(:some_other_fingerprint) { "26:A5:EB:D4:DA:24:C7:ED:C9:9E:A1:9B:CA:EC:94:97:43:59:CA:DB" }
     let(:response_valid_signed_without_x509certificate) { OneLogin::RubySaml::Response.new(response_document_valid_signed_without_x509certificate) }
     let(:response_no_id) { OneLogin::RubySaml::Response.new(read_invalid_response("no_id.xml.base64")) }
     let(:response_no_version) { OneLogin::RubySaml::Response.new(read_invalid_response("no_saml2.xml.base64")) }
@@ -395,6 +398,36 @@ class RubySamlTest < Minitest::Test
           response_without_reference_uri.settings.idp_cert_fingerprint = "19:4D:97:E4:D8:C9:C8:CF:A4:B7:21:E5:EE:49:7F:D9:66:0E:52:13"
           assert response_without_reference_uri.is_valid?
           assert_empty response_without_reference_uri.errors
+        end
+      end
+    end
+
+    describe "#is_valids?" do
+      describe "soft = true" do
+        before do
+          response_valid_signed_2.soft = true
+        end
+
+        it "return false when there are no fingerprints" do
+          response_valid_signed_2.settings = settings
+          response_valid_signed_2.settings.idp_cert_fingerprints = []
+          assert !response_valid_signed_2.is_valids?
+        end
+
+        it "return true when the fingerprint matches" do
+          response_valid_signed_2.stubs(:conditions).returns(nil)
+          response_valid_signed_2.stubs(:validate_subject_confirmation).returns(true)
+          response_valid_signed_2.settings = settings
+          response_valid_signed_2.settings.idp_cert_fingerprints = [valid_fingerprint]
+          assert response_valid_signed_2.is_valids?
+        end
+
+        it "return true when the one of the fingerprints matches" do
+          response_valid_signed_2.stubs(:conditions).returns(nil)
+          response_valid_signed_2.stubs(:validate_subject_confirmation).returns(true)
+          response_valid_signed_2.settings = settings
+          response_valid_signed_2.settings.idp_cert_fingerprints = [some_other_fingerprint, valid_fingerprint]
+          assert response_valid_signed_2.is_valids?
         end
       end
     end
