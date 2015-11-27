@@ -253,7 +253,7 @@ class SettingsTest < Minitest::Test
         assert_equal [], @settings.get_fingerprints
       end
 
-      it "get the fingerprints value when there is are certs at the settings" do
+      it "get the fingerprints value when there are certs at the settings" do
         @settings = OneLogin::RubySaml::Settings.new
         @settings.idp_cert_fingerprints = nil
         @settings.idp_certs = ruby_saml_certs_text

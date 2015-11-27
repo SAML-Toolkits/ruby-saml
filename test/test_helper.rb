@@ -52,6 +52,10 @@ class Minitest::Test
     @response_document_valid_signed ||= read_response("valid_response.xml.base64")
   end
 
+  def response_document_valid_signed_2
+    @response_document_valid_signed_2 ||= read_response("valid_response_2.xml.base64")
+  end
+
   def response_document_valid_signed_without_x509certificate
     @response_document_valid_signed_without_x509certificate ||= read_response("valid_response_without_x509certificate.xml.base64")
   end
