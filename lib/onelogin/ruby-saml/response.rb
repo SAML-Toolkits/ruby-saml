@@ -79,6 +79,9 @@ module OneLogin
         validate
       end
 
+      # Validates the SAML Response using idp_certs and idp_cert_fingerprints
+      # @return [Boolean] TRUE if the SAML Response is valid
+      #
       def is_valids?
         validates
       end
@@ -291,7 +294,7 @@ module OneLogin
         validate_signature
       end
 
-      # Does the same thing as the original validate, except uses the certs and fingerprints
+      # Does the same thing as the original validate, except uses the idp_certs and idp_cert_fingerprints
       def validates
         validate_response_states &&
         common_validation &&
@@ -356,6 +359,10 @@ module OneLogin
         true
       end
 
+      # Validates that the SAML Response provided in the initialization is not empty,
+      # also check that the setting and the IdP certs were also provided
+      # @return [Boolean] True if the required info is found, false otherwise
+      #
       def validate_response_states
         return append_error("Blank response") if response.nil? || response.empty?
 
@@ -622,6 +629,10 @@ module OneLogin
         true
       end
 
+      # Validates the Signature using idp_certs and idp_cert_fingerprints
+      # @return [Boolean] True if not contains a Signature or if the Signature is valid, otherwise False if soft=True
+      # @raise [ValidationError] if soft == false and validation fails
+      #
       def validate_signatures
         fingerprints = settings.get_fingerprints
         idp_certs = settings.get_idp_certs
