@@ -79,6 +79,13 @@ module OneLogin
         validate
       end
 
+      # Validates the SAML Response using idp_certs and idp_cert_fingerprints
+      # @return [Boolean] TRUE if the SAML Response is valid
+      #
+      def is_valids?
+        validates
+      end
+
       # @return [String] the NameID provided by the SAML response from the IdP.
       #
       def name_id
@@ -282,9 +289,21 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate
+        validate_response_state &&
+        common_validation &&
+        validate_signature
+      end
+
+      # Does the same thing as the original validate, except uses the idp_certs and idp_cert_fingerprints
+      def validates
+        validate_response_states &&
+        common_validation &&
+        validate_signatures
+      end
+
+      def common_validation
         reset_errors!
 
-        validate_response_state &&
         validate_version &&
         validate_id &&
         validate_success_status &&
@@ -297,10 +316,8 @@ module OneLogin
         validate_audience &&
         validate_issuer &&
         validate_session_expiration &&
-        validate_subject_confirmation &&
-        validate_signature
+        validate_subject_confirmation
       end
-
 
       # Validates the Status of the SAML Response
       # @return [Boolean] True if the SAML Response contains a Success code, otherwise False if soft == false
@@ -337,6 +354,22 @@ module OneLogin
 
         if settings.idp_cert_fingerprint.nil? && settings.idp_cert.nil?
           return append_error("No fingerprint or certificate on settings")
+        end
+
+        true
+      end
+
+      # Validates that the SAML Response provided in the initialization is not empty,
+      # also check that the setting and the IdP certs were also provided
+      # @return [Boolean] True if the required info is found, false otherwise
+      #
+      def validate_response_states
+        return append_error("Blank response") if response.nil? || response.empty?
+
+        return append_error("No settings on response") if settings.nil?
+
+        if settings.idp_cert_fingerprints.nil? && settings.idp_certs.nil?
+          return append_error("No fingerprints or certificates on settings")
         end
 
         true
@@ -594,6 +627,40 @@ module OneLogin
         end
 
         true
+      end
+
+      # Validates the Signature using idp_certs and idp_cert_fingerprints
+      # @return [Boolean] True if not contains a Signature or if the Signature is valid, otherwise False if soft=True
+      # @raise [ValidationError] if soft == false and validation fails
+      #
+      def validate_signatures
+        fingerprints = settings.get_fingerprints
+        idp_certs = settings.get_idp_certs
+
+        if fingerprints.empty? && !validate_fingerprint(fingerprints, idp_certs)
+          error_msg = "Invalid Signature on SAML Response"
+          return append_error(error_msg)
+        end
+
+        true
+      end
+
+      def validate_fingerprint(fingerprints, idp_certs)
+        response_signed = REXML::XPath.first(
+          document,
+          "/p:Response[@ID=$id]",
+          { "p" => PROTOCOL, "ds" => DSIG },
+          { 'id' => document.signed_element_id }
+        )
+        doc = (response_signed || decrypted_document.nil?) ? document : decrypted_document
+
+        fingerprints.zip(idp_certs).any? do |fingerprint, idp_cert|
+          opts = {}
+          opts[:fingerprint_alg] = settings.idp_cert_fingerprint_algorithm
+          opts[:cert] = idp_cert
+
+          doc.validate_document(fingerprint, @soft, opts)
+        end
       end
 
       # Extracts the first appearance that matchs the subelt (pattern)
