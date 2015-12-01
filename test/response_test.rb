@@ -413,7 +413,7 @@ class RubySamlTest < Minitest::Test
       end
     end
 
-    describe "#is_valid_multi_cert?" do
+    describe "#is_valid_multicert?" do
       describe "soft = true" do
         before do
           response_valid_signed_2.soft = true
@@ -422,7 +422,7 @@ class RubySamlTest < Minitest::Test
         it "return false when there are no fingerprint_multi" do
           response_valid_signed_2.settings = settings
           response_valid_signed_2.settings.idp_cert_fingerprint_multi = []
-          assert !response_valid_signed_2.is_valid_multi_cert?
+          assert !response_valid_signed_2.is_valid_multicert?
         end
 
         it "return true when the fingerprint matches" do
@@ -430,7 +430,7 @@ class RubySamlTest < Minitest::Test
           response_valid_signed_2.stubs(:validate_subject_confirmation).returns(true)
           response_valid_signed_2.settings = settings
           response_valid_signed_2.settings.idp_cert_fingerprint_multi = [valid_fingerprint]
-          assert response_valid_signed_2.is_valid_multi_cert?
+          assert response_valid_signed_2.is_valid_multicert?
         end
 
         it "return true when the one of the fingerprints matches" do
@@ -438,7 +438,7 @@ class RubySamlTest < Minitest::Test
           response_valid_signed_2.stubs(:validate_subject_confirmation).returns(true)
           response_valid_signed_2.settings = settings
           response_valid_signed_2.settings.idp_cert_fingerprint_multi = [some_other_fingerprint, valid_fingerprint]
-          assert response_valid_signed_2.is_valid_multi_cert?
+          assert response_valid_signed_2.is_valid_multicert?
         end
       end
     end
