@@ -193,11 +193,9 @@ class Minitest::Test
 
   def ruby_saml_certs
     @ruby_saml_certs ||= begin
-      certs = []
-      ruby_saml_certs_text.each do |ruby_saml_cert_text|
-        certs << OpenSSL::X509::Certificate.new(ruby_saml_cert_text)
+      ruby_saml_certs_text.map do |ruby_saml_cert_text|
+        OpenSSL::X509::Certificate.new(ruby_saml_cert_text)
       end
-      certs
     end
   end
 
@@ -207,11 +205,9 @@ class Minitest::Test
 
   def ruby_saml_cert_fingerprints
     @ruby_saml_cert_fingerprints ||= begin
-      fingerprints = []
-      ruby_saml_certs.each do |ruby_saml_cert|
-        fingerprints << Digest::SHA1.hexdigest(ruby_saml_cert.to_der).scan(/../).join(":")
+      ruby_saml_certs.map do |ruby_saml_cert|
+        Digest::SHA1.hexdigest(ruby_saml_cert.to_der).scan(/../).join(":")
       end
-      fingerprints
     end
   end
 
@@ -220,9 +216,10 @@ class Minitest::Test
   end
 
   def ruby_saml_certs_text
-    certs = []
-    certs << read_certificate("ruby-saml.crt")
-    certs << read_certificate("ruby-saml-2.crt")
+    [
+      read_certificate("ruby-saml.crt"),
+      read_certificate("ruby-saml-2.crt"),
+    ]
   end
 
   def ruby_saml_key

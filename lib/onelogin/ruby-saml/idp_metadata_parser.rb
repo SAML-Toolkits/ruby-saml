@@ -200,7 +200,7 @@ module OneLogin
         end
       end
 
-      # @return Array of Unformatted Certificates
+      # @return [Array<String>] Unformatted Certificates
       #
       def certificate_base64_multi
         @certificate_base64_multi ||= begin
@@ -224,15 +224,13 @@ module OneLogin
         end
       end
 
-      # @return Array of X509Certificates
+      # @return [Array<String>] X509Certificates
       #
       def certificate_multi
         @certificate_multi ||= begin
-          certs = []
-          certificate_base64_multi.each do |certificate_base64|
-            certs << Base64.decode64(certificate_base64)
+          certificate_base64_multi.map do |certificate_base64|
+            Base64.decode64(certificate_base64)
           end
-          certs
         end
       end
 
@@ -260,16 +258,14 @@ module OneLogin
         nodes.map(&:value)
       end
 
-      # @return Array of the SHA-1 fingerpints of the X509Certificates
+      # @return [Array<String>] the SHA-1 fingerpints of the X509Certificates
       #
       def fingerprint_multi
         @fingerprint_multi ||= begin
-          fingerprints = []
-          certificate_multi.each do |certificate|
+          certificate_multi.map do |certificate|
             cert = OpenSSL::X509::Certificate.new(certificate)
-            fingerprints << Digest::SHA1.hexdigest(cert.to_der).upcase.scan(/../).join(":")
+            Digest::SHA1.hexdigest(cert.to_der).upcase.scan(/../).join(":")
           end
-          fingerprints
         end
       end
     end

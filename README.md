@@ -8,7 +8,7 @@ Validate response against array of fingerprints/certs.
 
 The primary differences between this and the official gem are
 
-- IdpMetadataParser will parse ALL X509 certificates in the metadata
+- `IdpMetadataParser` will parse ALL X509 certificates in the metadata
 - it stores fingerprints in `idp_cert_fingerprint_multi`
 - it stores certificates in `idp_cert_multi`
 - `idp_cert_multi` and `idp_cert_fingerprint_multi` are arrays

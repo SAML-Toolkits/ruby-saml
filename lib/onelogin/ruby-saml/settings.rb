@@ -117,19 +117,16 @@ module OneLogin
       end
 
       # Calculates the fingerprints of the IdP x509 certificates.
-      # @return [Array of String] The fingerprints
+      # @return [Array<String>] The fingerprints
       #
       def get_fingerprint_multi
         idp_cert_fingerprint_multi || begin
-          idp_cert_multi = get_idp_cert_multi
-          fingerprint_multi = []
-          unless idp_cert_multi.empty?
-            idp_cert_multi.each do |idp_cert|
-              fingerprint_alg = XMLSecurity::BaseDocument.new.algorithm(idp_cert_fingerprint_algorithm).new
-              fingerprint_multi << fingerprint_alg.hexdigest(idp_cert.to_der).upcase.scan(/../).join(":")
-            end
+          return [] if idp_cert_multi.nil? || idp_cert_multi.empty?
+
+          get_idp_cert_multi.map do |idp_cert|
+            fingerprint_alg = XMLSecurity::BaseDocument.new.algorithm(idp_cert_fingerprint_algorithm).new
+            fingerprint_alg.hexdigest(idp_cert.to_der).upcase.scan(/../).join(":")
           end
-          fingerprint_multi
         end
       end
 
@@ -142,17 +139,15 @@ module OneLogin
         OpenSSL::X509::Certificate.new(formatted_cert)
       end
 
-      # @return [Array of OpenSSL::X509::Certificate] Build the IdP certificates from the settings (previously format it)
+      # @return [Array<OpenSSL::X509::Certificate>] Build the IdP certificates from the settings (previously format it)
       #
       def get_idp_cert_multi
-        cert_multi = []
-        return cert_multi if idp_cert_multi.nil?
+        return [] if idp_cert_multi.nil?
 
-        idp_cert_multi.each do |idp_cert|
+        idp_cert_multi.map do |idp_cert|
           formatted_cert = OneLogin::RubySaml::Utils.format_cert(idp_cert)
-          cert_multi << OpenSSL::X509::Certificate.new(formatted_cert)
+          OpenSSL::X509::Certificate.new(formatted_cert)
         end
-        cert_multi
       end
 
       # @return [OpenSSL::X509::Certificate|nil] Build the SP certificate from the settings (previously format it)
