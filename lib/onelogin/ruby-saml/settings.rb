@@ -26,9 +26,9 @@ module OneLogin
       attr_accessor :idp_sso_target_url
       attr_accessor :idp_slo_target_url
       attr_accessor :idp_cert
-      attr_accessor :idp_certs
+      attr_accessor :idp_cert_multi
       attr_accessor :idp_cert_fingerprint
-      attr_accessor :idp_cert_fingerprints
+      attr_accessor :idp_cert_fingerprint_multi
       attr_accessor :idp_cert_fingerprint_algorithm
       attr_accessor :idp_attribute_names
       # SP Data
@@ -119,17 +119,17 @@ module OneLogin
       # Calculates the fingerprints of the IdP x509 certificates.
       # @return [Array of String] The fingerprints
       #
-      def get_fingerprints
-        idp_cert_fingerprints || begin
-          idp_certs = get_idp_certs
-          fingerprints = []
-          unless idp_certs.empty?
-            idp_certs.each do |idp_cert|
+      def get_fingerprint_multi
+        idp_cert_fingerprint_multi || begin
+          idp_cert_multi = get_idp_cert_multi
+          fingerprint_multi = []
+          unless idp_cert_multi.empty?
+            idp_cert_multi.each do |idp_cert|
               fingerprint_alg = XMLSecurity::BaseDocument.new.algorithm(idp_cert_fingerprint_algorithm).new
-              fingerprints << fingerprint_alg.hexdigest(idp_cert.to_der).upcase.scan(/../).join(":")
+              fingerprint_multi << fingerprint_alg.hexdigest(idp_cert.to_der).upcase.scan(/../).join(":")
             end
           end
-          fingerprints
+          fingerprint_multi
         end
       end
 
@@ -144,15 +144,15 @@ module OneLogin
 
       # @return [Array of OpenSSL::X509::Certificate] Build the IdP certificates from the settings (previously format it)
       #
-      def get_idp_certs
-        certs = []
-        return certs if idp_certs.nil?
+      def get_idp_cert_multi
+        cert_multi = []
+        return cert_multi if idp_cert_multi.nil?
 
-        idp_certs.each do |idp_cert|
+        idp_cert_multi.each do |idp_cert|
           formatted_cert = OneLogin::RubySaml::Utils.format_cert(idp_cert)
-          certs << OpenSSL::X509::Certificate.new(formatted_cert)
+          cert_multi << OpenSSL::X509::Certificate.new(formatted_cert)
         end
-        certs
+        cert_multi
       end
 
       # @return [OpenSSL::X509::Certificate|nil] Build the SP certificate from the settings (previously format it)

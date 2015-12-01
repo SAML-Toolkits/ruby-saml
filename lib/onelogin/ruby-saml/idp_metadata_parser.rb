@@ -51,8 +51,8 @@ module OneLogin
           settings.idp_cert_fingerprint = fingerprint(settings.idp_cert_fingerprint_algorithm)
           settings.idp_attribute_names = attribute_names
 
-          settings.idp_certs = certificates_base64
-          settings.idp_cert_fingerprints = fingerprints
+          settings.idp_cert_multi = certificate_base64_multi
+          settings.idp_cert_fingerprint_multi = fingerprint_multi
         end
       end
 
@@ -202,8 +202,8 @@ module OneLogin
 
       # @return Array of Unformatted Certificates
       #
-      def certificates_base64
-        @certificates_base64 ||= begin
+      def certificate_base64_multi
+        @certificate_base64_multi ||= begin
           certs = []
           REXML::XPath.each(
               document,
@@ -226,10 +226,10 @@ module OneLogin
 
       # @return Array of X509Certificates
       #
-      def certificates
-        @certificates ||= begin
+      def certificate_multi
+        @certificate_multi ||= begin
           certs = []
-          certificates_base64.each do |certificate_base64|
+          certificate_base64_multi.each do |certificate_base64|
             certs << Base64.decode64(certificate_base64)
           end
           certs
@@ -262,14 +262,14 @@ module OneLogin
 
       # @return Array of the SHA-1 fingerpints of the X509Certificates
       #
-      def fingerprints
-        @fingerprints ||= begin
-          fingers = []
-          certificates.each do |certificate|
+      def fingerprint_multi
+        @fingerprint_multi ||= begin
+          fingerprints = []
+          certificate_multi.each do |certificate|
             cert = OpenSSL::X509::Certificate.new(certificate)
-            fingers << Digest::SHA1.hexdigest(cert.to_der).upcase.scan(/../).join(":")
+            fingerprints << Digest::SHA1.hexdigest(cert.to_der).upcase.scan(/../).join(":")
           end
-          fingers
+          fingerprints
         end
       end
     end

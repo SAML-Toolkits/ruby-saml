@@ -62,9 +62,9 @@ class IdpMetadataParserTest < Minitest::Test
 
         settings = idp_metadata_parser.parse(idp_metadata_with_multiple_certs)
 
-        assert settings.idp_cert_fingerprints.kind_of? Array
-        assert_equal "92:B8:8C:3D:D9:81:BF:1E:BC:B2:44:FC:FA:63:C0:07:70:6C:79:E0", settings.idp_cert_fingerprints[0]
-        assert_equal "32:70:BF:55:97:00:4D:F3:39:A4:E6:22:24:73:1B:6B:D8:28:10:A6", settings.idp_cert_fingerprints[1]
+        assert settings.idp_cert_fingerprint_multi.kind_of? Array
+        assert_equal "92:B8:8C:3D:D9:81:BF:1E:BC:B2:44:FC:FA:63:C0:07:70:6C:79:E0", settings.idp_cert_fingerprint_multi[0]
+        assert_equal "32:70:BF:55:97:00:4D:F3:39:A4:E6:22:24:73:1B:6B:D8:28:10:A6", settings.idp_cert_fingerprint_multi[1]
       end
     end
   end
