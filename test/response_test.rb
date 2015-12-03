@@ -204,7 +204,7 @@ class RubySamlTest < Minitest::Test
           settings.issuer = 'invalid'
           response_valid_signed.settings = settings
           response_valid_signed.soft = false
-          error_msg = "#{response_valid_signed.settings.issuer} is not a valid audience for this Response"
+          error_msg = "#{response_valid_signed.settings.issuer} is not a valid audience for this Response - Valid audiences: https://someone.example.com/audience"
           assert_raises(OneLogin::RubySaml::ValidationError, error_msg) do
             response_valid_signed.is_valid?
           end
@@ -368,7 +368,7 @@ class RubySamlTest < Minitest::Test
           settings.issuer = 'invalid'
           response_valid_signed.settings = settings
           response_valid_signed.is_valid?
-          assert_includes response_valid_signed.errors, "#{response_valid_signed.settings.issuer} is not a valid audience for this Response"
+          assert_includes response_valid_signed.errors, "#{response_valid_signed.settings.issuer} is not a valid audience for this Response - Valid audiences: https://someone.example.com/audience"
         end
 
         it "return false when no ID present in the SAML Response" do
@@ -411,7 +411,7 @@ class RubySamlTest < Minitest::Test
         response.settings = settings
         response.settings.issuer = 'invalid_audience'
         assert !response.send(:validate_audience)
-        assert_includes response.errors, "#{response.settings.issuer} is not a valid audience for this Response"
+        assert_includes response.errors, "#{response.settings.issuer} is not a valid audience for this Response - Valid audiences: {audience}"
       end
     end
 
@@ -551,7 +551,7 @@ class RubySamlTest < Minitest::Test
         response_invalid_audience.settings = settings
         response_invalid_audience.settings.issuer = "https://invalid.example.com/audience"
         assert !response_invalid_audience.send(:validate_audience)
-        assert_includes response_invalid_audience.errors, "#{response_invalid_audience.settings.issuer} is not a valid audience for this Response"
+        assert_includes response_invalid_audience.errors, "#{response_invalid_audience.settings.issuer} is not a valid audience for this Response - Valid audiences: http://invalid.audience.com"
       end
     end
 
