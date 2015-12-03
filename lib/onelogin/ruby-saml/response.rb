@@ -454,7 +454,7 @@ module OneLogin
         return true if audiences.empty? || settings.issuer.nil? || settings.issuer.empty?
 
         unless audiences.include? settings.issuer
-          error_msg = "#{settings.issuer} is not a valid audience for this Response"
+          error_msg = "#{settings.issuer} is not a valid audience for this Response - Valid audiences: #{audiences.join(',')}"
           return append_error(error_msg)
         end
 
