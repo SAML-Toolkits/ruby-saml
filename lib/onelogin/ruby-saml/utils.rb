@@ -65,7 +65,7 @@ module OneLogin
       # @option params [OpenSSL::X509::Certificate] cert The Identity provider public certtificate
       # @option params [String] sig_alg The SigAlg parameter
       # @option params [String] signature The Signature parameter (base64 encoded)
-      # @option params [String] query_string The SigAlg parameter
+      # @option params [String] query_string The full GET Query String to be compared
       # @return [Boolean] True if the Signature is valid, False otherwise
       #
       def self.verify_signature(params)
