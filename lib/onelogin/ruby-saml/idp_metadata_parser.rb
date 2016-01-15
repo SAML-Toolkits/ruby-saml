@@ -49,7 +49,7 @@ module OneLogin
           settings.idp_slo_target_binding ||= single_logout_service_binding(settings.idp_slo_target_parse_binding_priority)
           settings.idp_slo_target_url = single_logout_service_url(settings.idp_slo_target_binding)
           settings.idp_cert = certificate_base64
-          settings.idp_cert_fingerprint = fingerprint
+          settings.idp_cert_fingerprint = fingerprint(settings.idp_cert_fingerprint_algorithm)
         end
       end
 
@@ -198,11 +198,13 @@ module OneLogin
 
       # @return [String|nil] the SHA-1 fingerpint of the X509Certificate if it exists
       #
-      def fingerprint
+      def fingerprint(fingerprint_algorithm)
         @fingerprint ||= begin
           if certificate
             cert = OpenSSL::X509::Certificate.new(certificate)
-            Digest::SHA1.hexdigest(cert.to_der).upcase.scan(/../).join(":")
+
+            fingerprint_alg = XMLSecurity::BaseDocument.new.algorithm(fingerprint_algorithm).new
+            fingerprint_alg.hexdigest(cert.to_der).upcase.scan(/../).join(":")
           end
         end
       end
