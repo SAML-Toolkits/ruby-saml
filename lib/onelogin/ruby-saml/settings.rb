@@ -23,7 +23,11 @@ module OneLogin
 
       # IdP Data
       attr_accessor :idp_entity_id
+      attr_accessor :idp_sso_target_parse_binding_priority
+      attr_accessor :idp_sso_target_binding
       attr_accessor :idp_sso_target_url
+      attr_accessor :idp_slo_target_parse_binding_priority
+      attr_accessor :idp_slo_target_binding
       attr_accessor :idp_slo_target_url
       attr_accessor :idp_cert
       attr_accessor :idp_cert_fingerprint

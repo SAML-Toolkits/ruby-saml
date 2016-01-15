@@ -26,24 +26,28 @@ module OneLogin
       # IdP values
       #
       # @param (see IdpMetadataParser#get_idp_metadata)
+      # @param options  [Hash]   :settings to provide the OneLogin::RubySaml::Settings object
       # @return (see IdpMetadataParser#get_idp_metadata)
       # @raise (see IdpMetadataParser#get_idp_metadata)
-      def parse_remote(url, validate_cert = true)
+      def parse_remote(url, validate_cert = true, options = {})
         idp_metadata = get_idp_metadata(url, validate_cert)
-        parse(idp_metadata)
+        parse(idp_metadata, options)
       end
 
       # Parse the Identity Provider metadata and update the settings with the IdP values
       # @param idp_metadata [String] 
+      # @param options  [Hash]   :settings to provide the OneLogin::RubySaml::Settings object
       #
-      def parse(idp_metadata)
+      def parse(idp_metadata, options = {})
         @document = REXML::Document.new(idp_metadata)
 
-        OneLogin::RubySaml::Settings.new.tap do |settings|
+        (options[:settings] || OneLogin::RubySaml::Settings.new).tap do |settings|
           settings.idp_entity_id = idp_entity_id
           settings.name_identifier_format = idp_name_id_format
-          settings.idp_sso_target_url = single_signon_service_url
-          settings.idp_slo_target_url = single_logout_service_url
+          settings.idp_sso_target_binding ||= single_signon_service_binding(settings.idp_sso_target_parse_binding_priority)
+          settings.idp_sso_target_url = single_signon_service_url(settings.idp_sso_target_binding)
+          settings.idp_slo_target_binding ||= single_logout_service_binding(settings.idp_slo_target_parse_binding_priority)
+          settings.idp_slo_target_url = single_logout_service_url(settings.idp_slo_target_binding)
           settings.idp_cert = certificate_base64
           settings.idp_cert_fingerprint = fingerprint
         end
@@ -112,23 +116,59 @@ module OneLogin
         node.text if node
       end
 
+      # @param binding_priority [Array]
+      # @return [String|nil] SingleSignOnService binding if exists
+      #
+      def single_signon_service_binding(binding_priority = nil)
+        nodes = REXML::XPath.match(
+          document,
+          "/md:EntityDescriptor/md:IDPSSODescriptor/md:SingleSignOnService/@Binding",
+          { "md" => METADATA }
+        )
+        if binding_priority
+          values = nodes.map(&:value)
+          binding_priority.detect{ |binding| values.include? binding }
+        else
+          nodes.first.value if nodes.any?
+        end
+      end
+
+      # @param binding [String]
       # @return [String|nil] SingleSignOnService endpoint if exists
       #
-      def single_signon_service_url
+      def single_signon_service_url(binding = nil)
         node = REXML::XPath.first(
           document,
-          "/md:EntityDescriptor/md:IDPSSODescriptor/md:SingleSignOnService/@Location",
+          "/md:EntityDescriptor/md:IDPSSODescriptor/md:SingleSignOnService#{"[@Binding='#{binding}']" if binding}/@Location",
           { "md" => METADATA }
         )
         node.value if node
       end
 
+      # @param binding_priority [Array]
+      # @return [String|nil] SingleLogoutService binding if exists
+      #
+      def single_logout_service_binding(binding_priority = nil)
+        nodes = REXML::XPath.match(
+          document,
+          "/md:EntityDescriptor/md:IDPSSODescriptor/md:SingleLogoutService/@Binding",
+          { "md" => METADATA }
+        )
+        if binding_priority
+          values = nodes.map(&:value)
+          binding_priority.detect{ |binding| values.include? binding }
+        else
+          nodes.first.value if nodes.any?
+        end
+      end
+
+      # @param binding [String]
       # @return [String|nil] SingleLogoutService endpoint if exists
       #
-      def single_logout_service_url
+      def single_logout_service_url(binding = nil)
         node = REXML::XPath.first(
           document,
-          "/md:EntityDescriptor/md:IDPSSODescriptor/md:SingleLogoutService/@Location",
+          "/md:EntityDescriptor/md:IDPSSODescriptor/md:SingleLogoutService#{"[@Binding='#{binding}']" if binding}/@Location",
           { "md" => METADATA }
         )
         node.value if node
