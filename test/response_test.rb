@@ -415,6 +415,21 @@ class RubySamlTest < Minitest::Test
       end
     end
 
+    describe "#validate_destination" do
+      it "return true when the destination of the SAML Response matches the assertion consumer service url" do
+        response.settings = settings
+        assert response.send(:validate_destination)
+        assert_empty response.errors
+      end
+
+      it "return false when the destination of the SAML Response does not match the assertion consumer service url" do
+        response.settings = settings
+        response.settings.assertion_consumer_service_url = 'invalid_acs'
+        assert !response.send(:validate_destination)
+        assert_includes response.errors, "The response was received at #{response.destination} instead of #{response.settings.assertion_consumer_service_url}"
+      end
+    end
+
     describe "#validate_issuer" do
       it "return true when the issuer of the Message/Assertion matches the IdP entityId" do
         response_valid_signed.settings = settings

@@ -254,6 +254,19 @@ module OneLogin
         end
       end
 
+      # @return [String|nil] Destination attribute from the SAML Response.
+      #
+      def destination
+        @destination ||= begin
+          node = REXML::XPath.first(
+            document,
+            "/p:Response",
+            { "p" => PROTOCOL }
+          )
+          node.nil? ? nil : node.attributes['Destination']
+        end
+      end
+
       # @return [Array] The Audience elements from the Contitions of the SAML Response.
       #
       def audiences
@@ -295,6 +308,7 @@ module OneLogin
         validate_in_response_to &&
         validate_conditions &&
         validate_audience &&
+        validate_destination &&
         validate_issuer &&
         validate_session_expiration &&
         validate_subject_confirmation &&
@@ -455,6 +469,21 @@ module OneLogin
 
         unless audiences.include? settings.issuer
           error_msg = "#{settings.issuer} is not a valid audience for this Response - Valid audiences: #{audiences.join(',')}"
+          return append_error(error_msg)
+        end
+
+        true
+      end
+
+      # Validates the Destination, (If the SAML Response is received where expected)
+      # If fails, the error is added to the errors array
+      # @return [Boolean] True if there is a Destination element that matches the Consumer Service URL, otherwise False
+      #
+      def validate_destination
+        return true if destination.nil? || destination.empty? || settings.assertion_consumer_service_url.nil? || settings.assertion_consumer_service_url.empty?
+
+        unless destination == settings.assertion_consumer_service_url
+          error_msg = "The response was received at #{destination} instead of #{settings.assertion_consumer_service_url}"
           return append_error(error_msg)
         end
 
