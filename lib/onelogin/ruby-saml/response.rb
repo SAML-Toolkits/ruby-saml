@@ -607,10 +607,11 @@ module OneLogin
         sig_elements = REXML::XPath.match(
           document,
           "/p:Response/ds:Signature]",
-          { "p" => PROTOCOL, "ds" => DSIG },
+          { "p" => PROTOCOL, "ds" => DSIG }
         )
 
-        doc = (sig_elements.size == 1 || decrypted_document.nil?) ? document : decrypted_document
+        use_original = sig_elements.size == 1 || decrypted_document.nil?
+        doc = use_original ? document : decrypted_document
 
         # Check signature nodes
         if sig_elements.nil? || sig_elements.size == 0
