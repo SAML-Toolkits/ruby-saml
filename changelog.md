@@ -1,5 +1,14 @@
 # RubySaml Changelog
 
+### 1.1.2 (February 15, 2015)
+* Improve signature validation. Add tests.
+ [#302](https://github.com/onelogin/ruby-saml/pull/302) Add Destination validation.
+* [#292](https://github.com/onelogin/ruby-saml/pull/292) Improve the error message when validating the audience.
+* [#287](https://github.com/onelogin/ruby-saml/pull/287) Keep the extracted certificate when parsing IdP metadata.
+
+### 1.1.1 (November 10, 2015)
+* [#275](https://github.com/onelogin/ruby-saml/pull/275) Fix a bug on signature validations that invalidates valid SAML messages.
+
 ### 1.1.0 (October 27, 2015)
 * [#273](https://github.com/onelogin/ruby-saml/pull/273) Support SAMLResponse without ds:x509certificate
 * [#270](https://github.com/onelogin/ruby-saml/pull/270) Allow SAML elements to come from any namespace (at decryption process)
