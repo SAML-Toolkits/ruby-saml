@@ -744,6 +744,17 @@ class RubySamlTest < Minitest::Test
         assert response_valid_signed_without_x509certificate.send(:validate_signature)
         assert_empty response_valid_signed_without_x509certificate.errors
       end
+
+      it "return false when signature wrapping attack" do
+        signature_wrapping_attack = read_invalid_response("signature_wrapping_attack.xml.base64")
+        response_wrapped = OneLogin::RubySaml::Response.new(signature_wrapping_attack)
+        response_wrapped.stubs(:conditions).returns(nil)
+        response_wrapped.stubs(:validate_subject_confirmation).returns(true)
+        settings.idp_cert_fingerprint = "afe71c28ef740bc87425be13a2263d37971da1f9"
+        response_wrapped.settings = settings
+        assert !response_wrapped.send(:validate_signature)
+        assert_includes response_wrapped.errors, "Invalid Signature on SAML Response"
+       end
     end
 
     describe "#nameid" do

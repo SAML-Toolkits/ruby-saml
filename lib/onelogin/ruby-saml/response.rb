@@ -600,25 +600,37 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_signature
-        fingerprint = settings.get_fingerprint
-        idp_cert = settings.get_idp_cert
+        error_msg = "Invalid Signature on SAML Response"
 
         # If the response contains the signature, and the assertion was encrypted, validate the original SAML Response
         # otherwise, review if the decrypted assertion contains a signature
-        response_signed = REXML::XPath.first(
+        sig_elements = REXML::XPath.match(
           document,
-          "/p:Response[@ID=$id]",
+          "/p:Response/ds:Signature]",
           { "p" => PROTOCOL, "ds" => DSIG },
-          { 'id' => document.signed_element_id }
         )
-        doc = (response_signed || decrypted_document.nil?) ? document : decrypted_document
+
+        doc = (sig_elements.size == 1 || decrypted_document.nil?) ? document : decrypted_document
+
+        # Check signature nodes
+        if sig_elements.nil? || sig_elements.size == 0
+          sig_elements = REXML::XPath.match(
+            doc,
+            "/p:Response/a:Assertion/ds:Signature",
+            {"p" => PROTOCOL, "a" => ASSERTION, "ds"=>DSIG}
+          )
+        end
+
+        if sig_elements.size != 1
+          return append_error(error_msg)
+        end
 
         opts = {}
         opts[:fingerprint_alg] = settings.idp_cert_fingerprint_algorithm
-        opts[:cert] = idp_cert
+        opts[:cert] = settings.get_idp_cert
+        fingerprint = settings.get_fingerprint
 
-        unless fingerprint && doc.validate_document(fingerprint, @soft, opts)
-          error_msg = "Invalid Signature on SAML Response"
+        unless fingerprint && doc.validate_document(fingerprint, @soft, opts)          
           return append_error(error_msg)
         end
 

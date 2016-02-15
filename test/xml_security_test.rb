@@ -343,6 +343,15 @@ class XmlSecurityTest < Minitest::Test
           end
         end
       end
+      describe 'signature_wrapping_attack' do
+        let(:document_data) { read_invalid_response("signature_wrapping_attack.xml.base64") }
+        let(:document) { OneLogin::RubySaml::Response.new(document_data).document }
+        let(:fingerprint) { 'afe71c28ef740bc87425be13a2263d37971da1f9' }
+
+        it 'is invalid' do
+          assert !document.validate_document(fingerprint, true), 'Document should be invalid'
+        end
+      end
     end
   end
 end
