@@ -48,9 +48,10 @@ module XMLSecurity
       end
 
       case algorithm
-        when "http://www.w3.org/TR/2001/REC-xml-c14n-20010315" then Nokogiri::XML::XML_C14N_1_0
-        when "http://www.w3.org/2006/12/xml-c14n11"            then Nokogiri::XML::XML_C14N_1_1
-        else                                                        Nokogiri::XML::XML_C14N_EXCLUSIVE_1_0
+        when "http://www.w3.org/TR/2001/REC-xml-c14n-20010315",
+             "http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments" then Nokogiri::XML::XML_C14N_1_0
+        when "http://www.w3.org/2006/12/xml-c14n11"                         then Nokogiri::XML::XML_C14N_1_1
+        else                                                                     Nokogiri::XML::XML_C14N_EXCLUSIVE_1_0
       end
     end
 

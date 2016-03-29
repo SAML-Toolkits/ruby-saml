@@ -96,6 +96,7 @@ class XmlSecurityTest < Minitest::Test
     it "C14N_1_0" do
       canon_algorithm = Nokogiri::XML::XML_C14N_1_0
       assert_equal canon_algorithm, XMLSecurity::BaseDocument.new.canon_algorithm("http://www.w3.org/TR/2001/REC-xml-c14n-20010315")
+      assert_equal canon_algorithm, XMLSecurity::BaseDocument.new.canon_algorithm("http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments")
     end
 
     it "XML_C14N_1_1" do
