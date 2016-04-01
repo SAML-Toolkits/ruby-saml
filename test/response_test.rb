@@ -668,7 +668,7 @@ class RubySamlTest < Minitest::Test
         assert !response.send(:validate_session_expiration)
         assert_includes response.errors, "The attributes have expired, based on the SessionNotOnOrAfter of the AttributeStatement of this Response"
       end
-      
+
       it "returns true when the session has expired, but is still within the allowed_clock_drift" do
         drift = (Time.now - Time.parse("2010-11-19T21:57:37Z")) * 60 # seconds ago that this assertion expired
         drift += 10 # add a buffer of 10 seconds to make sure the test passes
@@ -734,7 +734,7 @@ class RubySamlTest < Minitest::Test
         settings.idp_cert = signature_1
         response_valid_signed_without_x509certificate.settings = settings
         assert !response_valid_signed_without_x509certificate.send(:validate_signature)
-        assert_includes response_valid_signed_without_x509certificate.errors, "Invalid Signature on SAML Response"        
+        assert_includes response_valid_signed_without_x509certificate.errors, "Invalid Signature on SAML Response"
       end
 
       it "return true when no X509Certificate and the cert provided at settings matches" do
@@ -1148,6 +1148,28 @@ class RubySamlTest < Minitest::Test
           "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
           { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
         )
+        assert_nil encrypted_assertion_node2
+        assert decrypted.name, "Assertion"
+      end
+
+      it "is possible to decrypt the assertion if private key provided and EncryptedKey RetrievalMethod presents in response" do
+        settings.private_key = ruby_saml_key_text
+        resp = read_response('response_with_retrieval_method.xml')
+        response = OneLogin::RubySaml::Response.new(resp, :settings => settings)
+
+        encrypted_assertion_node = REXML::XPath.first(
+          response.document,
+          "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
+          { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
+        )
+        decrypted = response.send(:decrypt_assertion, encrypted_assertion_node)
+
+        encrypted_assertion_node2 = REXML::XPath.first(
+          decrypted,
+          "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
+          { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
+        )
+
         assert_nil encrypted_assertion_node2
         assert decrypted.name, "Assertion"
       end

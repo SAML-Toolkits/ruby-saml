@@ -122,15 +122,21 @@ module OneLogin
       # @param private_key [OpenSSL::PKey::RSA] The Service provider private key
       # @return [String] The symmetric key
       def self.retrieve_symmetric_key(encrypt_data, private_key)
-        encrypted_symmetric_key_element = REXML::XPath.first(
+        encrypted_key = REXML::XPath.first(
           encrypt_data,
-          "//xenc:EncryptedData/ds:KeyInfo/xenc:EncryptedKey/xenc:CipherData/xenc:CipherValue",
+          "//xenc:EncryptedData/ds:KeyInfo/xenc:EncryptedKey or \
+           //xenc:EncryptedKey[@Id=substring-after(//xenc:EncryptedData/ds:KeyInfo/ds:RetrievalMethod/@URI, '#')]",
+          { "ds" => DSIG, "xenc" => XENC }
+        )
+        encrypted_symmetric_key_element = REXML::XPath.first(
+          encrypted_key,
+          "./xenc:CipherData/xenc:CipherValue",
           { "ds" => DSIG, "xenc" => XENC }
         )
         cipher_text = Base64.decode64(encrypted_symmetric_key_element.text)
         encrypt_method = REXML::XPath.first(
-          encrypt_data,
-          "//xenc:EncryptedData/ds:KeyInfo/xenc:EncryptedKey/xenc:EncryptionMethod",
+          encrypted_key,
+          "./xenc:EncryptionMethod",
           {"ds" => DSIG,  "xenc" => XENC }
         )
         algorithm = encrypt_method.attributes['Algorithm']
