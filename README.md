@@ -466,8 +466,8 @@ and this method process the SAML Logout Response sent by the IdP as reply of the
 def process_logout_response
   settings = Account.get_saml_settings
 
-  if session.has_key? :transation_id
-    logout_response = OneLogin::RubySaml::Logoutresponse.new(params[:SAMLResponse], settings, :matches_request_id => session[:transation_id])
+  if session.has_key? :transaction_id
+    logout_response = OneLogin::RubySaml::Logoutresponse.new(params[:SAMLResponse], settings, :matches_request_id => session[:transaction_id])
   else
     logout_response = OneLogin::RubySaml::Logoutresponse.new(params[:SAMLResponse], settings)
   end
