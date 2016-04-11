@@ -1,6 +1,6 @@
 # RubySaml Changelog
 
-### 1.1.2 (February 15, 2015)
+### 1.1.2 (February 15, 2016)
 * Improve signature validation. Add tests.
  [#302](https://github.com/onelogin/ruby-saml/pull/302) Add Destination validation.
 * [#292](https://github.com/onelogin/ruby-saml/pull/292) Improve the error message when validating the audience.
