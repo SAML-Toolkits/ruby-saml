@@ -49,10 +49,13 @@ module XMLSecurity
 
       case algorithm
         when "http://www.w3.org/TR/2001/REC-xml-c14n-20010315",
-             "http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments" then Nokogiri::XML::XML_C14N_1_0
+             "http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments"
+          Nokogiri::XML::XML_C14N_1_0
         when "http://www.w3.org/2006/12/xml-c14n11",
-             "http://www.w3.org/2006/12/xml-c14n11#WithComments"            then Nokogiri::XML::XML_C14N_1_1
-        else                                                                     Nokogiri::XML::XML_C14N_EXCLUSIVE_1_0
+             "http://www.w3.org/2006/12/xml-c14n11#WithComments"
+          Nokogiri::XML::XML_C14N_1_1
+        else
+          Nokogiri::XML::XML_C14N_EXCLUSIVE_1_0
       end
     end
 
@@ -76,10 +79,10 @@ module XMLSecurity
   end
 
   class Document < BaseDocument
-    RSA_SHA1            = "http://www.w3.org/2000/09/xmldsig#rsa-sha1"
-    RSA_SHA256            = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"
-    RSA_SHA384            = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha384"
-    RSA_SHA512            = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha512"
+    RSA_SHA1        = "http://www.w3.org/2000/09/xmldsig#rsa-sha1"
+    RSA_SHA256      = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"
+    RSA_SHA384      = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha384"
+    RSA_SHA512      = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha512"
     SHA1            = "http://www.w3.org/2000/09/xmldsig#sha1"
     SHA256          = "http://www.w3.org/2001/04/xmldsig-more#sha256"
     SHA384          = "http://www.w3.org/2001/04/xmldsig-more#sha384"
@@ -202,7 +205,7 @@ module XMLSecurity
         { "ds"=>DSIG }
       )
 
-      if cert_element        
+      if cert_element
         base64_cert = cert_element.text
         cert_text = Base64.decode64(base64_cert)
         cert = OpenSSL::X509::Certificate.new(cert_text)
@@ -227,7 +230,7 @@ module XMLSecurity
             return false
           else
             raise OneLogin::RubySaml::ValidationError.new("Certificate element missing in response (ds:X509Certificate) and not cert provided at settings")
-          end          
+          end
         end
       end
       validate_signature(base64_cert, soft)
@@ -346,7 +349,7 @@ module XMLSecurity
 
       return nil if reference_element.nil?
 
-      sei = reference_element.attribute("URI").value[1..-1] 
+      sei = reference_element.attribute("URI").value[1..-1]
       sei.nil? ? self.root.attribute("ID") : sei
     end
 
