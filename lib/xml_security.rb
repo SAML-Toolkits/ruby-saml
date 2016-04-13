@@ -278,12 +278,6 @@ module XMLSecurity
       noko_sig_element = document.at_xpath('//ds:Signature', 'ds' => DSIG)
       noko_signed_info_element = noko_sig_element.at_xpath('./ds:SignedInfo', 'ds' => DSIG)
 
-      # Handle when no URI
-      noko_signed_info_reference_element_uri_attr = noko_signed_info_element.at_xpath('./ds:Reference', 'ds' => DSIG).attributes["URI"]
-      if (noko_signed_info_reference_element_uri_attr.value.empty?)
-        noko_signed_info_reference_element_uri_attr.value = "##{document.root.attribute('ID')}"
-      end
-
       canon_string = noko_signed_info_element.canonicalize(canon_algorithm)
       noko_sig_element.remove
 
