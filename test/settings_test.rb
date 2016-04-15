@@ -11,7 +11,7 @@ class SettingsTest < Minitest::Test
 
     it "should provide getters and settings" do
       accessors = [
-        :idp_entity_id, :idp_sso_target_url, :idp_slo_target_url, :idp_cert, :idp_cert_fingerprint,
+        :idp_entity_id, :idp_sso_target_url, :idp_slo_target_url, :idp_cert, :idp_cert_fingerprint, :idp_cert_fingerprint_algorithm, :idp_attribute_names,
         :issuer, :assertion_consumer_service_url, :assertion_consumer_service_binding,
         :single_logout_service_url, :single_logout_service_binding,
         :sp_name_qualifier, :name_identifier_format, :name_identifier_value,

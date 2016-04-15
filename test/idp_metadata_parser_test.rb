@@ -28,6 +28,7 @@ class IdpMetadataParserTest < Minitest::Test
       assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", settings.idp_cert_fingerprint
       assert_equal "https://example.hello.com/access/saml/logout", settings.idp_slo_target_url
       assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified", settings.name_identifier_format
+      assert_equal ["AuthToken", "SSOStartPage"], settings.idp_attribute_names
     end
   end
 
@@ -52,6 +53,7 @@ class IdpMetadataParserTest < Minitest::Test
       assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", settings.idp_cert_fingerprint
       assert_equal "https://example.hello.com/access/saml/logout", settings.idp_slo_target_url
       assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified", settings.name_identifier_format
+      assert_equal ["AuthToken", "SSOStartPage"], settings.idp_attribute_names
       assert_equal OpenSSL::SSL::VERIFY_PEER, @http.verify_mode
     end
 
