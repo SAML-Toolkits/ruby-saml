@@ -16,8 +16,10 @@ module OneLogin
     #
     class IdpMetadataParser
 
-      METADATA = "urn:oasis:names:tc:SAML:2.0:metadata"
-      DSIG     = "http://www.w3.org/2000/09/xmldsig#"
+      METADATA       = "urn:oasis:names:tc:SAML:2.0:metadata"
+      DSIG           = "http://www.w3.org/2000/09/xmldsig#"
+      NAME_FORMAT    = "urn:oasis:names:tc:SAML:2.0:attrname-format:*"
+      SAML_ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion"
 
       attr_reader :document
       attr_reader :response
@@ -46,6 +48,7 @@ module OneLogin
           settings.idp_slo_target_url = single_logout_service_url
           settings.idp_cert = certificate_base64
           settings.idp_cert_fingerprint = fingerprint
+          settings.idp_attribute_names = attribute_names
         end
       end
 
@@ -165,6 +168,17 @@ module OneLogin
             Digest::SHA1.hexdigest(cert.to_der).upcase.scan(/../).join(":")
           end
         end
+      end
+
+      # @return [Array] the names of all SAML attributes if any exist
+      #
+      def attribute_names
+        nodes = REXML::XPath.match(
+          document,
+          "/md:EntityDescriptor/md:IDPSSODescriptor/saml:Attribute/@Name",
+          { "md" => METADATA, "NameFormat" => NAME_FORMAT, "saml" => SAML_ASSERTION }
+        )
+        nodes.map(&:value)
       end
     end
   end
