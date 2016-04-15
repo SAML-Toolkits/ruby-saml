@@ -391,10 +391,10 @@ class RubySamlTest < Minitest::Test
         it "return true when a nil URI is given in the ds:Reference" do
 
           response_without_reference_uri.stubs(:conditions).returns(nil)
+          settings.idp_cert = ruby_saml_cert_text
           response_without_reference_uri.settings = settings
-          response_without_reference_uri.settings.idp_cert_fingerprint = "19:4D:97:E4:D8:C9:C8:CF:A4:B7:21:E5:EE:49:7F:D9:66:0E:52:13"
           assert response_without_reference_uri.is_valid?
-          assert_empty response_without_reference_uri.errors
+          assert_empty response.errors
         end
       end
     end
