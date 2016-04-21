@@ -774,6 +774,13 @@ class RubySamlTest < Minitest::Test
       end
     end
 
+    describe "#name_id_format" do
+      it "extract the value of the name id element" do
+        assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress", response.name_id_format
+        assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress", response_with_signed_assertion.name_id_format
+      end
+    end
+
     describe "#sessionindex" do
       it "extract the value of the sessionindex element" do
         response = OneLogin::RubySaml::Response.new(fixture(:simple_saml_php))
@@ -1001,12 +1008,17 @@ class RubySamlTest < Minitest::Test
           assert_raises(OneLogin::RubySaml::ValidationError, "An EncryptedID found and no SP private key found on the settings to decrypt it") do
             assert_equal "test@onelogin.com", response_encrypted_nameid.nameid
           end
+
+          assert_raises(OneLogin::RubySaml::ValidationError, "An EncryptedID found and no SP private key found on the settings to decrypt it") do
+            assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress", response_encrypted_nameid.name_id_format
+          end
       end
 
       it 'is possible when encryptID inside the assertion and settings has the private key' do
         settings.private_key = ruby_saml_key_text
         response_encrypted_nameid.settings = settings
         assert_equal "test@onelogin.com", response_encrypted_nameid.nameid
+        assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress", response_encrypted_nameid.name_id_format
       end
 
     end

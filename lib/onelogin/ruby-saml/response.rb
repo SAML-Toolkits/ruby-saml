@@ -82,18 +82,24 @@ module OneLogin
       # @return [String] the NameID provided by the SAML response from the IdP.
       #
       def name_id
-        @name_id ||= begin
-          encrypted_node = xpath_first_from_signed_assertion('/a:Subject/a:EncryptedID')
-          if encrypted_node
-            node = decrypt_nameid(encrypted_node)
-          else
-            node = xpath_first_from_signed_assertion('/a:Subject/a:NameID')
+        @name_id ||=
+          if name_id_node
+            name_id_node.text
           end
-          node.nil? ? nil : node.text
-        end
       end
 
       alias_method :nameid, :name_id
+
+      # @return [String] the NameID Format provided by the SAML response from the IdP.
+      #
+      def name_id_format
+        @name_id_format ||=
+          if name_id_node && name_id_node.attribute("Format")
+            name_id_node.attribute("Format").value
+          end
+      end
+
+      alias_method :nameid_format, :name_id_format
 
 
       # Gets the SessionIndex from the AuthnStatement.
@@ -636,6 +642,18 @@ module OneLogin
         end
 
         true
+      end
+
+      def name_id_node
+        @name_id_node ||=
+          begin
+            encrypted_node = xpath_first_from_signed_assertion('/a:Subject/a:EncryptedID')
+            if encrypted_node
+              node = decrypt_nameid(encrypted_node)
+            else
+              node = xpath_first_from_signed_assertion('/a:Subject/a:NameID')
+            end
+          end
       end
 
       # Extracts the first appearance that matchs the subelt (pattern)
