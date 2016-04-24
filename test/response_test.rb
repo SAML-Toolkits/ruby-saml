@@ -395,6 +395,8 @@ class RubySamlTest < Minitest::Test
           response_without_reference_uri.settings = settings
           assert response_without_reference_uri.is_valid?
           assert_empty response.errors
+          assert_empty response_without_reference_uri.errors
+          assert 'saml@user.com', response.attributes['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress']
         end
       end
     end
