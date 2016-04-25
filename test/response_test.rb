@@ -389,14 +389,12 @@ class RubySamlTest < Minitest::Test
         end
 
         it "return true when a nil URI is given in the ds:Reference" do
-
-          response_without_reference_uri.stubs(:conditions).returns(nil)
           settings.idp_cert = ruby_saml_cert_text
           response_without_reference_uri.settings = settings
-          assert response_without_reference_uri.is_valid?
-          assert_empty response.errors
+          response_without_reference_uri.stubs(:conditions).returns(nil)
+          response_without_reference_uri.is_valid?
           assert_empty response_without_reference_uri.errors
-          assert 'saml@user.com', response.attributes['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress']
+          assert 'saml@user.com', response_without_reference_uri.attributes['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress']
         end
       end
     end
