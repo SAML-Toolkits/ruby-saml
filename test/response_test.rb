@@ -997,6 +997,26 @@ class RubySamlTest < Minitest::Test
       end
     end
 
+    describe '#want_assertion_signed' do
+      before do
+        settings.security[:want_assertions_signed] = true
+        @signed_assertion = OneLogin::RubySaml::Response.new(response_document_with_signed_assertion, :settings => settings)
+        @no_signed_assertion = OneLogin::RubySaml::Response.new(response_document_valid_signed, :settings => settings)
+      end
+
+
+      it 'returns false if :want_assertion_signed enabled and Assertion not signed' do
+        assert !@no_signed_assertion.send(:validate_signed_elements)
+        assert_includes @no_signed_assertion.errors, "The Assertion of the Response is not signed and the SP requires it"
+
+      end
+
+      it 'returns true if :want_assertion_signed enabled and Assertion is signed' do
+        assert @signed_assertion.send(:validate_signed_elements)
+        assert_empty @signed_assertion.errors
+      end
+    end
+
     describe "retrieve nameID" do
       it 'is possible  when nameID inside the assertion' do
         response_valid_signed.settings = settings

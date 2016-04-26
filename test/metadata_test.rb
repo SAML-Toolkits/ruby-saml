@@ -75,6 +75,20 @@ class MetadataTest < Minitest::Test
       assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
     end
 
+    describe "WantAssertionsSigned" do
+      it "generates Service Provider Metadata with WantAssertionsSigned = false" do
+        settings.security[:want_assertions_signed] = false
+        assert_equal "false", spsso_descriptor.attribute("WantAssertionsSigned").value
+        assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
+      end
+
+      it "generates Service Provider Metadata with WantAssertionsSigned = true" do
+        settings.security[:want_assertions_signed] = true
+        assert_equal "true", spsso_descriptor.attribute("WantAssertionsSigned").value
+        assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
+      end
+    end
+
     describe "when auth requests are signed" do
       let(:key_descriptors) do
         REXML::XPath.match(

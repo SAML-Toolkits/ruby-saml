@@ -45,10 +45,10 @@ module OneLogin
         @options = options
 
         @soft = true
-        if !options.empty? && !options[:settings].nil?
+        unless options[:settings].nil?
           @settings = options[:settings]
-          if !options[:settings].soft.nil? 
-            @soft = options[:settings].soft
+          unless @settings.soft.nil?
+            @soft = @settings.soft
           end
         end
 
@@ -446,6 +446,10 @@ module OneLogin
 
         unless signature_nodes.length < 3 && !signed_elements.empty?
           return append_error("Found an unexpected number of Signature Element. SAML Response rejected")
+        end
+
+        if settings.security[:want_assertions_signed] && !(signed_elements.include? "Assertion")
+          return append_error("The Assertion of the Response is not signed and the SP requires it")
         end
 
         true

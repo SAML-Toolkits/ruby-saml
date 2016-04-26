@@ -29,8 +29,7 @@ module OneLogin
         sp_sso = root.add_element "md:SPSSODescriptor", {
             "protocolSupportEnumeration" => "urn:oasis:names:tc:SAML:2.0:protocol",
             "AuthnRequestsSigned" => settings.security[:authn_requests_signed],
-            # However we would like assertions signed if idp_cert_fingerprint or idp_cert is set
-            "WantAssertionsSigned" => !!(settings.idp_cert_fingerprint || settings.idp_cert)
+            "WantAssertionsSigned" => settings.security[:want_assertions_signed],
         }
 
         # Add KeyDescriptor if messages will be signed / encrypted
