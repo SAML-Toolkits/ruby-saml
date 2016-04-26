@@ -29,7 +29,33 @@ class IdpMetadataParserTest < Minitest::Test
       assert_equal "https://example.hello.com/access/saml/logout", settings.idp_slo_target_url
       assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified", settings.name_identifier_format
       assert_equal ["AuthToken", "SSOStartPage"], settings.idp_attribute_names
+      assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", settings.idp_cert_fingerprint
     end
+
+    it "extract certificate from md:KeyDescriptor[@use='signing']" do
+      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata = read_response("idp_descriptor.xml")
+      settings = idp_metadata_parser.parse(idp_metadata)
+      assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", settings.idp_cert_fingerprint
+    end
+
+    it "extract certificate from md:KeyDescriptor[@use='encryption']" do
+      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata = read_response("idp_descriptor.xml")
+      idp_metadata = idp_metadata.sub(/<md:KeyDescriptor use="signing">(.*?)<\/md:KeyDescriptor>/m, "")
+      settings = idp_metadata_parser.parse(idp_metadata)
+      assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", settings.idp_cert_fingerprint
+    end
+
+    it "extract certificate from md:KeyDescriptor" do
+      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata = read_response("idp_descriptor.xml")
+      idp_metadata = idp_metadata.sub(/<md:KeyDescriptor use="signing">(.*?)<\/md:KeyDescriptor>/m, "")
+      idp_metadata = idp_metadata.sub('<md:KeyDescriptor use="encryption">', '<md:KeyDescriptor>')
+      settings = idp_metadata_parser.parse(idp_metadata)
+      assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", settings.idp_cert_fingerprint
+    end
+
   end
 
   describe "download and parse IdP descriptor file" do

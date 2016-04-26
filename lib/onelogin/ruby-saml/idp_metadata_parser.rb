@@ -146,6 +146,14 @@ module OneLogin
               "/md:EntityDescriptor/md:IDPSSODescriptor/md:KeyDescriptor[@use='signing']/ds:KeyInfo/ds:X509Data/ds:X509Certificate",
               { "md" => METADATA, "ds" => DSIG }
           )
+
+          unless node
+            node = REXML::XPath.first(
+                document,
+                "/md:EntityDescriptor/md:IDPSSODescriptor/md:KeyDescriptor/ds:KeyInfo/ds:X509Data/ds:X509Certificate",
+                { "md" => METADATA, "ds" => DSIG }
+            )
+          end
           node.text if node
         end
       end
