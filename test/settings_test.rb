@@ -152,6 +152,34 @@ class SettingsTest < Minitest::Test
 
     end
 
+    describe "#get_sp_intermediate_certs" do
+      it "returns nil when the intermediate certificates list is empty" do
+        @settings = OneLogin::RubySaml::Settings.new
+        @settings.intermediate_certificates = []
+        assert_equal nil, @settings.get_sp_intermediate_certs
+      end
+
+      it "returns nil when the intermediate certificates list is nil" do
+        @settings = OneLogin::RubySaml::Settings.new
+        @settings.intermediate_certificates = nil
+        assert_equal nil, @settings.get_sp_intermediate_certs
+      end
+
+      it "returns intermediate certificates when they are valid" do
+        @settings = OneLogin::RubySaml::Settings.new
+        @settings.intermediate_certificates = [ruby_saml_cert_text] * 3
+        assert @settings.get_sp_intermediate_certs.all? { |cert| cert.kind_of? OpenSSL::X509::Certificate }
+      end
+
+      it "raises when an intermediate certificate is not valid" do
+        # Include one valid cert and one formatted but invalid cert:
+        @settings.intermediate_certificates = [ruby_saml_cert_text, read_certificate("formatted_certificate")]
+        assert_raises(OpenSSL::X509::CertificateError) {
+          @settings.get_sp_intermediate_certs
+        }
+      end
+    end
+
     describe "#get_sp_key" do
       it "returns nil when the private key is an empty string" do
         @settings = OneLogin::RubySaml::Settings.new
