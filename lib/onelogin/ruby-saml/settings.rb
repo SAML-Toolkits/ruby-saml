@@ -134,12 +134,7 @@ module OneLogin
       def get_sp_intermediate_certs
         return nil if intermediate_certs.nil? || intermediate_certs.empty?
 
-        intermediate_certs = []
-        idp_intermediate_certs.each do |intermediate_cert|
-          intermediate_certs << get_cert(intermediate_cert)
-        end
-
-        intermediate_certs
+        idp_intermediate_certs.map { |intermediate_cert| get_cert(intermediate_cert) }
       end
 
       # @return [OpenSSL::PKey::RSA] Build the SP private from the settings (previously format it)
