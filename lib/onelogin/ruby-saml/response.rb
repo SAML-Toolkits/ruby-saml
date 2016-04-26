@@ -448,6 +448,10 @@ module OneLogin
           return append_error("Found an unexpected number of Signature Element. SAML Response rejected")
         end
 
+        if settings.security[:want_assertions_signed] && !(signed_elements.include? "Assertion")
+          return append_error("The Assertion of the Response is not signed and the SP requires it")
+        end
+
         true
       end
 

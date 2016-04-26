@@ -154,6 +154,7 @@ module OneLogin
           :authn_requests_signed    => false,
           :logout_requests_signed   => false,
           :logout_responses_signed  => false,
+          :want_assertions_signed   => false,
           :metadata_signed          => false,
           :embed_sign               => false,
           :digest_method            => XMLSecurity::Document::SHA1,

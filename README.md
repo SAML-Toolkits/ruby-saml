@@ -386,7 +386,10 @@ The settings related to sign are stored in the `security` attribute of the setti
 ```ruby
   settings.security[:authn_requests_signed]   = true     # Enable or not signature on AuthNRequest
   settings.security[:logout_requests_signed]  = true     # Enable or not signature on Logout Request
-  settings.security[:logout_responses_signed] = true     # Enable or not signature on Logout Response
+  settings.security[:logout_responses_signed] = true     # Enable or not 
+  signature on Logout Response
+  settings.security[:want_assertions_signed]  = true     # Enable or not 
+  the requirement of signed assertion
   settings.security[:metadata_signed]         = true     # Enable or not signature on Metadata
 
   settings.security[:digest_method]    = XMLSecurity::Document::SHA1
