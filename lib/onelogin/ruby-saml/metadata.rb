@@ -32,21 +32,13 @@ module OneLogin
             "WantAssertionsSigned" => settings.security[:want_assertions_signed],
         }
 
-        # Add KeyDescriptor if messages will be signed / encrypted
         cert = settings.get_sp_cert
         if cert
-          cert_text = Base64.encode64(cert.to_der).gsub("\n", '')
-          kd = sp_sso.add_element "md:KeyDescriptor", { "use" => "signing" }
-          ki = kd.add_element "ds:KeyInfo", {"xmlns:ds" => "http://www.w3.org/2000/09/xmldsig#"}
-          xd = ki.add_element "ds:X509Data"
-          xc = xd.add_element "ds:X509Certificate"
-          xc.text = cert_text
+          sp_cert_text = get_cert_text(cert)
 
-          kd2 = sp_sso.add_element "md:KeyDescriptor", { "use" => "encryption" }
-          ki2 = kd2.add_element "ds:KeyInfo", {"xmlns:ds" => "http://www.w3.org/2000/09/xmldsig#"}
-          xd2 = ki2.add_element "ds:X509Data"
-          xc2 = xd2.add_element "ds:X509Certificate"
-          xc2.text = cert_text
+          add_sp_cert(sp_sso, "signing", sp_cert_text)
+          add_sp_cert(sp_sso, "encryption", sp_cert_text)
+
         end
 
         root.attributes["ID"] = "_" + UUID.new.generate
@@ -116,6 +108,21 @@ module OneLogin
         end
 
         return ret
+      end
+
+      private
+
+      def get_cert_text(cert)
+        Base64.encode64(cert.to_der).gsub("\n", '')
+      end
+
+      def add_sp_cert(sp_sso_descriptor, use, cert_text)
+        # Add KeyDescriptor if messages will be signed / encrypted:
+        kd = sp_sso_descriptor.add_element "md:KeyDescriptor", { "use" => use }
+        ki = kd.add_element "ds:KeyInfo", { "xmlns:ds" => "http://www.w3.org/2000/09/xmldsig#" }
+        xd = ki.add_element "ds:X509Data"
+        xc = xd.add_element "ds:X509Certificate"
+        xc.text = cert_text
       end
     end
   end
