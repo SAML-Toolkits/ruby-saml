@@ -33,6 +33,7 @@ We created a demo project for Rails4 that uses the latest version of this librar
 ### Supported versions of Ruby
 * 1.8.7
 * 1.9.x
+* 2.0.x
 * 2.1.x
 * 2.2.x
 * JRuby 1.7.19
