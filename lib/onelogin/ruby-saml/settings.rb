@@ -119,8 +119,7 @@ module OneLogin
       def get_idp_cert
         return nil if idp_cert.nil? || idp_cert.empty?
 
-        formatted_cert = OneLogin::RubySaml::Utils.format_cert(idp_cert)
-        OpenSSL::X509::Certificate.new(formatted_cert)
+        get_cert(idp_cert)
       end
 
       # @return [OpenSSL::X509::Certificate|nil] Build the SP certificate from the settings (previously format it)
@@ -128,8 +127,7 @@ module OneLogin
       def get_sp_cert
         return nil if certificate.nil? || certificate.empty?
 
-        formatted_cert = OneLogin::RubySaml::Utils.format_cert(certificate)
-        OpenSSL::X509::Certificate.new(formatted_cert)
+        get_cert(certificate)
       end
 
       # @return [OpenSSL::PKey::RSA] Build the SP private from the settings (previously format it)
@@ -162,6 +160,14 @@ module OneLogin
         }.freeze,
         :double_quote_xml_attribute_values         => false,
       }.freeze
+    end
+
+    # @param cert_text [String] The original certificate text
+    # @return [OpenSSL::X509::Certificate|nil] The formatted X509 certificate
+    #
+    def get_cert(cert_text)
+      formatted_cert = OneLogin::RubySaml::Utils.format_cert(cert_text)
+      OpenSSL::X509::Certificate.new(formatted_cert)
     end
   end
 end
