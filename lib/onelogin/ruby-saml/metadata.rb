@@ -39,6 +39,13 @@ module OneLogin
           add_sp_cert(sp_sso, "signing", sp_cert_text)
           add_sp_cert(sp_sso, "encryption", sp_cert_text)
 
+          intermediate_certs = settings.get_sp_intermediate_certs
+          if intermediate_certs
+            intermediate_certs.each do |intermediate_cert|
+              intermediate_cert_text = get_cert_text(intermediate_cert)
+              add_sp_cert(sp_sso, "encryption", intermediate_cert_text)
+            end
+          end
         end
 
         root.attributes["ID"] = "_" + UUID.new.generate

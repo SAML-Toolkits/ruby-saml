@@ -45,6 +45,7 @@ module OneLogin
       attr_accessor :attributes_index
       attr_accessor :force_authn
       attr_accessor :certificate
+      attr_accessor :intermediate_certificates
       attr_accessor :private_key
       attr_accessor :authn_context
       attr_accessor :authn_context_comparison
@@ -128,6 +129,17 @@ module OneLogin
         return nil if certificate.nil? || certificate.empty?
 
         get_cert(certificate)
+      end
+
+      def get_sp_intermediate_certs
+        return nil if intermediate_certs.nil? || intermediate_certs.empty?
+
+        intermediate_certs = []
+        idp_intermediate_certs.each do |intermediate_cert|
+          intermediate_certs << get_cert(intermediate_cert)
+        end
+
+        intermediate_certs
       end
 
       # @return [OpenSSL::PKey::RSA] Build the SP private from the settings (previously format it)
