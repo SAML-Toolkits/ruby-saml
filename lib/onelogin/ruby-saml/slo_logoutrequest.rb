@@ -37,10 +37,10 @@ module OneLogin
         @options  = options
 
         @soft = true
-        if !options.empty? && !options[:settings].nil?
+        unless options[:settings].nil?
           @settings = options[:settings]
-          if !options[:settings].soft.nil? 
-            @soft = options[:settings].soft
+          unless @settings.soft.nil?
+            @soft = @settings.soft
           end
         end
 
@@ -213,7 +213,7 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_issuer
-        return true if settings.idp_entity_id.nil? || issuer.nil?
+        return true if settings.nil? || settings.idp_entity_id.nil? || issuer.nil?
 
         unless URI.parse(issuer) == URI.parse(settings.idp_entity_id)
           return append_error("Doesn't match the issuer, expected: <#{settings.idp_entity_id}>, but was: <#{issuer}>")

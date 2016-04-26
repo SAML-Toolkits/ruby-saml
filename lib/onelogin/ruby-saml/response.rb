@@ -45,10 +45,10 @@ module OneLogin
         @options = options
 
         @soft = true
-        if !options.empty? && !options[:settings].nil?
+        unless options[:settings].nil?
           @settings = options[:settings]
-          if !options[:settings].soft.nil? 
-            @soft = options[:settings].soft
+          unless @settings.soft.nil?
+            @soft = @settings.soft
           end
         end
 
