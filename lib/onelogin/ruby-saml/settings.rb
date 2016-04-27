@@ -132,7 +132,7 @@ module OneLogin
       end
 
       def get_sp_intermediate_certs
-        return nil if intermediate_certs.nil? || intermediate_certs.empty?
+        return nil if intermediate_certificates.nil? || intermediate_certificates.empty?
 
         idp_intermediate_certs.map { |intermediate_cert| get_cert(intermediate_cert) }
       end
