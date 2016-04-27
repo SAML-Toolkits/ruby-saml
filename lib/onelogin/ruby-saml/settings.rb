@@ -167,14 +167,14 @@ module OneLogin
         }.freeze,
         :double_quote_xml_attribute_values         => false,
       }.freeze
-    end
 
-    # @param cert_text [String] The original certificate text
-    # @return [OpenSSL::X509::Certificate|nil] The formatted X509 certificate
-    #
-    def get_cert(cert_text)
-      formatted_cert = OneLogin::RubySaml::Utils.format_cert(cert_text)
-      OpenSSL::X509::Certificate.new(formatted_cert)
+      # @param cert_text [String] The original certificate text
+      # @return [OpenSSL::X509::Certificate|nil] The formatted X509 certificate
+      #
+      def get_cert(cert_text)
+        formatted_cert = OneLogin::RubySaml::Utils.format_cert(cert_text)
+        OpenSSL::X509::Certificate.new(formatted_cert)
+      end
     end
   end
 end
