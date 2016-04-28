@@ -1,8 +1,8 @@
-require "uuid"
 require "rexml/document"
 
 require "onelogin/ruby-saml/logging"
 require "onelogin/ruby-saml/saml_message"
+require "onelogin/ruby-saml/utils"
 
 # Only supports SAML 2.0
 module OneLogin
@@ -20,7 +20,7 @@ module OneLogin
       # Asigns an ID, a random uuid.
       #
       def initialize
-        @uuid = "_" + UUID.new.generate
+        @uuid = OneLogin::RubySaml::Utils.uuid
       end
 
       # Creates the AuthNRequest string.
