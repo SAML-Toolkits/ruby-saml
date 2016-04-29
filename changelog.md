@@ -1,5 +1,19 @@
 # RubySaml Changelog
 
+### 1.2.0 (April 29, 2016)
+* [#269](https://github.com/onelogin/ruby-saml/pull/269) Refactor error handling; allow collect error messages when soft=true (normal validation stop after find first error)
+* [#289](https://github.com/onelogin/ruby-saml/pull/289) Remove uuid gem in favor of SecureRandom
+* [#297](https://github.com/onelogin/ruby-saml/pull/297) Implement EncryptedKey RetrievalMethod support
+* [#298](https://github.com/onelogin/ruby-saml/pull/298) IDP metadata parsing improved: binding parsing, fingerprint_algorithm support)
+* [#299](https://github.com/onelogin/ruby-saml/pull/299) Make 'signing' at KeyDescriptor optional
+* [#308](https://github.com/onelogin/ruby-saml/pull/308) Support name_id_format on SAMLResponse
+* [#315](https://github.com/onelogin/ruby-saml/pull/315) Support for canonicalization with comments
+* [#316](https://github.com/onelogin/ruby-saml/pull/316) Fix Misspelling of transation_id to transaction_id
+* [#321](https://github.com/onelogin/ruby-saml/pull/321) Support Attribute Names on IDPSSODescriptor parser
+* Changes on empty URI of Signature reference management
+* [#320](https://github.com/onelogin/ruby-saml/pull/320) Dont mutate document to fix lack of reference URI 
+* [#306](https://github.com/onelogin/ruby-saml/pull/306) Support WantAssertionsSigned
+
 ### 1.1.2 (February 15, 2016)
 * Improve signature validation. Add tests.
  [#302](https://github.com/onelogin/ruby-saml/pull/302) Add Destination validation.
