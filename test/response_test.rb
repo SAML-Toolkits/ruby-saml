@@ -396,6 +396,16 @@ class RubySamlTest < Minitest::Test
           assert_empty response_without_reference_uri.errors
           assert 'saml@user.com', response_without_reference_uri.attributes['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress']
         end
+
+        it "collect errors when collect_errors=true" do
+          settings.idp_cert = ruby_saml_cert_text
+          settings.issuer = 'invalid'
+          response_invalid_subjectconfirmation_recipient.settings = settings
+          collect_errors = true
+          response_invalid_subjectconfirmation_recipient.is_valid?(collect_errors)
+          assert_includes response_invalid_subjectconfirmation_recipient.errors, "invalid is not a valid audience for this Response - Valid audiences: http://stuff.com/endpoints/metadata.php"
+          assert_includes response_invalid_subjectconfirmation_recipient.errors, "Invalid Signature on SAML Response"
+        end
       end
     end
 

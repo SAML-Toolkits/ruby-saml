@@ -131,6 +131,15 @@ class RubySamlTest < Minitest::Test
           assert_includes logoutresponse.errors, "Doesn't match the issuer, expected: <#{logoutresponse.settings.idp_entity_id}>, but was: <http://app.muda.no>"
         end
 
+        it "collect errors when collect_errors=true" do          
+          settings.idp_entity_id = 'http://invalid.issuer.example.com/'
+          logoutresponse = OneLogin::RubySaml::Logoutresponse.new(unsuccessful_logout_response_document, settings)
+          collect_errors = true
+          assert !logoutresponse.validate(collect_errors)
+          assert_includes logoutresponse.errors, "Bad status code. Expected <urn:oasis:names:tc:SAML:2.0:status:Success>, but was: <urn:oasis:names:tc:SAML:2.0:status:Requester>"
+          assert_includes logoutresponse.errors, "Doesn't match the issuer, expected: <#{logoutresponse.settings.idp_entity_id}>, but was: <http://app.muda.no>"
+        end
+
       end
 
       describe "when soft=false" do

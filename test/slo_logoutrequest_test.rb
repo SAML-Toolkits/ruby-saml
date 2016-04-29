@@ -52,10 +52,37 @@ class RubySamlTest < Minitest::Test
         assert_empty logout_request.errors
       end
 
+      it "collect errors when collect_errors=true" do
+        settings.idp_entity_id = 'http://idp.example.com/invalid'
+        settings.idp_slo_target_url = "http://example.com?field=value"
+        settings.security[:logout_requests_signed] = true
+        settings.security[:embed_sign] = false
+        settings.certificate = ruby_saml_cert_text
+        settings.private_key = ruby_saml_key_text
+        settings.idp_cert = ruby_saml_cert_text
+        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+        params = {}
+        params['SAMLRequest'] = logout_request_deflated_base64
+        params['RelayState'] = 'http://invalid.example.com'
+        params['Signature'] = 'invalid_signature'
+        params['SigAlg'] = XMLSecurity::Document::RSA_SHA1
+        options = {}
+        options[:get_params] = params
+
+        logout_request_sign_test = OneLogin::RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
+        logout_request_sign_test.settings = settings
+
+        collect_errors = true
+        assert !logout_request_sign_test.is_valid?(collect_errors)
+        assert_includes logout_request_sign_test.errors,  "Invalid Signature on Logout Request"
+        assert_includes logout_request_sign_test.errors,  "Doesn't match the issuer, expected: <http://idp.example.com/invalid>, but was: <https://app.onelogin.com/saml/metadata/SOMEACCOUNT>"
+      end
+
       it "raise error for invalid xml" do
         invalid_logout_request.soft = false
         assert_raises(OneLogin::RubySaml::ValidationError) { invalid_logout_request.is_valid? }
       end
+
     end
 
     describe "#nameid" do
@@ -245,7 +272,7 @@ class RubySamlTest < Minitest::Test
       it "return false when invalid RSA_SHA1 Signature" do
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
         params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
-        params['RelayState'] = 'http://invalid.exampcle.com'
+        params['RelayState'] = 'http://invalid.example.com'
         params[:RelayState] = params['RelayState']
         options = {}
         options[:get_params] = params
@@ -259,7 +286,7 @@ class RubySamlTest < Minitest::Test
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
         settings.soft = false
         params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
-        params['RelayState'] = 'http://invalid.exampcle.com'
+        params['RelayState'] = 'http://invalid.example.com'
         params[:RelayState] = params['RelayState']
         options = {}
         options[:get_params] = params
