@@ -10,12 +10,10 @@ module OneLogin
     # SAML2 Logout Response (SLO IdP initiated, Parser)
     #
     class Logoutresponse < SamlMessage
+      include ErrorHandling
 
       # OneLogin::RubySaml::Settings Toolkit settings
       attr_accessor :settings
-
-      # Array with the causes
-      attr_accessor :errors
 
       attr_reader :document
       attr_reader :response
@@ -45,18 +43,6 @@ module OneLogin
         @options = options
         @response = decode_raw_saml(response)
         @document = XMLSecurity::SignedDocument.new(@response)
-      end
-
-      # Append the cause to the errors array, and based on the value of soft, return false or raise
-      # an exception
-      def append_error(error_msg)
-        @errors << error_msg
-        return soft ? false : validation_error(error_msg)
-      end
-
-      # Reset the errors array
-      def reset_errors!
-        @errors = []
       end
 
       # Checks if the Status has the "Success" code
@@ -117,18 +103,30 @@ module OneLogin
       end
 
       # Aux function to validate the Logout Response
+      # @param collect_errors [Boolean] Stop validation when first error appears or keep validating. (if soft=true)
       # @return [Boolean] TRUE if the SAML Response is valid
       # @raise [ValidationError] if soft == false and validation fails
       #
-      def validate
+      def validate(collect_errors = false)
         reset_errors!
 
-        valid_state? &&
-        validate_success_status &&
-        validate_structure &&
-        valid_in_response_to? &&
-        valid_issuer? &&
-        validate_signature
+        if collect_errors
+          valid_state?
+          validate_success_status
+          validate_structure
+          valid_in_response_to?
+          valid_issuer?
+          validate_signature
+
+          @errors.empty?
+        else
+          valid_state? &&
+          validate_success_status &&
+          validate_structure &&
+          valid_in_response_to? &&
+          valid_issuer? &&
+          validate_signature
+        end
       end
 
       private

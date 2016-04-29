@@ -11,12 +11,10 @@ module OneLogin
     # SAML2 Logout Request (SLO IdP initiated, Parser)
     #
     class SloLogoutrequest < SamlMessage
+      include ErrorHandling
 
       # OneLogin::RubySaml::Settings Toolkit settings
       attr_accessor :settings
-
-      # Array with the causes [Array of strings]
-      attr_accessor :errors
 
       attr_reader :document
       attr_reader :request
@@ -32,10 +30,10 @@ module OneLogin
       # @raise [ArgumentError] If Request is nil
       #
       def initialize(request, options = {})
-        @errors = []
         raise ArgumentError.new("Request cannot be nil") if request.nil?
-        @options  = options
 
+        @errors = []
+        @options = options
         @soft = true
         unless options[:settings].nil?
           @settings = options[:settings]
@@ -48,23 +46,12 @@ module OneLogin
         @document = REXML::Document.new(@request)
       end
 
-      # Append the cause to the errors array, and based on the value of soft, return false or raise
-      # an exception
-      def append_error(error_msg)
-        @errors << error_msg
-        return soft ? false : validation_error(error_msg)
-      end
-
-      # Reset the errors array
-      def reset_errors!
-        @errors = []
-      end
-
       # Validates the Logout Request with the default values (soft = true)
+      # @param collect_errors [Boolean] Stop validation when first error appears or keep validating.
       # @return [Boolean] TRUE if the Logout Request is valid
       #
-      def is_valid?
-        validate
+      def is_valid?(collect_errors = false)
+        validate(collect_errors)
       end
 
       # @return [String] Gets the NameID of the Logout Request.
@@ -132,19 +119,32 @@ module OneLogin
       private
 
       # Hard aux function to validate the Logout Request
+      # @param collect_errors [Boolean] Stop validation when first error appears or keep validating. (if soft=true)
       # @return [Boolean] TRUE if the Logout Request is valid
       # @raise [ValidationError] if soft == false and validation fails
       #
-      def validate
+      def validate(collect_errors = false)
         reset_errors!
 
-        validate_request_state &&
-        validate_id &&
-        validate_version &&        
-        validate_structure &&
-        validate_not_on_or_after &&
-        validate_issuer &&
-        validate_signature
+        if collect_errors
+          validate_request_state
+          validate_id
+          validate_version
+          validate_structure
+          validate_not_on_or_after
+          validate_issuer
+          validate_signature
+
+          @errors.empty?
+        else
+          validate_request_state &&
+          validate_id &&
+          validate_version &&
+          validate_structure &&
+          validate_not_on_or_after &&
+          validate_issuer &&
+          validate_signature
+        end
       end
 
       # Validates that the Logout Request contains an ID
@@ -230,7 +230,7 @@ module OneLogin
         return true if options.nil?
         return true unless options.has_key? :get_params
         return true unless options[:get_params].has_key? 'Signature'
-        return true if settings.nil? || settings.get_idp_cert.nil?
+        return true if settings.get_idp_cert.nil?
 
         query_string = OneLogin::RubySaml::Utils.build_query(
           :type        => 'SAMLRequest',

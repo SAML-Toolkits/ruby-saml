@@ -11,6 +11,8 @@ module OneLogin
     # SAML2 Authentication Response. SAML Response
     #
     class Response < SamlMessage
+      include ErrorHandling
+
       ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion"
       PROTOCOL  = "urn:oasis:names:tc:SAML:2.0:protocol"
       DSIG      = "http://www.w3.org/2000/09/xmldsig#"
@@ -20,9 +22,6 @@ module OneLogin
 
       # OneLogin::RubySaml::Settings Toolkit settings
       attr_accessor :settings
-
-      # Array with the causes [Array of strings]
-      attr_accessor :errors
 
       attr_reader :document
       attr_reader :decrypted_document
@@ -39,11 +38,10 @@ module OneLogin
       #                          or :matches_request_id that will validate that the response matches the ID of the request,
       #                          or skip the subject confirmation validation with the :skip_subject_confirmation option
       def initialize(response, options = {})
-        @errors = []
-
         raise ArgumentError.new("Response cannot be nil") if response.nil?
-        @options = options
 
+        @errors = []
+        @options = options
         @soft = true
         unless options[:settings].nil?
           @settings = options[:settings]
@@ -60,23 +58,12 @@ module OneLogin
         end
       end
 
-      # Append the cause to the errors array, and based on the value of soft, return false or raise
-      # an exception
-      def append_error(error_msg)
-        @errors << error_msg
-        return soft ? false : validation_error(error_msg)
-      end
-
-      # Reset the errors array
-      def reset_errors!
-        @errors = []
-      end
-
       # Validates the SAML Response with the default values (soft = true)
+      # @param collect_errors [Boolean] Stop validation when first error appears or keep validating. (if soft=true)
       # @return [Boolean] TRUE if the SAML Response is valid
       #
-      def is_valid?
-        validate
+      def is_valid?(collect_errors = false)
+        validate(collect_errors)
       end
 
       # @return [String] the NameID provided by the SAML response from the IdP.
@@ -297,28 +284,48 @@ module OneLogin
       private
 
       # Validates the SAML Response (calls several validation methods)
+      # @param collect_errors [Boolean] Stop validation when first error appears or keep validating. (if soft=true)
       # @return [Boolean] True if the SAML Response is valid, otherwise False if soft=True
       # @raise [ValidationError] if soft == false and validation fails
       #
-      def validate
+      def validate(collect_errors = false)
         reset_errors!
 
-        validate_response_state &&
-        validate_version &&
-        validate_id &&
-        validate_success_status &&
-        validate_num_assertion &&
-        validate_no_encrypted_attributes &&
-        validate_signed_elements &&
-        validate_structure &&
-        validate_in_response_to &&
-        validate_conditions &&
-        validate_audience &&
-        validate_destination &&
-        validate_issuer &&
-        validate_session_expiration &&
-        validate_subject_confirmation &&
-        validate_signature
+        if collect_errors
+          return false unless validate_response_state
+          validate_version
+          validate_id
+          validate_success_status
+          validate_num_assertion
+          validate_no_encrypted_attributes
+          validate_signed_elements
+          validate_structure
+          validate_in_response_to
+          validate_conditions
+          validate_audience
+          validate_issuer
+          validate_session_expiration
+          validate_subject_confirmation
+          validate_signature
+          @errors.empty?
+        else
+          validate_response_state &&
+          validate_version &&
+          validate_id &&
+          validate_success_status &&
+          validate_num_assertion &&
+          validate_no_encrypted_attributes &&
+          validate_signed_elements &&
+          validate_structure &&
+          validate_in_response_to &&
+          validate_conditions &&
+          validate_audience &&
+          validate_destination &&
+          validate_issuer &&
+          validate_session_expiration &&
+          validate_subject_confirmation &&
+          validate_signature
+        end
       end
 
 
@@ -708,7 +715,7 @@ module OneLogin
       #
       def generate_decrypted_document
         if settings.nil? || !settings.get_sp_key
-          validation_error('An EncryptedAssertion found and no SP private key found on the settings to decrypt it. Be sure you provided the :settings parameter at the initialize method')
+          raise ValidationError.new('An EncryptedAssertion found and no SP private key found on the settings to decrypt it. Be sure you provided the :settings parameter at the initialize method')
         end
 
         # Marshal at Ruby 1.8.7 throw an Exception
@@ -774,7 +781,7 @@ module OneLogin
       #
       def decrypt_element(encrypt_node, rgrex)
         if settings.nil? || !settings.get_sp_key
-          return validation_error('An ' + encrypt_node.name + ' found and no SP private key found on the settings to decrypt it')
+          raise ValidationError.new('An ' + encrypt_node.name + ' found and no SP private key found on the settings to decrypt it')
         end
 
         elem_plaintext = OneLogin::RubySaml::Utils.decrypt_data(encrypt_node, settings.get_sp_key)
