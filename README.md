@@ -1,11 +1,16 @@
 # Ruby SAML [![Build Status](https://secure.travis-ci.org/onelogin/ruby-saml.png)](http://travis-ci.org/onelogin/ruby-saml) [![Coverage Status](https://coveralls.io/repos/onelogin/ruby-saml/badge.svg?branch=master%0A)](https://coveralls.io/r/onelogin/ruby-saml?branch=master%0A) [![Gem Version](https://badge.fury.io/rb/ruby-saml.svg)](http://badge.fury.io/rb/ruby-saml)
 
+## Updating from 1.1.x to 1.2.X
+
+Version `1.2` adds IDP metadata parsing improvements, uuid deprecation in favour of SecureRandom, refactor error handling and some minor improvements
+
+There is no compatibility issue detected.
+
+For more details, please review [the changelog](changelog.md).
 
 ## Updating from 1.0.x to 1.1.X
 
 Version `1.1` adds some improvements on signature validation and solves some namespace conflicts.
-
-For more details, please review [the changelog](changelog.md).
 
 ## Updating from 0.9.x to 1.0.X
 
