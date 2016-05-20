@@ -203,7 +203,7 @@ class MetadataTest < Minitest::Test
         it "creates a signed metadata with specified digest and signature methods" do
           assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>]m, xml_text
           assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], xml_text
-          assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#sha512'/>], xml_text
+          assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmlenc#sha512'/>], xml_text
 
           signed_metadata_2 = XMLSecurity::SignedDocument.new(xml_text)
 

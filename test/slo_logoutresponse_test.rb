@@ -78,7 +78,7 @@ class SloLogoutresponseTest < Minitest::Test
         response_xml = Base64.decode64(params["SAMLResponse"])
         assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], response_xml
         assert_match /<ds:SignatureMethod Algorithm='http:\/\/www.w3.org\/2001\/04\/xmldsig-more#rsa-sha256'\/>/, response_xml
-        assert_match /<ds:DigestMethod Algorithm='http:\/\/www.w3.org\/2001\/04\/xmldsig-more#sha256'\/>/, response_xml
+        assert_match /<ds:DigestMethod Algorithm='http:\/\/www.w3.org\/2001\/04\/xmlenc#sha256'\/>/, response_xml
       end
 
       it "create a signed logout response with 512 digest and signature method RSA_SHA384" do
@@ -91,7 +91,7 @@ class SloLogoutresponseTest < Minitest::Test
         response_xml = Base64.decode64(params["SAMLResponse"])
         assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], response_xml
         assert_match /<ds:SignatureMethod Algorithm='http:\/\/www.w3.org\/2001\/04\/xmldsig-more#rsa-sha384'\/>/, response_xml
-        assert_match /<ds:DigestMethod Algorithm='http:\/\/www.w3.org\/2001\/04\/xmldsig-more#sha512'\/>/, response_xml
+        assert_match /<ds:DigestMethod Algorithm='http:\/\/www.w3.org\/2001\/04\/xmlenc#sha512'\/>/, response_xml
       end
     end
 
