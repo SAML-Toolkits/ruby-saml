@@ -110,22 +110,20 @@ module OneLogin
       def validate(collect_errors = false)
         reset_errors!
 
-        if collect_errors
-          valid_state?
-          validate_success_status
-          validate_structure
-          valid_in_response_to?
-          valid_issuer?
-          validate_signature
+        validations = [
+          :valid_state?,
+          :validate_success_status,
+          :validate_structure,
+          :valid_in_response_to?,
+          :valid_issuer?,
+          :validate_signature
+        ]
 
+        if collect_errors
+          validations.each { |validation| send(validation) }
           @errors.empty?
         else
-          valid_state? &&
-          validate_success_status &&
-          validate_structure &&
-          valid_in_response_to? &&
-          valid_issuer? &&
-          validate_signature
+          validations.all? { |validation| send(validation) }
         end
       end
 

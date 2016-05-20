@@ -126,24 +126,21 @@ module OneLogin
       def validate(collect_errors = false)
         reset_errors!
 
-        if collect_errors
-          validate_request_state
-          validate_id
-          validate_version
-          validate_structure
-          validate_not_on_or_after
-          validate_issuer
-          validate_signature
+        validations = [
+          :validate_request_state,
+          :validate_id,
+          :validate_version,
+          :validate_structure,
+          :validate_not_on_or_after,
+          :validate_issuer,
+          :validate_signature
+        ]
 
+        if collect_errors
+          validations.each { |validation| send(validation) }
           @errors.empty?
         else
-          validate_request_state &&
-          validate_id &&
-          validate_version &&
-          validate_structure &&
-          validate_not_on_or_after &&
-          validate_issuer &&
-          validate_signature
+          validations.all? { |validation| send(validation) }
         end
       end
 
