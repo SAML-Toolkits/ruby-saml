@@ -290,41 +290,32 @@ module OneLogin
       #
       def validate(collect_errors = false)
         reset_errors!
+        return false unless validate_response_state
+
+        validations = [
+          :validate_response_state,
+          :validate_version,
+          :validate_id,
+          :validate_success_status,
+          :validate_num_assertion,
+          :validate_no_encrypted_attributes,
+          :validate_signed_elements,
+          :validate_structure,
+          :validate_in_response_to,
+          :validate_conditions,
+          :validate_audience,
+          :validate_destination,
+          :validate_issuer,
+          :validate_session_expiration,
+          :validate_subject_confirmation,
+          :validate_signature
+        ]
 
         if collect_errors
-          return false unless validate_response_state
-          validate_version
-          validate_id
-          validate_success_status
-          validate_num_assertion
-          validate_no_encrypted_attributes
-          validate_signed_elements
-          validate_structure
-          validate_in_response_to
-          validate_conditions
-          validate_audience
-          validate_issuer
-          validate_session_expiration
-          validate_subject_confirmation
-          validate_signature
+          validations.each { |validation| send(validation) }
           @errors.empty?
         else
-          validate_response_state &&
-          validate_version &&
-          validate_id &&
-          validate_success_status &&
-          validate_num_assertion &&
-          validate_no_encrypted_attributes &&
-          validate_signed_elements &&
-          validate_structure &&
-          validate_in_response_to &&
-          validate_conditions &&
-          validate_audience &&
-          validate_destination &&
-          validate_issuer &&
-          validate_session_expiration &&
-          validate_subject_confirmation &&
-          validate_signature
+          validations.all? { |validation| send(validation) }
         end
       end
 
