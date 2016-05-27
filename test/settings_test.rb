@@ -13,6 +13,7 @@ class SettingsTest < Minitest::Test
       accessors = [
         :idp_entity_id, :idp_sso_target_url, :idp_slo_target_url, :idp_cert, :idp_cert_fingerprint, :idp_cert_fingerprint_algorithm, :idp_attribute_names,
         :issuer, :assertion_consumer_service_url, :assertion_consumer_service_binding,
+        :assertion_consumer_service_index,
         :single_logout_service_url, :single_logout_service_binding,
         :sp_name_qualifier, :name_identifier_format, :name_identifier_value,
         :sessionindex, :attributes_index, :passive, :force_authn,
@@ -34,6 +35,7 @@ class SettingsTest < Minitest::Test
     it "create settings from hash" do
       config = {
           :assertion_consumer_service_url => "http://app.muda.no/sso",
+          :assertion_consumer_service_index => "5",
           :issuer => "http://muda.no",
           :sp_name_qualifier => "http://sso.muda.no",
           :idp_sso_target_url => "http://sso.muda.no/sso",

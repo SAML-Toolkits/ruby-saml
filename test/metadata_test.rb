@@ -15,6 +15,7 @@ class MetadataTest < Minitest::Test
       settings.issuer = "https://example.com"
       settings.name_identifier_format = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
       settings.assertion_consumer_service_url = "https://foo.example/saml/consume"
+      settings.assertion_consumer_service_index = "5"
     end
 
     it "generates Pretty Print Service Provider Metadata" do
@@ -33,6 +34,7 @@ class MetadataTest < Minitest::Test
 
       assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST", acs.attribute("Binding").value
       assert_equal "https://foo.example/saml/consume", acs.attribute("Location").value      
+      assert_equal "5", acs.attribute("index").value
 
       assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
     end

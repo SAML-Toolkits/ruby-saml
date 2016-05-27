@@ -69,7 +69,7 @@ module OneLogin
               "Binding" => settings.assertion_consumer_service_binding,
               "Location" => settings.assertion_consumer_service_url,
               "isDefault" => true,
-              "index" => 0
+              "index" => settings.assertion_consumer_service_index
           }
         end
 
