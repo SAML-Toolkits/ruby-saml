@@ -56,6 +56,21 @@ class IdpMetadataParserTest < Minitest::Test
       assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", settings.idp_cert_fingerprint
     end
 
+    it "uses settings options as hash for overrides" do
+      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata = read_response("idp_descriptor.xml")
+      settings = idp_metadata_parser.parse(idp_metadata, {
+        :settings => {
+          :security => {
+            :digest_method => XMLSecurity::Document::SHA256,
+            :signature_method => XMLSecurity::Document::RSA_SHA256
+          }
+        }
+      })
+      assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", settings.idp_cert_fingerprint
+      assert_equal XMLSecurity::Document::SHA256, settings.security[:digest_method]
+      assert_equal XMLSecurity::Document::RSA_SHA256, settings.security[:signature_method]
+    end
   end
 
   describe "download and parse IdP descriptor file" do

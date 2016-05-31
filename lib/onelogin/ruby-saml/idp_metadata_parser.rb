@@ -27,7 +27,7 @@ module OneLogin
       # IdP values
       #
       # @param (see IdpMetadataParser#get_idp_metadata)
-      # @param options  [Hash]   :settings to provide the OneLogin::RubySaml::Settings object
+      # @param options  [Hash]   :settings to provide the OneLogin::RubySaml::Settings object or an hash for Settings overrides
       # @return (see IdpMetadataParser#get_idp_metadata)
       # @raise (see IdpMetadataParser#get_idp_metadata)
       def parse_remote(url, validate_cert = true, options = {})
@@ -37,12 +37,17 @@ module OneLogin
 
       # Parse the Identity Provider metadata and update the settings with the IdP values
       # @param idp_metadata [String] 
-      # @param options  [Hash]   :settings to provide the OneLogin::RubySaml::Settings object
+      # @param options  [Hash]   :settings to provide the OneLogin::RubySaml::Settings object or an hash for Settings overrides
       #
       def parse(idp_metadata, options = {})
         @document = REXML::Document.new(idp_metadata)
 
-        (options[:settings] || OneLogin::RubySaml::Settings.new).tap do |settings|
+        settings = options[:settings]
+        if settings.nil? || settings.is_a?(Hash)
+          settings = OneLogin::RubySaml::Settings.new(settings || {})
+        end
+
+        settings.tap do |settings|
           settings.idp_entity_id = idp_entity_id
           settings.name_identifier_format = idp_name_id_format
           settings.idp_sso_target_url = single_signon_service_url(options)
