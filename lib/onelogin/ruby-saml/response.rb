@@ -337,8 +337,15 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails 
       #
       def validate_structure
+        structure_error_msg = "Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd"
         unless valid_saml?(document, soft)
-          return append_error("Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd")
+          return append_error(structure_error_msg)
+        end
+
+        unless decrypted_document.nil?
+          unless valid_saml?(decrypted_document, soft)
+            return append_error(structure_error_msg)
+          end
         end
 
         true
@@ -434,11 +441,44 @@ module OneLogin
           {"ds"=>DSIG}
         )
         signed_elements = []
+        seis = []
+        ids = []
         signature_nodes.each do |signature_node|
           signed_element = signature_node.parent.name
           if signed_element != 'Response' && signed_element != 'Assertion'
             return append_error("Found an unexpected Signature Element. SAML Response rejected")
           end
+
+          if signature_node.parent.attributes['ID'].nil?
+            return append_error("Signed Element must contain ID. SAML Response rejected")
+          end
+
+          id = signature_node.parent.attributes.get_attribute("ID").value
+          if ids.include?(id)
+            return append_error("Duplicated ID. SAML Response rejected")
+          end
+          ids.push(id)
+
+          # Check that reference URI matches the parent ID and no duplicate References or IDs
+          ref = REXML::XPath.first(signature_node, ".//ds:Reference", {"ds"=>DSIG})
+          if ref
+            uri = ref.attributes.get_attribute("URI")
+            if uri && !uri.value.empty?
+              sei = uri.value[1..-1]
+              id = signature_node.parent.attributes.get_attribute("ID").value
+
+              unless sei == id
+                return append_error("Found an invalid Signed Element. SAML Response rejected")
+              end
+
+              if seis.include?(sei)
+                return append_error("Duplicated Reference URI. SAML Response rejected")
+              end
+
+              seis.push(sei)
+            end
+          end
+
           signed_elements << signed_element
         end
 
@@ -614,8 +654,9 @@ module OneLogin
         # otherwise, review if the decrypted assertion contains a signature
         sig_elements = REXML::XPath.match(
           document,
-          "/p:Response/ds:Signature]",
-          { "p" => PROTOCOL, "ds" => DSIG }
+          "/p:Response[@ID=$id]/ds:Signature]",
+          { "p" => PROTOCOL, "ds" => DSIG },
+          { 'id' => document.signed_element_id }
         )
 
         use_original = sig_elements.size == 1 || decrypted_document.nil?
@@ -625,8 +666,9 @@ module OneLogin
         if sig_elements.nil? || sig_elements.size == 0
           sig_elements = REXML::XPath.match(
             doc,
-            "/p:Response/a:Assertion/ds:Signature",
-            {"p" => PROTOCOL, "a" => ASSERTION, "ds"=>DSIG}
+            "/p:Response/a:Assertion[@ID=$id]/ds:Signature",
+            {"p" => PROTOCOL, "a" => ASSERTION, "ds"=>DSIG},
+            { 'id' => doc.signed_element_id }
           )
         end
 
