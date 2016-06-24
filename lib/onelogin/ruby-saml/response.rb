@@ -173,7 +173,7 @@ module OneLogin
           node = REXML::XPath.first(
             document,
             "/p:Response/p:Status/p:StatusCode",
-            { "p" => PROTOCOL, "a" => ASSERTION }
+            { "p" => PROTOCOL }
           )
           node.attributes["Value"] if node && node.attributes
         end
@@ -186,7 +186,7 @@ module OneLogin
           node = REXML::XPath.first(
             document,
             "/p:Response/p:Status/p:StatusMessage",
-            { "p" => PROTOCOL, "a" => ASSERTION }
+            { "p" => PROTOCOL }
           )
           node.text if node
         end
@@ -441,23 +441,23 @@ module OneLogin
           {"ds"=>DSIG}
         )
         signed_elements = []
-        seis = []
-        ids = []
+        verified_seis = []
+        verified_ids = []
         signature_nodes.each do |signature_node|
           signed_element = signature_node.parent.name
           if signed_element != 'Response' && signed_element != 'Assertion'
-            return append_error("Found an unexpected Signature Element. SAML Response rejected")
+            return append_error("Invalid Signature Element '#{signed_element}'. SAML Response rejected")
           end
 
           if signature_node.parent.attributes['ID'].nil?
-            return append_error("Signed Element must contain ID. SAML Response rejected")
+            return append_error("Signed Element must contain an ID. SAML Response rejected")
           end
 
           id = signature_node.parent.attributes.get_attribute("ID").value
-          if ids.include?(id)
+          if verified_ids.include?(id)
             return append_error("Duplicated ID. SAML Response rejected")
           end
-          ids.push(id)
+          verified_ids.push(id)
 
           # Check that reference URI matches the parent ID and no duplicate References or IDs
           ref = REXML::XPath.first(signature_node, ".//ds:Reference", {"ds"=>DSIG})
@@ -465,17 +465,16 @@ module OneLogin
             uri = ref.attributes.get_attribute("URI")
             if uri && !uri.value.empty?
               sei = uri.value[1..-1]
-              id = signature_node.parent.attributes.get_attribute("ID").value
 
               unless sei == id
                 return append_error("Found an invalid Signed Element. SAML Response rejected")
               end
 
-              if seis.include?(sei)
+              if verified_seis.include?(sei)
                 return append_error("Duplicated Reference URI. SAML Response rejected")
               end
 
-              seis.push(sei)
+              verified_seis.push(sei)
             end
           end
 

@@ -1,5 +1,10 @@
 # RubySaml Changelog
 
+### 1.3.0 (June 24, 2016)
+* [Security Fix](https://github.com/onelogin/ruby-saml/commit/a571f52171e6bfd87db59822d1d9e8c38fb3b995) Add extra validations to prevent Signature wrapping attacks
+* Fix XMLSecurity SHA256 and SHA512 uris
+* [#326](https://github.com/onelogin/ruby-saml/pull/326) Fix Destination validation
+
 ### 1.2.0 (April 29, 2016)
 * [#269](https://github.com/onelogin/ruby-saml/pull/269) Refactor error handling; allow collect error messages when soft=true (normal validation stop after find first error)
 * [#289](https://github.com/onelogin/ruby-saml/pull/289) Remove uuid gem in favor of SecureRandom
