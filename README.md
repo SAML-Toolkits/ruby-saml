@@ -56,6 +56,10 @@ We created a demo project for Rails4 that uses the latest version of this librar
 * Do not change rakefile, version, or history.
 * Open a pull request, following [this template](https://gist.github.com/Lordnibbler/11002759).
 
+## Security Guidelines
+
+If you believe you have discovered a security vulnerability in this gem, please report it at https://www.onelogin.com/security with a description. We follow responsible disclosure guidelines, and will work with you to quickly find a resolution.
+
 ## Getting Started
 In order to use the toolkit you will need to install the gem (either manually or using Bundler), and require the library in your Ruby application:
 
