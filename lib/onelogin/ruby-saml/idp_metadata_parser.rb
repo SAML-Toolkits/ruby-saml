@@ -209,7 +209,7 @@ module OneLogin
 
       # @return [String|nil] the SHA-1 fingerpint of the X509Certificate if it exists
       #
-      def fingerprint(fingerprint_algorithm)
+      def fingerprint(fingerprint_algorithm = XMLSecurity::Document::SHA1)
         @fingerprint ||= begin
           if certificate
             cert = OpenSSL::X509::Certificate.new(certificate)
