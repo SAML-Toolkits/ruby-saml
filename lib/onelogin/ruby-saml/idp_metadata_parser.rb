@@ -50,7 +50,6 @@ module OneLogin
           settings.idp_cert = certificate_base64
           settings.idp_cert_fingerprint = fingerprint(settings.idp_cert_fingerprint_algorithm)
           settings.idp_attribute_names = attribute_names
-          settings.idp_cert_fingerprint = fingerprint(settings.idp_cert_fingerprint_algorithm)
         end
       end
 
