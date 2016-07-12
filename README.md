@@ -92,7 +92,7 @@ require 'onelogin/ruby-saml/authrequest'
 
 ### Installation on Ruby 1.8.7
 
-This gem has a dependency on Nokogiri, which dropped support for Ruby 1.8.x in Nokogiri 1.6. When installing this gem on Ruby 1.8.7, you will need to make sure a version of Nokogiri prior to 1.6 is installed or specified if it hasn't been already.
+This gem uses Nokogiri as a dependency, which dropped support for Ruby 1.8.x in Nokogiri 1.6. When installing this gem on Ruby 1.8.7, you will need to make sure a version of Nokogiri prior to 1.6 is installed or specified if it hasn't been already.
 
 Using `Gemfile`
 
@@ -121,7 +121,7 @@ OneLogin::RubySaml::Logging.logger = Logger.new(File.open('/var/log/ruby-saml.lo
 
 ## The Initialization Phase
 
-This is the first request you will get from the identity provider. It will hit your application at a specific URL (that you've announced as being your SAML initialization point). The response to this initialization, is a redirect back to the identity provider, which can look something like this (ignore the saml_settings method call for now):
+This is the first request you will get from the identity provider. It will hit your application at a specific URL that you've announced as your SAML initialization point. The response to this initialization is a redirect back to the identity provider, which can look something like this (ignore the saml_settings method call for now):
 
 ```ruby
 def init
@@ -130,7 +130,7 @@ def init
 end
 ```
 
-Once you've redirected back to the identity provider, it will ensure that the user has been authorized and redirect back to your application for final consumption, this is can look something like this (the authorize_success and authorize_failure methods are specific to your application):
+Once you've redirected back to the identity provider, it will ensure that the user has been authorized and redirect back to your application for final consumption. This can look something like this (the `authorize_success` and `authorize_failure` methods are specific to your application):
 
 ```ruby
 def consume
@@ -147,17 +147,17 @@ def consume
 end
 ```
 
-In the above there are a few assumptions in place, one being that the response.nameid is an email address. This is all handled with how you specify the settings that are in play via the saml_settings method. That could be implemented along the lines of this:
-
-If the assertion of the SAMLResponse is not encrypted, you can initialize the Response without the :settings parameter and set it later,
+In the above there are a few assumptions, one being that `response.nameid` is an email address. This is all handled with how you specify the settings that are in play via the `saml_settings` method. That could be implemented along the lines of this:
 
 ```
 response = OneLogin::RubySaml::Response.new(params[:SAMLResponse])
 response.settings = saml_settings
 ```
-but if the SAMLResponse contains an encrypted assertion, you need to provide the settings in the
-initialize method in order to be able to obtain the decrypted assertion, using the service provider private key in order to decrypt.
-If you don't know what expect, use always the first proposed way (always set the settings on the initialize method).
+
+If the assertion of the SAMLResponse is not encrypted, you can initialize the Response without the `:settings` parameter and set it later.
+If the SAMLResponse contains an encrypted assertion, you need to provide the settings in the
+initialize method in order to obtain the decrypted assertion, using the service provider private key in order to decrypt.
+If you don't know what expect, always use the former (set the settings on initialize).
 
 ```ruby
 def saml_settings
@@ -184,14 +184,14 @@ def saml_settings
 end
 ```
 
-Some assertion validations can be skipped by passing parameters to OneLogin::RubySaml::Response.new().  For example, you can skip the Conditions validation or the SubjectConfirmation validations by initializing the response with different options:
+Some assertion validations can be skipped by passing parameters to `OneLogin::RubySaml::Response.new()`.  For example, you can skip the `Conditions` validation or the `SubjectConfirmation` validations by initializing the response with different options:
 
 ```ruby
 response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], {skip_conditions: true}) # skips conditions
 response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], {skip_subject_confirmation: true}) # skips subject confirmation
 ```
 
-What's left at this point, is to wrap it all up in a controller and point the initialization and consumption URLs in OneLogin at that. A full controller example could look like this:
+All that's left is to wrap everything in a controller and reference it in the initialization and consumption URLs in OneLogin. A full controller example could look like this:
 
 ```ruby
 # This controller expects you to use the URLs /saml/init and /saml/consume in your OneLogin application.
@@ -270,8 +270,8 @@ The following attributes are set:
   * idp_slo_target_url
   * idp_cert_fingerprint
 
-If you are using saml:AttributeStatement to transfer metadata, like the user name, you can access all the attributes through response.attributes. It contains all the saml:AttributeStatement with its 'Name' as a indifferent key the one/more saml:AttributeValue as value. The value returned depends on the value of the
-`single_value_compatibility` (when activate, only one value returned, the first one)
+If you are using `saml:AttributeStatement` to transfer metadata like the user name, you can access all the attributes through `response.attributes`. It contains all the `saml:AttributeStatement`s with its 'Name' as an indifferent key and one or more `saml:AttributeValue`s as values. The value returned depends on the value of the
+`single_value_compatibility` (when activated, only the first value is returned)
 
 ```ruby
 response          = OneLogin::RubySaml::Response.new(params[:SAMLResponse])
@@ -280,7 +280,7 @@ response.settings = saml_settings
 response.attributes[:username]
 ```
 
-Imagine this saml:AttributeStatement
+Imagine this `saml:AttributeStatement`
 
 ```xml
   <saml:AttributeStatement>
@@ -380,15 +380,15 @@ pp(response.attributes.multi(:not_exists))
 # => nil
 ```
 
-The saml:AuthnContextClassRef of the AuthNRequest can be provided by `settings.authn_context` , possible values are described at [SAMLAuthnCxt]. The comparison method can be set using the parameter `settings.authn_context_comparison` (the possible values are: 'exact', 'better', 'maximum' and 'minimum'), 'exact' is the default value.
-If we want to add a saml:AuthnContextDeclRef, define a `settings.authn_context_decl_ref`.
+The `saml:AuthnContextClassRef` of the AuthNRequest can be provided by `settings.authn_context`; possible values are described at [SAMLAuthnCxt]. The comparison method can be set using `settings.authn_context_comparison` parameter. Possible values include: 'exact', 'better', 'maximum' and 'minimum' (default value is 'exact').
+To add a `saml:AuthnContextDeclRef`, define `settings.authn_context_decl_ref`.
 
 
 ## Signing
 
-The Ruby Toolkit supports 2 different kinds of signature: Embeded and as GET parameter
+The Ruby Toolkit supports 2 different kinds of signature: Embeded and `GET` parameters
 
-In order to be able to sign we need first to define the private key and the public cert of the service provider
+In order to be able to sign, define the private key and the public cert of the service provider:
 
 ```ruby
   settings.certificate = "CERTIFICATE TEXT WITH HEAD AND FOOT"
@@ -414,23 +414,23 @@ The settings related to sign are stored in the `security` attribute of the setti
   settings.security[:embed_sign] = false
 ```
 
-Notice that the RelayState parameter is used when creating the Signature on the HTTP-Redirect Binding,
-remember to provide it to the Signature builder if you are sending a GET RelayState parameter or
-Signature validation process will fail at the Identity Provider.
+Notice that the RelayState parameter is used when creating the Signature on the HTTP-Redirect Binding.
+Remember to provide it to the Signature builder if you are sending a `GET RelayState` parameter or the 
+signature validation process will fail at the Identity Provider.
 
 The Service Provider will sign the request/responses with its private key.
 The Identity Provider will validate the sign of the received request/responses with the public x500 cert of the
 Service Provider.
 
-Notice that this toolkit uses 'settings.certificate' and 'settings.private_key' for the sign and the decrypt process.
+Notice that this toolkit uses 'settings.certificate' and 'settings.private_key' for the sign and decrypt processes.
 
-Enable/disable the soft mode by the settings.soft parameter. When is set false, the saml validations errors will raise an exception.
+Enable/disable the soft mode with the `settings.soft` parameter. When set to `false`, saml validations errors will raise an exception.
 
 ## Decrypting
 
 The Ruby Toolkit supports EncryptedAssertion.
 
-In order to be able to decrypt a SAML Response that contains a EncryptedAssertion we need first to define the private key and the public cert of the service provider, and share this with the Identity Provider.
+In order to be able to decrypt a SAML Response that contains a EncryptedAssertion you need define the private key and the public cert of the service provider, then share this with the Identity Provider.
 
 ```ruby
   settings.certificate = "CERTIFICATE TEXT WITH HEAD AND FOOT"
@@ -440,13 +440,13 @@ In order to be able to decrypt a SAML Response that contains a EncryptedAssertio
 The Identity Provider will encrypt the Assertion with the public cert of the Service Provider.
 The Service Provider will decrypt the EncryptedAssertion with its private key.
 
-Notice that this toolkit uses 'settings.certificate' and 'settings.private_key' for the sign and the decrypt process.
+Notice that this toolkit uses 'settings.certificate' and 'settings.private_key' for the sign and decrypt processes.
 
 ## Single Log Out
 
 The Ruby Toolkit supports SP-initiated Single Logout and IdP-Initiated Single Logout.
 
-Here is an example that we could add to our previous controller to generate and send a SAML Logout Request to the IdP
+Here is an example that we could add to our previous controller to generate and send a SAML Logout Request to the IdP:
 
 ```ruby
 # Create a SP initiated SLO
@@ -475,7 +475,7 @@ def sp_logout_request
 end
 ```
 
-and this method process the SAML Logout Response sent by the IdP as reply of the SAML Logout Request
+This method processes the SAML Logout Response sent by the IdP as the reply of the SAML Logout Request:
 
 ```ruby
 # After sending an SP initiated LogoutRequest to the IdP, we need to accept
@@ -510,7 +510,7 @@ def delete_session
 end
 ```
 
-Here is an example that we could add to our previous controller to process a SAML Logout Request from the IdP and reply a SAML Logout Response to the IdP
+Here is an example that we could add to our previous controller to process a SAML Logout Request from the IdP and reply with a SAML Logout Response to the IdP:
 
 ```ruby
 # Method to handle IdP initiated logouts
@@ -576,11 +576,11 @@ end
 
 ## Clock Drift
 
-Server clocks tend to drift naturally. If during validation of the response you get the error "Current time is earlier than NotBefore condition" then this may be due to clock differences between your system and that of the Identity Provider.
+Server clocks tend to drift naturally. If during validation of the response you get the error "Current time is earlier than NotBefore condition", this may be due to clock differences between your system and that of the Identity Provider.
 
 First, ensure that both systems synchronize their clocks, using for example the industry standard [Network Time Protocol (NTP)](http://en.wikipedia.org/wiki/Network_Time_Protocol).
 
-Even then you may experience intermittent issues though, because the clock of the Identity Provider may drift slightly ahead of your system clocks. To allow for a small amount of clock drift you can initialize the response passing in an option named `:allowed_clock_drift`. Its value must be given in a number (and/or fraction) of seconds. The value given is added to the current time at which the response is validated before it's tested against the `NotBefore` assertion. For example:
+Even then you may experience intermittent issues, as the clock of the Identity Provider may drift slightly ahead of your system clocks. To allow for a small amount of clock drift, you can initialize the response by passing in an option named `:allowed_clock_drift`. Its value must be given in a number (and/or fraction) of seconds. The value given is added to the current time at which the response is validated before it's tested against the `NotBefore` assertion. For example:
 
 ```ruby
 response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], :allowed_clock_drift => 1.second)
