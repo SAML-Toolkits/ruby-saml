@@ -136,9 +136,9 @@ module OneLogin
       #
       def get_sp_key
         return nil if private_key.nil? || private_key.empty?
-        
-        formated_private_key = OneLogin::RubySaml::Utils.format_private_key(private_key)
-        OpenSSL::PKey::RSA.new(formated_private_key)
+
+        formatted_private_key = OneLogin::RubySaml::Utils.format_private_key(private_key)
+        OpenSSL::PKey::RSA.new(formatted_private_key)
       end
 
       private

@@ -990,11 +990,11 @@ class RubySamlTest < Minitest::Test
 
         document = XMLSecurity::Document.new(xml)
 
-        formated_cert = OneLogin::RubySaml::Utils.format_cert(ruby_saml_cert_text)
-        cert = OpenSSL::X509::Certificate.new(formated_cert)
+        formatted_cert = OneLogin::RubySaml::Utils.format_cert(ruby_saml_cert_text)
+        cert = OpenSSL::X509::Certificate.new(formatted_cert)
 
-        formated_private_key = OneLogin::RubySaml::Utils.format_private_key(ruby_saml_key_text)
-        private_key = OpenSSL::PKey::RSA.new(formated_private_key)
+        formatted_private_key = OneLogin::RubySaml::Utils.format_private_key(ruby_saml_key_text)
+        private_key = OpenSSL::PKey::RSA.new(formatted_private_key)
         document.sign_document(private_key, cert)
 
         signed_response = OneLogin::RubySaml::Response.new(document.to_s)
