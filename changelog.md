@@ -1,5 +1,11 @@
 # RubySaml Changelog
 
+### 1.3.1 (July 10, 2016)
+* Fix response_test.rb of gem 1.3.0
+* Add reference to Security Guidelines
+* Update License
+* [#334](https://github.com/onelogin/ruby-saml/pull/334) Keep API backward-compatibility on IdpMetadataParser fingerprint method. 
+
 ### 1.3.0 (June 24, 2016)
 * [Security Fix](https://github.com/onelogin/ruby-saml/commit/a571f52171e6bfd87db59822d1d9e8c38fb3b995) Add extra validations to prevent Signature wrapping attacks
 * Fix XMLSecurity SHA256 and SHA512 uris
