@@ -344,7 +344,18 @@ class XmlSecurityTest < Minitest::Test
             assert document.validate_document(fingerprint, true), 'Document should be valid'
           end
         end
+        
+        describe 'when response has signed assertion' do
+          let(:document_data) { read_response('response_with_signed_assertion_3.xml') }
+          let(:document) { OneLogin::RubySaml::Response.new(document_data).document }
+          let(:fingerprint) { '4b68c453c7d994aad9025c99d5efcf566287fe8d' }
+
+          it 'is valid' do
+            assert document.validate_document(fingerprint, true), 'Document should be valid'
+          end
+        end
       end
+
       describe 'signature_wrapping_attack' do
         let(:document_data) { read_invalid_response("signature_wrapping_attack.xml.base64") }
         let(:document) { OneLogin::RubySaml::Response.new(document_data).document }
@@ -352,6 +363,28 @@ class XmlSecurityTest < Minitest::Test
 
         it 'is invalid' do
           assert !document.validate_document(fingerprint, true), 'Document should be invalid'
+        end
+      end
+
+      describe 'signature wrapping attack - doubled SAML response body' do
+        let(:document_data) { read_invalid_response("response_with_doubled_signed_assertion.xml") }
+        let(:document) { OneLogin::RubySaml::Response.new(document_data) }
+        let(:fingerprint) { '4b68c453c7d994aad9025c99d5efcf566287fe8d' }
+
+        it 'is valid, but the unsigned information is ignored in favour of the signed information' do
+          assert document.document.validate_document(fingerprint, true), 'Document should be valid'
+          assert_equal 'someone@example.org', document.name_id, 'Document should expose only signed, valid details'
+        end
+      end
+
+      describe 'signature wrapping attack - concealed SAML response body' do
+        let(:document_data) { read_invalid_response("response_with_concealed_signed_assertion.xml") }
+        let(:document) { OneLogin::RubySaml::Response.new(document_data) }
+        let(:fingerprint) { '4b68c453c7d994aad9025c99d5efcf566287fe8d' }
+
+        it 'is valid, but fails to retrieve information' do
+          assert document.document.validate_document(fingerprint, true), 'Document should be valid'
+          assert document.name_id.nil?, 'Document should expose only signed, valid details'
         end
       end
     end

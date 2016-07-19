@@ -1288,4 +1288,42 @@ class RubySamlTest < Minitest::Test
      assert_equal "ZdrjpwEdw22vKoxWAbZB78/gQ7s=", response.attributes.single('urn:oid:1.3.6.1.4.1.5923.1.1.1.10')
     end
   end
+
+  describe "signature wrapping attack with encrypted assertion" do
+    it "should not be valid" do
+      settings.private_key = ruby_saml_key_text
+      signature_wrapping_attack = read_invalid_response("encrypted_new_attack.xml.base64")
+      response_wrapped = OneLogin::RubySaml::Response.new(signature_wrapping_attack, :settings => settings)
+      response_wrapped.stubs(:conditions).returns(nil)
+      response_wrapped.stubs(:validate_subject_confirmation).returns(true)
+      settings.idp_cert_fingerprint = "385b1eec71143f00db6af936e2ea12a28771d72c"
+      assert !response_wrapped.is_valid?
+      assert_includes response_wrapped.errors, "Found an invalid Signed Element. SAML Response rejected"
+    end
+  end
+
+  describe "signature wrapping attack - concealed SAML response body" do
+    it "should not be valid" do
+      signature_wrapping_attack = read_invalid_response("response_with_concealed_signed_assertion.xml")
+      response_wrapped = OneLogin::RubySaml::Response.new(signature_wrapping_attack, :settings => settings)
+      settings.idp_cert_fingerprint = '4b68c453c7d994aad9025c99d5efcf566287fe8d'
+      response_wrapped.stubs(:conditions).returns(nil)
+      response_wrapped.stubs(:validate_subject_confirmation).returns(true)
+      assert !response_wrapped.is_valid?
+      assert_includes response_wrapped.errors, "SAML Response must contain 1 assertion"
+    end
+  end
+
+  describe "signature wrapping attack - doubled signed assertion SAML response" do
+    it "should not be valid" do
+      signature_wrapping_attack = read_invalid_response("response_with_doubled_signed_assertion.xml")
+      response_wrapped = OneLogin::RubySaml::Response.new(signature_wrapping_attack, :settings => settings)
+      settings.idp_cert_fingerprint = '4b68c453c7d994aad9025c99d5efcf566287fe8d'
+      response_wrapped.stubs(:conditions).returns(nil)
+      response_wrapped.stubs(:validate_subject_confirmation).returns(true)
+      assert !response_wrapped.is_valid?
+      assert_includes response_wrapped.errors, "SAML Response must contain 1 assertion"
+    end
+  end
+
 end
