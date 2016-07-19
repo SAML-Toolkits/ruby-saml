@@ -114,8 +114,8 @@ module XMLSecurity
       #<Object />
     #</Signature>
     def sign_document(private_key, certificate, signature_method = RSA_SHA1, digest_method = SHA1)
-      noko = Nokogiri.parse(self.to_s) do |options|
-        options = XMLSecurity::BaseDocument::NOKOGIRI_OPTIONS
+      noko = Nokogiri::XML(self.to_s) do |config|
+        config.options = XMLSecurity::BaseDocument::NOKOGIRI_OPTIONS
       end
 
       signature_element = REXML::Element.new("ds:Signature").add_namespace('ds', DSIG)
@@ -138,8 +138,8 @@ module XMLSecurity
       reference_element.add_element("ds:DigestValue").text = compute_digest(canon_doc, algorithm(digest_method_element))
 
       # add SignatureValue
-      noko_sig_element = Nokogiri.parse(signature_element.to_s) do |options|
-        options = XMLSecurity::BaseDocument::NOKOGIRI_OPTIONS
+      noko_sig_element = Nokogiri::XML(signature_element.to_s) do |config|
+        config.options = XMLSecurity::BaseDocument::NOKOGIRI_OPTIONS
       end
 
       noko_signed_info_element = noko_sig_element.at_xpath('//ds:Signature/ds:SignedInfo', 'ds' => DSIG)
@@ -242,8 +242,8 @@ module XMLSecurity
 
     def validate_signature(base64_cert, soft = true)
 
-      document = Nokogiri.parse(self.to_s) do |options|
-        options = XMLSecurity::BaseDocument::NOKOGIRI_OPTIONS
+      document = Nokogiri::XML(self.to_s) do |config|
+        config.options = XMLSecurity::BaseDocument::NOKOGIRI_OPTIONS
       end
 
       # create a rexml document
