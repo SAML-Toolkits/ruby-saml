@@ -152,6 +152,13 @@ class RequestTest < Minitest::Test
       assert_match /<saml:AuthnContextClassRef>secure\/name\/password\/uri<\/saml:AuthnContextClassRef>/, auth_doc.to_s
     end
 
+    it "create multiple saml:AuthnContextClassRef elements correctly" do
+      settings.authn_context = ['secure/name/password/uri', 'secure/email/password/uri']
+      auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+      assert_match /<saml:AuthnContextClassRef>secure\/name\/password\/uri<\/saml:AuthnContextClassRef>/, auth_doc.to_s
+      assert_match /<saml:AuthnContextClassRef>secure\/email\/password\/uri<\/saml:AuthnContextClassRef>/, auth_doc.to_s
+    end
+
     it "create the saml:AuthnContextClassRef with comparison exact" do
       settings.authn_context = 'secure/name/password/uri'
       auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
