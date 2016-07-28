@@ -175,6 +175,11 @@ def saml_settings
 
   # Optional for most SAML IdPs
   settings.authn_context = "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport"
+  # or as an array
+  settings.authn_context = [
+    "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport",
+    "urn:oasis:names:tc:SAML:2.0:ac:classes:Password"
+  ]
 
   # Optional bindings (defaults to Redirect for logout POST for acs)
   settings.assertion_consumer_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
