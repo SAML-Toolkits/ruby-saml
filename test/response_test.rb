@@ -858,7 +858,11 @@ class RubySamlTest < Minitest::Test
       end
 
       it "not raise on responses without attributes" do
-        assert_equal OneLogin::RubySaml::Attributes.new, response_unsigned.attributes
+        assert_equal OneLogin::RubySaml::Attributes.new, response_without_attributes.attributes
+      end
+
+      it "keep same attributes instance on responses without attributes" do
+        assert_equal response_without_attributes.attributes.object_id, response_without_attributes.attributes.object_id
       end
 
       describe "#multiple values" do
