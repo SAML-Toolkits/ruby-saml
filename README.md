@@ -275,7 +275,9 @@ The following attributes are set:
   * idp_slo_target_url
   * idp_cert_fingerprint
 
-If you are using `saml:AttributeStatement` to transfer metadata like the user name, you can access all the attributes through `response.attributes`. It contains all the `saml:AttributeStatement`s with its 'Name' as an indifferent key and one or more `saml:AttributeValue`s as values. The value returned depends on the value of the
+## Retrieving Attributes
+
+If you are using `saml:AttributeStatement` to transfer data like the username, you can access all the attributes through `response.attributes`. It contains all the `saml:AttributeStatement`s with its 'Name' as an indifferent key and one or more `saml:AttributeValue`s as values. The value returned depends on the value of the
 `single_value_compatibility` (when activated, only the first value is returned)
 
 ```ruby
