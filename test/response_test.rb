@@ -9,6 +9,7 @@ class RubySamlTest < Minitest::Test
     let(:settings) { OneLogin::RubySaml::Settings.new }
     let(:response) { OneLogin::RubySaml::Response.new(response_document_without_recipient) }
     let(:response_without_attributes) { OneLogin::RubySaml::Response.new(response_document_without_attributes) }
+    let(:response_with_multiple_attribute_statements) { OneLogin::RubySaml::Response.new(fixture(:response_with_multiple_attribute_statements)) }
     let(:response_without_reference_uri) { OneLogin::RubySaml::Response.new(response_document_without_reference_uri) }
     let(:response_with_signed_assertion) { OneLogin::RubySaml::Response.new(response_document_with_signed_assertion) }
     let(:response_with_ds_namespace_at_the_root) { OneLogin::RubySaml::Response.new(response_document_with_ds_namespace_at_the_root)}
@@ -852,6 +853,11 @@ class RubySamlTest < Minitest::Test
         assert_equal "someone@example.com", response_with_signed_assertion.attributes["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"]
       end
 
+      it "extract attributes from all AttributeStatement tags" do
+        assert_equal "smith", response_with_multiple_attribute_statements.attributes[:surname]
+        assert_equal "bob", response_with_multiple_attribute_statements.attributes[:firstname]
+      end
+
       it "not raise errors about nil/empty attributes for EncryptedAttributes" do
         response_no_cert_and_encrypted_attrs = OneLogin::RubySaml::Response.new(response_document_no_cert_and_encrypted_attrs)
         assert_equal 'Demo', response_no_cert_and_encrypted_attrs.attributes["first_name"]
@@ -910,6 +916,12 @@ class RubySamlTest < Minitest::Test
         it "return all of multiple values in reverse order when multiple Attribute tags in XML in compatibility mode off" do
           OneLogin::RubySaml::Attributes.single_value_compatibility = false
           assert_equal ['role1', 'role2', 'role3'], response_multiple_attr_values.attributes.multi(:role)
+          OneLogin::RubySaml::Attributes.single_value_compatibility = true
+        end
+
+        it "return all of multiple values when multiple Attribute tags in multiple AttributeStatement tags" do
+          OneLogin::RubySaml::Attributes.single_value_compatibility = false
+          assert_equal ['role1', 'role2', 'role3'], response_with_multiple_attribute_statements.attributes.multi(:role)
           OneLogin::RubySaml::Attributes.single_value_compatibility = true
         end
 
