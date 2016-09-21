@@ -454,6 +454,34 @@ class RubySamlTest < Minitest::Test
         assert !response_empty_destination.send(:validate_destination)
         assert_includes response_empty_destination.errors, "The response has an empty Destination value"
       end
+
+      it "returns true on a case insensitive match on the domain" do
+        response_valid_signed_without_x509certificate.settings = settings
+        response_valid_signed_without_x509certificate.settings.assertion_consumer_service_url = 'http://APP.muDa.no/sso/consume'
+        assert response_valid_signed_without_x509certificate.send(:validate_destination)
+        assert_empty response_valid_signed_without_x509certificate.errors
+      end
+
+      it "returns true on a case insensitive match on the scheme" do
+        response_valid_signed_without_x509certificate.settings = settings
+        response_valid_signed_without_x509certificate.settings.assertion_consumer_service_url = 'HTTP://app.muda.no/sso/consume'
+        assert response_valid_signed_without_x509certificate.send(:validate_destination)
+        assert_empty response_valid_signed_without_x509certificate.errors
+      end
+
+      it "returns false on a case insenstive match on the path" do
+        response_valid_signed_without_x509certificate.settings = settings
+        response_valid_signed_without_x509certificate.settings.assertion_consumer_service_url = 'http://app.muda.no/SSO/consume'
+        assert !response_valid_signed_without_x509certificate.send(:validate_destination)
+        assert_includes response_valid_signed_without_x509certificate.errors, "The response was received at #{response_valid_signed_without_x509certificate.destination} instead of #{response_valid_signed_without_x509certificate.settings.assertion_consumer_service_url}"
+      end
+
+      it "returns true if it can't parse out a full URI." do
+        response_valid_signed_without_x509certificate.settings = settings
+        response_valid_signed_without_x509certificate.settings.assertion_consumer_service_url = 'presenter'
+        assert !response_valid_signed_without_x509certificate.send(:validate_destination)
+        assert_includes response_valid_signed_without_x509certificate.errors, "The response was received at #{response_valid_signed_without_x509certificate.destination} instead of #{response_valid_signed_without_x509certificate.settings.assertion_consumer_service_url}"
+      end
     end
 
     describe "#validate_issuer" do
