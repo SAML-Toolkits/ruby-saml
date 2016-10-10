@@ -69,8 +69,8 @@ module OneLogin
       # Validates the SAML Response using idp_cert_multi and idp_cert_fingerprint_multi
       # @return [Boolean] TRUE if the SAML Response is valid
       #
-      def is_valid_multicert?
-        validate_multicert
+      def is_valid_multicert?(collect_errors = false)
+        validate_multicert(collect_errors)
       end
 
       # @return [String] the NameID provided by the SAML response from the IdP.
@@ -326,12 +326,12 @@ module OneLogin
       end
 
       # Does the same thing as the original validate, except uses the idp_certs and idp_cert_fingerprints
-      def validate_multicert
+      def validate_multicert(collect_errors = false)
         reset_errors!
-        return false unless validate_response_state
+        return false unless validate_response_state_multi_cert
 
         validations = [
-          :validate_response_states,
+          :validate_response_state_multi_cert,
           :validate_version,
           :validate_id,
           :validate_success_status,
@@ -346,7 +346,7 @@ module OneLogin
           :validate_issuer,
           :validate_session_expiration,
           :validate_subject_confirmation,
-          :validate_signatures
+          :validate_signature_multi_cert
         ]
 
         if collect_errors
@@ -784,7 +784,6 @@ module OneLogin
 
           doc.validate_document(fingerprint, @soft, opts)
         end
->>>>>>> Response to support multiple certs and fingerprints
       end
 
       # Extracts the first appearance that matchs the subelt (pattern)
