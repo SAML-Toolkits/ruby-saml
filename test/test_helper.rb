@@ -52,6 +52,10 @@ class Minitest::Test
     @response_document_valid_signed ||= read_response("valid_response.xml.base64")
   end
 
+  def response_document_valid_signed_2
+    @response_document_valid_signed_2 ||= read_response("valid_response_2.xml.base64")
+  end
+
   def response_document_valid_signed_without_x509certificate
     @response_document_valid_signed_without_x509certificate ||= read_response("valid_response_without_x509certificate.xml.base64")
   end
@@ -149,6 +153,10 @@ class Minitest::Test
     @idp_metadata ||= read_response("idp_descriptor.xml")
   end
 
+  def idp_metadata_with_multiple_certs
+    @idp_metadata_with_multiple_certs ||= read_response("idp_descriptor_multiple_certs.xml")
+  end
+
   def logout_request_document
     unless @logout_request_document
       xml = read_logout_request("slo_request.xml")
@@ -183,12 +191,35 @@ class Minitest::Test
     @ruby_saml_cert ||= OpenSSL::X509::Certificate.new(ruby_saml_cert_text)
   end
 
+  def ruby_saml_certs
+    @ruby_saml_certs ||= begin
+      ruby_saml_certs_text.map do |ruby_saml_cert_text|
+        OpenSSL::X509::Certificate.new(ruby_saml_cert_text)
+      end
+    end
+  end
+
   def ruby_saml_cert_fingerprint
     @ruby_saml_cert_fingerprint ||= Digest::SHA1.hexdigest(ruby_saml_cert.to_der).scan(/../).join(":")
   end
 
+  def ruby_saml_cert_fingerprints
+    @ruby_saml_cert_fingerprints ||= begin
+      ruby_saml_certs.map do |ruby_saml_cert|
+        Digest::SHA1.hexdigest(ruby_saml_cert.to_der).scan(/../).join(":")
+      end
+    end
+  end
+
   def ruby_saml_cert_text
     read_certificate("ruby-saml.crt")
+  end
+
+  def ruby_saml_certs_text
+    [
+      read_certificate("ruby-saml.crt"),
+      read_certificate("ruby-saml-2.crt"),
+    ]
   end
 
   def ruby_saml_key

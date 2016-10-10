@@ -36,7 +36,7 @@ module OneLogin
       end
 
       # Parse the Identity Provider metadata and update the settings with the IdP values
-      # @param idp_metadata [String] 
+      # @param idp_metadata [String]
       # @param options  [Hash]   :settings to provide the OneLogin::RubySaml::Settings object
       #
       def parse(idp_metadata, options = {})
@@ -50,6 +50,9 @@ module OneLogin
           settings.idp_cert = certificate_base64
           settings.idp_cert_fingerprint = fingerprint(settings.idp_cert_fingerprint_algorithm)
           settings.idp_attribute_names = attribute_names
+
+          settings.idp_cert_multi = certificate_base64_multi
+          settings.idp_cert_fingerprint_multi = fingerprint_multi
         end
       end
 
@@ -197,6 +200,22 @@ module OneLogin
         end
       end
 
+      # @return [Array<String>] Unformatted Certificates
+      #
+      def certificate_base64_multi
+        @certificate_base64_multi ||= begin
+          certs = []
+          REXML::XPath.each(
+              document,
+              "/md:EntityDescriptor/md:IDPSSODescriptor/md:KeyDescriptor[@use='signing']/ds:KeyInfo/ds:X509Data/ds:X509Certificate",
+              { "md" => METADATA, "ds" => DSIG }
+          ) do |node|
+            certs << node.text if node
+          end
+          certs
+        end
+      end
+
       # @return [String|nil] X509Certificate if exists
       #
       def certificate
@@ -205,6 +224,15 @@ module OneLogin
         end
       end
 
+      # @return [Array<String>] X509Certificates
+      #
+      def certificate_multi
+        @certificate_multi ||= begin
+          certificate_base64_multi.map do |certificate_base64|
+            Base64.decode64(certificate_base64)
+          end
+        end
+      end
 
       # @return [String|nil] the SHA-1 fingerpint of the X509Certificate if it exists
       #
@@ -228,6 +256,17 @@ module OneLogin
           { "md" => METADATA, "NameFormat" => NAME_FORMAT, "saml" => SAML_ASSERTION }
         )
         nodes.map(&:value)
+      end
+
+      # @return [Array<String>] the SHA-1 fingerpints of the X509Certificates
+      #
+      def fingerprint_multi
+        @fingerprint_multi ||= begin
+          certificate_multi.map do |certificate|
+            cert = OpenSSL::X509::Certificate.new(certificate)
+            Digest::SHA1.hexdigest(cert.to_der).upcase.scan(/../).join(":")
+          end
+        end
       end
     end
   end

@@ -26,7 +26,9 @@ module OneLogin
       attr_accessor :idp_sso_target_url
       attr_accessor :idp_slo_target_url
       attr_accessor :idp_cert
+      attr_accessor :idp_cert_multi
       attr_accessor :idp_cert_fingerprint
+      attr_accessor :idp_cert_fingerprint_multi
       attr_accessor :idp_cert_fingerprint_algorithm
       attr_accessor :idp_attribute_names
       # SP Data
@@ -114,6 +116,20 @@ module OneLogin
         end
       end
 
+      # Calculates the fingerprints of the IdP x509 certificates.
+      # @return [Array<String>] The fingerprints
+      #
+      def get_fingerprint_multi
+        idp_cert_fingerprint_multi || begin
+          return [] if idp_cert_multi.nil? || idp_cert_multi.empty?
+
+          get_idp_cert_multi.map do |idp_cert|
+            fingerprint_alg = XMLSecurity::BaseDocument.new.algorithm(idp_cert_fingerprint_algorithm).new
+            fingerprint_alg.hexdigest(idp_cert.to_der).upcase.scan(/../).join(":")
+          end
+        end
+      end
+
       # @return [OpenSSL::X509::Certificate|nil] Build the IdP certificate from the settings (previously format it)
       #
       def get_idp_cert
@@ -121,6 +137,17 @@ module OneLogin
 
         formatted_cert = OneLogin::RubySaml::Utils.format_cert(idp_cert)
         OpenSSL::X509::Certificate.new(formatted_cert)
+      end
+
+      # @return [Array<OpenSSL::X509::Certificate>] Build the IdP certificates from the settings (previously format it)
+      #
+      def get_idp_cert_multi
+        return [] if idp_cert_multi.nil?
+
+        idp_cert_multi.map do |idp_cert|
+          formatted_cert = OneLogin::RubySaml::Utils.format_cert(idp_cert)
+          OpenSSL::X509::Certificate.new(formatted_cert)
+        end
       end
 
       # @return [OpenSSL::X509::Certificate|nil] Build the SP certificate from the settings (previously format it)

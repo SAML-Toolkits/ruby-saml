@@ -32,7 +32,7 @@ module OneLogin
 
       # Constructs the SAML Response. A Response Object that is an extension of the SamlMessage class.
       # @param response [String] A UUEncoded SAML response from the IdP.
-      # @param options  [Hash]   :settings to provide the OneLogin::RubySaml::Settings object 
+      # @param options  [Hash]   :settings to provide the OneLogin::RubySaml::Settings object
       #                          Or some options for the response validation process like skip the conditions validation
       #                          with the :skip_conditions, or allow a clock_drift when checking dates with :allowed_clock_drift
       #                          or :matches_request_id that will validate that the response matches the ID of the request,
@@ -64,6 +64,13 @@ module OneLogin
       #
       def is_valid?(collect_errors = false)
         validate(collect_errors)
+      end
+
+      # Validates the SAML Response using idp_cert_multi and idp_cert_fingerprint_multi
+      # @return [Boolean] TRUE if the SAML Response is valid
+      #
+      def is_valid_multicert?(collect_errors = false)
+        validate_multicert(collect_errors)
       end
 
       # @return [String] the NameID provided by the SAML response from the IdP.
@@ -115,7 +122,7 @@ module OneLogin
       #    attributes['name']
       #
       # @return [Attributes] OneLogin::RubySaml::Attributes enumerable collection.
-      #      
+      #
       def attributes
         @attr_statements ||= begin
           attributes = Attributes.new
@@ -160,7 +167,7 @@ module OneLogin
 
       # Checks if the Status has the "Success" code
       # @return [Boolean] True if the StatusCode is Sucess
-      # 
+      #
       def success?
         status_code == "urn:oasis:names:tc:SAML:2.0:status:Success"
       end
@@ -318,6 +325,37 @@ module OneLogin
         end
       end
 
+      # Does the same thing as the original validate, except uses the idp_certs and idp_cert_fingerprints
+      def validate_multicert(collect_errors = false)
+        reset_errors!
+        return false unless validate_response_state_multi_cert
+
+        validations = [
+          :validate_response_state_multi_cert,
+          :validate_version,
+          :validate_id,
+          :validate_success_status,
+          :validate_num_assertion,
+          :validate_no_encrypted_attributes,
+          :validate_signed_elements,
+          :validate_structure,
+          :validate_in_response_to,
+          :validate_conditions,
+          :validate_audience,
+          :validate_destination,
+          :validate_issuer,
+          :validate_session_expiration,
+          :validate_subject_confirmation,
+          :validate_signature_multi_cert
+        ]
+
+        if collect_errors
+          validations.each { |validation| send(validation) }
+          @errors.empty?
+        else
+          validations.all? { |validation| send(validation) }
+        end
+      end
 
       # Validates the Status of the SAML Response
       # @return [Boolean] True if the SAML Response contains a Success code, otherwise False if soft == false
@@ -325,7 +363,7 @@ module OneLogin
       #
       def validate_success_status
         return true if success?
-          
+
         error_msg = 'The status code of the Response was not Success'
         status_error_msg = OneLogin::RubySaml::Utils.status_error_msg(error_msg, status_code, status_message)
         append_error(status_error_msg)
@@ -333,7 +371,7 @@ module OneLogin
 
       # Validates the SAML Response against the specified schema.
       # @return [Boolean] True if the XML is valid, otherwise False if soft=True
-      # @raise [ValidationError] if soft == false and validation fails 
+      # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_structure
         structure_error_msg = "Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd"
@@ -366,7 +404,23 @@ module OneLogin
         true
       end
 
-      # Validates that the SAML Response contains an ID 
+      # Validates that the SAML Response provided in the initialization is not empty,
+      # also check that the setting and the IdP certs were also provided
+      # @return [Boolean] True if the required info is found, false otherwise
+      #
+      def validate_response_state_multi_cert
+        return append_error("Blank response") if response.nil? || response.empty?
+
+        return append_error("No settings on response") if settings.nil?
+
+        if settings.idp_cert_fingerprint_multi.nil? && settings.idp_cert_multi.nil?
+          return append_error("No fingerprints or certificates on settings")
+        end
+
+        true
+      end
+
+      # Validates that the SAML Response contains an ID
       # If fails, the error is added to the errors array.
       # @return [Boolean] True if the SAML Response contains an ID, otherwise returns False
       #
@@ -419,7 +473,7 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_no_encrypted_attributes
-        nodes = xpath_from_signed_assertion("/a:AttributeStatement/a:EncryptedAttribute")        
+        nodes = xpath_from_signed_assertion("/a:AttributeStatement/a:EncryptedAttribute")
         if nodes && nodes.length > 0
           return append_error("There is an EncryptedAttribute in the Response and this SP not support them")
         end
@@ -598,7 +652,7 @@ module OneLogin
       end
 
       # Validates if exists valid SubjectConfirmation (If the response was initialized with the :allowed_clock_drift option,
-      # timimg validation are relaxed by the allowed_clock_drift value. If the response was initialized with the 
+      # timimg validation are relaxed by the allowed_clock_drift value. If the response was initialized with the
       # :skip_subject_confirmation option, this validation is skipped)
       # If fails, the error is added to the errors array
       # @return [Boolean] True if exists a valid SubjectConfirmation, otherwise False if soft=True
@@ -609,7 +663,7 @@ module OneLogin
         valid_subject_confirmation = false
 
         subject_confirmation_nodes = xpath_from_signed_assertion('/a:Subject/a:SubjectConfirmation')
-        
+
         now = Time.now.utc
         subject_confirmation_nodes.each do |subject_confirmation|
           if subject_confirmation.attributes.include? "Method" and subject_confirmation.attributes['Method'] != 'urn:oasis:names:tc:SAML:2.0:cm:bearer'
@@ -628,7 +682,7 @@ module OneLogin
           next if (attrs.include? "InResponseTo" and attrs['InResponseTo'] != in_response_to) ||
                   (attrs.include? "NotOnOrAfter" and (parse_time(confirmation_data_node, "NotOnOrAfter") + allowed_clock_drift) <= now) ||
                   (attrs.include? "NotBefore" and parse_time(confirmation_data_node, "NotBefore") > (now + allowed_clock_drift))
-          
+
           valid_subject_confirmation = true
           break
         end
@@ -679,7 +733,7 @@ module OneLogin
         opts[:cert] = settings.get_idp_cert
         fingerprint = settings.get_fingerprint
 
-        unless fingerprint && doc.validate_document(fingerprint, @soft, opts)          
+        unless fingerprint && doc.validate_document(fingerprint, @soft, opts)
           return append_error(error_msg)
         end
 
@@ -696,6 +750,40 @@ module OneLogin
               node = xpath_first_from_signed_assertion('/a:Subject/a:NameID')
             end
           end
+      end
+
+      # Validates the Signature using idp_cert_multi and idp_cert_fingerprint_multi
+      # @return [Boolean] True if not contains a Signature or if the Signature is valid, otherwise False if soft=True
+      # @raise [ValidationError] if soft == false and validation fails
+      #
+      def validate_signature_multi_cert
+        fingerprint_multi = settings.get_fingerprint_multi
+        idp_cert_multi = settings.get_idp_cert_multi
+
+        if fingerprint_multi.empty? && !validate_fingerprint(fingerprint_multi, idp_cert_multi)
+          error_msg = "Invalid Signature on SAML Response"
+          return append_error(error_msg)
+        end
+
+        true
+      end
+
+      def validate_fingerprint(fingerprint_multi, idp_cert_multi)
+        response_signed = REXML::XPath.first(
+          document,
+          "/p:Response[@ID=$id]",
+          { "p" => PROTOCOL, "ds" => DSIG },
+          { 'id' => document.signed_element_id }
+        )
+        doc = (response_signed || decrypted_document.nil?) ? document : decrypted_document
+
+        fingerprint_multi.zip(idp_cert_multi).any? do |fingerprint, idp_cert|
+          opts = {}
+          opts[:fingerprint_alg] = settings.idp_cert_fingerprint_algorithm
+          opts[:cert] = idp_cert
+
+          doc.validate_document(fingerprint, @soft, opts)
+        end
       end
 
       # Extracts the first appearance that matchs the subelt (pattern)

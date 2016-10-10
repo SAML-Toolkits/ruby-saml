@@ -123,6 +123,36 @@ class SettingsTest < Minitest::Test
       end
     end
 
+    describe "#get_idp_cert_multi" do
+      it "returns empty array when certs is nil" do
+        @settings = OneLogin::RubySaml::Settings.new
+        @settings.idp_cert_multi = nil
+        assert_equal [], @settings.get_idp_cert_multi
+      end
+
+      it "returns empty array when the cert is empty" do
+        @settings = OneLogin::RubySaml::Settings.new
+        @settings.idp_cert_multi = []
+        assert_equal [], @settings.get_idp_cert_multi
+      end
+
+      it "returns the certificates when it is valid" do
+        @settings = OneLogin::RubySaml::Settings.new
+        @settings.idp_cert_multi = ruby_saml_certs_text
+        assert @settings.get_idp_cert_multi.kind_of? Array
+        assert @settings.get_idp_cert_multi[0].kind_of? OpenSSL::X509::Certificate
+        assert @settings.get_idp_cert_multi[1].kind_of? OpenSSL::X509::Certificate
+      end
+
+      it "raises when the certificates are not valid" do
+        # formatted but invalid cert
+        @settings.idp_cert_multi = [read_certificate("formatted_certificate")]
+        assert_raises(OpenSSL::X509::CertificateError) {
+          @settings.get_idp_cert_multi
+        }
+      end
+    end
+
     describe "#get_sp_cert" do
       it "returns nil when the cert is an empty string" do
         @settings = OneLogin::RubySaml::Settings.new
@@ -212,6 +242,38 @@ class SettingsTest < Minitest::Test
         @settings.idp_cert = ruby_saml_cert_text
         fingerprint = @settings.get_fingerprint
         assert fingerprint.downcase == ruby_saml_cert_fingerprint.downcase
+      end
+    end
+
+    describe "#get_fingerprint_multi" do
+      it "get the empty array when idp_cert_multi and idp_cert_fingerprint_multi are nil" do
+        @settings = OneLogin::RubySaml::Settings.new
+        @settings.idp_cert_fingerprint_multi = nil
+        @settings.idp_cert_multi = nil
+        assert_equal [], @settings.get_fingerprint_multi
+      end
+
+      it "get the fingerprints value when there are certs at the settings" do
+        @settings = OneLogin::RubySaml::Settings.new
+        @settings.idp_cert_fingerprint_multi = nil
+        @settings.idp_cert_multi = ruby_saml_certs_text
+        fingerprints = @settings.get_fingerprint_multi
+        assert fingerprints[0].downcase == ruby_saml_cert_fingerprints[0].downcase
+        assert fingerprints[1].downcase == ruby_saml_cert_fingerprints[1].downcase
+      end
+
+      it "get the fingerprints value when there are fingerprints at the settings" do
+        @settings = OneLogin::RubySaml::Settings.new
+        @settings.idp_cert_fingerprint_multi = ruby_saml_cert_fingerprints
+        @settings.idp_cert_multi = nil
+        assert @settings.get_fingerprint_multi == ruby_saml_cert_fingerprints
+      end
+
+      it "get the fingerprints value when there are certs and fingerprints at the settings" do
+        @settings = OneLogin::RubySaml::Settings.new
+        @settings.idp_cert_fingerprint_multi = ruby_saml_cert_fingerprints
+        @settings.idp_cert_multi = ruby_saml_certs_text
+        assert @settings.get_fingerprint_multi == ruby_saml_cert_fingerprints
       end
     end
   end
