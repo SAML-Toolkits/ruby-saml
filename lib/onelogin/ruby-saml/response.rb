@@ -88,6 +88,23 @@ module OneLogin
 
       alias_method :nameid_format, :name_id_format
 
+      # @return [String] the NameID SPNameQualifier provided by the SAML response from the IdP.
+      #
+      def name_id_spnamequalifier
+        @name_id_spnamequalifier ||=
+          if name_id_node && name_id_node.attribute("SPNameQualifier")
+            name_id_node.attribute("SPNameQualifier").value
+          end
+      end
+
+      # @return [String] the NameID NameQualifier provided by the SAML response from the IdP.
+      #
+      def name_id_namequalifier
+        @name_id_namequalifier ||=
+          if name_id_node && name_id_node.attribute("NameQualifier")
+            name_id_node.attribute("NameQualifier").value
+          end
+      end
 
       # Gets the SessionIndex from the AuthnStatement.
       # Could be used to be stored in the local session in order
@@ -115,7 +132,7 @@ module OneLogin
       #    attributes['name']
       #
       # @return [Attributes] OneLogin::RubySaml::Attributes enumerable collection.
-      #      
+      #
       def attributes
         @attr_statements ||= begin
           attributes = Attributes.new
@@ -123,7 +140,7 @@ module OneLogin
           stmt_elements = xpath_from_signed_assertion('/a:AttributeStatement')
           stmt_elements.each do |stmt_element|
             stmt_element.elements.each do |attr_element|
-              name  = attr_element.attributes["Name"]
+              name = attr_element.attributes["Name"]
               values = attr_element.elements.collect{|e|
                 if (e.elements.nil? || e.elements.size == 0)
                   # SAMLCore requires that nil AttributeValues MUST contain xsi:nil XML attribute set to "true" or "1"
@@ -169,12 +186,15 @@ module OneLogin
       #
       def status_code
         @status_code ||= begin
-          node = REXML::XPath.first(
+          nodes = REXML::XPath.match(
             document,
             "/p:Response/p:Status/p:StatusCode",
             { "p" => PROTOCOL }
           )
-          node.attributes["Value"] if node && node.attributes
+          if nodes.size == 1
+            node = nodes[0]
+            node.attributes["Value"] if node && node.attributes
+          end
         end
       end
 
@@ -182,12 +202,15 @@ module OneLogin
       #
       def status_message
         @status_message ||= begin
-          node = REXML::XPath.first(
+          nodes = REXML::XPath.match(
             document,
             "/p:Response/p:Status/p:StatusMessage",
             { "p" => PROTOCOL }
           )
-          node.text if node
+          if nodes.size == 1
+            node = nodes[0]
+            node.text if node
+          end
         end
       end
 
@@ -211,26 +234,6 @@ module OneLogin
       #
       def not_on_or_after
         @not_on_or_after ||= parse_time(conditions, "NotOnOrAfter")
-      end
-
-      # Gets the Issuers (from Response and Assertion).
-      # (returns the first node that matches the supplied xpath from the Response and from the Assertion)
-      # @return [Array] Array with the Issuers (REXML::Element)
-      #
-      def issuers
-        @issuers ||= begin
-          issuers = []
-          nodes = REXML::XPath.match(
-            document,
-            "/p:Response/a:Issuer",
-            { "p" => PROTOCOL, "a" => ASSERTION }
-          )
-          nodes += xpath_from_signed_assertion("/a:Issuer")
-          nodes.each do |node|
-            issuers << node.text if node.text
-          end
-          issuers.uniq
-        end
       end
 
       # @return [String|nil] The InResponseTo attribute from the SAML Response.
@@ -298,15 +301,19 @@ module OneLogin
           :validate_success_status,
           :validate_num_assertion,
           :validate_no_encrypted_attributes,
+          :validate_no_duplicated_attributes,
           :validate_signed_elements,
           :validate_structure,
           :validate_in_response_to,
+          :validate_one_conditions,
           :validate_conditions,
+          :validate_one_authnstatement,
           :validate_audience,
           :validate_destination,
           :validate_issuer,
           :validate_session_expiration,
           :validate_subject_confirmation,
+          :validate_name_id,
           :validate_signature
         ]
 
@@ -395,6 +402,7 @@ module OneLogin
       # @return [Boolean] True if the SAML Response contains one unique Assertion, otherwise False
       #
       def validate_num_assertion
+        error_msg = "SAML Response must contain 1 assertion"
         assertions = REXML::XPath.match(
           document,
           "//a:Assertion",
@@ -407,7 +415,18 @@ module OneLogin
         )
 
         unless assertions.size + encrypted_assertions.size == 1
-          return append_error("SAML Response must contain 1 assertion")
+          return append_error(error_msg)
+        end
+
+        unless decrypted_document.nil?
+          assertions = REXML::XPath.match(
+            decrypted_document,
+            "//a:Assertion",
+            { "a" => ASSERTION }
+          )
+          unless assertions.size == 1
+            return append_error(error_msg)
+          end
         end
 
         true
@@ -427,6 +446,28 @@ module OneLogin
         true
       end
 
+      # Validates that there are not duplicated attributes
+      # If fails, the error is added to the errors array
+      # @return [Boolean] True if there are no duplicated attribute elements, otherwise False if soft=True
+      # @raise [ValidationError] if soft == false and validation fails
+      #
+      def validate_no_duplicated_attributes
+        if options[:check_duplicated_attributes]
+          processed_names = []
+          stmt_elements = xpath_from_signed_assertion('/a:AttributeStatement')
+          stmt_elements.each do |stmt_element|
+            stmt_element.elements.each do |attr_element|
+              name = attr_element.attributes["Name"]
+              if attributes.include?(name)
+                return append_error("Found an Attribute element with duplicated Name")
+              end
+              processed_names.add(name)
+            end
+          end
+        end
+
+        true
+      end
 
       # Validates the Signed elements
       # If fails, the error is added to the errors array
@@ -526,10 +567,45 @@ module OneLogin
       # @return [Boolean] True if there is a Destination element that matches the Consumer Service URL, otherwise False
       #
       def validate_destination
-        return true if destination.nil? || destination.empty? || settings.assertion_consumer_service_url.nil? || settings.assertion_consumer_service_url.empty?
+        return true if destination.nil?
+
+        if destination.empty?
+          error_msg = "The response has an empty Destination value"
+          return append_error(error_msg)
+        end
+
+        return true if settings.assertion_consumer_service_url.nil? || settings.assertion_consumer_service_url.empty?
 
         unless destination == settings.assertion_consumer_service_url
           error_msg = "The response was received at #{destination} instead of #{settings.assertion_consumer_service_url}"
+          return append_error(error_msg)
+        end
+
+        true
+      end
+
+      # Checks that the samlp:Response/saml:Assertion/saml:Conditions element exists and is unique.
+      # If fails, the error is added to the errors array
+      # @return [Boolean] True if there is a conditions element and is unique
+      #
+      def validate_one_conditions
+        conditions_nodes = xpath_from_signed_assertion('/a:Conditions')
+        unless conditions_nodes.size == 1
+          error_msg = "The Assertion must include one Conditions element"
+          return append_error(error_msg)
+        end
+
+        true
+      end
+
+      # Checks that the samlp:Response/saml:Assertion/saml:AuthnStatement element exists and is unique.
+      # If fails, the error is added to the errors array
+      # @return [Boolean] True if there is a authnstatement element and is unique
+      #
+      def validate_one_authnstatement
+        authnstatement_nodes = xpath_from_signed_assertion('/a:AuthnStatement')
+        unless authnstatement_nodes.size == 1
+          error_msg = "The Assertion must include one AuthnStatement element"
           return append_error(error_msg)
         end
 
@@ -567,6 +643,31 @@ module OneLogin
       #
       def validate_issuer
         return true if settings.idp_entity_id.nil?
+
+        issuers = []
+        issuer_response_nodes = REXML::XPath.match(
+          document,
+          "/p:Response/a:Issuer",
+          { "p" => PROTOCOL, "a" => ASSERTION }
+        )
+
+        unless issuer_response_nodes.size == 1
+          error_msg = "Issuer of the Response not found or multiple."
+          return append_error(error_msg)
+        end
+
+        doc = decrypted_document.nil? ? document : decrypted_document
+        issuer_assertion_nodes = xpath_from_signed_assertion("/a:Issuer")
+        unless issuer_assertion_nodes.size == 1
+          error_msg = "Issuer of the Assertion not found or multiple."
+          return append_error(error_msg)
+        end
+
+        nodes = issuer_response_nodes + issuer_assertion_nodes
+        nodes.each do |node|
+          issuers << node.text if node.text
+        end
+        issuers.uniq
 
         issuers.each do |issuer|
           unless URI.parse(issuer) == URI.parse(settings.idp_entity_id)
@@ -636,6 +737,27 @@ module OneLogin
         if !valid_subject_confirmation
           error_msg = "A valid SubjectConfirmation was not found on this Response"
           return append_error(error_msg)
+        end
+
+        true
+      end
+
+      # Validates the NameID element
+      def validate_name_id
+        if name_id_node.nil?
+          if settings.security[:want_name_id]
+            return append_error("No NameID element found in the assertion of the Response")
+          end
+        else
+          if name_id.nil? || name_id.empty?
+            return append_error("An empty NameID value found")
+          end
+
+          unless settings.issuer.nil? || settings.issuer.empty? || name_id_spnamequalifier.nil? || name_id_spnamequalifier.empty?
+            if name_id_spnamequalifier != settings.issuer
+              return append_error("The SPNameQualifier value mistmatch the SP entityID value.")
+            end
+          end
         end
 
         true
