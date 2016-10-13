@@ -28,7 +28,7 @@ class RubySamlTest < Minitest::Test
     let(:response_no_statuscode) { OneLogin::RubySaml::Response.new(read_invalid_response("no_status_code.xml.base64")) }
     let(:response_statuscode_responder) { OneLogin::RubySaml::Response.new(read_invalid_response("status_code_responder.xml.base64")) }
     let(:response_statuscode_responder_and_msg) { OneLogin::RubySaml::Response.new(read_invalid_response("status_code_responer_and_msg.xml.base64")) }
-    let(:response_encrypted_attrs) { OneLogin::RubySaml::Response.new(read_invalid_response("response_encrypted_attrs.xml.base64")) }
+    let(:response_encrypted_attrs) { OneLogin::RubySaml::Response.new(response_document_encrypted_attrs) }
     let(:response_no_signed_elements) { OneLogin::RubySaml::Response.new(read_invalid_response("no_signature.xml.base64")) }
     let(:response_multiple_signed) { OneLogin::RubySaml::Response.new(read_invalid_response("multiple_signed.xml.base64")) }
     let(:response_invalid_audience) { OneLogin::RubySaml::Response.new(read_invalid_response("invalid_audience.xml.base64")) }
@@ -198,17 +198,6 @@ class RubySamlTest < Minitest::Test
           assert_includes response_valid_signed.errors, error_msg
         end
 
-        it "raise when the assertion contains encrypted attributes" do
-          settings.idp_cert_fingerprint = signature_fingerprint_1
-          response_encrypted_attrs.settings = settings
-          response_encrypted_attrs.soft = false
-          error_msg = "There is an EncryptedAttribute in the Response and this SP not support them"
-          assert_raises(OneLogin::RubySaml::ValidationError, error_msg) do
-            response_encrypted_attrs.is_valid?
-          end
-          assert_includes response_encrypted_attrs.errors, error_msg
-        end
-
         it "raise when there is no valid audience" do
           settings.idp_cert_fingerprint = signature_fingerprint_1
           settings.issuer = 'invalid'
@@ -363,14 +352,6 @@ class RubySamlTest < Minitest::Test
           response_valid_signed = OneLogin::RubySaml::Response.new(response_document_valid_signed, opts)
           response_valid_signed.is_valid?
           assert_includes response_valid_signed.errors, "The InResponseTo of the Response: _fc4a34b0-7efb-012e-caae-782bcb13bb38, does not match the ID of the AuthNRequest sent by the SP: invalid_request_id"
-        end
-
-        it "return false when the assertion contains encrypted attributes" do
-          settings.idp_cert_fingerprint = signature_fingerprint_1
-          response_encrypted_attrs.settings = settings
-          response_encrypted_attrs.soft = true
-          response_encrypted_attrs.is_valid?
-          assert_includes response_encrypted_attrs.errors, "There is an EncryptedAttribute in the Response and this SP not support them"
         end
 
         it "return false when there is no valid audience" do
@@ -556,20 +537,6 @@ class RubySamlTest < Minitest::Test
         response = OneLogin::RubySaml::Response.new(response_document_valid_signed, :settings => settings, :matches_request_id => "invalid_request_id")
         assert !response.send(:validate_in_response_to)
         assert_includes response.errors, "The InResponseTo of the Response: _fc4a34b0-7efb-012e-caae-782bcb13bb38, does not match the ID of the AuthNRequest sent by the SP: invalid_request_id"
-      end
-    end
-
-    describe "#validate_no_encrypted_attributes" do
-      it "return true when the assertion does not contain encrypted attributes" do
-        response_valid_signed.settings = settings
-        assert response_valid_signed.send(:validate_no_encrypted_attributes)
-        assert_empty response_valid_signed.errors
-      end
-
-      it "return false when the assertion contains encrypted attributes" do
-        response_encrypted_attrs.settings = settings
-        assert !response_encrypted_attrs.send(:validate_no_encrypted_attributes)
-        assert_includes response_encrypted_attrs.errors, "There is an EncryptedAttribute in the Response and this SP not support them"
       end
     end
 
@@ -953,13 +920,27 @@ class RubySamlTest < Minitest::Test
         assert_equal "bob", response_with_multiple_attribute_statements.attributes[:firstname]
       end
 
-      it "not raise errors about nil/empty attributes for EncryptedAttributes" do
-        response_no_cert_and_encrypted_attrs = OneLogin::RubySaml::Response.new(response_document_no_cert_and_encrypted_attrs)
-        assert_equal 'Demo', response_no_cert_and_encrypted_attrs.attributes["first_name"]
-      end
-
       it "not raise on responses without attributes" do
         assert_equal OneLogin::RubySaml::Attributes.new, response_unsigned.attributes
+      end
+
+      describe "#encrypted attributes" do
+        it "raise error when the assertion contains encrypted attributes but no private key to decrypt" do
+          settings.private_key = nil
+          response_encrypted_attrs.settings = settings
+          assert_raises(OneLogin::RubySaml::ValidationError, "An EncryptedAttribute found and no SP private key found on the settings to decrypt it") do
+            attrs = response_encrypted_attrs.attributes
+          end
+        end
+
+        it "extract attributes when the assertion contains encrypted attributes and the private key is provided" do
+          settings.certificate = ruby_saml_cert_text
+          settings.private_key = ruby_saml_key_text
+          response_encrypted_attrs.settings = settings
+          attributes = response_encrypted_attrs.attributes
+          assert_equal "test", attributes[:uid]
+          assert_equal "test@example.com", attributes[:mail]
+        end
       end
 
       it "return false when validating a response with duplicate attributes" do

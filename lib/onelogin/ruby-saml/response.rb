@@ -132,6 +132,7 @@ module OneLogin
       #    attributes['name']
       #
       # @return [Attributes] OneLogin::RubySaml::Attributes enumerable collection.
+      # @raise [ValidationError] if there are 2+ Attribute with the same Name
       #
       def attributes
         @attr_statements ||= begin
@@ -140,8 +141,19 @@ module OneLogin
           stmt_elements = xpath_from_signed_assertion('/a:AttributeStatement')
           stmt_elements.each do |stmt_element|
             stmt_element.elements.each do |attr_element|
-              name = attr_element.attributes["Name"]
-              values = attr_element.elements.collect{|e|
+              if attr_element.name == "EncryptedAttribute"
+                node = decrypt_attribute(attr_element.dup)
+              else
+                node = attr_element
+              end
+
+              name  = node.attributes["Name"]
+
+              if options[:check_duplicated_attributes] && attributes.include?(name)
+                raise ValidationError.new("Found an Attribute element with duplicated Name")
+              end
+
+              values = node.elements.collect{|e|
                 if (e.elements.nil? || e.elements.size == 0)
                   # SAMLCore requires that nil AttributeValues MUST contain xsi:nil XML attribute set to "true" or "1"
                   # otherwise the value is to be regarded as empty.
@@ -300,7 +312,6 @@ module OneLogin
           :validate_id,
           :validate_success_status,
           :validate_num_assertion,
-          :validate_no_encrypted_attributes,
           :validate_no_duplicated_attributes,
           :validate_signed_elements,
           :validate_structure,
@@ -432,20 +443,6 @@ module OneLogin
         true
       end
 
-      # Validates that there are not EncryptedAttribute (not supported)
-      # If fails, the error is added to the errors array
-      # @return [Boolean] True if there are no EncryptedAttribute elements, otherwise False if soft=True
-      # @raise [ValidationError] if soft == false and validation fails
-      #
-      def validate_no_encrypted_attributes
-        nodes = xpath_from_signed_assertion("/a:AttributeStatement/a:EncryptedAttribute")        
-        if nodes && nodes.length > 0
-          return append_error("There is an EncryptedAttribute in the Response and this SP not support them")
-        end
-
-        true
-      end
-
       # Validates that there are not duplicated attributes
       # If fails, the error is added to the errors array
       # @return [Boolean] True if there are no duplicated attribute elements, otherwise False if soft=True
@@ -453,16 +450,10 @@ module OneLogin
       #
       def validate_no_duplicated_attributes
         if options[:check_duplicated_attributes]
-          processed_names = []
-          stmt_elements = xpath_from_signed_assertion('/a:AttributeStatement')
-          stmt_elements.each do |stmt_element|
-            stmt_element.elements.each do |attr_element|
-              name = attr_element.attributes["Name"]
-              if attributes.include?(name)
-                return append_error("Found an Attribute element with duplicated Name")
-              end
-              processed_names.add(name)
-            end
+          begin
+            attributes
+          rescue ValidationError => e
+            return append_error(e.message)
           end
         end
 
@@ -928,8 +919,17 @@ module OneLogin
         decrypt_element(encryptedid_node, /(.*<\/(\w+:)?NameID>)/m)
       end
 
+      # Decrypts an EncryptedID element
+      # @param encryptedid_node [REXML::Element] The EncryptedID element
+      # @return [REXML::Document] The decrypted EncrypedtID element
+      #
+      def decrypt_attribute(encryptedattribute_node)
+        decrypt_element(encryptedattribute_node, /(.*<\/(\w+:)?Attribute>)/m)
+      end
+
       # Decrypt an element
       # @param encryptedid_node [REXML::Element] The encrypted element
+      # @param rgrex string Regex
       # @return [REXML::Document] The decrypted element
       #
       def decrypt_element(encrypt_node, rgrex)
@@ -937,13 +937,21 @@ module OneLogin
           raise ValidationError.new('An ' + encrypt_node.name + ' found and no SP private key found on the settings to decrypt it')
         end
 
+
+        if encrypt_node.name == 'EncryptedAttribute'
+          node_header = '<node xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'
+        else
+          node_header = '<node xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">'
+        end
+
         elem_plaintext = OneLogin::RubySaml::Utils.decrypt_data(encrypt_node, settings.get_sp_key)
         # If we get some problematic noise in the plaintext after decrypting.
         # This quick regexp parse will grab only the Element and discard the noise.
         elem_plaintext = elem_plaintext.match(rgrex)[0]
-        # To avoid namespace errors if saml namespace is not defined at assertion_plaintext
-        # create a parent node first with the saml namespace defined
-        elem_plaintext = '<node xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">' + elem_plaintext + '</node>'
+
+        # To avoid namespace errors if saml namespace is not defined
+        # create a parent node first with the namespace defined
+        elem_plaintext = node_header + elem_plaintext + '</node>'
         doc = REXML::Document.new(elem_plaintext)
         doc.root[0]
       end
