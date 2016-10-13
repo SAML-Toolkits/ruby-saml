@@ -1,5 +1,9 @@
 # Ruby SAML [![Build Status](https://secure.travis-ci.org/onelogin/ruby-saml.png)](http://travis-ci.org/onelogin/ruby-saml) [![Coverage Status](https://coveralls.io/repos/onelogin/ruby-saml/badge.svg?branch=master%0A)](https://coveralls.io/r/onelogin/ruby-saml?branch=master%0A) [![Gem Version](https://badge.fury.io/rb/ruby-saml.svg)](http://badge.fury.io/rb/ruby-saml)
 
+## Updating from 1.3.x to 1.4.X
+
+Version `1.4.0` is a recommended update for all Ruby SAML users as it includes security improvements.
+
 ## Updating from 1.2.x to 1.3.X
 
 Version `1.3.0` is a recommended update for all Ruby SAML users as it includes security fixes. It  adds security improvements in order to prevent Signature wrapping attacks. [CVE-2016-5697](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2016-5697)
