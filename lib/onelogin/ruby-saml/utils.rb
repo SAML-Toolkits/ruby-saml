@@ -133,9 +133,8 @@ module OneLogin
           encrypt_data,
           "./ds:KeyInfo/xenc:EncryptedKey or \
            //xenc:EncryptedKey[@Id=$id]",
-          { "ds" => DSIG, "xenc" => XENC,
-            "id" =>  self.retrieve_symetric_key_reference(encrypt_data) 
-          }
+          { "ds" => DSIG, "xenc" => XENC },
+          { "id" =>  self.retrieve_symetric_key_reference(encrypt_data) }
         )
 
         encrypted_symmetric_key_element = REXML::XPath.first(
