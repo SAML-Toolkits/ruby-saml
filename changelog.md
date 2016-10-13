@@ -1,5 +1,23 @@
 # RubySaml Changelog
 
+### 1.4.0 (October 13, 2016)
+* Several security improvements:
+  * Conditions element required and unique.
+  * AuthnStatement element required and unique.
+  * SPNameQualifier must math the SP EntityID
+  * Reject saml:Attribute element with same “Name” attribute
+  * Reject empty nameID
+  * Require Issuer element. (Must match IdP EntityID).
+  * Destination value can't be blank (if present must match ACS URL).
+  * Check that the EncryptedAssertion element only contains 1 Assertion element.
+
+* [#335](https://github.com/onelogin/ruby-saml/pull/335) Explicitly parse as XML and fix setting of Nokogiri options.
+* [#345](https://github.com/onelogin/ruby-saml/pull/345)Support multiple settings.auth_context
+* More tests to prevent XML Signature Wrapping
+* [#342](https://github.com/onelogin/ruby-saml/pull/342) Correct the usage of Mutex
+* [352](https://github.com/onelogin/ruby-saml/pull/352) Support multiple AttributeStatement tags
+
+
 ### 1.3.1 (July 10, 2016)
 * Fix response_test.rb of gem 1.3.0
 * Add reference to Security Guidelines

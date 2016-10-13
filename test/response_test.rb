@@ -21,6 +21,9 @@ class RubySamlTest < Minitest::Test
     let(:response_no_id) { OneLogin::RubySaml::Response.new(read_invalid_response("no_id.xml.base64")) }
     let(:response_no_version) { OneLogin::RubySaml::Response.new(read_invalid_response("no_saml2.xml.base64")) }
     let(:response_multi_assertion) { OneLogin::RubySaml::Response.new(read_invalid_response("multiple_assertions.xml.base64")) }
+    let(:response_no_conditions) { OneLogin::RubySaml::Response.new(read_invalid_response("no_conditions.xml.base64")) }
+    let(:response_no_authnstatement) { OneLogin::RubySaml::Response.new(read_invalid_response("no_authnstatement.xml.base64")) }
+    let(:response_empty_destination) { OneLogin::RubySaml::Response.new(read_invalid_response("empty_destination.xml.base64")) }
     let(:response_no_status) { OneLogin::RubySaml::Response.new(read_invalid_response("no_status.xml.base64")) }
     let(:response_no_statuscode) { OneLogin::RubySaml::Response.new(read_invalid_response("no_status_code.xml.base64")) }
     let(:response_statuscode_responder) { OneLogin::RubySaml::Response.new(read_invalid_response("status_code_responder.xml.base64")) }
@@ -32,6 +35,12 @@ class RubySamlTest < Minitest::Test
     let(:response_invalid_signed_element) { OneLogin::RubySaml::Response.new(read_invalid_response("response_invalid_signed_element.xml.base64")) }
     let(:response_invalid_issuer_assertion) { OneLogin::RubySaml::Response.new(read_invalid_response("invalid_issuer_assertion.xml.base64")) }
     let(:response_invalid_issuer_message) { OneLogin::RubySaml::Response.new(read_invalid_response("invalid_issuer_message.xml.base64")) }
+    let(:response_no_issuer_response) { OneLogin::RubySaml::Response.new(read_invalid_response("no_issuer_response.xml.base64")) }
+    let(:response_no_issuer_assertion) { OneLogin::RubySaml::Response.new(read_invalid_response("no_issuer_assertion.xml.base64")) }
+    let(:response_no_nameid) { OneLogin::RubySaml::Response.new(read_invalid_response("no_nameid.xml.base64")) }
+    let(:response_empty_nameid) { OneLogin::RubySaml::Response.new(read_invalid_response("empty_nameid.xml.base64")) }
+    let(:response_wrong_spnamequalifier) { OneLogin::RubySaml::Response.new(read_invalid_response("wrong_spnamequalifier.xml.base64")) }
+    let(:response_duplicated_attributes) { OneLogin::RubySaml::Response.new(read_invalid_response("duplicated_attributes.xml.base64")) }
     let(:response_no_subjectconfirmation_data) { OneLogin::RubySaml::Response.new(read_invalid_response("no_subjectconfirmation_data.xml.base64")) }
     let(:response_no_subjectconfirmation_method) { OneLogin::RubySaml::Response.new(read_invalid_response("no_subjectconfirmation_method.xml.base64")) }
     let(:response_invalid_subjectconfirmation_inresponse) { OneLogin::RubySaml::Response.new(read_invalid_response("invalid_subjectconfirmation_inresponse.xml.base64")) }
@@ -420,6 +429,12 @@ class RubySamlTest < Minitest::Test
         assert !response.send(:validate_destination)
         assert_includes response.errors, "The response was received at #{response.destination} instead of #{response.settings.assertion_consumer_service_url}"
       end
+
+      it "return false when the destination of the SAML Response is empty" do
+        response_empty_destination.settings = settings
+        assert !response_empty_destination.send(:validate_destination)
+        assert_includes response_empty_destination.errors, "The response has an empty Destination value"
+      end
     end
 
     describe "#validate_issuer" do
@@ -571,6 +586,20 @@ class RubySamlTest < Minitest::Test
         response_invalid_issuer_assertion.settings.idp_entity_id = 'http://idp.example.com/'
         assert !response_invalid_issuer_assertion.send(:validate_issuer)
         assert_includes response_invalid_issuer_assertion.errors, "Doesn't match the issuer, expected: <#{response_invalid_issuer_assertion.settings.idp_entity_id}>, but was: <http://invalid.issuer.example.com/>"
+      end
+
+      it "return false when the no issuer at the Response" do
+        response_no_issuer_response.settings = settings
+        response_no_issuer_response.settings.idp_entity_id = 'http://idp.example.com/'
+        assert !response_no_issuer_response.send(:validate_issuer)
+        assert_includes response_no_issuer_response.errors, "Issuer of the Response not found or multiple."
+      end
+
+      it "return false when the no issuer at the Assertion" do
+        response_no_issuer_assertion.settings = settings
+        response_no_issuer_assertion.settings.idp_entity_id = 'http://idp.example.com/'
+        assert !response_no_issuer_assertion.send(:validate_issuer)
+        assert_includes response_no_issuer_assertion.errors, "Issuer of the Assertion not found or multiple."
       end
     end
 
@@ -735,6 +764,46 @@ class RubySamlTest < Minitest::Test
        end
     end
 
+    describe "#validate nameid" do
+      it "return false when no nameid element and required by settings" do
+        settings.security[:want_name_id] = true
+        response_no_nameid.settings = settings
+        assert !response_no_nameid.send(:validate_name_id)
+        assert_includes response_no_nameid.errors, "No NameID element found in the assertion of the Response"
+      end
+
+      it "return false when no nameid element and required by settings" do
+        response_empty_nameid.settings = settings
+        assert !response_empty_nameid.send(:validate_name_id)
+        assert_includes response_empty_nameid.errors, "An empty NameID value found"
+      end
+
+      it "return false when no nameid value" do
+        response_empty_nameid.settings = settings
+        assert !response_empty_nameid.send(:validate_name_id)
+        assert_includes response_empty_nameid.errors, "An empty NameID value found"
+      end
+
+      it "return false when wrong_spnamequalifier" do
+        settings.issuer = 'sp_entity_id'
+        response_wrong_spnamequalifier.settings = settings
+        assert !response_wrong_spnamequalifier.send(:validate_name_id)
+        assert_includes response_wrong_spnamequalifier.errors, "The SPNameQualifier value mistmatch the SP entityID value."
+      end
+
+      it "return true when no nameid element but not required by settings" do
+        settings.security[:want_name_id] = false
+        response_no_nameid.settings = settings
+        assert response_no_nameid.send(:validate_name_id)
+      end
+
+      it "return true when nameid is valid and response_wrong_spnamequalifier matches the SP issuer" do
+        settings.issuer = 'wrong-sp-entityid'
+        response_wrong_spnamequalifier.settings = settings
+        assert response_wrong_spnamequalifier.send(:validate_name_id)
+      end
+    end
+
     describe "#nameid" do
       it "extract the value of the name id element" do
         assert_equal "support@onelogin.com", response.nameid
@@ -763,6 +832,32 @@ class RubySamlTest < Minitest::Test
       it "extract the value of the sessionindex element" do
         response = OneLogin::RubySaml::Response.new(fixture(:simple_saml_php))
         assert_equal "_51be37965feb5579d803141076936dc2e9d1d98ebf", response.sessionindex
+      end
+    end
+
+    describe "#check_one_conditions" do
+      it "return false when none or more than one conditions element" do
+        response_no_conditions.soft = true
+        assert !response_no_conditions.send(:validate_one_conditions)
+        assert_includes response_no_conditions.errors, "The Assertion must include one Conditions element"
+      end
+
+      it "return true when one conditions element" do
+        response.soft = true
+        assert response.send(:validate_one_conditions)
+      end
+    end
+
+    describe "#check_one_authnstatement" do
+      it "return false when none or more than one authnstatement element" do
+        response_no_authnstatement.soft = true
+        assert !response_no_authnstatement.send(:validate_one_authnstatement)
+        assert_includes response_no_authnstatement.errors, "The Assertion must include one AuthnStatement element"
+      end
+
+      it "return true when one authnstatement element" do
+        response.soft = true
+        assert response.send(:validate_one_authnstatement)
       end
     end
 
@@ -833,9 +928,9 @@ class RubySamlTest < Minitest::Test
         it "raise error when the assertion contains encrypted attributes but no private key to decrypt" do
           settings.private_key = nil
           response_encrypted_attrs.settings = settings
-          #assert_raises(OneLogin::RubySaml::ValidationError, "An EncryptedAttribute found and no SP private key found on the settings to decrypt it") do
-          #  attrs = response_encrypted_attrs.attributes
-          #end
+          assert_raises(OneLogin::RubySaml::ValidationError, "An EncryptedAttribute found and no SP private key found on the settings to decrypt it") do
+            attrs = response_encrypted_attrs.attributes
+          end
         end
 
         it "extract attributes when the assertion contains encrypted attributes and the private key is provided" do
@@ -846,6 +941,18 @@ class RubySamlTest < Minitest::Test
           assert_equal "test", attributes[:uid]
           assert_equal "test@example.com", attributes[:mail]
         end
+      end
+
+      it "return false when validating a response with duplicate attributes" do
+        response_duplicated_attributes.settings = settings
+        response_duplicated_attributes.options[:check_duplicated_attributes] = true
+        assert !response_duplicated_attributes.send(:validate_no_duplicated_attributes)
+        assert_includes response_duplicated_attributes.errors, "Found an Attribute element with duplicated Name"
+      end
+
+      it "return true when validating a response with duplicate attributes but skip check" do
+        response_duplicated_attributes.settings = settings
+        assert response_duplicated_attributes.send(:validate_no_duplicated_attributes)
       end
 
       describe "#multiple values" do
@@ -949,16 +1056,6 @@ class RubySamlTest < Minitest::Test
 
       it "return nil when the value of the SessionNotOnOrAfter is not set" do
         assert_nil response_without_attributes.session_expires_at
-      end
-    end
-
-    describe "#issuers" do
-      it "return the issuer inside the response assertion" do
-        assert_includes response.issuers, "https://app.onelogin.com/saml/metadata/13590"
-      end
-
-      it "return the issuer inside the response" do
-        assert_includes response_without_attributes.issuers, "wibble"
       end
     end
 
