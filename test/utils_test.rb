@@ -156,58 +156,51 @@ class UtilsTest < Minitest::Test
     end
 
     describe 'uri_match' do
-      let(:settings) do
-        class MockSettings
-          attr_accessor :assertion_consumer_service_url
-        end
-        MockSettings.new
-      end
-
       it 'matches two urls' do
         destination = 'http://www.example.com/test?var=stuff'
-        settings.assertion_consumer_service_url = 'http://www.example.com/test?var=stuff'
+        settings = 'http://www.example.com/test?var=stuff'
         assert OneLogin::RubySaml::Utils.uri_match?(destination, settings)
       end
 
       it 'fails to match two urls' do
         destination = 'http://www.example.com/test?var=stuff'
-        settings.assertion_consumer_service_url = 'http://www.example.com/othertest?var=stuff'
+        settings = 'http://www.example.com/othertest?var=stuff'
         assert !OneLogin::RubySaml::Utils.uri_match?(destination, settings)
       end
 
       it "matches two URLs if the scheme case doesn't match" do
         destination = 'http://www.example.com/test?var=stuff'
-        settings.assertion_consumer_service_url = 'HTTP://www.example.com/test?var=stuff'
+        settings = 'HTTP://www.example.com/test?var=stuff'
         assert OneLogin::RubySaml::Utils.uri_match?(destination, settings)
       end
 
       it "matches two URLs if the host case doesn't match" do
         destination = 'http://www.EXAMPLE.com/test?var=stuff'
-        settings.assertion_consumer_service_url = 'http://www.example.com/test?var=stuff'
+        settings = 'http://www.example.com/test?var=stuff'
         assert OneLogin::RubySaml::Utils.uri_match?(destination, settings)
       end
 
       it "fails to match two URLs if the path case doesn't match" do
         destination = 'http://www.example.com/TEST?var=stuff'
-        settings.assertion_consumer_service_url = 'http://www.example.com/test?var=stuff'
+        settings = 'http://www.example.com/test?var=stuff'
         assert !OneLogin::RubySaml::Utils.uri_match?(destination, settings)
       end
 
       it "fails to match two URLs if the query case doesn't match" do
         destination = 'http://www.example.com/test?var=stuff'
-        settings.assertion_consumer_service_url = 'http://www.example.com/test?var=STUFF'
+        settings = 'http://www.example.com/test?var=STUFF'
         assert !OneLogin::RubySaml::Utils.uri_match?(destination, settings)
       end
 
       it 'matches two non urls' do
         destination = 'stuff'
-        settings.assertion_consumer_service_url = 'stuff'
+        settings = 'stuff'
         assert OneLogin::RubySaml::Utils.uri_match?(destination, settings)
       end
 
       it "fails to match two non urls" do
         destination = 'stuff'
-        settings.assertion_consumer_service_url = 'not stuff'
+        settings = 'not stuff'
         assert !OneLogin::RubySaml::Utils.uri_match?(destination, settings)
       end
     end

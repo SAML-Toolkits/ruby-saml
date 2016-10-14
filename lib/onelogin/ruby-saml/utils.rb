@@ -184,13 +184,14 @@ module OneLogin
         RUBY_VERSION < '1.9' ? "_#{@@uuid_generator.generate}" : "_#{SecureRandom.uuid}"
       end
 
-      # Compare the destination and the ACS url.  The scheme and the FQDN should be matched case insensitive, while
-      # the path should be case sensitive. If Rails can't parse out a scheme and a host, default to the
-      # original match.
+      # Given two strings, attempt to match them as URIs using Rails' parse method.  If they can be parsed,
+      # then the fully-qualified domain name and the host should performa a case-insensitive match, per the
+      # RFC for URIs.  If Rails can not parse the string in to URL pieces, return a boolean match of the
+      # two strings.  This maintains the previous functionality.
       # @return [Boolean]
-      def self.uri_match?(destination, settings)
-        dest_uri = URI.parse(destination)
-        acs_uri = URI.parse(settings.assertion_consumer_service_url)
+      def self.uri_match?(destination_url, settings_url)
+        dest_uri = URI.parse(destination_url)
+        acs_uri = URI.parse(settings_url)
 
         if dest_uri.scheme.nil? || acs_uri.scheme.nil? || dest_uri.host.nil? || acs_uri.host.nil?
           raise URI::InvalidURIError
@@ -201,13 +202,13 @@ module OneLogin
             dest_uri.query == acs_uri.query
         end
       rescue URI::InvalidURIError
-        original_uri_match?(destination, settings)
+        original_uri_match?(destination_url, settings_url)
       end
 
       # If Rails' URI.parse can't match to valid URL, default back to the original matching service.
       # @return [Boolean]
-      def self.original_uri_match?(destination, settings)
-        destination == settings.assertion_consumer_service_url
+      def self.original_uri_match?(destination_url, settings_url)
+        destination_url == settings_url
       end
     end
   end
