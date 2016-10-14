@@ -212,7 +212,7 @@ module OneLogin
       def validate_issuer
         return true if settings.nil? || settings.idp_entity_id.nil? || issuer.nil?
 
-        unless URI.parse(issuer) == URI.parse(settings.idp_entity_id)
+        unless OneLogin::RubySaml::Utils.uri_match?(issuer, settings.idp_entity_id)
           return append_error("Doesn't match the issuer, expected: <#{settings.idp_entity_id}>, but was: <#{issuer}>")
         end
 
