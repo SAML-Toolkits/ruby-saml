@@ -576,7 +576,7 @@ module OneLogin
 
         return true if settings.assertion_consumer_service_url.nil? || settings.assertion_consumer_service_url.empty?
 
-        unless uri_match?
+        unless OneLogin::RubySaml::Utils.uri_match?(destination, settings)
           error_msg = "The response was received at #{destination} instead of #{settings.assertion_consumer_service_url}"
           return append_error(error_msg)
         end
@@ -610,32 +610,6 @@ module OneLogin
         end
 
         true
-      end
-
-      # Compare the destination and the ACS url.  The scheme and the FQDN should be matched case insensitive, while
-      # the path should be case sensitive. If Rails can't parse out a scheme and a host, default to the
-      # original match.
-      # @return [Boolean]
-      def uri_match?
-        dest_uri = URI.parse(destination)
-        acs_uri = URI.parse(settings.assertion_consumer_service_url)
-
-        if dest_uri.scheme.nil? || acs_uri.scheme.nil? || dest_uri.host.nil? || acs_uri.host.nil?
-          raise URI::InvalidURIError
-        else
-          dest_uri.scheme.downcase == acs_uri.scheme.downcase &&
-            dest_uri.host.downcase == acs_uri.host.downcase &&
-            dest_uri.path == acs_uri.path &&
-            dest_uri.query == acs_uri.query
-        end
-      rescue URI::InvalidURIError
-        original_uri_match?
-      end
-
-      # If Rails' URI.parse can't match to valid URL, default back to the original matching service.
-      # @return [Boolean]
-      def original_uri_match?
-        destination == settings.assertion_consumer_service_url
       end
 
       # Validates the Conditions. (If the response was initialized with the :skip_conditions option, this validation is skipped,
