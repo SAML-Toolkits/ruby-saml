@@ -285,5 +285,11 @@ class RequestTest < Minitest::Test
       auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
       assert auth_doc.to_s =~ /<saml:AuthnContextDeclRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport<\/saml:AuthnContextDeclRef>/
     end
+    it "create multiple saml:AuthnContextDeclRef elements correctly " do
+      settings.authn_context_decl_ref = ['urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport', 'urn:federation:authentication:windows']
+      auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+      assert auth_doc.to_s =~ /<saml:AuthnContextDeclRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport<\/saml:AuthnContextDeclRef>/
+      assert auth_doc.to_s =~ /<saml:AuthnContextDeclRef>urn:federation:authentication:windows<\/saml:AuthnContextDeclRef>/
+    end
   end
 end

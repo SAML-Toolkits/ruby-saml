@@ -144,8 +144,14 @@ module OneLogin
           end
           # add saml:AuthnContextDeclRef element
           if settings.authn_context_decl_ref != nil
-            class_ref = requested_context.add_element "saml:AuthnContextDeclRef"
-            class_ref.text = settings.authn_context_decl_ref
+            authn_context_decl_ref = settings.authn_context_decl_ref
+            if ! authn_context_decl_ref.is_a?(Array)
+              authn_context_decl_ref = [authn_context_decl_ref]
+            end
+            authn_context_decl_ref.each do |authn_context_decl_ref|
+              class_ref = requested_context.add_element "saml:AuthnContextDeclRef"
+              class_ref.text = authn_context_decl_ref
+            end
           end
         end
 

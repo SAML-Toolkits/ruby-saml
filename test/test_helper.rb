@@ -2,6 +2,7 @@ require 'simplecov'
 
 SimpleCov.start do
   add_filter "test/"
+  add_filter "vendor/"
   add_filter "lib/onelogin/ruby-saml/logging.rb"
 end
 
