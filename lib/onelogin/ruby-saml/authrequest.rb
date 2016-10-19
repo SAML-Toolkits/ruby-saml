@@ -136,16 +136,19 @@ module OneLogin
           }
 
           if settings.authn_context != nil
-            authn_contexts = settings.authn_context.is_a?(Array) ? settings.authn_context : [settings.authn_context]
-            authn_contexts.each do |authn_context|
+            authn_contexts_class_ref = settings.authn_context.is_a?(Array) ? settings.authn_context : [settings.authn_context]
+            authn_contexts_class_ref.each do |authn_context_class_ref|
               class_ref = requested_context.add_element "saml:AuthnContextClassRef"
-              class_ref.text = authn_context
+              class_ref.text = authn_context_class_ref
             end
           end
-          # add saml:AuthnContextDeclRef element
+
           if settings.authn_context_decl_ref != nil
-            class_ref = requested_context.add_element "saml:AuthnContextDeclRef"
-            class_ref.text = settings.authn_context_decl_ref
+            authn_contexts_decl_refs = settings.authn_context_decl_ref.is_a?(Array) ? settings.authn_context_decl_ref : [settings.authn_context_decl_ref]
+            authn_contexts_decl_refs.each do |authn_context_decl_ref|
+              decl_ref = requested_context.add_element "saml:AuthnContextDeclRef"
+              decl_ref.text = authn_context_decl_ref
+            end
           end
         end
 
