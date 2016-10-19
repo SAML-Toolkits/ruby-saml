@@ -1,5 +1,11 @@
 # RubySaml Changelog
 
+### 1.4.1 (October 19, 2016)
+* [#357](https://github.com/onelogin/ruby-saml/pull/357) Add EncryptedAttribute support. Improve decrypt method
+* Allow multiple authn_context_decl_ref in settings
+* Allow options[:settings] to be an hash for Settings overrides in IdpMetadataParser#parse
+* Recover issuers method
+
 ### 1.4.0 (October 13, 2016)
 * Several security improvements:
   * Conditions element required and unique.
