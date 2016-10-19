@@ -248,6 +248,39 @@ module OneLogin
         @not_on_or_after ||= parse_time(conditions, "NotOnOrAfter")
       end
 
+      # Gets the Issuers (from Response and Assertion).
+      # (returns the first node that matches the supplied xpath from the Response and from the Assertion)
+      # @return [Array] Array with the Issuers (REXML::Element)
+      #
+      def issuers
+        @issuers ||= begin
+          issuers = []
+          issuer_response_nodes = REXML::XPath.match(
+            document,
+            "/p:Response/a:Issuer",
+            { "p" => PROTOCOL, "a" => ASSERTION }
+          )
+
+          unless issuer_response_nodes.size == 1
+            error_msg = "Issuer of the Response not found or multiple."
+            raise ValidationError.new(error_msg)
+          end
+
+          doc = decrypted_document.nil? ? document : decrypted_document
+          issuer_assertion_nodes = xpath_from_signed_assertion("/a:Issuer")
+          unless issuer_assertion_nodes.size == 1
+            error_msg = "Issuer of the Assertion not found or multiple."
+            raise ValidationError.new(error_msg)
+          end
+
+          nodes = issuer_response_nodes + issuer_assertion_nodes
+          nodes.each do |node|
+            issuers << node.text if node.text
+          end
+          issuers.uniq
+        end
+      end
+
       # @return [String|nil] The InResponseTo attribute from the SAML Response.
       #
       def in_response_to
@@ -635,32 +668,13 @@ module OneLogin
       def validate_issuer
         return true if settings.idp_entity_id.nil?
 
-        issuers = []
-        issuer_response_nodes = REXML::XPath.match(
-          document,
-          "/p:Response/a:Issuer",
-          { "p" => PROTOCOL, "a" => ASSERTION }
-        )
-
-        unless issuer_response_nodes.size == 1
-          error_msg = "Issuer of the Response not found or multiple."
-          return append_error(error_msg)
+        begin
+          obtained_issuers = issuers
+        rescue ValidationError => e
+          return append_error(e.message)
         end
 
-        doc = decrypted_document.nil? ? document : decrypted_document
-        issuer_assertion_nodes = xpath_from_signed_assertion("/a:Issuer")
-        unless issuer_assertion_nodes.size == 1
-          error_msg = "Issuer of the Assertion not found or multiple."
-          return append_error(error_msg)
-        end
-
-        nodes = issuer_response_nodes + issuer_assertion_nodes
-        nodes.each do |node|
-          issuers << node.text if node.text
-        end
-        issuers.uniq
-
-        issuers.each do |issuer|
+        obtained_issuers.each do |issuer|
           unless URI.parse(issuer) == URI.parse(settings.idp_entity_id)
             error_msg = "Doesn't match the issuer, expected: <#{settings.idp_entity_id}>, but was: <#{issuer}>"
             return append_error(error_msg)
