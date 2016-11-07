@@ -600,7 +600,7 @@ module OneLogin
 
         return true if settings.assertion_consumer_service_url.nil? || settings.assertion_consumer_service_url.empty?
 
-        unless destination == settings.assertion_consumer_service_url
+        unless OneLogin::RubySaml::Utils.uri_match?(destination, settings.assertion_consumer_service_url)
           error_msg = "The response was received at #{destination} instead of #{settings.assertion_consumer_service_url}"
           return append_error(error_msg)
         end
@@ -675,7 +675,7 @@ module OneLogin
         end
 
         obtained_issuers.each do |issuer|
-          unless URI.parse(issuer) == URI.parse(settings.idp_entity_id)
+          unless OneLogin::RubySaml::Utils.uri_match?(issuer, settings.idp_entity_id)
             error_msg = "Doesn't match the issuer, expected: <#{settings.idp_entity_id}>, but was: <#{issuer}>"
             return append_error(error_msg)
           end
