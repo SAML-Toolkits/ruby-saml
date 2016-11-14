@@ -614,3 +614,5 @@ settings.attribute_consuming_service.configure do
   add_attribute :name => "Another Attribute", :name_format => "Name Format", :friendly_name => "Friendly Name", :attribute_value => "Attribute Value"
 end
 ```
+
+The `attribute_value` option additionally accepts an array of possible values.
