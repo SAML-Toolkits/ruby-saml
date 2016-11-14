@@ -132,6 +132,34 @@ class MetadataTest < Minitest::Test
       end
     end
 
+    describe "when attribute service is configured with multiple attribute values" do
+      let(:attr_svc)  { REXML::XPath.first(xml_doc, "//md:AttributeConsumingService") }
+      let(:req_attr)  { REXML::XPath.first(xml_doc, "//md:RequestedAttribute") }
+
+      before do
+        settings.attribute_consuming_service.configure do
+          service_name "Test Service"
+          add_attribute(:name => "Name", :name_format => "Name Format", :friendly_name => "Friendly Name", :attribute_value => ["Attribute Value One", "Attribute Value Two"])
+        end
+      end
+
+      it "generates attribute service" do
+        assert_equal "true", attr_svc.attribute("isDefault").value
+        assert_equal "1", attr_svc.attribute("index").value
+        assert_equal REXML::XPath.first(xml_doc, "//md:ServiceName").text.strip, "Test Service"
+
+        assert_equal "Name", req_attr.attribute("Name").value
+        assert_equal "Name Format", req_attr.attribute("NameFormat").value
+        assert_equal "Friendly Name", req_attr.attribute("FriendlyName").value
+
+        attribute_values = REXML::XPath.match(xml_doc, "//saml:AttributeValue").map(&:text)
+        assert_equal "Attribute Value One", attribute_values[0]
+        assert_equal "Attribute Value Two", attribute_values[1]
+
+        assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
+      end
+    end
+
     describe "when attribute service is configured" do
       let(:attr_svc)  { REXML::XPath.first(xml_doc, "//md:AttributeConsumingService") }
       let(:req_attr)  { REXML::XPath.first(xml_doc, "//md:RequestedAttribute") }

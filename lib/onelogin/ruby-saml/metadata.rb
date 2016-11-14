@@ -89,8 +89,10 @@ module OneLogin
               "FriendlyName" => attribute[:friendly_name]
             }
             unless attribute[:attribute_value].nil?
-              sp_attr_val = sp_req_attr.add_element "saml:AttributeValue"
-              sp_attr_val.text = attribute[:attribute_value]
+              Array(attribute[:attribute_value]).each do |value|
+                sp_attr_val = sp_req_attr.add_element "saml:AttributeValue"
+                sp_attr_val.text = value.to_str
+              end
             end
           end
         end
