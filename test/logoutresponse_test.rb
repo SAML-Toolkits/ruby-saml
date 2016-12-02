@@ -103,7 +103,7 @@ class RubySamlTest < Minitest::Test
 
           assert !logoutresponse.validate
           refute_equal expected_request_id, logoutresponse.in_response_to
-          assert_includes logoutresponse.errors, "Response does not match the request ID, expected: <#{expected_request_id}>, but was: <#{logoutresponse.in_response_to}>"
+          assert_includes logoutresponse.errors, "The InResponseTo of the Logout Response: #{logoutresponse.in_response_to}, does not match the ID of the Logout Request sent by the SP: #{expected_request_id}"
         end
 
         it "invalidate logout response with wrong request status" do
@@ -177,7 +177,7 @@ class RubySamlTest < Minitest::Test
 
           logoutresponse = OneLogin::RubySaml::Logoutresponse.new(valid_logout_response_document, settings, opts)
           assert_raises(OneLogin::RubySaml::ValidationError) { logoutresponse.validate }          
-          assert_includes logoutresponse.errors, "Response does not match the request ID, expected: <#{expected_request_id}>, but was: <#{logoutresponse.in_response_to}>"
+          assert_includes logoutresponse.errors, "The InResponseTo of the Logout Response: #{logoutresponse.in_response_to}, does not match the ID of the Logout Request sent by the SP: #{expected_request_id}"
         end
 
         it "raise validation error for wrong request status" do

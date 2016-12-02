@@ -563,7 +563,7 @@ module OneLogin
       #
       def validate_in_response_to
         return true unless options.has_key? :matches_request_id
-        return true if options[:matches_request_id].nil? || options[:matches_request_id].empty?
+        return true if options[:matches_request_id].nil?
         return true unless options[:matches_request_id] != in_response_to
 
         error_msg = "The InResponseTo of the Response: #{in_response_to}, does not match the ID of the AuthNRequest sent by the SP: #{options[:matches_request_id]}"

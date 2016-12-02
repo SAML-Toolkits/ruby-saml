@@ -180,12 +180,11 @@ module OneLogin
       #
       def valid_in_response_to?
         return true unless options.has_key? :matches_request_id
+        return true if options[:matches_request_id].nil?
+        return true unless options[:matches_request_id] != in_response_to
 
-        unless options[:matches_request_id] == in_response_to
-          return append_error("Response does not match the request ID, expected: <#{options[:matches_request_id]}>, but was: <#{in_response_to}>")
-        end
-
-        true
+        error_msg = "The InResponseTo of the Logout Response: #{in_response_to}, does not match the ID of the Logout Request sent by the SP: #{options[:matches_request_id]}"
+        append_error(error_msg)
       end
 
       # Validates the Issuer of the Logout Response
