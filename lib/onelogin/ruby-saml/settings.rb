@@ -45,6 +45,7 @@ module OneLogin
       attr_accessor :attributes_index
       attr_accessor :force_authn
       attr_accessor :certificate
+      attr_accessor :intermediate_certificates
       attr_accessor :private_key
       attr_accessor :authn_context
       attr_accessor :authn_context_comparison
@@ -119,8 +120,7 @@ module OneLogin
       def get_idp_cert
         return nil if idp_cert.nil? || idp_cert.empty?
 
-        formatted_cert = OneLogin::RubySaml::Utils.format_cert(idp_cert)
-        OpenSSL::X509::Certificate.new(formatted_cert)
+        get_cert(idp_cert)
       end
 
       # @return [OpenSSL::X509::Certificate|nil] Build the SP certificate from the settings (previously format it)
@@ -128,8 +128,13 @@ module OneLogin
       def get_sp_cert
         return nil if certificate.nil? || certificate.empty?
 
-        formatted_cert = OneLogin::RubySaml::Utils.format_cert(certificate)
-        OpenSSL::X509::Certificate.new(formatted_cert)
+        get_cert(certificate)
+      end
+
+      def get_sp_intermediate_certs
+        return nil if intermediate_certificates.nil? || intermediate_certificates.empty?
+
+        intermediate_certificates.map { |intermediate_cert| get_cert(intermediate_cert) }
       end
 
       # @return [OpenSSL::PKey::RSA] Build the SP private from the settings (previously format it)
@@ -163,6 +168,14 @@ module OneLogin
         }.freeze,
         :double_quote_xml_attribute_values         => false,
       }.freeze
+
+      # @param cert_text [String] The original certificate text
+      # @return [OpenSSL::X509::Certificate|nil] The formatted X509 certificate
+      #
+      def get_cert(cert_text)
+        formatted_cert = OneLogin::RubySaml::Utils.format_cert(cert_text)
+        OpenSSL::X509::Certificate.new(formatted_cert)
+      end
     end
   end
 end

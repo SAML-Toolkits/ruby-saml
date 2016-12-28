@@ -32,21 +32,12 @@ module OneLogin
             "WantAssertionsSigned" => settings.security[:want_assertions_signed],
         }
 
-        # Add KeyDescriptor if messages will be signed / encrypted
         cert = settings.get_sp_cert
         if cert
-          cert_text = Base64.encode64(cert.to_der).gsub("\n", '')
-          kd = sp_sso.add_element "md:KeyDescriptor", { "use" => "signing" }
-          ki = kd.add_element "ds:KeyInfo", {"xmlns:ds" => "http://www.w3.org/2000/09/xmldsig#"}
-          xd = ki.add_element "ds:X509Data"
-          xc = xd.add_element "ds:X509Certificate"
-          xc.text = cert_text
+          intermediate_certs = settings.get_sp_intermediate_certs
 
-          kd2 = sp_sso.add_element "md:KeyDescriptor", { "use" => "encryption" }
-          ki2 = kd2.add_element "ds:KeyInfo", {"xmlns:ds" => "http://www.w3.org/2000/09/xmldsig#"}
-          xd2 = ki2.add_element "ds:X509Data"
-          xc2 = xd2.add_element "ds:X509Certificate"
-          xc2.text = cert_text
+          add_sp_cert(sp_sso, "signing", cert, intermediate_certs)
+          add_sp_cert(sp_sso, "encryption", cert, intermediate_certs)
         end
 
         root.attributes["ID"] = OneLogin::RubySaml::Utils.uuid
@@ -118,6 +109,30 @@ module OneLogin
         end
 
         return ret
+      end
+
+      private
+
+      def add_sp_cert(sp_sso_descriptor, use, sp_cert, intermediate_certs)
+        # Add KeyDescriptor if messages will be signed / encrypted:
+        key_descriptor = sp_sso_descriptor.add_element "md:KeyDescriptor", { "use" => use }
+        key_info = key_descriptor.add_element "ds:KeyInfo", { "xmlns:ds" => "http://www.w3.org/2000/09/xmldsig#" }
+        x509_data = key_info.add_element "ds:X509Data"
+
+        x509_certificate = x509_data.add_element "ds:X509Certificate"
+        x509_certificate.text = get_cert_text(sp_cert)
+
+        # Include intermediate certificates if any exist:
+        if intermediate_certs
+          intermediate_certs.each do |intermediate_cert|
+            x509_intermediate_cert = x509_data.add_element "ds:X509Certificate"
+            x509_intermediate_cert.text = get_cert_text(intermediate_cert)
+          end
+        end
+      end
+
+      def get_cert_text(cert)
+        Base64.encode64(cert.to_der).gsub("\n", '')
       end
     end
   end
