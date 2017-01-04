@@ -89,7 +89,7 @@ class MetadataTest < Minitest::Test
       end
     end
 
-    describe "when auth requests are signed" do
+    describe "with a sign/encrypt certificate" do
       let(:key_descriptors) do
         REXML::XPath.match(
           xml_doc,
@@ -111,24 +111,43 @@ class MetadataTest < Minitest::Test
         settings.certificate = ruby_saml_cert_text
       end
 
-      it "generates Service Provider Metadata with AuthnRequestsSigned" do
-        settings.security[:authn_requests_signed] = true
-        assert_equal "true", spsso_descriptor.attribute("AuthnRequestsSigned").value
-        assert_equal ruby_saml_cert.to_der, cert.to_der
+      describe "and signed authentication requests" do
+        before do
+          settings.security[:authn_requests_signed] = true
+        end
 
-        assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
+        it "generates Service Provider Metadata with AuthnRequestsSigned" do
+          assert_equal "true", spsso_descriptor.attribute("AuthnRequestsSigned").value
+          assert_equal ruby_saml_cert.to_der, cert.to_der
+
+          assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
+        end
+
+        it "generates Service Provider Metadata with X509Certificate for sign" do
+          assert_equal 1, key_descriptors.length
+          assert_equal "signing", key_descriptors[0].attribute("use").value
+
+          assert_equal 1, cert_nodes.length
+          assert_equal ruby_saml_cert.to_der, cert.to_der
+
+          assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
+        end
       end
 
-      it "generates Service Provider Metadata with X509Certificate for sign and encrypt" do
-        assert_equal 2, key_descriptors.length
-        assert_equal "signing", key_descriptors[0].attribute("use").value
-        assert_equal "encryption", key_descriptors[1].attribute("use").value
+      describe "and encrypted assertions" do
+        before do
+          settings.security[:want_assertions_encrypted] = true
+        end
 
-        assert_equal 2, cert_nodes.length
-        assert_equal ruby_saml_cert.to_der, cert.to_der
-        assert_equal cert_nodes[0].text, cert_nodes[1].text
+        it "generates Service Provider Metadata with X509Certificate for encrypt" do
+          assert_equal 1, key_descriptors.length
+          assert_equal "encryption", key_descriptors[0].attribute("use").value
 
-        assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
+          assert_equal 1, cert_nodes.length
+          assert_equal ruby_saml_cert.to_der, cert.to_der
+
+          assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
+        end
       end
     end
 
