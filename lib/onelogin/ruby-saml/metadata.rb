@@ -36,15 +36,11 @@ module OneLogin
         cert = settings.get_sp_cert
         if cert
           cert_text = Base64.encode64(cert.to_der).gsub("\n", '')
-
-          if settings.security[:authn_requests_signed]
-            cert_text = Base64.encode64(cert.to_der).gsub("\n", '')
-            kd = sp_sso.add_element "md:KeyDescriptor", { "use" => "signing" }
-            ki = kd.add_element "ds:KeyInfo", {"xmlns:ds" => "http://www.w3.org/2000/09/xmldsig#"}
-            xd = ki.add_element "ds:X509Data"
-            xc = xd.add_element "ds:X509Certificate"
-            xc.text = cert_text
-          end
+          kd = sp_sso.add_element "md:KeyDescriptor", { "use" => "signing" }
+          ki = kd.add_element "ds:KeyInfo", {"xmlns:ds" => "http://www.w3.org/2000/09/xmldsig#"}
+          xd = ki.add_element "ds:X509Data"
+          xc = xd.add_element "ds:X509Certificate"
+          xc.text = cert_text
 
           if settings.security[:want_assertions_encrypted]
             kd2 = sp_sso.add_element "md:KeyDescriptor", { "use" => "encryption" }

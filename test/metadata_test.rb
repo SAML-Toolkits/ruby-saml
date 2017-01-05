@@ -111,6 +111,16 @@ class MetadataTest < Minitest::Test
         settings.certificate = ruby_saml_cert_text
       end
 
+      it "generates Service Provider Metadata with X509Certificate for sign" do
+        assert_equal 1, key_descriptors.length
+        assert_equal "signing", key_descriptors[0].attribute("use").value
+
+        assert_equal 1, cert_nodes.length
+        assert_equal ruby_saml_cert.to_der, cert.to_der
+
+        assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
+      end
+
       describe "and signed authentication requests" do
         before do
           settings.security[:authn_requests_signed] = true
@@ -118,16 +128,6 @@ class MetadataTest < Minitest::Test
 
         it "generates Service Provider Metadata with AuthnRequestsSigned" do
           assert_equal "true", spsso_descriptor.attribute("AuthnRequestsSigned").value
-          assert_equal ruby_saml_cert.to_der, cert.to_der
-
-          assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
-        end
-
-        it "generates Service Provider Metadata with X509Certificate for sign" do
-          assert_equal 1, key_descriptors.length
-          assert_equal "signing", key_descriptors[0].attribute("use").value
-
-          assert_equal 1, cert_nodes.length
           assert_equal ruby_saml_cert.to_der, cert.to_der
 
           assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
@@ -140,12 +140,11 @@ class MetadataTest < Minitest::Test
         end
 
         it "generates Service Provider Metadata with X509Certificate for encrypt" do
-          assert_equal 1, key_descriptors.length
-          assert_equal "encryption", key_descriptors[0].attribute("use").value
+          assert_equal 2, key_descriptors.length
+          assert_equal "encryption", key_descriptors[1].attribute("use").value
 
-          assert_equal 1, cert_nodes.length
-          assert_equal ruby_saml_cert.to_der, cert.to_der
-
+          assert_equal 2, cert_nodes.length
+          assert_equal cert_nodes[0].text, cert_nodes[1].text
           assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
         end
       end
