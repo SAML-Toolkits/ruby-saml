@@ -13,7 +13,7 @@ class UtilsTest < Minitest::Test
 
     it "returns nil when the cert is nil" do
       cert = nil
-      assert_equal nil, OneLogin::RubySaml::Utils.format_cert(cert)
+      assert_nil OneLogin::RubySaml::Utils.format_cert(cert)
     end
 
     it "returns the certificate when it is valid" do
@@ -48,7 +48,7 @@ class UtilsTest < Minitest::Test
 
     it "returns nil when the private key is nil" do
       private_key = nil
-      assert_equal nil, OneLogin::RubySaml::Utils.format_private_key(private_key)
+      assert_nil OneLogin::RubySaml::Utils.format_private_key(private_key)
     end
 
     it "returns the private key when it is valid" do

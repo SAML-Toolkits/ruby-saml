@@ -106,7 +106,7 @@ class RubySamlTest < Minitest::Test
    describe "#not_on_or_after" do
       it "extract the value of the NotOnOrAfter attribute" do
         time_value = '2014-07-17T01:01:48Z'
-        assert_equal nil, logout_request.not_on_or_after
+        assert_nil logout_request.not_on_or_after
         logout_request.document.root.attributes['NotOnOrAfter'] = time_value
         assert_equal Time.parse(time_value), logout_request.not_on_or_after
       end

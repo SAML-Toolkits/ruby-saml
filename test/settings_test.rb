@@ -99,13 +99,13 @@ class SettingsTest < Minitest::Test
       it "returns nil when the cert is an empty string" do
         @settings = OneLogin::RubySaml::Settings.new
         @settings.idp_cert = ""
-        assert_equal nil, @settings.get_idp_cert
+        assert_nil @settings.get_idp_cert
       end
 
       it "returns nil when the cert is nil" do
         @settings = OneLogin::RubySaml::Settings.new
         @settings.idp_cert = nil
-        assert_equal nil, @settings.get_idp_cert
+        assert_nil @settings.get_idp_cert
       end
 
       it "returns the certificate when it is valid" do
@@ -127,13 +127,13 @@ class SettingsTest < Minitest::Test
       it "returns nil when the cert is an empty string" do
         @settings = OneLogin::RubySaml::Settings.new
         @settings.certificate = ""
-        assert_equal nil, @settings.get_sp_cert
+        assert_nil @settings.get_sp_cert
       end
 
       it "returns nil when the cert is nil" do
         @settings = OneLogin::RubySaml::Settings.new
         @settings.certificate = nil
-        assert_equal nil, @settings.get_sp_cert
+        assert_nil @settings.get_sp_cert
       end
 
       it "returns the certificate when it is valid" do
@@ -156,13 +156,13 @@ class SettingsTest < Minitest::Test
       it "returns nil when the private key is an empty string" do
         @settings = OneLogin::RubySaml::Settings.new
         @settings.private_key = ""
-        assert_equal nil, @settings.get_sp_key
+        assert_nil @settings.get_sp_key
       end
 
       it "returns nil when the private key is nil" do
         @settings = OneLogin::RubySaml::Settings.new
         @settings.private_key = nil
-        assert_equal nil, @settings.get_sp_key
+        assert_nil @settings.get_sp_key
       end
 
       it "returns the private key when it is valid" do

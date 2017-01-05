@@ -1070,14 +1070,14 @@ class RubySamlTest < Minitest::Test
         end
 
         it "check what happens when trying retrieve attribute that does not exists" do
-          assert_equal nil, response_multiple_attr_values.attributes[:attribute_not_exists]
-          assert_equal nil, response_multiple_attr_values.attributes.single(:attribute_not_exists)
-          assert_equal nil, response_multiple_attr_values.attributes.multi(:attribute_not_exists)
+          assert_nil response_multiple_attr_values.attributes[:attribute_not_exists]
+          assert_nil response_multiple_attr_values.attributes.single(:attribute_not_exists)
+          assert_nil response_multiple_attr_values.attributes.multi(:attribute_not_exists)
 
           OneLogin::RubySaml::Attributes.single_value_compatibility = false
-          assert_equal nil, response_multiple_attr_values.attributes[:attribute_not_exists]
-          assert_equal nil, response_multiple_attr_values.attributes.single(:attribute_not_exists)
-          assert_equal nil, response_multiple_attr_values.attributes.multi(:attribute_not_exists)
+          assert_nil response_multiple_attr_values.attributes[:attribute_not_exists]
+          assert_nil response_multiple_attr_values.attributes.single(:attribute_not_exists)
+          assert_nil response_multiple_attr_values.attributes.multi(:attribute_not_exists)
           OneLogin::RubySaml::Attributes.single_value_compatibility = true
         end
 
