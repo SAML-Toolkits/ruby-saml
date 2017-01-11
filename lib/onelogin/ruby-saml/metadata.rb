@@ -88,7 +88,8 @@ module OneLogin
             sp_req_attr = sp_acs.add_element "md:RequestedAttribute", {
               "NameFormat" => attribute[:name_format],
               "Name" => attribute[:name], 
-              "FriendlyName" => attribute[:friendly_name]
+              "FriendlyName" => attribute[:friendly_name],
+              "isRequired" => attribute[:is_required] || false
             }
             unless attribute[:attribute_value].nil?
               Array(attribute[:attribute_value]).each do |value|
