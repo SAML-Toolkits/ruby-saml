@@ -507,10 +507,8 @@ def process_logout_response
     logger.error "The SAML Logout Response is invalid"
   else
     # Actually log out this session
-    if logout_response.success?
-      logger.info "Delete session for '#{session[:userid]}'"
-      delete_session
-    end
+    logger.info "Delete session for '#{session[:userid]}'"
+    delete_session
   end
 end
 
