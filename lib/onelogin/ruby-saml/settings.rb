@@ -151,15 +151,16 @@ module OneLogin
         :compress_response                         => true,
         :soft                                      => true,
         :security                                  => {
-          :authn_requests_signed    => false,
-          :logout_requests_signed   => false,
-          :logout_responses_signed  => false,
-          :want_assertions_signed   => false,
-          :want_name_id             => false,
-          :metadata_signed          => false,
-          :embed_sign               => false,
-          :digest_method            => XMLSecurity::Document::SHA1,
-          :signature_method         => XMLSecurity::Document::RSA_SHA1
+          :authn_requests_signed      => false,
+          :logout_requests_signed     => false,
+          :logout_responses_signed    => false,
+          :want_assertions_signed     => false,
+          :want_assertions_encrypted  => false,
+          :want_name_id               => false,
+          :metadata_signed            => false,
+          :embed_sign                 => false,
+          :digest_method              => XMLSecurity::Document::SHA1,
+          :signature_method           => XMLSecurity::Document::RSA_SHA1
         }.freeze,
         :double_quote_xml_attribute_values         => false,
       }.freeze

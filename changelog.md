@@ -1,5 +1,14 @@
 # RubySaml Changelog
 
+### 1.4.2 (January 11, 2017)
+* Improve tests format
+* Fix nokogiri requirements based on ruby version
+* Only publish KeyDescriptor[use="encryption"] at SP metadata if security[:want_assertions_encrypted] is true
+* Be able to skip destination validation
+* Improved inResponse validation on SAMLResponses and LogoutResponses
+* [#354] Allow scheme and domain to match ignoring case
+* [#363] Add support for multiple requested attributes
+
 ### 1.4.1 (October 19, 2016)
 * [#357](https://github.com/onelogin/ruby-saml/pull/357) Add EncryptedAttribute support. Improve decrypt method
 * Allow multiple authn_context_decl_ref in settings
