@@ -279,6 +279,21 @@ The following attributes are set:
   * idp_slo_target_url
   * idp_cert_fingerprint
 
+### Retrieve one Entity Descriptor when many exist in Metadata
+
+If the Meta data contains the data for many SAML entities, the relevant Entity
+Descriptor can be specified when retrieving the settings from the
+IdpMetadataParser:
+
+```ruby
+  validate_cert = true
+  settings =  idp_metadata_parser.parse_remote(
+                "https://example.com/auth/saml2/idp/metadata",
+                validate_cert,
+                entity_id: "http//example.com/target/entity"
+              )
+```
+
 ## Retrieving Attributes
 
 If you are using `saml:AttributeStatement` to transfer data like the username, you can access all the attributes through `response.attributes`. It contains all the `saml:AttributeStatement`s with its 'Name' as an indifferent key and one or more `saml:AttributeValue`s as values. The value returned depends on the value of the
@@ -411,9 +426,9 @@ The settings related to sign are stored in the `security` attribute of the setti
 ```ruby
   settings.security[:authn_requests_signed]   = true     # Enable or not signature on AuthNRequest
   settings.security[:logout_requests_signed]  = true     # Enable or not signature on Logout Request
-  settings.security[:logout_responses_signed] = true     # Enable or not 
+  settings.security[:logout_responses_signed] = true     # Enable or not
   signature on Logout Response
-  settings.security[:want_assertions_signed]  = true     # Enable or not 
+  settings.security[:want_assertions_signed]  = true     # Enable or not
   the requirement of signed assertion
   settings.security[:metadata_signed]         = true     # Enable or not signature on Metadata
 
@@ -426,7 +441,7 @@ The settings related to sign are stored in the `security` attribute of the setti
 ```
 
 Notice that the RelayState parameter is used when creating the Signature on the HTTP-Redirect Binding.
-Remember to provide it to the Signature builder if you are sending a `GET RelayState` parameter or the 
+Remember to provide it to the Signature builder if you are sending a `GET RelayState` parameter or the
 signature validation process will fail at the Identity Provider.
 
 The Service Provider will sign the request/responses with its private key.
