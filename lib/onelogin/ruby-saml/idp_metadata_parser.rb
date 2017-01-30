@@ -36,7 +36,7 @@ module OneLogin
       end
 
       # Parse the Identity Provider metadata and update the settings with the IdP values
-      # @param idp_metadata [String] 
+      # @param idp_metadata [String]
       # @param options  [Hash]   :settings to provide the OneLogin::RubySaml::Settings object or an hash for Settings overrides
       #
       def parse(idp_metadata, options = {})
@@ -67,36 +67,28 @@ module OneLogin
       # @raise [HttpError] Failure to fetch remote IdP metadata
       def get_idp_metadata(url, validate_cert)
         uri = URI.parse(url)
-        if uri.scheme == "http"
-          response = Net::HTTP.get_response(uri)
-          meta_text = response.body
-        elsif uri.scheme == "https"
-          http = Net::HTTP.new(uri.host, uri.port)
+        raise ArgumentError.new("url must begin with http or https") unless /^https?/ =~ uri.scheme
+        http = Net::HTTP.new(uri.host, uri.port)
+
+        if uri.scheme == "https"
           http.use_ssl = true
           # Most IdPs will probably use self signed certs
-          if validate_cert
-            http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+          http.verify_mode = validate_cert ? OpenSSL::SSL::VERIFY_PEER : OpenSSL::SSL::VERIFY_NONE
 
-            # Net::HTTP in Ruby 1.8 did not set the default certificate store
-            # automatically when VERIFY_PEER was specified.
-            if RUBY_VERSION < '1.9' && !http.ca_file && !http.ca_path && !http.cert_store
-              http.cert_store = OpenSSL::SSL::SSLContext::DEFAULT_CERT_STORE
-            end
-          else
-            http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+          # Net::HTTP in Ruby 1.8 did not set the default certificate store
+          # automatically when VERIFY_PEER was specified.
+          if RUBY_VERSION < '1.9' && !http.ca_file && !http.ca_path && !http.cert_store
+            http.cert_store = OpenSSL::SSL::SSLContext::DEFAULT_CERT_STORE
           end
-          get = Net::HTTP::Get.new(uri.request_uri)
-          response = http.request(get)
-          meta_text = response.body
-        else
-          raise ArgumentError.new("url must begin with http or https")
         end
 
-        unless response.is_a? Net::HTTPSuccess
-          raise OneLogin::RubySaml::HttpError.new("Failed to fetch idp metadata")
-        end
+        get = Net::HTTP::Get.new(uri.request_uri)
+        response = http.request(get)
+        return response.body if response.is_a? Net::HTTPSuccess
 
-        meta_text
+        raise OneLogin::RubySaml::HttpError.new(
+          "Failed to fetch idp metadata: #{response.code}: #{response.message}"
+        )
       end
 
       # @return [String|nil] IdP Entity ID value if exists

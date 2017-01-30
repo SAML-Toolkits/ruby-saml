@@ -133,7 +133,7 @@ class IdpMetadataParserTest < Minitest::Test
         idp_metadata_parser.parse_remote("https://example.hello.com/access/saml/idp.xml")
       end
 
-      assert_equal("Failed to fetch idp metadata", exception.message)
+      assert_match("Failed to fetch idp metadata", exception.message)
     end
   end
 end
