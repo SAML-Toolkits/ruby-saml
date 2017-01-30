@@ -53,8 +53,8 @@ module OneLogin
         settings.tap do |settings|
           settings.idp_entity_id = idp_entity_id
           settings.name_identifier_format = idp_name_id_format
-          settings.idp_sso_target_url = single_signon_service_url(parse_options)
-          settings.idp_slo_target_url = single_logout_service_url(parse_options)
+          settings.idp_sso_target_url = single_signon_service_url
+          settings.idp_slo_target_url = single_logout_service_url
           settings.idp_cert = certificate_base64
           settings.idp_cert_fingerprint = fingerprint(settings.idp_cert_fingerprint_algorithm)
           settings.idp_attribute_names = attribute_names
@@ -146,8 +146,8 @@ module OneLogin
       # @param options [Hash]
       # @return [String|nil] SingleSignOnService endpoint if exists
       #
-      def single_signon_service_url(options = {})
-        binding = options[:sso_binding] || "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+      def single_signon_service_url
+        binding = parse_options[:sso_binding] || "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
         node = REXML::XPath.first(
           entity_descriptor,
           "md:IDPSSODescriptor/md:SingleSignOnService[@Binding=\"#{binding}\"]/@Location",
@@ -176,8 +176,8 @@ module OneLogin
       # @param options [Hash]
       # @return [String|nil] SingleLogoutService endpoint if exists
       #
-      def single_logout_service_url(options = {})
-        binding = options[:slo_binding] || "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+      def single_logout_service_url
+        binding = parse_options[:slo_binding] || "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
         node = REXML::XPath.first(
           entity_descriptor,
           "md:IDPSSODescriptor/md:SingleLogoutService[@Binding=\"#{binding}\"]/@Location",
