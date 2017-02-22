@@ -29,6 +29,7 @@ module OneLogin
       attr_accessor :idp_cert_fingerprint
       attr_accessor :idp_cert_fingerprint_algorithm
       attr_accessor :idp_attribute_names
+      attr_accessor :idp_name_qualifier
       # SP Data
       attr_accessor :issuer
       attr_accessor :assertion_consumer_service_url
