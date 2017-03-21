@@ -142,7 +142,7 @@
         <complexContent>
             <extension base="saml:ConditionAbstractType">
                 <sequence>
-                    <element ref="saml:Audience" maxOccurs="unbounded"/>
+                    <element ref="saml:Audience" minOccurs="0" maxOccurs="unbounded"/>
                 </sequence>
             </extension>
         </complexContent>
