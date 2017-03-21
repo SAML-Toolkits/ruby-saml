@@ -186,8 +186,8 @@ def saml_settings
   ]
 
   # Optional bindings (defaults to Redirect for logout POST for acs)
+  settings.single_logout_service_binding      = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
   settings.assertion_consumer_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
-  settings.assertion_consumer_logout_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
 
   settings
 end
@@ -411,9 +411,9 @@ The settings related to sign are stored in the `security` attribute of the setti
 ```ruby
   settings.security[:authn_requests_signed]   = true     # Enable or not signature on AuthNRequest
   settings.security[:logout_requests_signed]  = true     # Enable or not signature on Logout Request
-  settings.security[:logout_responses_signed] = true     # Enable or not 
+  settings.security[:logout_responses_signed] = true     # Enable or not
   signature on Logout Response
-  settings.security[:want_assertions_signed]  = true     # Enable or not 
+  settings.security[:want_assertions_signed]  = true     # Enable or not
   the requirement of signed assertion
   settings.security[:metadata_signed]         = true     # Enable or not signature on Metadata
 
@@ -426,7 +426,7 @@ The settings related to sign are stored in the `security` attribute of the setti
 ```
 
 Notice that the RelayState parameter is used when creating the Signature on the HTTP-Redirect Binding.
-Remember to provide it to the Signature builder if you are sending a `GET RelayState` parameter or the 
+Remember to provide it to the Signature builder if you are sending a `GET RelayState` parameter or the
 signature validation process will fail at the Identity Provider.
 
 The Service Provider will sign the request/responses with its private key.
@@ -569,7 +569,7 @@ to the IdP for various good reasons.  (Caching, certificate lookups, relaying pa
 
 The class `OneLogin::RubySaml::Metadata` takes care of this by reading the Settings and returning XML.  All you have to do is add a controller to return the data, then give this URL to the IdP administrator.
 
-The metdata will be polled by the IdP every few minutes, so updating your settings should propagate
+The metadata will be polled by the IdP every few minutes, so updating your settings should propagate
 to the IdP settings.
 
 ```ruby
