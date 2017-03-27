@@ -51,6 +51,7 @@ module OneLogin
         end
 
         @response = decode_raw_saml(response)
+        @response = Base64.decode64(response)
         @document = XMLSecurity::SignedDocument.new(@response, @errors)
 
         if assertion_encrypted?
