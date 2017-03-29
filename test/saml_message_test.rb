@@ -14,6 +14,21 @@ class RubySamlTest < Minitest::Test
       assert logout_request_document, decoded_raw
     end
 
+    describe 'Prevent DOS attack with a 1000:1 compressed saml document setting inflate option to false' do
+      let(:disabled_inflate_settings){OneLogin::RubySaml::Settings.new(inflate: false)}
+      let(:deflated_saml){logout_request_deflated_base64}
+      let(:non_deflated_saml){logout_request_base64}
+      it "return decoded raw saml" do
+        decoded_raw = saml_message.send(:decode_raw_saml, non_deflated_saml, disabled_inflate_settings).gsub(/\r|\n/, '').encode('utf-8')
+        actual_message = read_logout_request("slo_request.xml").gsub(/\r|\n/, '').encode('utf-8')
+        assert_equal decoded_raw, actual_message
+      end
+      it "does not return inflated raw saml" do
+        decoded_raw = saml_message.send(:decode_raw_saml, deflated_saml, disabled_inflate_settings)
+        assert_equal Base64.decode64(deflated_saml), decoded_raw
+      end
+    end
+
     it "return encoded raw saml" do
       settings.compress_request = true
       encoded_raw = saml_message.send(:encode_raw_saml, logout_request_document, settings)

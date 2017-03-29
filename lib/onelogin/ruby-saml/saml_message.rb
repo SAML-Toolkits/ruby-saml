@@ -63,7 +63,7 @@ module OneLogin
       # @param document [REXML::Document] The message that will be validated
       # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the message is invalid or not)
       # @return [Boolean] True if the XML is valid, otherwise False, if soft=True
-      # @raise [ValidationError] if soft == false and validation fails 
+      # @raise [ValidationError] if soft == false and validation fails
       #
       def valid_saml?(document, soft = true)
         begin
@@ -87,13 +87,17 @@ module OneLogin
       # @param saml [String] The deflated and encoded SAML Message
       # @return [String] The plain SAML Message
       #
-      def decode_raw_saml(saml)
+      def decode_raw_saml(saml, settings=::OneLogin::RubySaml::Settings.new)
         return saml unless base64_encoded?(saml)
 
         decoded = decode(saml)
-        begin
-          inflate(decoded)
-        rescue
+        if settings.inflate
+          begin
+            inflate(decoded)
+          rescue
+            decoded
+          end
+        else
           decoded
         end
       end

@@ -24,7 +24,7 @@ module OneLogin
 
       # Constructs the Logout Request. A Logout Request Object that is an extension of the SamlMessage class.
       # @param request [String] A UUEncoded Logout Request from the IdP.
-      # @param options [Hash]  :settings to provide the OneLogin::RubySaml::Settings object 
+      # @param options [Hash]  :settings to provide the OneLogin::RubySaml::Settings object
       #                        Or :allowed_clock_drift for the logout request validation process to allow a clock drift when checking dates with
       #
       # @raise [ArgumentError] If Request is nil
@@ -42,7 +42,7 @@ module OneLogin
           end
         end
 
-        @request = decode_raw_saml(request)
+        @request = decode_raw_saml(request, @settings || ::OneLogin::RubySaml::Settings.new)
         @document = REXML::Document.new(@request)
       end
 
@@ -184,7 +184,7 @@ module OneLogin
 
       # Validates the Logout Request against the specified schema.
       # @return [Boolean] True if the XML is valid, otherwise False if soft=True
-      # @raise [ValidationError] if soft == false and validation fails 
+      # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_structure
         unless valid_saml?(document, soft)
@@ -194,7 +194,7 @@ module OneLogin
         true
       end
 
-      # Validates that the Logout Request provided in the initialization is not empty, 
+      # Validates that the Logout Request provided in the initialization is not empty,
       # @return [Boolean] True if the required info is found, otherwise False if soft=True
       # @raise [ValidationError] if soft == false and validation fails
       #

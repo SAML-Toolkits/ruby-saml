@@ -24,7 +24,7 @@ module OneLogin
       # Constructs the Logout Response. A Logout Response Object that is an extension of the SamlMessage class.
       # @param response  [String] A UUEncoded logout response from the IdP.
       # @param settings  [OneLogin::RubySaml::Settings|nil] Toolkit settings
-      # @param options   [Hash] Extra parameters. 
+      # @param options   [Hash] Extra parameters.
       #                    :matches_request_id It will validate that the logout response matches the ID of the request.
       #                    :get_params GET Parameters, including the SAMLResponse
       # @raise [ArgumentError] if response is nil
@@ -41,14 +41,14 @@ module OneLogin
         end
 
         @options = options
-        @response = decode_raw_saml(response)
+        @response = decode_raw_saml(response, settings || ::OneLogin::RubySaml::Settings.new)
         @document = XMLSecurity::SignedDocument.new(@response)
       end
 
       # Checks if the Status has the "Success" code
       # @return [Boolean] True if the StatusCode is Sucess
       # @raise [ValidationError] if soft == false and validation fails
-      # 
+      #
       def success?
         unless status_code == "urn:oasis:names:tc:SAML:2.0:status:Success"
           return append_error("Bad status code. Expected <urn:oasis:names:tc:SAML:2.0:status:Success>, but was: <#@status_code>")
@@ -144,7 +144,7 @@ module OneLogin
 
       # Validates the Logout Response against the specified schema.
       # @return [Boolean] True if the XML is valid, otherwise False if soft=True
-      # @raise [ValidationError] if soft == false and validation fails 
+      # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_structure
         unless valid_saml?(document, soft)
@@ -203,13 +203,13 @@ module OneLogin
       # Validates the Signature if it exists and the GET parameters are provided
       # @return [Boolean] True if not contains a Signature or if the Signature is valid, otherwise False if soft=True
       # @raise [ValidationError] if soft == false and validation fails
-      #      
+      #
       def validate_signature
         return true unless !options.nil?
         return true unless options.has_key? :get_params
         return true unless options[:get_params].has_key? 'Signature'
         return true if settings.nil? || settings.get_idp_cert.nil?
-        
+
         query_string = OneLogin::RubySaml::Utils.build_query(
           :type        => 'SAMLResponse',
           :data        => options[:get_params]['SAMLResponse'],
@@ -228,7 +228,7 @@ module OneLogin
           error_msg = "Invalid Signature on Logout Response"
           return append_error(error_msg)
         end
-        true        
+        true
       end
 
     end

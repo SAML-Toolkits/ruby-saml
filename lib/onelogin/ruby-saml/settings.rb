@@ -40,6 +40,7 @@ module OneLogin
       attr_accessor :sessionindex
       attr_accessor :compress_request
       attr_accessor :compress_response
+      attr_accessor :inflate
       attr_accessor :double_quote_xml_attribute_values
       attr_accessor :passive
       attr_accessor :protocol_binding
@@ -94,7 +95,7 @@ module OneLogin
       end
 
       # Setter for Single Logout Service Binding.
-      # 
+      #
       # (Currently we only support "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect")
       # @param url [String]
       #
@@ -150,6 +151,7 @@ module OneLogin
         :idp_cert_fingerprint_algorithm            => XMLSecurity::Document::SHA1,
         :compress_request                          => true,
         :compress_response                         => true,
+        :inflate                                   => true,
         :soft                                      => true,
         :security                                  => {
           :authn_requests_signed      => false,
