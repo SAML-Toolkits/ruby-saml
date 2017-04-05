@@ -22,6 +22,7 @@ module OneLogin
 
       attr_reader :document
       attr_reader :response
+      attr_reader :parse_options
 
       # Parse the Identity Provider metadata and update the settings with the
       # IdP values
@@ -36,13 +37,15 @@ module OneLogin
       end
 
       # Parse the Identity Provider metadata and update the settings with the IdP values
-      # @param idp_metadata [String] 
+      # @param idp_metadata [String]
       # @param options  [Hash]   :settings to provide the OneLogin::RubySaml::Settings object or an hash for Settings overrides
       #
-      def parse(idp_metadata, options = {})
+      def parse(idp_metadata, parse_options = {})
         @document = REXML::Document.new(idp_metadata)
+        @parse_options = parse_options
+        @entity_descriptor = nil
 
-        settings = options[:settings]
+        settings = parse_options[:settings]
         if settings.nil? || settings.is_a?(Hash)
           settings = OneLogin::RubySaml::Settings.new(settings || {})
         end
@@ -50,8 +53,8 @@ module OneLogin
         settings.tap do |settings|
           settings.idp_entity_id = idp_entity_id
           settings.name_identifier_format = idp_name_id_format
-          settings.idp_sso_target_url = single_signon_service_url(options)
-          settings.idp_slo_target_url = single_logout_service_url(options)
+          settings.idp_sso_target_url = single_signon_service_url
+          settings.idp_slo_target_url = single_logout_service_url
           settings.idp_cert = certificate_base64
           settings.idp_cert_fingerprint = fingerprint(settings.idp_cert_fingerprint_algorithm)
           settings.idp_attribute_names = attribute_names
@@ -67,56 +70,58 @@ module OneLogin
       # @raise [HttpError] Failure to fetch remote IdP metadata
       def get_idp_metadata(url, validate_cert)
         uri = URI.parse(url)
-        if uri.scheme == "http"
-          response = Net::HTTP.get_response(uri)
-          meta_text = response.body
-        elsif uri.scheme == "https"
-          http = Net::HTTP.new(uri.host, uri.port)
+        raise ArgumentError.new("url must begin with http or https") unless /^https?/ =~ uri.scheme
+        http = Net::HTTP.new(uri.host, uri.port)
+
+        if uri.scheme == "https"
           http.use_ssl = true
           # Most IdPs will probably use self signed certs
-          if validate_cert
-            http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+          http.verify_mode = validate_cert ? OpenSSL::SSL::VERIFY_PEER : OpenSSL::SSL::VERIFY_NONE
 
-            # Net::HTTP in Ruby 1.8 did not set the default certificate store
-            # automatically when VERIFY_PEER was specified.
-            if RUBY_VERSION < '1.9' && !http.ca_file && !http.ca_path && !http.cert_store
-              http.cert_store = OpenSSL::SSL::SSLContext::DEFAULT_CERT_STORE
-            end
-          else
-            http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+          # Net::HTTP in Ruby 1.8 did not set the default certificate store
+          # automatically when VERIFY_PEER was specified.
+          if RUBY_VERSION < '1.9' && !http.ca_file && !http.ca_path && !http.cert_store
+            http.cert_store = OpenSSL::SSL::SSLContext::DEFAULT_CERT_STORE
           end
-          get = Net::HTTP::Get.new(uri.request_uri)
-          response = http.request(get)
-          meta_text = response.body
-        else
-          raise ArgumentError.new("url must begin with http or https")
         end
 
-        unless response.is_a? Net::HTTPSuccess
-          raise OneLogin::RubySaml::HttpError.new("Failed to fetch idp metadata")
-        end
+        get = Net::HTTP::Get.new(uri.request_uri)
+        response = http.request(get)
+        return response.body if response.is_a? Net::HTTPSuccess
 
-        meta_text
+        raise OneLogin::RubySaml::HttpError.new(
+          "Failed to fetch idp metadata: #{response.code}: #{response.message}"
+        )
+      end
+
+      def entity_descriptor
+        @entity_descriptor ||= REXML::XPath.first(
+          document,
+          entity_descriptor_path,
+          namespace
+        )
+      end
+
+      def entity_descriptor_path
+        path = "//md:EntityDescriptor"
+        entity_id = parse_options[:entity_id]
+        return path unless entity_id
+        path << "[@entityID=\"#{entity_id}\"]"
       end
 
       # @return [String|nil] IdP Entity ID value if exists
       #
       def idp_entity_id
-        node = REXML::XPath.first(
-          document,
-          "/md:EntityDescriptor/@entityID",
-          { "md" => METADATA }
-        )
-        node.value if node
+        entity_descriptor.attributes["entityID"]
       end
 
       # @return [String|nil] IdP Name ID Format value if exists
       #
       def idp_name_id_format
         node = REXML::XPath.first(
-          document,
-          "/md:EntityDescriptor/md:IDPSSODescriptor/md:NameIDFormat",
-          { "md" => METADATA }
+          entity_descriptor,
+          "md:IDPSSODescriptor/md:NameIDFormat",
+          namespace
         )
         node.text if node
       end
@@ -126,9 +131,9 @@ module OneLogin
       #
       def single_signon_service_binding(binding_priority = nil)
         nodes = REXML::XPath.match(
-          document,
-          "/md:EntityDescriptor/md:IDPSSODescriptor/md:SingleSignOnService/@Binding",
-          { "md" => METADATA }
+          entity_descriptor,
+          "md:IDPSSODescriptor/md:SingleSignOnService/@Binding",
+          namespace
         )
         if binding_priority
           values = nodes.map(&:value)
@@ -141,12 +146,12 @@ module OneLogin
       # @param options [Hash]
       # @return [String|nil] SingleSignOnService endpoint if exists
       #
-      def single_signon_service_url(options = {})
-        binding = options[:sso_binding] || "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+      def single_signon_service_url
+        binding = parse_options[:sso_binding] || "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
         node = REXML::XPath.first(
-          document,
-          "/md:EntityDescriptor/md:IDPSSODescriptor/md:SingleSignOnService[@Binding=\"#{binding}\"]/@Location",
-          { "md" => METADATA }
+          entity_descriptor,
+          "md:IDPSSODescriptor/md:SingleSignOnService[@Binding=\"#{binding}\"]/@Location",
+          namespace
         )
         node.value if node
       end
@@ -156,9 +161,9 @@ module OneLogin
       #
       def single_logout_service_binding(binding_priority = nil)
         nodes = REXML::XPath.match(
-          document,
-          "/md:EntityDescriptor/md:IDPSSODescriptor/md:SingleLogoutService/@Binding",
-          { "md" => METADATA }
+          entity_descriptor,
+          "md:IDPSSODescriptor/md:SingleLogoutService/@Binding",
+          namespace
         )
         if binding_priority
           values = nodes.map(&:value)
@@ -171,12 +176,12 @@ module OneLogin
       # @param options [Hash]
       # @return [String|nil] SingleLogoutService endpoint if exists
       #
-      def single_logout_service_url(options = {})
-        binding = options[:slo_binding] || "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+      def single_logout_service_url
+        binding = parse_options[:slo_binding] || "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
         node = REXML::XPath.first(
-          document,
-          "/md:EntityDescriptor/md:IDPSSODescriptor/md:SingleLogoutService[@Binding=\"#{binding}\"]/@Location",
-          { "md" => METADATA }
+          entity_descriptor,
+          "md:IDPSSODescriptor/md:SingleLogoutService[@Binding=\"#{binding}\"]/@Location",
+          namespace
         )
         node.value if node
       end
@@ -186,16 +191,16 @@ module OneLogin
       def certificate_base64
         @certificate_base64 ||= begin
           node = REXML::XPath.first(
-              document,
-              "/md:EntityDescriptor/md:IDPSSODescriptor/md:KeyDescriptor[@use='signing']/ds:KeyInfo/ds:X509Data/ds:X509Certificate",
-              { "md" => METADATA, "ds" => DSIG }
+            entity_descriptor,
+            "md:IDPSSODescriptor/md:KeyDescriptor[@use='signing']/ds:KeyInfo/ds:X509Data/ds:X509Certificate",
+            namespace
           )
 
           unless node
             node = REXML::XPath.first(
-                document,
-                "/md:EntityDescriptor/md:IDPSSODescriptor/md:KeyDescriptor/ds:KeyInfo/ds:X509Data/ds:X509Certificate",
-                { "md" => METADATA, "ds" => DSIG }
+              entity_descriptor,
+              "md:IDPSSODescriptor/md:KeyDescriptor/ds:KeyInfo/ds:X509Data/ds:X509Certificate",
+              namespace
             )
           end
           node.text if node
@@ -228,11 +233,20 @@ module OneLogin
       #
       def attribute_names
         nodes = REXML::XPath.match(
-          document,
-          "/md:EntityDescriptor/md:IDPSSODescriptor/saml:Attribute/@Name",
-          { "md" => METADATA, "NameFormat" => NAME_FORMAT, "saml" => SAML_ASSERTION }
+          entity_descriptor,
+          "md:IDPSSODescriptor/saml:Attribute/@Name",
+          namespace
         )
         nodes.map(&:value)
+      end
+
+      def namespace
+        {
+          "md" => METADATA,
+          "NameFormat" => NAME_FORMAT,
+          "saml" => SAML_ASSERTION,
+          "ds" => DSIG
+        }
       end
     end
   end
