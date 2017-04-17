@@ -28,7 +28,7 @@ class RequestTest < Minitest::Test
       assert_match /&foo=bar$/, unauth_url
     end
 
-    it "set sessionindex" do
+    it "set single sessionindex" do
       settings.idp_slo_target_url = "http://example.com"
       sessionidx = OneLogin::RubySaml::Utils.uuid
       settings.sessionindex = sessionidx
@@ -39,6 +39,21 @@ class RequestTest < Minitest::Test
       assert_match /<samlp:SessionIndex/, inflated
       assert_match %r(#{sessionidx}</samlp:SessionIndex>), inflated
     end
+
+    it "set multiple sessionindexes" do
+      settings.idp_slo_target_url = "http://example.com"
+      sessionindexes = [OneLogin::RubySaml::Utils.uuid, OneLogin::RubySaml::Utils.uuid, OneLogin::RubySaml::Utils.uuid]
+      settings.sessionindex = sessionindexes
+
+      unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings, { :nameid => "there" })
+      inflated = decode_saml_request_payload(unauth_url)
+
+      assert_match /<samlp:SessionIndex/, inflated
+      sessionindexes.each do |sessionindex|
+        assert_match %r(#{sessionindex}</samlp:SessionIndex>), inflated
+      end
+    end
+
 
     it "set name_identifier_value" do
       settings.name_identifier_format = "transient"

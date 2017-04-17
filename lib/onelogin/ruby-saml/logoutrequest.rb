@@ -113,8 +113,11 @@ module OneLogin
         end
 
         if settings.sessionindex
-          sessionindex = root.add_element "samlp:SessionIndex"
-          sessionindex.text = settings.sessionindex
+          session_indexes = settings.sessionindex.is_a?(Array)? settings.sessionindex : [settings.sessionindex]
+          session_indexes.each do|session_index|
+            session_index_element = root.add_element "samlp:SessionIndex"
+            session_index_element.text = session_index
+          end
         end
 
         # embed signature
