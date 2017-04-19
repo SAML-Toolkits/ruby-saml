@@ -46,6 +46,7 @@ module OneLogin
       attr_accessor :attributes_index
       attr_accessor :force_authn
       attr_accessor :certificate
+      attr_accessor :certificate_new
       attr_accessor :private_key
       attr_accessor :authn_context
       attr_accessor :authn_context_comparison
@@ -130,6 +131,15 @@ module OneLogin
         return nil if certificate.nil? || certificate.empty?
 
         formatted_cert = OneLogin::RubySaml::Utils.format_cert(certificate)
+        OpenSSL::X509::Certificate.new(formatted_cert)
+      end
+
+      # @return [OpenSSL::X509::Certificate|nil] Build the New SP certificate from the settings (previously format it)
+      #
+      def get_sp_cert_new
+        return nil if certificate_new.nil? || certificate_new.empty?
+
+        formatted_cert = OneLogin::RubySaml::Utils.format_cert(certificate_new)
         OpenSSL::X509::Certificate.new(formatted_cert)
       end
 

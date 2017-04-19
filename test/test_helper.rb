@@ -188,12 +188,20 @@ class Minitest::Test
     @ruby_saml_cert ||= OpenSSL::X509::Certificate.new(ruby_saml_cert_text)
   end
 
+  def ruby_saml_cert2
+    @ruby_saml_cert2 ||= OpenSSL::X509::Certificate.new(ruby_saml_cert_text2)
+  end
+
   def ruby_saml_cert_fingerprint
     @ruby_saml_cert_fingerprint ||= Digest::SHA1.hexdigest(ruby_saml_cert.to_der).scan(/../).join(":")
   end
 
   def ruby_saml_cert_text
     read_certificate("ruby-saml.crt")
+  end
+
+  def ruby_saml_cert_text2
+    read_certificate("ruby-saml-2.crt")
   end
 
   def ruby_saml_key

@@ -128,8 +128,6 @@ class MetadataTest < Minitest::Test
 
         it "generates Service Provider Metadata with AuthnRequestsSigned" do
           assert_equal "true", spsso_descriptor.attribute("AuthnRequestsSigned").value
-          assert_equal ruby_saml_cert.to_der, cert.to_der
-
           assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
         end
       end
@@ -141,6 +139,7 @@ class MetadataTest < Minitest::Test
 
         it "generates Service Provider Metadata with X509Certificate for encrypt" do
           assert_equal 2, key_descriptors.length
+
           assert_equal "encryption", key_descriptors[1].attribute("use").value
 
           assert_equal 2, cert_nodes.length
@@ -148,6 +147,75 @@ class MetadataTest < Minitest::Test
           assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
         end
       end
+    end
+
+    describe "with a future SP certificate" do
+      let(:key_descriptors) do
+        REXML::XPath.match(
+          xml_doc,
+          "//md:KeyDescriptor",
+          "md" => "urn:oasis:names:tc:SAML:2.0:metadata"
+        )
+      end
+      let(:cert_nodes) do
+        REXML::XPath.match(
+          xml_doc,
+          "//md:KeyDescriptor/ds:KeyInfo/ds:X509Data/ds:X509Certificate",
+          "md" => "urn:oasis:names:tc:SAML:2.0:metadata",
+          "ds" => "http://www.w3.org/2000/09/xmldsig#"
+        )
+      end
+
+      before do
+        settings.certificate = ruby_saml_cert_text
+        settings.certificate_new = ruby_saml_cert_text2
+      end
+
+      it "generates Service Provider Metadata with 2 X509Certificate for sign" do
+        assert_equal 2, key_descriptors.length
+        assert_equal "signing", key_descriptors[0].attribute("use").value
+        assert_equal "signing", key_descriptors[1].attribute("use").value
+
+        cert = OpenSSL::X509::Certificate.new(Base64.decode64(cert_nodes[0].text))
+        cert_new = OpenSSL::X509::Certificate.new(Base64.decode64(cert_nodes[1].text))
+
+        assert_equal 2, cert_nodes.length
+        assert_equal ruby_saml_cert.to_der, cert.to_der
+        assert_equal ruby_saml_cert2.to_der, cert_new.to_der
+
+        assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
+      end
+
+      describe "and signed authentication requests" do
+        before do
+          settings.security[:authn_requests_signed] = true
+        end
+
+        it "generates Service Provider Metadata with AuthnRequestsSigned" do
+          assert_equal "true", spsso_descriptor.attribute("AuthnRequestsSigned").value
+          assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
+        end
+      end
+
+      describe "and encrypted assertions" do
+        before do
+          settings.security[:want_assertions_encrypted] = true
+        end
+
+        it "generates Service Provider Metadata with X509Certificate for encrypt" do
+          assert_equal 4, key_descriptors.length
+          assert_equal "signing", key_descriptors[0].attribute("use").value
+          assert_equal "encryption", key_descriptors[1].attribute("use").value
+          assert_equal "signing", key_descriptors[2].attribute("use").value
+          assert_equal "encryption", key_descriptors[3].attribute("use").value
+
+          assert_equal 4, cert_nodes.length
+          assert_equal cert_nodes[0].text, cert_nodes[1].text
+          assert_equal cert_nodes[2].text, cert_nodes[3].text
+          assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
+        end
+      end
+
     end
 
     describe "when attribute service is configured with multiple attribute values" do

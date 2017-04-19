@@ -453,6 +453,12 @@ The Service Provider will decrypt the EncryptedAssertion with its private key.
 
 Notice that this toolkit uses 'settings.certificate' and 'settings.private_key' for the sign and decrypt processes.
 
+
+## Key rollover
+
+If you plan to update the SP x509cert and privateKey you can define the parameter 'certificate_new' at the settings and that new SP public certificate will be published on the SP metadata so Identity Providers can read them and get ready for rollover.
+
+
 ## Single Log Out
 
 The Ruby Toolkit supports SP-initiated Single Logout and IdP-Initiated Single Logout.
@@ -582,6 +588,7 @@ class SamlController < ApplicationController
   end
 end
 ```
+
 
 ## Clock Drift
 

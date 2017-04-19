@@ -152,6 +152,35 @@ class SettingsTest < Minitest::Test
 
     end
 
+    describe "#get_sp_cert_new" do
+      it "returns nil when the cert is an empty string" do
+        @settings = OneLogin::RubySaml::Settings.new
+        @settings.certificate_new = ""
+        assert_nil @settings.get_sp_cert_new
+      end
+
+      it "returns nil when the cert is nil" do
+        @settings = OneLogin::RubySaml::Settings.new
+        @settings.certificate_new = nil
+        assert_nil @settings.get_sp_cert_new
+      end
+
+      it "returns the certificate when it is valid" do
+        @settings = OneLogin::RubySaml::Settings.new
+        @settings.certificate_new = ruby_saml_cert_text
+        assert @settings.get_sp_cert_new.kind_of? OpenSSL::X509::Certificate
+      end
+
+      it "raises when the certificate is not valid" do
+        # formatted but invalid cert
+        @settings.certificate_new = read_certificate("formatted_certificate")
+        assert_raises(OpenSSL::X509::CertificateError) {
+          @settings.get_sp_cert_new
+        }
+      end
+
+    end
+
     describe "#get_sp_key" do
       it "returns nil when the private key is an empty string" do
         @settings = OneLogin::RubySaml::Settings.new
