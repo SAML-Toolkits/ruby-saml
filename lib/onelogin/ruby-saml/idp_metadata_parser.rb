@@ -142,7 +142,7 @@ module OneLogin
       # @return [String|nil] SingleSignOnService endpoint if exists
       #
       def single_signon_service_url(options = {})
-        binding = options[:sso_binding] || "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+        binding = options[:sso_binding] || single_signon_service_binding || "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
         node = REXML::XPath.first(
           document,
           "/md:EntityDescriptor/md:IDPSSODescriptor/md:SingleSignOnService[@Binding=\"#{binding}\"]/@Location",
@@ -172,7 +172,7 @@ module OneLogin
       # @return [String|nil] SingleLogoutService endpoint if exists
       #
       def single_logout_service_url(options = {})
-        binding = options[:slo_binding] || "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+        binding = options[:slo_binding] || single_logout_service_binding || "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
         node = REXML::XPath.first(
           document,
           "/md:EntityDescriptor/md:IDPSSODescriptor/md:SingleLogoutService[@Binding=\"#{binding}\"]/@Location",
