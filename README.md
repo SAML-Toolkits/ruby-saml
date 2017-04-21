@@ -304,6 +304,21 @@ The following attributes are set:
   * idp_slo_target_url
   * idp_cert_fingerprint
 
+### Retrieve one Entity Descriptor when many exist in Metadata
+
+If the Metadata contains several entities, the relevant Entity
+Descriptor can be specified when retrieving the settings from the
+IdpMetadataParser by its Entity Id value:
+
+```ruby
+  validate_cert = true
+  settings =  idp_metadata_parser.parse_remote(
+                "https://example.com/auth/saml2/idp/metadata",
+                validate_cert,
+                entity_id: "http//example.com/target/entity"
+              )
+```
+
 ## Retrieving Attributes
 
 If you are using `saml:AttributeStatement` to transfer data like the username, you can access all the attributes through `response.attributes`. It contains all the `saml:AttributeStatement`s with its 'Name' as an indifferent key and one or more `saml:AttributeValue`s as values. The value returned depends on the value of the
