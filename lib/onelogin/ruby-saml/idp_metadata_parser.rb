@@ -142,13 +142,15 @@ module OneLogin
       # @return [String|nil] SingleSignOnService endpoint if exists
       #
       def single_signon_service_url(options = {})
-        binding = options[:sso_binding] || single_signon_service_binding || "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
-        node = REXML::XPath.first(
-          document,
-          "/md:EntityDescriptor/md:IDPSSODescriptor/md:SingleSignOnService[@Binding=\"#{binding}\"]/@Location",
-          { "md" => METADATA }
-        )
-        node.value if node
+        binding = single_signon_service_binding(options[:sso_binding])
+        unless binding.nil? 
+          node = REXML::XPath.first(
+            document,
+            "/md:EntityDescriptor/md:IDPSSODescriptor/md:SingleSignOnService[@Binding=\"#{binding}\"]/@Location",
+            { "md" => METADATA }
+          )
+          return node.value if node
+        end
       end
 
       # @param binding_priority [Array]
@@ -172,13 +174,15 @@ module OneLogin
       # @return [String|nil] SingleLogoutService endpoint if exists
       #
       def single_logout_service_url(options = {})
-        binding = options[:slo_binding] || single_logout_service_binding || "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
-        node = REXML::XPath.first(
-          document,
-          "/md:EntityDescriptor/md:IDPSSODescriptor/md:SingleLogoutService[@Binding=\"#{binding}\"]/@Location",
-          { "md" => METADATA }
-        )
-        node.value if node
+        binding = single_logout_service_binding(options[:slo_binding])
+        unless binding.nil?
+          node = REXML::XPath.first(
+            document,
+            "/md:EntityDescriptor/md:IDPSSODescriptor/md:SingleLogoutService[@Binding=\"#{binding}\"]/@Location",
+            { "md" => METADATA }
+          )
+          return node.value if node
+        end
       end
 
       # @return [String|nil] Unformatted Certificate if exists
