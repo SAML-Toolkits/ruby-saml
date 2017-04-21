@@ -223,6 +223,27 @@ class RubySamlTest < Minitest::Test
           settings.idp_cert = ruby_saml_cert_text
         end
 
+        it "return true when no idp_cert is provided and option :relax_signature_validation is present" do
+          settings.idp_cert = nil
+          settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+          params['RelayState'] = params[:RelayState]
+          options = {}
+          options[:get_params] = params
+          options[:relax_signature_validation] = true
+          logoutresponse_sign_test = OneLogin::RubySaml::Logoutresponse.new(params['SAMLResponse'], settings, options)
+          assert logoutresponse_sign_test.send(:validate_signature)
+        end
+
+        it "return false when no idp_cert is provided and no option :relax_signature_validation is present" do
+          settings.idp_cert = nil
+          settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+          params['RelayState'] = params[:RelayState]
+          options = {}
+          options[:get_params] = params
+          logoutresponse_sign_test = OneLogin::RubySaml::Logoutresponse.new(params['SAMLResponse'], settings, options)
+          assert !logoutresponse_sign_test.send(:validate_signature)
+        end
+
         it "return true when valid RSA_SHA1 Signature" do
           settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
           params['RelayState'] = params[:RelayState]
@@ -260,6 +281,45 @@ class RubySamlTest < Minitest::Test
 
           assert_raises(OneLogin::RubySaml::ValidationError) { logoutresponse.send(:validate_signature) }
           assert logoutresponse.errors.include? "Invalid Signature on Logout Response"
+        end
+      end
+
+      describe "#validate_signature" do
+        let (:params) { OneLogin::RubySaml::SloLogoutresponse.new.create_params(settings, random_id, "Custom Logout Message", :RelayState => 'http://example.com') }
+
+        before do
+          settings.soft = true
+          settings.idp_slo_target_url = "http://example.com?field=value"
+          settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+          settings.security[:logout_responses_signed] = true
+          settings.security[:embed_sign] = false
+          settings.certificate = ruby_saml_cert_text
+          settings.private_key = ruby_saml_key_text
+          settings.idp_cert = nil
+        end
+
+        it "return true when at least a idp_cert is valid" do
+          params['RelayState'] = params[:RelayState]
+          options = {}
+          options[:get_params] = params
+          settings.idp_cert_multi = {
+            :signing => [ruby_saml_cert_text2, ruby_saml_cert_text],
+            :encryption => []
+          }
+          logoutresponse_sign_test = OneLogin::RubySaml::Logoutresponse.new(params['SAMLResponse'], settings, options)
+          assert logoutresponse_sign_test.send(:validate_signature)
+        end
+
+        it "return false when none cert on idp_cert_multi is valid" do
+          params['RelayState'] = params[:RelayState]
+          options = {}
+          options[:get_params] = params
+          settings.idp_cert_multi = {
+            :signing => [ruby_saml_cert_text2, ruby_saml_cert_text2],
+            :encryption => []
+          }
+          logoutresponse_sign_test = OneLogin::RubySaml::Logoutresponse.new(params['SAMLResponse'], settings, options)
+          assert !logoutresponse_sign_test.send(:validate_signature)
         end
       end
     end

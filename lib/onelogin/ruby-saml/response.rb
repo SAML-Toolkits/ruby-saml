@@ -803,13 +803,27 @@ module OneLogin
           return append_error(error_msg)
         end
 
-        opts = {}
-        opts[:fingerprint_alg] = settings.idp_cert_fingerprint_algorithm
-        opts[:cert] = settings.get_idp_cert
-        fingerprint = settings.get_fingerprint
+        idp_certs = settings.get_idp_cert_multi
+        if idp_certs.nil? || idp_certs[:signing].empty?
+          opts = {}
+          opts[:fingerprint_alg] = settings.idp_cert_fingerprint_algorithm
+          opts[:cert] = settings.get_idp_cert
+          fingerprint = settings.get_fingerprint
 
-        unless fingerprint && doc.validate_document(fingerprint, @soft, opts)          
-          return append_error(error_msg)
+          unless fingerprint && doc.validate_document(fingerprint, @soft, opts)          
+            return append_error(error_msg)
+          end
+        else
+          valid = false
+          idp_certs[:signing].each do |idp_cert|
+            valid = doc.validate_document_with_cert(idp_cert)
+            if valid
+              break
+            end
+          end
+          unless valid
+            return append_error(error_msg)
+          end
         end
 
         true

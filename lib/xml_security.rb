@@ -240,6 +240,31 @@ module XMLSecurity
       validate_signature(base64_cert, soft)
     end
 
+    def validate_document_with_cert(idp_cert)
+      # get cert from response
+      cert_element = REXML::XPath.first(
+        self,
+        "//ds:X509Certificate",
+        { "ds"=>DSIG }
+      )
+
+      if cert_element
+        base64_cert = cert_element.text
+        cert_text = Base64.decode64(base64_cert)
+        begin
+          cert = OpenSSL::X509::Certificate.new(cert_text)
+        rescue OpenSSL::X509::CertificateError => e
+          return append_error("Certificate Error", soft)
+        end
+
+        # check saml response cert matches provided idp cert
+        if idp_cert.to_pem != cert.to_pem
+          return false
+      end
+        validate_signature(base64_cert, true)
+      end
+    end
+
     def validate_signature(base64_cert, soft = true)
 
       document = Nokogiri::XML(self.to_s) do |config|

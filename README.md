@@ -251,6 +251,31 @@ class SamlController < ApplicationController
   end
 end
 ```
+
+
+## Signature validation
+
+On the ruby-saml toolkit there are different ways to validate the signature of the SAMLResponse:
+- You can provide the IdP x509 public certificate at the 'idp_cert' setting.
+- You can provide the IdP x509 public certificate in fingerprint format using the 'idp_cert_fingerprint' setting parameter and additionally the 'idp_cert_fingerprint_algorithm' parameter.
+
+When validating the signature of redirect binding, the fingerprint is useless and the the certficate of the IdP is required in order to execute the validation.
+You can pass the option :relax_signature_validation to SloLogoutrequest and Logoutresponse if want to avoid signature validation if no certificate of the IdP is provided.
+
+In some scenarios the IdP uses different certificates for signing/encryption, or is under key rollover phase and more than one certificate is published on IdP metadata.
+
+In order to handle that the toolkit offers the 'idp_cert_multi' parameter.
+When used, 'idp_cert' and 'idp_cert_fingerprint' values are ignored.
+
+That 'idp_cert_multi' must be a Hash as follows:
+{
+  :signing => [],
+  :encryption => []
+}
+
+And on 'signing' and 'encryption' arrays, add the different IdP x509 public certificates published on the IdP metadata.
+
+
 ## Metadata Based Configuration
 
 The method above requires a little extra work to manually specify attributes about the IdP.  (And your SP application)  There's an easier method -- use a metadata exchange.  Metadata is just an XML file that defines the capabilities of both the IdP and the SP application.  It also contains the X.509 public

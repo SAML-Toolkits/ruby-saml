@@ -28,6 +28,7 @@ module OneLogin
       attr_accessor :idp_cert
       attr_accessor :idp_cert_fingerprint
       attr_accessor :idp_cert_fingerprint_algorithm
+      attr_accessor :idp_cert_multi
       attr_accessor :idp_attribute_names
       attr_accessor :idp_name_qualifier
       # SP Data
@@ -123,6 +124,32 @@ module OneLogin
 
         formatted_cert = OneLogin::RubySaml::Utils.format_cert(idp_cert)
         OpenSSL::X509::Certificate.new(formatted_cert)
+      end
+
+      # @return [Hash with 2 arrays of OpenSSL::X509::Certificate] Build multiple IdP certificates from the settings.
+      #
+      def get_idp_cert_multi
+        return nil if idp_cert_multi.nil? || idp_cert_multi.empty?
+
+        raise ArgumentError.new("Invalid value for idp_cert_multi") if not idp_cert_multi.is_a?(Hash)
+
+        certs = {:signing => [], :encryption => [] }
+
+        if idp_cert_multi.key?(:signing) and not idp_cert_multi[:signing].empty?
+          idp_cert_multi[:signing].each do |idp_cert|
+            formatted_cert = OneLogin::RubySaml::Utils.format_cert(idp_cert)
+            certs[:signing].push(OpenSSL::X509::Certificate.new(formatted_cert))
+          end
+        end
+
+        if idp_cert_multi.key?(:encryption) and not idp_cert_multi[:encryption].empty?
+          idp_cert_multi[:encryption].each do |idp_cert|
+            formatted_cert = OneLogin::RubySaml::Utils.format_cert(idp_cert)
+            certs[:encryption].push(OpenSSL::X509::Certificate.new(formatted_cert))
+          end
+        end
+
+        certs
       end
 
       # @return [OpenSSL::X509::Certificate|nil] Build the SP certificate from the settings (previously format it)
