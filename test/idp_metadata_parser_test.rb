@@ -21,7 +21,7 @@ class IdpMetadataParserTest < Minitest::Test
     it "extract settings details from xml" do
       idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
 
-      settings = idp_metadata_parser.parse(idp_metadata)
+      settings = idp_metadata_parser.parse(idp_metadata_descriptor)
 
       assert_equal "https://hello.example.com/access/saml/idp.xml", settings.idp_entity_id
       assert_equal "https://hello.example.com/access/saml/login", settings.idp_sso_target_url
@@ -29,19 +29,18 @@ class IdpMetadataParserTest < Minitest::Test
       assert_equal "https://hello.example.com/access/saml/logout", settings.idp_slo_target_url
       assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified", settings.name_identifier_format
       assert_equal ["AuthToken", "SSOStartPage"], settings.idp_attribute_names
-      assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", settings.idp_cert_fingerprint
     end
 
     it "extract certificate from md:KeyDescriptor[@use='signing']" do
       idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
-      idp_metadata = read_response("idp_descriptor.xml")
+      idp_metadata = idp_metadata_descriptor
       settings = idp_metadata_parser.parse(idp_metadata)
       assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", settings.idp_cert_fingerprint
     end
 
     it "extract certificate from md:KeyDescriptor[@use='encryption']" do
       idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
-      idp_metadata = read_response("idp_descriptor.xml")
+      idp_metadata = idp_metadata_descriptor
       idp_metadata = idp_metadata.sub(/<md:KeyDescriptor use="signing">(.*?)<\/md:KeyDescriptor>/m, "")
       settings = idp_metadata_parser.parse(idp_metadata)
       assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", settings.idp_cert_fingerprint
@@ -49,7 +48,7 @@ class IdpMetadataParserTest < Minitest::Test
 
     it "extract certificate from md:KeyDescriptor" do
       idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
-      idp_metadata = read_response("idp_descriptor.xml")
+      idp_metadata = idp_metadata_descriptor
       idp_metadata = idp_metadata.sub(/<md:KeyDescriptor use="signing">(.*?)<\/md:KeyDescriptor>/m, "")
       idp_metadata = idp_metadata.sub('<md:KeyDescriptor use="encryption">', '<md:KeyDescriptor>')
       settings = idp_metadata_parser.parse(idp_metadata)
@@ -58,7 +57,7 @@ class IdpMetadataParserTest < Minitest::Test
 
     it "uses settings options as hash for overrides" do
       idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
-      idp_metadata = read_response("idp_descriptor.xml")
+      idp_metadata = idp_metadata_descriptor
       settings = idp_metadata_parser.parse(idp_metadata, {
         :settings => {
           :security => {
@@ -74,10 +73,32 @@ class IdpMetadataParserTest < Minitest::Test
 
   end
 
+  describe "parsing an IdP descriptor file with multiple signing certs" do
+    it "extract settings details from xml" do
+      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+
+      settings = idp_metadata_parser.parse(idp_metadata_descriptor2)
+
+      assert_equal "https://hello.example.com/access/saml/idp.xml", settings.idp_entity_id
+      assert_equal "https://hello.example.com/access/saml/login", settings.idp_sso_target_url
+      assert_equal "https://hello.example.com/access/saml/logout", settings.idp_slo_target_url
+      assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified", settings.name_identifier_format
+      assert_equal ["AuthToken", "SSOStartPage"], settings.idp_attribute_names
+
+      assert_nil settings.idp_cert_fingerprint
+      assert_nil settings.idp_cert
+      assert_equal 2, settings.idp_cert_multi.size
+      assert settings.idp_cert_multi.key?("signing")
+      assert_equal 2, settings.idp_cert_multi["signing"].size
+      assert settings.idp_cert_multi.key?("encryption")
+      assert_equal 1, settings.idp_cert_multi["encryption"].size
+    end
+  end
+
   describe "download and parse IdP descriptor file" do
     before do
       mock_response = MockSuccessResponse.new
-      mock_response.body = idp_metadata
+      mock_response.body = idp_metadata_descriptor
       @url = "https://example.com"
       uri = URI(@url)
 
@@ -140,7 +161,7 @@ class IdpMetadataParserTest < Minitest::Test
   describe "parsing metadata with many entity descriptors" do
     before do
       @idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
-      @idp_metadata = read_response("idp_multiple_descriptors.xml")
+      @idp_metadata = idp_metadata_multiple_descriptors
       @settings = @idp_metadata_parser.parse(@idp_metadata)
     end
 

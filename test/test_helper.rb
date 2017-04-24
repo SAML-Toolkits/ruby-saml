@@ -129,7 +129,7 @@ class Minitest::Test
   end
 
   def unsigned_message_encrypted_unsigned_assertion
-    @unsigned_message_encrypted_unsigned_assertion ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'unsigned_message_encrypted_unsigned_assertion.xml.base64'))    
+    @unsigned_message_encrypted_unsigned_assertion ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'unsigned_message_encrypted_unsigned_assertion.xml.base64'))
   end
 
   def response_document_encrypted_attrs
@@ -150,8 +150,16 @@ class Minitest::Test
     @certificate_without_head_foot ||= read_certificate("certificate_without_head_foot")
   end
 
-  def idp_metadata
-    @idp_metadata ||= read_response("idp_descriptor.xml")
+  def idp_metadata_descriptor
+    @idp_metadata_descriptor ||= File.read(File.join(File.dirname(__FILE__), 'metadata', 'idp_descriptor.xml'))
+  end
+
+  def idp_metadata_descriptor2
+    @idp_metadata_descriptor2 ||= File.read(File.join(File.dirname(__FILE__), 'metadata', 'idp_descriptor_2.xml'))
+  end
+
+  def idp_metadata_multiple_descriptors
+    @idp_metadata_multiple_descriptors ||= File.read(File.join(File.dirname(__FILE__), 'metadata', 'idp_multiple_descriptors.xml'))
   end
 
   def logout_request_document

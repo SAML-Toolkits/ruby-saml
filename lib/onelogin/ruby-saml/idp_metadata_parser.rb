@@ -50,15 +50,29 @@ module OneLogin
           settings = OneLogin::RubySaml::Settings.new(settings || {})
         end
 
-        settings.tap do |settings|
-          settings.idp_entity_id = idp_entity_id
-          settings.name_identifier_format = idp_name_id_format
-          settings.idp_sso_target_url = single_signon_service_url
-          settings.idp_slo_target_url = single_logout_service_url
-          settings.idp_cert = certificate_base64
-          settings.idp_cert_fingerprint = fingerprint(settings.idp_cert_fingerprint_algorithm)
-          settings.idp_attribute_names = attribute_names
+        settings.idp_entity_id = idp_entity_id
+        settings.name_identifier_format = idp_name_id_format
+        settings.idp_sso_target_url = single_signon_service_url
+        settings.idp_slo_target_url = single_logout_service_url
+        settings.idp_attribute_names = attribute_names
+
+        settings.idp_cert = nil
+        settings.idp_cert_fingerprint = nil
+        settings.idp_cert_multi = nil
+        unless certificates.nil?
+          if certificates.size == 1 || ((certificates.key?("signing") && certificates["signing"].size == 1) && (certificates.key?("encryption") && certificates["encryption"].size == 1) && certificates["signing"][0] == certificates["encryption"][0])
+            if certificates.key?("signing")
+              settings.idp_cert = certificates["signing"][0]
+              settings.idp_cert_fingerprint = fingerprint(settings.idp_cert, settings.idp_cert_fingerprint_algorithm)
+            else
+              settings.idp_cert = certificates["encryption"][0]
+              settings.idp_cert_fingerprint = fingerprint(settings.idp_cert, settings.idp_cert_fingerprint_algorithm)
+            end
+          else
+            settings.idp_cert_multi = certificates
+          end
         end
+        settings
       end
 
       private
@@ -192,40 +206,47 @@ module OneLogin
 
       # @return [String|nil] Unformatted Certificate if exists
       #
-      def certificate_base64
-        @certificate_base64 ||= begin
-          node = REXML::XPath.first(
+      def certificates
+        @certificates ||= begin
+          signing_nodes = REXML::XPath.match(
             entity_descriptor,
-            "md:IDPSSODescriptor/md:KeyDescriptor[@use='signing']/ds:KeyInfo/ds:X509Data/ds:X509Certificate",
+            "md:IDPSSODescriptor/md:KeyDescriptor[not(contains(@use, 'encryption'))]/ds:KeyInfo/ds:X509Data/ds:X509Certificate",
             namespace
           )
 
-          unless node
-            node = REXML::XPath.first(
-              entity_descriptor,
-              "md:IDPSSODescriptor/md:KeyDescriptor/ds:KeyInfo/ds:X509Data/ds:X509Certificate",
-              namespace
-            )
+          encryption_nodes = REXML::XPath.match(
+            entity_descriptor,
+            "md:IDPSSODescriptor/md:KeyDescriptor[not(contains(@use, 'signing'))]/ds:KeyInfo/ds:X509Data/ds:X509Certificate",
+            namespace
+          )
+
+          certs = nil
+          unless signing_nodes.empty? && encryption_nodes.empty?
+            certs = {}            
+            unless signing_nodes.empty?
+              certs['signing'] = []
+              signing_nodes.each do |cert_node|
+                certs['signing'] << cert_node.text
+              end
+            end
+
+            unless encryption_nodes.empty?
+              certs['encryption'] = []
+              encryption_nodes.each do |cert_node|
+                certs['encryption'] << cert_node.text
+              end
+            end
           end
-          node.text if node
+          certs
         end
       end
 
-      # @return [String|nil] X509Certificate if exists
+      # @return [String|nil] the fingerpint of the X509Certificate if it exists
       #
-      def certificate
-        @certificate ||= begin
-          Base64.decode64(certificate_base64) if certificate_base64
-        end
-      end
-
-
-      # @return [String|nil] the SHA-1 fingerpint of the X509Certificate if it exists
-      #
-      def fingerprint(fingerprint_algorithm = XMLSecurity::Document::SHA1)
+      def fingerprint(certificate, fingerprint_algorithm = XMLSecurity::Document::SHA1)
         @fingerprint ||= begin
           if certificate
-            cert = OpenSSL::X509::Certificate.new(certificate)
+            cert = OpenSSL::X509::Certificate.new(Base64.decode64(certificate))
 
             fingerprint_alg = XMLSecurity::BaseDocument.new.algorithm(fingerprint_algorithm).new
             fingerprint_alg.hexdigest(cert.to_der).upcase.scan(/../).join(":")
