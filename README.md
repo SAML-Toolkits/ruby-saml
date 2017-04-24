@@ -259,7 +259,7 @@ On the ruby-saml toolkit there are different ways to validate the signature of t
 - You can provide the IdP x509 public certificate at the 'idp_cert' setting.
 - You can provide the IdP x509 public certificate in fingerprint format using the 'idp_cert_fingerprint' setting parameter and additionally the 'idp_cert_fingerprint_algorithm' parameter.
 
-When validating the signature of redirect binding, the fingerprint is useless and the the certficate of the IdP is required in order to execute the validation.
+When validating the signature of redirect binding, the fingerprint is useless and the certficate of the IdP is required in order to execute the validation.
 You can pass the option :relax_signature_validation to SloLogoutrequest and Logoutresponse if want to avoid signature validation if no certificate of the IdP is provided.
 
 In some scenarios the IdP uses different certificates for signing/encryption, or is under key rollover phase and more than one certificate is published on IdP metadata.
