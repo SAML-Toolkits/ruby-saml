@@ -55,6 +55,30 @@ class IdpMetadataParserTest < Minitest::Test
       assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", settings.idp_cert_fingerprint
     end
 
+    it "extract SSO endpoint with no specific binding, it takes the first" do
+      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata = idp_metadata_descriptor3
+      settings = idp_metadata_parser.parse(idp_metadata)
+      assert_equal "https://idp.example.com/idp/profile/Shibboleth/SSO", settings.idp_sso_target_url
+    end
+
+    it "extract SSO endpoint with specific binding" do
+      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata = idp_metadata_descriptor3
+      options = {}
+      options[:sso_binding] = ['urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST']
+      settings = idp_metadata_parser.parse(idp_metadata, options)
+      assert_equal "https://idp.example.com/idp/profile/SAML2/POST/SSO", settings.idp_sso_target_url
+
+      options[:sso_binding] = ['urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect']
+      settings = idp_metadata_parser.parse(idp_metadata, options)
+      assert_equal "https://idp.example.com/idp/profile/SAML2/Redirect/SSO", settings.idp_sso_target_url
+
+      options[:sso_binding] = ['invalid_binding', 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect']
+      settings = idp_metadata_parser.parse(idp_metadata, options)
+      assert_equal "https://idp.example.com/idp/profile/SAML2/Redirect/SSO", settings.idp_sso_target_url      
+    end
+
     it "uses settings options as hash for overrides" do
       idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
       idp_metadata = idp_metadata_descriptor

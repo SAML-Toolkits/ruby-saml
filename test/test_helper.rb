@@ -158,6 +158,10 @@ class Minitest::Test
     @idp_metadata_descriptor2 ||= File.read(File.join(File.dirname(__FILE__), 'metadata', 'idp_descriptor_2.xml'))
   end
 
+  def idp_metadata_descriptor3
+    @idp_metadata_descriptor3 ||= File.read(File.join(File.dirname(__FILE__), 'metadata', 'idp_descriptor_3.xml'))
+  end
+
   def idp_metadata_multiple_descriptors
     @idp_metadata_multiple_descriptors ||= File.read(File.join(File.dirname(__FILE__), 'metadata', 'idp_multiple_descriptors.xml'))
   end

@@ -52,8 +52,8 @@ module OneLogin
 
         settings.idp_entity_id = idp_entity_id
         settings.name_identifier_format = idp_name_id_format
-        settings.idp_sso_target_url = single_signon_service_url
-        settings.idp_slo_target_url = single_logout_service_url
+        settings.idp_sso_target_url = single_signon_service_url(parse_options)
+        settings.idp_slo_target_url = single_logout_service_url(parse_options)
         settings.idp_attribute_names = attribute_names
 
         settings.idp_cert = nil
