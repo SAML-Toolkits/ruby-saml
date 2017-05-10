@@ -281,7 +281,7 @@ And on 'signing' and 'encryption' arrays, add the different IdP x509 public cert
 The method above requires a little extra work to manually specify attributes about the IdP.  (And your SP application)  There's an easier method -- use a metadata exchange.  Metadata is just an XML file that defines the capabilities of both the IdP and the SP application.  It also contains the X.509 public
 key certificates which add to the trusted relationship.  The IdP administrator can also configure custom settings for an SP based on the metadata.
 
-Using ```idp_metadata_parser.parse_remote``` IdP metadata will be added to the settings withouth further ado.
+Using ```idp_metadata_parser.parse_remote``` IdP metadata will be added to the settings without further ado.
 
 ```ruby
 def saml_settings
@@ -300,9 +300,14 @@ def saml_settings
 end
 ```
 The following attributes are set:
+  * idp_entity_id
+  * name_identifier_format
   * idp_sso_target_url
   * idp_slo_target_url
-  * idp_cert_fingerprint
+  * idp_attribute_names
+  * idp_cert 
+  * idp_cert_fingerprint 
+  * idp_cert_multi
 
 ### Retrieve one Entity Descriptor when many exist in Metadata
 
@@ -318,6 +323,12 @@ IdpMetadataParser by its Entity Id value:
                 entity_id: "http//example.com/target/entity"
               )
 ```
+
+### Parsing Metadata into an Hash
+
+The `OneLogin::RubySaml::IdpMetadataParser` also provides the methods `#parse_to_hash` and `#parse_remote_to_hash`.
+Those return an Hash instead of a `Settings` object, which may be useful for configuring
+[omniauth-saml](https://github.com/omniauth/omniauth-saml), for instance.
 
 ## Retrieving Attributes
 

@@ -28,51 +28,69 @@ module OneLogin
       # IdP values
       #
       # @param (see IdpMetadataParser#get_idp_metadata)
-      # @param options  [Hash]   :settings to provide the OneLogin::RubySaml::Settings object or an hash for Settings overrides
+      # @param parse_options  [Hash]   :settings to provide the OneLogin::RubySaml::Settings object or an hash for Settings overrides
       # @return (see IdpMetadataParser#get_idp_metadata)
       # @raise (see IdpMetadataParser#get_idp_metadata)
-      def parse_remote(url, validate_cert = true, options = {})
+      def parse_remote(url, validate_cert = true, parse_options = {})
         idp_metadata = get_idp_metadata(url, validate_cert)
-        parse(idp_metadata, options)
+        parse(idp_metadata, parse_options)
+      end
+
+      # Parse the Identity Provider metadata and return the results as Hash
+      #
+      # @param url [String] Url where the XML of the Identity Provider Metadata is published.
+      # @param validate_cert [Boolean] If true and the URL is HTTPs, the cert of the domain is checked.
+      # @param parse_options [Hash] :settings to provide the OneLogin::RubySaml::Settings object or an hash for Settings overrides
+      # @return [Hash]
+      # @raise [HttpError] Failure to fetch remote IdP metadata
+      def parse_remote_to_hash(url, validate_cert = true, parse_options = {})
+        idp_metadata = get_idp_metadata(url, validate_cert)
+        parse_to_hash(idp_metadata, parse_options)
       end
 
       # Parse the Identity Provider metadata and update the settings with the IdP values
-      # @param idp_metadata [String]
-      # @param options  [Hash]   :settings to provide the OneLogin::RubySaml::Settings object or an hash for Settings overrides
       #
+      # @param idp_metadata [String]
+      # @param parse_options [Hash] :settings to provide the OneLogin::RubySaml::Settings object or an hash for Settings overrides
+      #
+      # @return [Settings]
       def parse(idp_metadata, parse_options = {})
+        parsed_metadata = parse_to_hash(idp_metadata, parse_options)
+
+        settings = parse_options[:settings]
+
+        if settings.nil?
+          OneLogin::RubySaml::Settings.new(parsed_metadata)
+        elsif settings.is_a?(Hash)
+          OneLogin::RubySaml::Settings.new(settings.merge(parsed_metadata))
+        else
+          merge_parsed_metadata_into(settings, parsed_metadata)
+        end
+      end
+
+      # Parse the Identity Provider metadata and return the results as Hash
+      #
+      # @param idp_metadata [String]
+      # @param parse_options [Hash] :settings to provide the OneLogin::RubySaml::Settings object or an hash for Settings overrides
+      #
+      # @return [Settings]
+      def parse_to_hash(idp_metadata, parse_options = {})
         @document = REXML::Document.new(idp_metadata)
         @parse_options = parse_options
         @entity_descriptor = nil
 
-        settings = parse_options[:settings]
-        if settings.nil? || settings.is_a?(Hash)
-          settings = OneLogin::RubySaml::Settings.new(settings || {})
+        {
+          :idp_entity_id => idp_entity_id,
+          :name_identifier_format => idp_name_id_format,
+          :idp_sso_target_url => single_signon_service_url(parse_options),
+          :idp_slo_target_url => single_logout_service_url(parse_options),
+          :idp_attribute_names => attribute_names,
+          :idp_cert => nil,
+          :idp_cert_fingerprint => nil,
+          :idp_cert_multi => nil
+        }.tap do |response_hash|
+          merge_certificates_into(response_hash) unless certificates.nil?
         end
-
-        settings.idp_entity_id = idp_entity_id
-        settings.name_identifier_format = idp_name_id_format
-        settings.idp_sso_target_url = single_signon_service_url(parse_options)
-        settings.idp_slo_target_url = single_logout_service_url(parse_options)
-        settings.idp_attribute_names = attribute_names
-
-        settings.idp_cert = nil
-        settings.idp_cert_fingerprint = nil
-        settings.idp_cert_multi = nil
-        unless certificates.nil?
-          if certificates.size == 1 || ((certificates.key?("signing") && certificates["signing"].size == 1) && (certificates.key?("encryption") && certificates["encryption"].size == 1) && certificates["signing"][0] == certificates["encryption"][0])
-            if certificates.key?("signing")
-              settings.idp_cert = certificates["signing"][0]
-              settings.idp_cert_fingerprint = fingerprint(settings.idp_cert, settings.idp_cert_fingerprint_algorithm)
-            else
-              settings.idp_cert = certificates["encryption"][0]
-              settings.idp_cert_fingerprint = fingerprint(settings.idp_cert, settings.idp_cert_fingerprint_algorithm)
-            end
-          else
-            settings.idp_cert_multi = certificates
-          end
-        end
-        settings
       end
 
       private
@@ -272,6 +290,38 @@ module OneLogin
           "saml" => SAML_ASSERTION,
           "ds" => DSIG
         }
+      end
+
+      def merge_certificates_into(parsed_metadata)
+        if certificates.size == 1 ||
+          ((certificates.key?("signing") && certificates["signing"].size == 1) &&
+            (certificates.key?("encryption") && certificates["encryption"].size == 1) &&
+            certificates["signing"][0] == certificates["encryption"][0])
+
+          if certificates.key?("signing")
+            parsed_metadata[:idp_cert] = certificates["signing"][0]
+            parsed_metadata[:idp_cert_fingerprint] = fingerprint(
+              parsed_metadata[:idp_cert],
+              parsed_metadata[:idp_cert_fingerprint_algorithm]
+            )
+          else
+            parsed_metadata[:idp_cert] = certificates["encryption"][0]
+            parsed_metadata[:idp_cert_fingerprint] = fingerprint(
+              parsed_metadata[:idp_cert],
+              parsed_metadata[:idp_cert_fingerprint_algorithm]
+            )
+          end
+        else
+          parsed_metadata[:idp_cert_multi] = certificates
+        end
+      end
+
+      def merge_parsed_metadata_into(settings, parsed_metadata)
+        parsed_metadata.each do |key, value|
+          settings.send("#{key}=".to_sym, value)
+        end
+
+        settings
       end
     end
   end
