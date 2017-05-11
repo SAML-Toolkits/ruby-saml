@@ -22,42 +22,61 @@ module OneLogin
 
       attr_reader :document
       attr_reader :response
-      attr_reader :parse_options
+      attr_reader :options
 
       # Parse the Identity Provider metadata and update the settings with the
       # IdP values
       #
-      # @param (see IdpMetadataParser#get_idp_metadata)
-      # @param parse_options  [Hash]   :settings to provide the OneLogin::RubySaml::Settings object or an hash for Settings overrides
-      # @return (see IdpMetadataParser#get_idp_metadata)
-      # @raise (see IdpMetadataParser#get_idp_metadata)
-      def parse_remote(url, validate_cert = true, parse_options = {})
+      # @param url [String] Url where the XML of the Identity Provider Metadata is published.
+      # @param validate_cert [Boolean] If true and the URL is HTTPs, the cert of the domain is checked.
+      #
+      # @param options [Hash] options used for parsing the metadata and the returned Settings instance
+      # @option options [OneLogin::RubySaml::Settings, Hash] :settings the OneLogin::RubySaml::Settings object which gets the parsed metadata merged into or an hash for Settings overrides.
+      # @option options [Array<String>, nil] :sso_binding an ordered list of bindings to detect the single signon URL. The first binding in the list that is included in the metadata will be used.
+      # @option options [Array<String>, nil] :slo_binding an ordered list of bindings to detect the single logout URL. The first binding in the list that is included in the metadata will be used.
+      # @option options [String, nil] :entity_id when this is given, the entity descriptor for this ID is used. When ommitted, the first entity descriptor is used.
+      #
+      # @return [OneLogin::RubySaml::Settings]
+      #
+      # @raise [HttpError] Failure to fetch remote IdP metadata
+      def parse_remote(url, validate_cert = true, options = {})
         idp_metadata = get_idp_metadata(url, validate_cert)
-        parse(idp_metadata, parse_options)
+        parse(idp_metadata, options)
       end
 
       # Parse the Identity Provider metadata and return the results as Hash
       #
       # @param url [String] Url where the XML of the Identity Provider Metadata is published.
       # @param validate_cert [Boolean] If true and the URL is HTTPs, the cert of the domain is checked.
-      # @param parse_options [Hash] :settings to provide the OneLogin::RubySaml::Settings object or an hash for Settings overrides
+      #
+      # @param options [Hash] options used for parsing the metadata
+      # @option options [Array<String>, nil] :sso_binding an ordered list of bindings to detect the single signon URL. The first binding in the list that is included in the metadata will be used.
+      # @option options [Array<String>, nil] :slo_binding an ordered list of bindings to detect the single logout URL. The first binding in the list that is included in the metadata will be used.
+      # @option options [String, nil] :entity_id when this is given, the entity descriptor for this ID is used. When ommitted, the first entity descriptor is used.
+      #
       # @return [Hash]
+      #
       # @raise [HttpError] Failure to fetch remote IdP metadata
-      def parse_remote_to_hash(url, validate_cert = true, parse_options = {})
+      def parse_remote_to_hash(url, validate_cert = true, options = {})
         idp_metadata = get_idp_metadata(url, validate_cert)
-        parse_to_hash(idp_metadata, parse_options)
+        parse_to_hash(idp_metadata, options)
       end
 
       # Parse the Identity Provider metadata and update the settings with the IdP values
       #
       # @param idp_metadata [String]
-      # @param parse_options [Hash] :settings to provide the OneLogin::RubySaml::Settings object or an hash for Settings overrides
       #
-      # @return [Settings]
-      def parse(idp_metadata, parse_options = {})
-        parsed_metadata = parse_to_hash(idp_metadata, parse_options)
+      # @param options [Hash] :settings to provide the OneLogin::RubySaml::Settings object or an hash for Settings overrides
+      # @option options [OneLogin::RubySaml::Settings, Hash] :settings the OneLogin::RubySaml::Settings object which gets the parsed metadata merged into or an hash for Settings overrides.
+      # @option options [Array<String>, nil] :sso_binding an ordered list of bindings to detect the single signon URL. The first binding in the list that is included in the metadata will be used.
+      # @option options [Array<String>, nil] :slo_binding an ordered list of bindings to detect the single logout URL. The first binding in the list that is included in the metadata will be used.
+      # @option options [String, nil] :entity_id when this is given, the entity descriptor for this ID is used. When ommitted, the first entity descriptor is used.
+      #
+      # @return [OneLogin::RubySaml::Settings]
+      def parse(idp_metadata, options = {})
+        parsed_metadata = parse_to_hash(idp_metadata, options)
 
-        settings = parse_options[:settings]
+        settings = options[:settings]
 
         if settings.nil?
           OneLogin::RubySaml::Settings.new(parsed_metadata)
@@ -71,19 +90,23 @@ module OneLogin
       # Parse the Identity Provider metadata and return the results as Hash
       #
       # @param idp_metadata [String]
-      # @param parse_options [Hash] :settings to provide the OneLogin::RubySaml::Settings object or an hash for Settings overrides
       #
-      # @return [Settings]
-      def parse_to_hash(idp_metadata, parse_options = {})
+      # @param options [Hash] options used for parsing the metadata and the returned Settings instance
+      # @option options [Array<String>, nil] :sso_binding an ordered list of bindings to detect the single signon URL. The first binding in the list that is included in the metadata will be used.
+      # @option options [Array<String>, nil] :slo_binding an ordered list of bindings to detect the single logout URL. The first binding in the list that is included in the metadata will be used.
+      # @option options [String, nil] :entity_id when this is given, the entity descriptor for this ID is used. When ommitted, the first entity descriptor is used.
+      #
+      # @return [Hash]
+      def parse_to_hash(idp_metadata, options = {})
         @document = REXML::Document.new(idp_metadata)
-        @parse_options = parse_options
+        @options = options
         @entity_descriptor = nil
 
         {
           :idp_entity_id => idp_entity_id,
           :name_identifier_format => idp_name_id_format,
-          :idp_sso_target_url => single_signon_service_url(parse_options),
-          :idp_slo_target_url => single_logout_service_url(parse_options),
+          :idp_sso_target_url => single_signon_service_url(options),
+          :idp_slo_target_url => single_logout_service_url(options),
           :idp_attribute_names => attribute_names,
           :idp_cert => nil,
           :idp_cert_fingerprint => nil,
@@ -136,7 +159,7 @@ module OneLogin
 
       def entity_descriptor_path
         path = "//md:EntityDescriptor"
-        entity_id = parse_options[:entity_id]
+        entity_id = options[:entity_id]
         return path unless entity_id
         path << "[@entityID=\"#{entity_id}\"]"
       end
@@ -180,7 +203,7 @@ module OneLogin
       #
       def single_signon_service_url(options = {})
         binding = single_signon_service_binding(options[:sso_binding])
-        unless binding.nil? 
+        unless binding.nil?
           node = REXML::XPath.first(
             entity_descriptor,
             "md:IDPSSODescriptor/md:SingleSignOnService[@Binding=\"#{binding}\"]/@Location",
@@ -240,7 +263,7 @@ module OneLogin
 
           certs = nil
           unless signing_nodes.empty? && encryption_nodes.empty?
-            certs = {}            
+            certs = {}
             unless signing_nodes.empty?
               certs['signing'] = []
               signing_nodes.each do |cert_node|
