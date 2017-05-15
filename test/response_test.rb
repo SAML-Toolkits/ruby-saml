@@ -796,7 +796,7 @@ class RubySamlTest < Minitest::Test
         response_wrapped.settings = settings
         assert !response_wrapped.send(:validate_signature)
         assert_includes response_wrapped.errors, "Invalid Signature on SAML Response"
-       end
+      end
     end
 
     describe "#validate nameid" do
@@ -1159,14 +1159,14 @@ class RubySamlTest < Minitest::Test
       end
 
       it 'is not possible when encryptID inside the assertion but no private key' do
-          response_encrypted_nameid.settings = settings
-          assert_raises(OneLogin::RubySaml::ValidationError, "An EncryptedID found and no SP private key found on the settings to decrypt it") do
-            assert_equal "test@onelogin.com", response_encrypted_nameid.nameid
-          end
+        response_encrypted_nameid.settings = settings
+        assert_raises(OneLogin::RubySaml::ValidationError, "An EncryptedID found and no SP private key found on the settings to decrypt it") do
+          assert_equal "test@onelogin.com", response_encrypted_nameid.nameid
+        end
 
-          assert_raises(OneLogin::RubySaml::ValidationError, "An EncryptedID found and no SP private key found on the settings to decrypt it") do
-            assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress", response_encrypted_nameid.name_id_format
-          end
+        assert_raises(OneLogin::RubySaml::ValidationError, "An EncryptedID found and no SP private key found on the settings to decrypt it") do
+          assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress", response_encrypted_nameid.name_id_format
+        end
       end
 
       it 'is possible when encryptID inside the assertion and settings has the private key' do
@@ -1178,277 +1178,275 @@ class RubySamlTest < Minitest::Test
 
     end
 
-  end
+    describe 'try to initialize an encrypted response' do
+      it 'raise if an encrypted assertion is found and no sp private key to decrypt it' do
+        error_msg = "An EncryptedAssertion found and no SP private key found on the settings to decrypt it. Be sure you provided the :settings parameter at the initialize method"
 
-  describe 'try to initialize an encrypted response' do
-    it 'raise if an encrypted assertion is found and no sp private key to decrypt it' do
-      error_msg = "An EncryptedAssertion found and no SP private key found on the settings to decrypt it. Be sure you provided the :settings parameter at the initialize method"
-
-      assert_raises(OneLogin::RubySaml::ValidationError, error_msg) do
-        response = OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion)
-      end
-
-      assert_raises(OneLogin::RubySaml::ValidationError, error_msg) do
-        response2 = OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)
-      end
-
-      settings.certificate = ruby_saml_cert_text
-      settings.private_key = ruby_saml_key_text
-      assert_raises(OneLogin::RubySaml::ValidationError, error_msg) do
-        response3 = OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion)
-        response3.settings
-      end
-    end
-
-    it 'raise if an encrypted assertion is found and the sp private key is wrong' do
-      settings.certificate = ruby_saml_cert_text
-      wrong_private_key = ruby_saml_key_text.sub!('A', 'B')
-      settings.private_key = wrong_private_key
-
-      error_msg = "Neither PUB key nor PRIV key: nested asn1 error"
-      assert_raises(OpenSSL::PKey::RSAError, error_msg) do
-        response = OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)
-      end
-   end
-
-    it 'return true if an encrypted assertion is found and settings initialized with private_key' do
-      settings.certificate = ruby_saml_cert_text
-      settings.private_key = ruby_saml_key_text
-      response = OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)
-      assert response.decrypted_document
-
-      response2 = OneLogin::RubySaml::Response.new(signed_message_encrypted_signed_assertion, :settings => settings)
-      assert response2.decrypted_document
-
-      response3 = OneLogin::RubySaml::Response.new(unsigned_message_encrypted_signed_assertion, :settings => settings)
-      assert response3.decrypted_document
-
-      response4 = OneLogin::RubySaml::Response.new(unsigned_message_encrypted_unsigned_assertion, :settings => settings)
-      assert response4.decrypted_document
-    end
-  end
-
-  describe "retrieve nameID and attributes from encrypted assertion" do
-
-    before do
-      settings.idp_cert_fingerprint = 'EE:17:4E:FB:A8:81:71:12:0D:2A:78:43:BC:E7:0C:07:58:79:F4:F4'
-      settings.issuer = 'http://rubysaml.com:3000/saml/metadata'
-      settings.assertion_consumer_service_url = 'http://rubysaml.com:3000/saml/acs'
-      settings.certificate = ruby_saml_cert_text
-      settings.private_key = ruby_saml_key_text
-    end
-
-    it 'is possible when signed_message_encrypted_unsigned_assertion' do
-      response = OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)
-      Timecop.freeze(Time.parse("2015-03-19T14:30:31Z")) do
-        assert response.is_valid?
-        assert_empty response.errors
-        assert_equal "test", response.attributes[:uid]
-        assert_equal "98e2bb61075e951b37d6b3be6954a54b340d86c7", response.nameid
-      end
-    end
-
-    it 'is possible when signed_message_encrypted_signed_assertion' do
-      response = OneLogin::RubySaml::Response.new(signed_message_encrypted_signed_assertion, :settings => settings)
-      Timecop.freeze(Time.parse("2015-03-19T14:30:31Z")) do
-        assert response.is_valid?
-        assert_empty response.errors
-        assert_equal "test", response.attributes[:uid]
-        assert_equal "98e2bb61075e951b37d6b3be6954a54b340d86c7", response.nameid
-      end
-    end
-
-    it 'is possible when unsigned_message_encrypted_signed_assertion' do
-      response = OneLogin::RubySaml::Response.new(unsigned_message_encrypted_signed_assertion, :settings => settings)
-      Timecop.freeze(Time.parse("2015-03-19T14:30:31Z")) do
-        assert response.is_valid?
-        assert_empty response.errors
-        assert_equal "test", response.attributes[:uid]
-        assert_equal "98e2bb61075e951b37d6b3be6954a54b340d86c7", response.nameid
-      end
-    end
-
-    it 'is not possible when unsigned_message_encrypted_unsigned_assertion' do
-      response = OneLogin::RubySaml::Response.new(unsigned_message_encrypted_unsigned_assertion, :settings => settings)
-      Timecop.freeze(Time.parse("2015-03-19T14:30:31Z")) do
-        assert !response.is_valid?
-        assert_includes response.errors, "Found an unexpected number of Signature Element. SAML Response rejected"
-      end
-    end
-  end
-
-  describe "#decrypt_assertion" do
-    before do
-      settings.private_key = ruby_saml_key_text
-    end
-
-    describe "check right settings" do
-
-      it "is not possible to decrypt the assertion if no private key" do
-        response = OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)
-
-        encrypted_assertion_node = REXML::XPath.first(
-          response.document,
-          "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
-          { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
-        )
-        response.settings.private_key = nil
-
-        error_msg = "An EncryptedAssertion found and no SP private key found on the settings to decrypt it"
         assert_raises(OneLogin::RubySaml::ValidationError, error_msg) do
-          decrypted = response.send(:decrypt_assertion, encrypted_assertion_node)
+          response = OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion)
+        end
+
+        assert_raises(OneLogin::RubySaml::ValidationError, error_msg) do
+          response2 = OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)
+        end
+
+        settings.certificate = ruby_saml_cert_text
+        settings.private_key = ruby_saml_key_text
+        assert_raises(OneLogin::RubySaml::ValidationError, error_msg) do
+          response3 = OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion)
+          response3.settings
         end
       end
 
-      it "is possible to decrypt the assertion if private key" do
-        response = OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)
+      it 'raise if an encrypted assertion is found and the sp private key is wrong' do
+        settings.certificate = ruby_saml_cert_text
+        wrong_private_key = ruby_saml_key_text.sub!('A', 'B')
+        settings.private_key = wrong_private_key
 
-        encrypted_assertion_node = REXML::XPath.first(
-          response.document,
-          "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
-          { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
-        )
-        decrypted = response.send(:decrypt_assertion, encrypted_assertion_node)
-
-        encrypted_assertion_node2 = REXML::XPath.first(
-          decrypted,
-          "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
-          { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
-        )
-        assert_nil encrypted_assertion_node2
-        assert decrypted.name, "Assertion"
+        error_msg = "Neither PUB key nor PRIV key: nested asn1 error"
+        assert_raises(OpenSSL::PKey::RSAError, error_msg) do
+          response = OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)
+        end
       end
 
-      it "is possible to decrypt the assertion if private key provided and EncryptedKey RetrievalMethod presents in response" do
+      it 'return true if an encrypted assertion is found and settings initialized with private_key' do
+        settings.certificate = ruby_saml_cert_text
         settings.private_key = ruby_saml_key_text
-        resp = read_response('response_with_retrieval_method.xml')
-        response = OneLogin::RubySaml::Response.new(resp, :settings => settings)
+        response = OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)
+        assert response.decrypted_document
 
-        encrypted_assertion_node = REXML::XPath.first(
-          response.document,
-          "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
-          { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
-        )
-        decrypted = response.send(:decrypt_assertion, encrypted_assertion_node)
+        response2 = OneLogin::RubySaml::Response.new(signed_message_encrypted_signed_assertion, :settings => settings)
+        assert response2.decrypted_document
 
-        encrypted_assertion_node2 = REXML::XPath.first(
-          decrypted,
-          "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
-          { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
-        )
+        response3 = OneLogin::RubySaml::Response.new(unsigned_message_encrypted_signed_assertion, :settings => settings)
+        assert response3.decrypted_document
 
-        assert_nil encrypted_assertion_node2
-        assert decrypted.name, "Assertion"
-      end
-
-      it "is possible to decrypt the assertion if private key but no saml namespace on the Assertion Element that is inside the EncryptedAssertion" do
-        unsigned_message_encrypted_assertion_without_saml_namespace = read_response('unsigned_message_encrypted_assertion_without_saml_namespace.xml.base64')
-        response = OneLogin::RubySaml::Response.new(unsigned_message_encrypted_assertion_without_saml_namespace, :settings => settings)
-        encrypted_assertion_node = REXML::XPath.first(
-          response.document,
-          "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
-          { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
-        )
-        decrypted = response.send(:decrypt_assertion, encrypted_assertion_node)
-
-        encrypted_assertion_node2 = REXML::XPath.first(
-          decrypted,
-          "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
-          { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
-        )
-        assert_nil encrypted_assertion_node2
-        assert decrypted.name, "Assertion"
+        response4 = OneLogin::RubySaml::Response.new(unsigned_message_encrypted_unsigned_assertion, :settings => settings)
+        assert response4.decrypted_document
       end
     end
 
-    describe "check different encrypt methods supported" do
-      it "EncryptionMethod DES-192 && Key Encryption Algorithm RSA-1_5" do
-        unsigned_message_des192_encrypted_signed_assertion = read_response('unsigned_message_des192_encrypted_signed_assertion.xml.base64')
-        response = OneLogin::RubySaml::Response.new(unsigned_message_des192_encrypted_signed_assertion, :settings => settings)
+    describe "retrieve nameID and attributes from encrypted assertion" do
+
+      before do
+        settings.idp_cert_fingerprint = 'EE:17:4E:FB:A8:81:71:12:0D:2A:78:43:BC:E7:0C:07:58:79:F4:F4'
+        settings.issuer = 'http://rubysaml.com:3000/saml/metadata'
+        settings.assertion_consumer_service_url = 'http://rubysaml.com:3000/saml/acs'
+        settings.certificate = ruby_saml_cert_text
+        settings.private_key = ruby_saml_key_text
+      end
+
+      it 'is possible when signed_message_encrypted_unsigned_assertion' do
+        response = OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)
+        Timecop.freeze(Time.parse("2015-03-19T14:30:31Z")) do
+          assert response.is_valid?
+          assert_empty response.errors
+          assert_equal "test", response.attributes[:uid]
+          assert_equal "98e2bb61075e951b37d6b3be6954a54b340d86c7", response.nameid
+        end
+      end
+
+      it 'is possible when signed_message_encrypted_signed_assertion' do
+        response = OneLogin::RubySaml::Response.new(signed_message_encrypted_signed_assertion, :settings => settings)
+        Timecop.freeze(Time.parse("2015-03-19T14:30:31Z")) do
+          assert response.is_valid?
+          assert_empty response.errors
+          assert_equal "test", response.attributes[:uid]
+          assert_equal "98e2bb61075e951b37d6b3be6954a54b340d86c7", response.nameid
+        end
+      end
+
+      it 'is possible when unsigned_message_encrypted_signed_assertion' do
+        response = OneLogin::RubySaml::Response.new(unsigned_message_encrypted_signed_assertion, :settings => settings)
+        Timecop.freeze(Time.parse("2015-03-19T14:30:31Z")) do
+          assert response.is_valid?
+          assert_empty response.errors
+          assert_equal "test", response.attributes[:uid]
+          assert_equal "98e2bb61075e951b37d6b3be6954a54b340d86c7", response.nameid
+        end
+      end
+
+      it 'is not possible when unsigned_message_encrypted_unsigned_assertion' do
+        response = OneLogin::RubySaml::Response.new(unsigned_message_encrypted_unsigned_assertion, :settings => settings)
+        Timecop.freeze(Time.parse("2015-03-19T14:30:31Z")) do
+          assert !response.is_valid?
+          assert_includes response.errors, "Found an unexpected number of Signature Element. SAML Response rejected"
+        end
+      end
+    end
+
+    describe "#decrypt_assertion" do
+      before do
+        settings.private_key = ruby_saml_key_text
+      end
+
+      describe "check right settings" do
+
+        it "is not possible to decrypt the assertion if no private key" do
+          response = OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)
+
+          encrypted_assertion_node = REXML::XPath.first(
+            response.document,
+            "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
+            { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
+          )
+          response.settings.private_key = nil
+
+          error_msg = "An EncryptedAssertion found and no SP private key found on the settings to decrypt it"
+          assert_raises(OneLogin::RubySaml::ValidationError, error_msg) do
+            decrypted = response.send(:decrypt_assertion, encrypted_assertion_node)
+          end
+        end
+
+        it "is possible to decrypt the assertion if private key" do
+          response = OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)
+
+          encrypted_assertion_node = REXML::XPath.first(
+            response.document,
+            "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
+            { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
+          )
+          decrypted = response.send(:decrypt_assertion, encrypted_assertion_node)
+
+          encrypted_assertion_node2 = REXML::XPath.first(
+            decrypted,
+            "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
+            { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
+          )
+          assert_nil encrypted_assertion_node2
+          assert decrypted.name, "Assertion"
+        end
+
+        it "is possible to decrypt the assertion if private key provided and EncryptedKey RetrievalMethod presents in response" do
+          settings.private_key = ruby_saml_key_text
+          resp = read_response('response_with_retrieval_method.xml')
+          response = OneLogin::RubySaml::Response.new(resp, :settings => settings)
+
+          encrypted_assertion_node = REXML::XPath.first(
+            response.document,
+            "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
+            { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
+          )
+          decrypted = response.send(:decrypt_assertion, encrypted_assertion_node)
+
+          encrypted_assertion_node2 = REXML::XPath.first(
+            decrypted,
+            "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
+            { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
+          )
+
+          assert_nil encrypted_assertion_node2
+          assert decrypted.name, "Assertion"
+        end
+
+        it "is possible to decrypt the assertion if private key but no saml namespace on the Assertion Element that is inside the EncryptedAssertion" do
+          unsigned_message_encrypted_assertion_without_saml_namespace = read_response('unsigned_message_encrypted_assertion_without_saml_namespace.xml.base64')
+          response = OneLogin::RubySaml::Response.new(unsigned_message_encrypted_assertion_without_saml_namespace, :settings => settings)
+          encrypted_assertion_node = REXML::XPath.first(
+            response.document,
+            "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
+            { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
+          )
+          decrypted = response.send(:decrypt_assertion, encrypted_assertion_node)
+
+          encrypted_assertion_node2 = REXML::XPath.first(
+            decrypted,
+            "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
+            { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
+          )
+          assert_nil encrypted_assertion_node2
+          assert decrypted.name, "Assertion"
+        end
+      end
+
+      describe "check different encrypt methods supported" do
+        it "EncryptionMethod DES-192 && Key Encryption Algorithm RSA-1_5" do
+          unsigned_message_des192_encrypted_signed_assertion = read_response('unsigned_message_des192_encrypted_signed_assertion.xml.base64')
+          response = OneLogin::RubySaml::Response.new(unsigned_message_des192_encrypted_signed_assertion, :settings => settings)
+          assert_equal "test", response.attributes[:uid]
+          assert_equal "_ce3d2948b4cf20146dee0a0b3dd6f69b6cf86f62d7", response.nameid
+        end
+
+        it "EncryptionMethod AES-128 && Key Encryption Algorithm RSA-OAEP-MGF1P" do
+          unsigned_message_aes128_encrypted_signed_assertion = read_response('unsigned_message_aes128_encrypted_signed_assertion.xml.base64')
+          response = OneLogin::RubySaml::Response.new(unsigned_message_aes128_encrypted_signed_assertion, :settings => settings)
+          assert_equal "test", response.attributes[:uid]
+          assert_equal "_ce3d2948b4cf20146dee0a0b3dd6f69b6cf86f62d7", response.nameid
+        end
+
+        it "EncryptionMethod AES-192 && Key Encryption Algorithm RSA-OAEP-MGF1P" do
+          unsigned_message_aes192_encrypted_signed_assertion = read_response('unsigned_message_aes192_encrypted_signed_assertion.xml.base64')
+          response = OneLogin::RubySaml::Response.new(unsigned_message_aes192_encrypted_signed_assertion, :settings => settings)
+          assert_equal "test", response.attributes[:uid]
+          assert_equal "_ce3d2948b4cf20146dee0a0b3dd6f69b6cf86f62d7", response.nameid
+        end
+
+        it "EncryptionMethod AES-256 && Key Encryption Algorithm RSA-OAEP-MGF1P" do
+          unsigned_message_aes256_encrypted_signed_assertion = read_response('unsigned_message_aes256_encrypted_signed_assertion.xml.base64')
+          response = OneLogin::RubySaml::Response.new(unsigned_message_aes256_encrypted_signed_assertion, :settings => settings)
+          assert_equal "test", response.attributes[:uid]
+          assert_equal "_ce3d2948b4cf20146dee0a0b3dd6f69b6cf86f62d7", response.nameid
+        end
+      end
+
+    end
+    describe "test qualified name id in attributes" do
+
+      it "parsed the nameid" do
+        response = OneLogin::RubySaml::Response.new(read_response("signed_nameid_in_atts.xml"), :settings => settings)
+        response.settings.idp_cert_fingerprint = 'c51985d947f1be57082025050846eb27f6cab783'
+        assert_empty response.errors
         assert_equal "test", response.attributes[:uid]
-        assert_equal "_ce3d2948b4cf20146dee0a0b3dd6f69b6cf86f62d7", response.nameid
+        assert_equal "http://idp.example.com/metadata.php/ZdrjpwEdw22vKoxWAbZB78/gQ7s=", response.attributes.single('urn:oid:1.3.6.1.4.1.5923.1.1.1.10')
       end
+    end
 
-      it "EncryptionMethod AES-128 && Key Encryption Algorithm RSA-OAEP-MGF1P" do
-        unsigned_message_aes128_encrypted_signed_assertion = read_response('unsigned_message_aes128_encrypted_signed_assertion.xml.base64')
-        response = OneLogin::RubySaml::Response.new(unsigned_message_aes128_encrypted_signed_assertion, :settings => settings)
+    describe "test unqualified name id in attributes" do
+
+      it "parsed the nameid" do
+        response = OneLogin::RubySaml::Response.new(read_response("signed_unqual_nameid_in_atts.xml"), :settings => settings)
+        response.settings.idp_cert_fingerprint = 'c51985d947f1be57082025050846eb27f6cab783'
+        assert_empty response.errors
         assert_equal "test", response.attributes[:uid]
-        assert_equal "_ce3d2948b4cf20146dee0a0b3dd6f69b6cf86f62d7", response.nameid
-      end
-
-      it "EncryptionMethod AES-192 && Key Encryption Algorithm RSA-OAEP-MGF1P" do
-        unsigned_message_aes192_encrypted_signed_assertion = read_response('unsigned_message_aes192_encrypted_signed_assertion.xml.base64')
-        response = OneLogin::RubySaml::Response.new(unsigned_message_aes192_encrypted_signed_assertion, :settings => settings)
-        assert_equal "test", response.attributes[:uid]
-        assert_equal "_ce3d2948b4cf20146dee0a0b3dd6f69b6cf86f62d7", response.nameid
-      end
-
-      it "EncryptionMethod AES-256 && Key Encryption Algorithm RSA-OAEP-MGF1P" do
-        unsigned_message_aes256_encrypted_signed_assertion = read_response('unsigned_message_aes256_encrypted_signed_assertion.xml.base64')
-        response = OneLogin::RubySaml::Response.new(unsigned_message_aes256_encrypted_signed_assertion, :settings => settings)
-        assert_equal "test", response.attributes[:uid]
-        assert_equal "_ce3d2948b4cf20146dee0a0b3dd6f69b6cf86f62d7", response.nameid
+        assert_equal "ZdrjpwEdw22vKoxWAbZB78/gQ7s=", response.attributes.single('urn:oid:1.3.6.1.4.1.5923.1.1.1.10')
       end
     end
 
-  end
-  describe "test qualified name id in attributes" do
+    describe "signature wrapping attack with encrypted assertion" do
+      it "should not be valid" do
+        settings.private_key = ruby_saml_key_text
+        signature_wrapping_attack = read_invalid_response("encrypted_new_attack.xml.base64")
+        response_wrapped = OneLogin::RubySaml::Response.new(signature_wrapping_attack, :settings => settings)
+        response_wrapped.stubs(:conditions).returns(nil)
+        response_wrapped.stubs(:validate_subject_confirmation).returns(true)
+        settings.idp_cert_fingerprint = "385b1eec71143f00db6af936e2ea12a28771d72c"
+        assert !response_wrapped.is_valid?
+        assert_includes response_wrapped.errors, "Found an invalid Signed Element. SAML Response rejected"
+      end
+    end
 
-    it "parsed the nameid" do
-     response = OneLogin::RubySaml::Response.new(read_response("signed_nameid_in_atts.xml"), :settings => settings)
-     response.settings.idp_cert_fingerprint = 'c51985d947f1be57082025050846eb27f6cab783'
-     assert_empty response.errors
-     assert_equal "test", response.attributes[:uid]
-     assert_equal "http://idp.example.com/metadata.php/ZdrjpwEdw22vKoxWAbZB78/gQ7s=", response.attributes.single('urn:oid:1.3.6.1.4.1.5923.1.1.1.10')
+    describe "signature wrapping attack - concealed SAML response body" do
+      it "should not be valid" do
+        signature_wrapping_attack = read_invalid_response("response_with_concealed_signed_assertion.xml")
+        response_wrapped = OneLogin::RubySaml::Response.new(signature_wrapping_attack, :settings => settings)
+        settings.idp_cert_fingerprint = '4b68c453c7d994aad9025c99d5efcf566287fe8d'
+        response_wrapped.stubs(:conditions).returns(nil)
+        response_wrapped.stubs(:validate_subject_confirmation).returns(true)
+        assert !response_wrapped.is_valid?
+        assert_includes response_wrapped.errors, "SAML Response must contain 1 assertion"
+      end
+    end
+
+    describe "signature wrapping attack - doubled signed assertion SAML response" do
+      it "should not be valid" do
+        signature_wrapping_attack = read_invalid_response("response_with_doubled_signed_assertion.xml")
+        response_wrapped = OneLogin::RubySaml::Response.new(signature_wrapping_attack, :settings => settings)
+        settings.idp_cert_fingerprint = '4b68c453c7d994aad9025c99d5efcf566287fe8d'
+        response_wrapped.stubs(:conditions).returns(nil)
+        response_wrapped.stubs(:validate_subject_confirmation).returns(true)
+        assert !response_wrapped.is_valid?
+        assert_includes response_wrapped.errors, "SAML Response must contain 1 assertion"
+      end
     end
   end
-
-  describe "test unqualified name id in attributes" do
-
-    it "parsed the nameid" do
-     response = OneLogin::RubySaml::Response.new(read_response("signed_unqual_nameid_in_atts.xml"), :settings => settings)
-     response.settings.idp_cert_fingerprint = 'c51985d947f1be57082025050846eb27f6cab783'
-     assert_empty response.errors
-     assert_equal "test", response.attributes[:uid]
-     assert_equal "ZdrjpwEdw22vKoxWAbZB78/gQ7s=", response.attributes.single('urn:oid:1.3.6.1.4.1.5923.1.1.1.10')
-    end
-  end
-
-  describe "signature wrapping attack with encrypted assertion" do
-    it "should not be valid" do
-      settings.private_key = ruby_saml_key_text
-      signature_wrapping_attack = read_invalid_response("encrypted_new_attack.xml.base64")
-      response_wrapped = OneLogin::RubySaml::Response.new(signature_wrapping_attack, :settings => settings)
-      response_wrapped.stubs(:conditions).returns(nil)
-      response_wrapped.stubs(:validate_subject_confirmation).returns(true)
-      settings.idp_cert_fingerprint = "385b1eec71143f00db6af936e2ea12a28771d72c"
-      assert !response_wrapped.is_valid?
-      assert_includes response_wrapped.errors, "Found an invalid Signed Element. SAML Response rejected"
-    end
-  end
-
-  describe "signature wrapping attack - concealed SAML response body" do
-    it "should not be valid" do
-      signature_wrapping_attack = read_invalid_response("response_with_concealed_signed_assertion.xml")
-      response_wrapped = OneLogin::RubySaml::Response.new(signature_wrapping_attack, :settings => settings)
-      settings.idp_cert_fingerprint = '4b68c453c7d994aad9025c99d5efcf566287fe8d'
-      response_wrapped.stubs(:conditions).returns(nil)
-      response_wrapped.stubs(:validate_subject_confirmation).returns(true)
-      assert !response_wrapped.is_valid?
-      assert_includes response_wrapped.errors, "SAML Response must contain 1 assertion"
-    end
-  end
-
-  describe "signature wrapping attack - doubled signed assertion SAML response" do
-    it "should not be valid" do
-      signature_wrapping_attack = read_invalid_response("response_with_doubled_signed_assertion.xml")
-      response_wrapped = OneLogin::RubySaml::Response.new(signature_wrapping_attack, :settings => settings)
-      settings.idp_cert_fingerprint = '4b68c453c7d994aad9025c99d5efcf566287fe8d'
-      response_wrapped.stubs(:conditions).returns(nil)
-      response_wrapped.stubs(:validate_subject_confirmation).returns(true)
-      assert !response_wrapped.is_valid?
-      assert_includes response_wrapped.errors, "SAML Response must contain 1 assertion"
-    end
-  end
-
 end
