@@ -676,6 +676,20 @@ class RubySamlTest < Minitest::Test
         assert_includes response_invalid_subjectconfirmation_noa.errors, "A valid SubjectConfirmation was not found on this Response"
       end
 
+      it "return true when valid subject confirmation recipient" do
+        response_valid_signed.settings = settings
+        response_valid_signed.settings.assertion_consumer_service_url= 'recipient'
+        assert response_valid_signed.send(:validate_subject_confirmation)
+        assert_empty response_valid_signed.errors
+      end
+
+      it "return false when valid subject confirmation recipient" do
+        response_valid_signed.settings = settings
+        response_valid_signed.settings.assertion_consumer_service_url = 'not-the-recipient'
+        assert !response_valid_signed.send(:validate_subject_confirmation)
+        assert_includes response_valid_signed.errors, "A valid SubjectConfirmation was not found on this Response"
+      end
+
       it "return true when the skip_subject_confirmation option is passed and the subject confirmation is valid" do
         opts = {}
         opts[:skip_subject_confirmation] = true
