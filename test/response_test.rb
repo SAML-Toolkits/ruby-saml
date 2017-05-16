@@ -17,6 +17,7 @@ class RubySamlTest < Minitest::Test
     let(:response_wrapped) { OneLogin::RubySaml::Response.new(response_document_wrapped) }
     let(:response_multiple_attr_values) { OneLogin::RubySaml::Response.new(fixture(:response_with_multiple_attribute_values)) }
     let(:response_valid_signed) { OneLogin::RubySaml::Response.new(response_document_valid_signed) }
+    let(:response_valid_signed_with_recipient) { OneLogin::RubySaml::Response.new(response_document_valid_signed, {:skip_recipient_check => false })}
     let(:response_valid_signed_without_x509certificate) { OneLogin::RubySaml::Response.new(response_document_valid_signed_without_x509certificate) }
     let(:response_no_id) { OneLogin::RubySaml::Response.new(read_invalid_response("no_id.xml.base64")) }
     let(:response_no_version) { OneLogin::RubySaml::Response.new(read_invalid_response("no_saml2.xml.base64")) }
@@ -677,17 +678,25 @@ class RubySamlTest < Minitest::Test
       end
 
       it "return true when valid subject confirmation recipient" do
-        response_valid_signed.settings = settings
-        response_valid_signed.settings.assertion_consumer_service_url= 'recipient'
+        response_valid_signed_with_recipient.settings = settings
+        response_valid_signed_with_recipient.settings.assertion_consumer_service_url = 'recipient'
         assert response_valid_signed.send(:validate_subject_confirmation)
         assert_empty response_valid_signed.errors
+        assert_empty response_valid_signed_with_recipient.errors
       end
 
-      it "return false when valid subject confirmation recipient" do
+      it "return false when invalid subject confirmation recipient" do
+        response_valid_signed_with_recipient.settings = settings
+        response_valid_signed_with_recipient.settings.assertion_consumer_service_url = 'not-the-recipient'
+        assert !response_valid_signed_with_recipient.send(:validate_subject_confirmation)
+        assert_includes response_valid_signed_with_recipient.errors, "A valid SubjectConfirmation was not found on this Response"
+      end
+
+      it "return false when invalid subject confirmation recipient, but skipping the check(default)" do
         response_valid_signed.settings = settings
         response_valid_signed.settings.assertion_consumer_service_url = 'not-the-recipient'
-        assert !response_valid_signed.send(:validate_subject_confirmation)
-        assert_includes response_valid_signed.errors, "A valid SubjectConfirmation was not found on this Response"
+        assert response_valid_signed.send(:validate_subject_confirmation)
+        assert_empty response_valid_signed.errors
       end
 
       it "return true when the skip_subject_confirmation option is passed and the subject confirmation is valid" do

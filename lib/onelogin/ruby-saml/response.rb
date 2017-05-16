@@ -41,6 +41,12 @@ module OneLogin
         raise ArgumentError.new("Response cannot be nil") if response.nil?
 
         @errors = []
+
+        # skip recipient check by default for backwards compatibility
+        unless options.key?(:skip_recipient_check)
+          options[:skip_recipient_check] = true
+        end
+
         @options = options
         @soft = true
         unless options[:settings].nil?
@@ -708,6 +714,7 @@ module OneLogin
       # Validates if exists valid SubjectConfirmation (If the response was initialized with the :allowed_clock_drift option,
       # timimg validation are relaxed by the allowed_clock_drift value. If the response was initialized with the
       # :skip_subject_confirmation option, this validation is skipped)
+      # There is also an optional Recipient check
       # If fails, the error is added to the errors array
       # @return [Boolean] True if exists a valid SubjectConfirmation, otherwise False if soft=True
       # @raise [ValidationError] if soft == false and validation fails
@@ -736,7 +743,7 @@ module OneLogin
           next if (attrs.include? "InResponseTo" and attrs['InResponseTo'] != in_response_to) ||
                   (attrs.include? "NotOnOrAfter" and (parse_time(confirmation_data_node, "NotOnOrAfter") + allowed_clock_drift) <= now) ||
                   (attrs.include? "NotBefore" and parse_time(confirmation_data_node, "NotBefore") > (now + allowed_clock_drift)) ||
-                  (attrs.include? "Recipient" and settings.assertion_consumer_service_url != nil and attrs['Recipient'] != settings.assertion_consumer_service_url)
+                  (attrs.include? "Recipient" and !options[:skip_recipient_check] and attrs['Recipient'] != settings.assertion_consumer_service_url)
 
           valid_subject_confirmation = true
           break
