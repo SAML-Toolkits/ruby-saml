@@ -17,7 +17,7 @@ class RubySamlTest < Minitest::Test
     let(:response_wrapped) { OneLogin::RubySaml::Response.new(response_document_wrapped) }
     let(:response_multiple_attr_values) { OneLogin::RubySaml::Response.new(fixture(:response_with_multiple_attribute_values)) }
     let(:response_valid_signed) { OneLogin::RubySaml::Response.new(response_document_valid_signed) }
-    let(:response_valid_signed_with_recipient) { OneLogin::RubySaml::Response.new(response_document_valid_signed, {:skip_recipient_check => false })}
+    let(:response_valid_signed_without_recipient) { OneLogin::RubySaml::Response.new(response_document_valid_signed, {:skip_recipient_check => true })}
     let(:response_valid_signed_without_x509certificate) { OneLogin::RubySaml::Response.new(response_document_valid_signed_without_x509certificate) }
     let(:response_no_id) { OneLogin::RubySaml::Response.new(read_invalid_response("no_id.xml.base64")) }
     let(:response_no_version) { OneLogin::RubySaml::Response.new(read_invalid_response("no_saml2.xml.base64")) }
@@ -242,19 +242,19 @@ class RubySamlTest < Minitest::Test
         end
 
         it "return true when the response is initialized with valid data" do
-          response_valid_signed.stubs(:conditions).returns(nil)
-          response_valid_signed.settings = settings
-          response_valid_signed.settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
-          assert response_valid_signed.is_valid?
-          assert_empty response_valid_signed.errors
+          response_valid_signed_without_recipient.stubs(:conditions).returns(nil)
+          response_valid_signed_without_recipient.settings = settings
+          response_valid_signed_without_recipient.settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
+          assert response_valid_signed_without_recipient.is_valid?
+          assert_empty response_valid_signed_without_recipient.errors
         end
 
         it "return true when the response is initialized with valid data and using certificate instead of fingerprint" do
-          response_valid_signed.stubs(:conditions).returns(nil)
-          response_valid_signed.settings = settings
-          response_valid_signed.settings.idp_cert = ruby_saml_cert_text
-          assert response_valid_signed.is_valid?
-          assert_empty response_valid_signed.errors
+          response_valid_signed_without_recipient.stubs(:conditions).returns(nil)
+          response_valid_signed_without_recipient.settings = settings
+          response_valid_signed_without_recipient.settings.idp_cert = ruby_saml_cert_text
+          assert response_valid_signed_without_recipient.is_valid?
+          assert_empty response_valid_signed_without_recipient.errors
         end
 
         it "return false when response is initialized with blank data" do
@@ -283,11 +283,11 @@ class RubySamlTest < Minitest::Test
         end
 
         it "should be idempotent when the response is initialized with valid data" do
-          response_valid_signed.stubs(:conditions).returns(nil)
-          response_valid_signed.settings = settings
-          response_valid_signed.settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
-          assert response_valid_signed.is_valid?
-          assert response_valid_signed.is_valid?
+          response_valid_signed_without_recipient.stubs(:conditions).returns(nil)
+          response_valid_signed_without_recipient.settings = settings
+          response_valid_signed_without_recipient.settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
+          assert response_valid_signed_without_recipient.is_valid?
+          assert response_valid_signed_without_recipient.is_valid?
         end
 
         it "not allow signature wrapping attack" do
@@ -383,6 +383,7 @@ class RubySamlTest < Minitest::Test
 
         it "return true when a nil URI is given in the ds:Reference" do
           settings.idp_cert = ruby_saml_cert_text
+          settings.assertion_consumer_service_url = "http://localhost:9001/v1/users/authorize/saml"
           response_without_reference_uri.settings = settings
           response_without_reference_uri.stubs(:conditions).returns(nil)
           response_without_reference_uri.is_valid?
@@ -678,25 +679,25 @@ class RubySamlTest < Minitest::Test
       end
 
       it "return true when valid subject confirmation recipient" do
-        response_valid_signed_with_recipient.settings = settings
-        response_valid_signed_with_recipient.settings.assertion_consumer_service_url = 'recipient'
+        response_valid_signed.settings = settings
+        response_valid_signed.settings.assertion_consumer_service_url = 'recipient'
         assert response_valid_signed.send(:validate_subject_confirmation)
         assert_empty response_valid_signed.errors
-        assert_empty response_valid_signed_with_recipient.errors
+        assert_empty response_valid_signed.errors
       end
 
       it "return false when invalid subject confirmation recipient" do
-        response_valid_signed_with_recipient.settings = settings
-        response_valid_signed_with_recipient.settings.assertion_consumer_service_url = 'not-the-recipient'
-        assert !response_valid_signed_with_recipient.send(:validate_subject_confirmation)
-        assert_includes response_valid_signed_with_recipient.errors, "A valid SubjectConfirmation was not found on this Response"
+        response_valid_signed.settings = settings
+        response_valid_signed.settings.assertion_consumer_service_url = 'not-the-recipient'
+        assert !response_valid_signed.send(:validate_subject_confirmation)
+        assert_includes response_valid_signed.errors, "A valid SubjectConfirmation was not found on this Response"
       end
 
       it "return false when invalid subject confirmation recipient, but skipping the check(default)" do
-        response_valid_signed.settings = settings
-        response_valid_signed.settings.assertion_consumer_service_url = 'not-the-recipient'
-        assert response_valid_signed.send(:validate_subject_confirmation)
-        assert_empty response_valid_signed.errors
+        response_valid_signed_without_recipient.settings = settings
+        response_valid_signed_without_recipient.settings.assertion_consumer_service_url = 'not-the-recipient'
+        assert response_valid_signed_without_recipient.send(:validate_subject_confirmation)
+        assert_empty response_valid_signed_without_recipient.errors
       end
 
       it "return true when the skip_subject_confirmation option is passed and the subject confirmation is valid" do
@@ -1146,6 +1147,7 @@ class RubySamlTest < Minitest::Test
         document.sign_document(private_key, cert)
 
         signed_response = OneLogin::RubySaml::Response.new(document.to_s)
+        settings.assertion_consumer_service_url = "http://recipient"
         settings.idp_cert = ruby_saml_cert_text
         signed_response.settings = settings
         Timecop.freeze(Time.parse("2015-03-18T04:50:24Z")) do
