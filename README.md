@@ -193,11 +193,12 @@ def saml_settings
 end
 ```
 
-Some assertion validations can be skipped by passing parameters to `OneLogin::RubySaml::Response.new()`.  For example, you can skip the `Conditions` validation or the `SubjectConfirmation` validations by initializing the response with different options:
+Some assertion validations can be skipped by passing parameters to `OneLogin::RubySaml::Response.new()`.  For example, you can skip the `Conditions`, `Recipient`, or the `SubjectConfirmation` validations by initializing the response with different options:
 
 ```ruby
 response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], {skip_conditions: true}) # skips conditions
 response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], {skip_subject_confirmation: true}) # skips subject confirmation
+response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], {skip_recipient_check: true}) # doens't skip subject confirmation, but skips the recipient check which is a sub check of the subject_confirmation check
 ```
 
 All that's left is to wrap everything in a controller and reference it in the initialization and consumption URLs in OneLogin. A full controller example could look like this:
