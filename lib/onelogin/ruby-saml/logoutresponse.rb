@@ -27,6 +27,8 @@ module OneLogin
       # @param options   [Hash] Extra parameters. 
       #                    :matches_request_id It will validate that the logout response matches the ID of the request.
       #                    :get_params GET Parameters, including the SAMLResponse
+      #                    :relax_signature_validation to accept signatures if no idp certificate registered on settings
+      #
       # @raise [ArgumentError] if response is nil
       #
       def initialize(response, settings = nil, options = {})
@@ -208,8 +210,14 @@ module OneLogin
         return true unless !options.nil?
         return true unless options.has_key? :get_params
         return true unless options[:get_params].has_key? 'Signature'
-        return true if settings.nil? || settings.get_idp_cert.nil?
-        
+
+        idp_cert = settings.get_idp_cert
+        idp_certs = settings.get_idp_cert_multi
+
+        if idp_cert.nil? && (idp_certs.nil? || idp_certs[:signing].empty?)
+          return options.has_key? :relax_signature_validation
+        end
+
         query_string = OneLogin::RubySaml::Utils.build_query(
           :type        => 'SAMLResponse',
           :data        => options[:get_params]['SAMLResponse'],
@@ -217,12 +225,27 @@ module OneLogin
           :sig_alg     => options[:get_params]['SigAlg']
         )
 
-        valid = OneLogin::RubySaml::Utils.verify_signature(
-          :cert         => settings.get_idp_cert,
-          :sig_alg      => options[:get_params]['SigAlg'],
-          :signature    => options[:get_params]['Signature'],
-          :query_string => query_string
-        )
+        if idp_certs.nil? || idp_certs[:signing].empty?
+          valid = OneLogin::RubySaml::Utils.verify_signature(
+            :cert         => settings.get_idp_cert,
+            :sig_alg      => options[:get_params]['SigAlg'],
+            :signature    => options[:get_params]['Signature'],
+            :query_string => query_string
+          )
+        else
+          valid = false
+          idp_certs[:signing].each do |idp_cert|
+            valid = OneLogin::RubySaml::Utils.verify_signature(
+              :cert         => idp_cert,
+              :sig_alg      => options[:get_params]['SigAlg'],
+              :signature    => options[:get_params]['Signature'],
+              :query_string => query_string
+            )
+            if valid
+              break
+            end
+          end
+        end
 
         unless valid
           error_msg = "Invalid Signature on Logout Response"

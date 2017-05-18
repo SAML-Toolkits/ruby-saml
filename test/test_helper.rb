@@ -129,7 +129,7 @@ class Minitest::Test
   end
 
   def unsigned_message_encrypted_unsigned_assertion
-    @unsigned_message_encrypted_unsigned_assertion ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'unsigned_message_encrypted_unsigned_assertion.xml.base64'))    
+    @unsigned_message_encrypted_unsigned_assertion ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'unsigned_message_encrypted_unsigned_assertion.xml.base64'))
   end
 
   def response_document_encrypted_attrs
@@ -150,8 +150,20 @@ class Minitest::Test
     @certificate_without_head_foot ||= read_certificate("certificate_without_head_foot")
   end
 
-  def idp_metadata
-    @idp_metadata ||= read_response("idp_descriptor.xml")
+  def idp_metadata_descriptor
+    @idp_metadata_descriptor ||= File.read(File.join(File.dirname(__FILE__), 'metadata', 'idp_descriptor.xml'))
+  end
+
+  def idp_metadata_descriptor2
+    @idp_metadata_descriptor2 ||= File.read(File.join(File.dirname(__FILE__), 'metadata', 'idp_descriptor_2.xml'))
+  end
+
+  def idp_metadata_descriptor3
+    @idp_metadata_descriptor3 ||= File.read(File.join(File.dirname(__FILE__), 'metadata', 'idp_descriptor_3.xml'))
+  end
+
+  def idp_metadata_multiple_descriptors
+    @idp_metadata_multiple_descriptors ||= File.read(File.join(File.dirname(__FILE__), 'metadata', 'idp_multiple_descriptors.xml'))
   end
 
   def logout_request_document
@@ -188,12 +200,20 @@ class Minitest::Test
     @ruby_saml_cert ||= OpenSSL::X509::Certificate.new(ruby_saml_cert_text)
   end
 
+  def ruby_saml_cert2
+    @ruby_saml_cert2 ||= OpenSSL::X509::Certificate.new(ruby_saml_cert_text2)
+  end
+
   def ruby_saml_cert_fingerprint
     @ruby_saml_cert_fingerprint ||= Digest::SHA1.hexdigest(ruby_saml_cert.to_der).scan(/../).join(":")
   end
 
   def ruby_saml_cert_text
     read_certificate("ruby-saml.crt")
+  end
+
+  def ruby_saml_cert_text2
+    read_certificate("ruby-saml-2.crt")
   end
 
   def ruby_saml_key

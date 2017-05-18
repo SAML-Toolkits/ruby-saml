@@ -11,8 +11,9 @@ class SettingsTest < Minitest::Test
 
     it "should provide getters and settings" do
       accessors = [
-        :idp_entity_id, :idp_sso_target_url, :idp_slo_target_url, :idp_cert, :idp_cert_fingerprint, :idp_cert_fingerprint_algorithm, :idp_attribute_names,
-        :issuer, :assertion_consumer_service_url, :assertion_consumer_service_binding,
+        :idp_entity_id, :idp_sso_target_url, :idp_slo_target_url,
+        :idp_cert, :idp_cert_fingerprint, :idp_cert_fingerprint_algorithm, :idp_cert_multi,
+        :idp_attribute_names, :issuer, :assertion_consumer_service_url, :assertion_consumer_service_binding,
         :single_logout_service_url, :single_logout_service_binding,
         :sp_name_qualifier, :name_identifier_format, :name_identifier_value,
         :sessionindex, :attributes_index, :passive, :force_authn,
@@ -52,7 +53,6 @@ class SettingsTest < Minitest::Test
     end
 
     it "configure attribute service attributes correctly" do
-      @settings = OneLogin::RubySaml::Settings.new
       @settings.attribute_consuming_service.configure do
         service_name "Test Service"
         add_attribute :name => "Name", :name_format => "Name Format", :friendly_name => "Friendly Name"
@@ -79,37 +79,34 @@ class SettingsTest < Minitest::Test
 
     describe "#single_logout_service_url" do
       it "when single_logout_service_url is nil but assertion_consumer_logout_service_url returns its value" do
-        settings.single_logout_service_url = nil
-        settings.assertion_consumer_logout_service_url = "http://app.muda.no/sls"
+        @settings.single_logout_service_url = nil
+        @settings.assertion_consumer_logout_service_url = "http://app.muda.no/sls"
 
-        assert_equal "http://app.muda.no/sls", settings.single_logout_service_url
+        assert_equal "http://app.muda.no/sls", @settings.single_logout_service_url
       end
     end
 
     describe "#single_logout_service_binding" do
       it "when single_logout_service_binding is nil but assertion_consumer_logout_service_binding returns its value" do
-        settings.single_logout_service_binding = nil
-        settings.assertion_consumer_logout_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+        @settings.single_logout_service_binding = nil
+        @settings.assertion_consumer_logout_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
 
-        assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", settings.single_logout_service_binding
+        assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", @settings.single_logout_service_binding
       end
     end    
 
     describe "#get_idp_cert" do
       it "returns nil when the cert is an empty string" do
-        @settings = OneLogin::RubySaml::Settings.new
         @settings.idp_cert = ""
         assert_nil @settings.get_idp_cert
       end
 
       it "returns nil when the cert is nil" do
-        @settings = OneLogin::RubySaml::Settings.new
         @settings.idp_cert = nil
         assert_nil @settings.get_idp_cert
       end
 
       it "returns the certificate when it is valid" do
-        @settings = OneLogin::RubySaml::Settings.new
         @settings.idp_cert = ruby_saml_cert_text
         assert @settings.get_idp_cert.kind_of? OpenSSL::X509::Certificate
       end
@@ -123,21 +120,88 @@ class SettingsTest < Minitest::Test
       end
     end
 
+    describe "#get_idp_cert_multi" do
+      it "returns nil when the value is empty" do
+        @settings.idp_cert = {}
+        assert_nil @settings.get_idp_cert_multi
+      end
+
+      it "returns nil when the idp_cert_multi is nil or empty" do
+        @settings.idp_cert_multi = nil
+        assert_nil @settings.get_idp_cert_multi
+      end
+
+      it "returns partial hash when contains some values" do
+        empty_multi = {
+          :signing => [],
+          :encryption => []
+        }
+
+        @settings.idp_cert_multi = {
+          :signing => []
+        }
+        assert_equal empty_multi, @settings.get_idp_cert_multi
+
+        @settings.idp_cert_multi = {
+          :encryption => []
+        }
+        assert_equal empty_multi, @settings.get_idp_cert_multi
+
+        @settings.idp_cert_multi = {
+          :signing => [],
+          :encryption => []
+        }
+        assert_equal empty_multi, @settings.get_idp_cert_multi
+
+        @settings.idp_cert_multi = {
+          :yyy => [],
+          :zzz => []
+        }
+        assert_equal empty_multi, @settings.get_idp_cert_multi
+      end
+
+      it "returns the hash with certificates when values were valid" do
+        certificates = ruby_saml_cert_text
+        @settings.idp_cert_multi = {
+          :signing => [ruby_saml_cert_text],
+          :encryption => [ruby_saml_cert_text],
+        }
+
+        assert @settings.get_idp_cert_multi.kind_of? Hash
+        assert @settings.get_idp_cert_multi[:signing].kind_of? Array
+        assert @settings.get_idp_cert_multi[:encryption].kind_of? Array        
+        assert @settings.get_idp_cert_multi[:signing][0].kind_of? OpenSSL::X509::Certificate
+        assert @settings.get_idp_cert_multi[:encryption][0].kind_of? OpenSSL::X509::Certificate
+      end
+
+      it "raises when there is a cert in idp_cert_multi not valid" do
+        certificate = read_certificate("formatted_certificate")
+
+        @settings.idp_cert_multi = {
+          :signing => [],
+          :encryption => []
+        }
+        @settings.idp_cert_multi[:signing].push(certificate)
+        @settings.idp_cert_multi[:encryption].push(certificate)
+
+        assert_raises(OpenSSL::X509::CertificateError) {
+          @settings.get_idp_cert_multi
+        }
+      end
+    end
+
     describe "#get_sp_cert" do
       it "returns nil when the cert is an empty string" do
-        @settings = OneLogin::RubySaml::Settings.new
         @settings.certificate = ""
         assert_nil @settings.get_sp_cert
       end
 
       it "returns nil when the cert is nil" do
-        @settings = OneLogin::RubySaml::Settings.new
         @settings.certificate = nil
         assert_nil @settings.get_sp_cert
       end
 
       it "returns the certificate when it is valid" do
-        @settings = OneLogin::RubySaml::Settings.new
         @settings.certificate = ruby_saml_cert_text
         assert @settings.get_sp_cert.kind_of? OpenSSL::X509::Certificate
       end
@@ -152,21 +216,44 @@ class SettingsTest < Minitest::Test
 
     end
 
+    describe "#get_sp_cert_new" do
+      it "returns nil when the cert is an empty string" do
+        @settings.certificate_new = ""
+        assert_nil @settings.get_sp_cert_new
+      end
+
+      it "returns nil when the cert is nil" do
+        @settings.certificate_new = nil
+        assert_nil @settings.get_sp_cert_new
+      end
+
+      it "returns the certificate when it is valid" do
+        @settings.certificate_new = ruby_saml_cert_text
+        assert @settings.get_sp_cert_new.kind_of? OpenSSL::X509::Certificate
+      end
+
+      it "raises when the certificate is not valid" do
+        # formatted but invalid cert
+        @settings.certificate_new = read_certificate("formatted_certificate")
+        assert_raises(OpenSSL::X509::CertificateError) {
+          @settings.get_sp_cert_new
+        }
+      end
+
+    end
+
     describe "#get_sp_key" do
       it "returns nil when the private key is an empty string" do
-        @settings = OneLogin::RubySaml::Settings.new
         @settings.private_key = ""
         assert_nil @settings.get_sp_key
       end
 
       it "returns nil when the private key is nil" do
-        @settings = OneLogin::RubySaml::Settings.new
         @settings.private_key = nil
         assert_nil @settings.get_sp_key
       end
 
       it "returns the private key when it is valid" do
-        @settings = OneLogin::RubySaml::Settings.new
         @settings.private_key = ruby_saml_key_text
         assert @settings.get_sp_key.kind_of? OpenSSL::PKey::RSA
       end
@@ -183,7 +270,6 @@ class SettingsTest < Minitest::Test
 
     describe "#get_fingerprint" do
       it "get the fingerprint value when cert and fingerprint in settings are nil" do
-        @settings = OneLogin::RubySaml::Settings.new
         @settings.idp_cert_fingerprint = nil
         @settings.idp_cert = nil
         fingerprint = @settings.get_fingerprint
@@ -191,7 +277,6 @@ class SettingsTest < Minitest::Test
       end
 
       it "get the fingerprint value when there is a cert at the settings" do
-        @settings = OneLogin::RubySaml::Settings.new
         @settings.idp_cert_fingerprint = nil
         @settings.idp_cert = ruby_saml_cert_text
         fingerprint = @settings.get_fingerprint
@@ -199,7 +284,6 @@ class SettingsTest < Minitest::Test
       end
 
       it "get the fingerprint value when there is a fingerprint at the settings" do
-        @settings = OneLogin::RubySaml::Settings.new
         @settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
         @settings.idp_cert = nil
         fingerprint = @settings.get_fingerprint
@@ -207,7 +291,6 @@ class SettingsTest < Minitest::Test
       end
 
       it "get the fingerprint value when there are cert and fingerprint at the settings" do
-        @settings = OneLogin::RubySaml::Settings.new
         @settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
         @settings.idp_cert = ruby_saml_cert_text
         fingerprint = @settings.get_fingerprint

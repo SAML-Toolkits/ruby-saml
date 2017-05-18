@@ -26,6 +26,7 @@ module OneLogin
       # @param request [String] A UUEncoded Logout Request from the IdP.
       # @param options [Hash]  :settings to provide the OneLogin::RubySaml::Settings object 
       #                        Or :allowed_clock_drift for the logout request validation process to allow a clock drift when checking dates with
+      #                        Or :relax_signature_validation to accept signatures if no idp certificate registered on settings 
       #
       # @raise [ArgumentError] If Request is nil
       #
@@ -227,7 +228,13 @@ module OneLogin
         return true if options.nil?
         return true unless options.has_key? :get_params
         return true unless options[:get_params].has_key? 'Signature'
-        return true if settings.get_idp_cert.nil?
+
+        idp_cert = settings.get_idp_cert
+        idp_certs = settings.get_idp_cert_multi
+
+        if idp_cert.nil? && (idp_certs.nil? || idp_certs[:signing].empty?)
+          return options.has_key? :relax_signature_validation
+        end
 
         query_string = OneLogin::RubySaml::Utils.build_query(
           :type        => 'SAMLRequest',
@@ -236,12 +243,27 @@ module OneLogin
           :sig_alg     => options[:get_params]['SigAlg']
         )
 
-        valid = OneLogin::RubySaml::Utils.verify_signature(
-          :cert         => settings.get_idp_cert,
-          :sig_alg      => options[:get_params]['SigAlg'],
-          :signature    => options[:get_params]['Signature'],
-          :query_string => query_string
-        )
+        if idp_certs.nil? || idp_certs[:signing].empty?
+          valid = OneLogin::RubySaml::Utils.verify_signature(
+            :cert         => settings.get_idp_cert,
+            :sig_alg      => options[:get_params]['SigAlg'],
+            :signature    => options[:get_params]['Signature'],
+            :query_string => query_string
+          )
+        else
+          valid = false
+          idp_certs[:signing].each do |idp_cert|
+            valid = OneLogin::RubySaml::Utils.verify_signature(
+              :cert         => idp_cert,
+              :sig_alg      => options[:get_params]['SigAlg'],
+              :signature    => options[:get_params]['Signature'],
+              :query_string => query_string
+            )
+            if valid
+              break
+            end
+          end
+        end
 
         unless valid
           return append_error("Invalid Signature on Logout Request")

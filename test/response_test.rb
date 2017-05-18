@@ -823,6 +823,29 @@ class RubySamlTest < Minitest::Test
       end
     end
 
+    describe "#validate_signature with multiple idp certs" do
+      it "return true when at least a cert on idp_cert_multi is valid" do
+        settings.idp_cert_multi = {
+          :signing => [ruby_saml_cert_text2, ruby_saml_cert_text],
+          :encryption => []
+        }
+        response_valid_signed.settings = settings
+        assert response_valid_signed.send(:validate_signature)
+        assert_empty response_valid_signed.errors
+      end
+
+      it "return false when none cert on idp_cert_multi is valid" do
+        settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
+        settings.idp_cert_multi = {
+          :signing => [ruby_saml_cert_text2, ruby_saml_cert_text2],
+          :encryption => []
+        }
+        response_valid_signed.settings = settings
+        assert !response_valid_signed.send(:validate_signature)
+        assert_includes response_valid_signed.errors, "Invalid Signature on SAML Response"
+      end
+    end
+
     describe "#validate nameid" do
       it "return false when no nameid element and required by settings" do
         settings.security[:want_name_id] = true

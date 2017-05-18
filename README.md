@@ -252,12 +252,37 @@ class SamlController < ApplicationController
   end
 end
 ```
+
+
+## Signature validation
+
+On the ruby-saml toolkit there are different ways to validate the signature of the SAMLResponse:
+- You can provide the IdP x509 public certificate at the 'idp_cert' setting.
+- You can provide the IdP x509 public certificate in fingerprint format using the 'idp_cert_fingerprint' setting parameter and additionally the 'idp_cert_fingerprint_algorithm' parameter.
+
+When validating the signature of redirect binding, the fingerprint is useless and the certficate of the IdP is required in order to execute the validation.
+You can pass the option :relax_signature_validation to SloLogoutrequest and Logoutresponse if want to avoid signature validation if no certificate of the IdP is provided.
+
+In some scenarios the IdP uses different certificates for signing/encryption, or is under key rollover phase and more than one certificate is published on IdP metadata.
+
+In order to handle that the toolkit offers the 'idp_cert_multi' parameter.
+When used, 'idp_cert' and 'idp_cert_fingerprint' values are ignored.
+
+That 'idp_cert_multi' must be a Hash as follows:
+{
+  :signing => [],
+  :encryption => []
+}
+
+And on 'signing' and 'encryption' arrays, add the different IdP x509 public certificates published on the IdP metadata.
+
+
 ## Metadata Based Configuration
 
 The method above requires a little extra work to manually specify attributes about the IdP.  (And your SP application)  There's an easier method -- use a metadata exchange.  Metadata is just an XML file that defines the capabilities of both the IdP and the SP application.  It also contains the X.509 public
 key certificates which add to the trusted relationship.  The IdP administrator can also configure custom settings for an SP based on the metadata.
 
-Using ```idp_metadata_parser.parse_remote``` IdP metadata will be added to the settings withouth further ado.
+Using ```idp_metadata_parser.parse_remote``` IdP metadata will be added to the settings without further ado.
 
 ```ruby
 def saml_settings
@@ -276,9 +301,35 @@ def saml_settings
 end
 ```
 The following attributes are set:
+  * idp_entity_id
+  * name_identifier_format
   * idp_sso_target_url
   * idp_slo_target_url
-  * idp_cert_fingerprint
+  * idp_attribute_names
+  * idp_cert 
+  * idp_cert_fingerprint 
+  * idp_cert_multi
+
+### Retrieve one Entity Descriptor when many exist in Metadata
+
+If the Metadata contains several entities, the relevant Entity
+Descriptor can be specified when retrieving the settings from the
+IdpMetadataParser by its Entity Id value:
+
+```ruby
+  validate_cert = true
+  settings =  idp_metadata_parser.parse_remote(
+                "https://example.com/auth/saml2/idp/metadata",
+                validate_cert,
+                entity_id: "http//example.com/target/entity"
+              )
+```
+
+### Parsing Metadata into an Hash
+
+The `OneLogin::RubySaml::IdpMetadataParser` also provides the methods `#parse_to_hash` and `#parse_remote_to_hash`.
+Those return an Hash instead of a `Settings` object, which may be useful for configuring
+[omniauth-saml](https://github.com/omniauth/omniauth-saml), for instance.
 
 ## Retrieving Attributes
 
@@ -454,6 +505,12 @@ The Service Provider will decrypt the EncryptedAssertion with its private key.
 
 Notice that this toolkit uses 'settings.certificate' and 'settings.private_key' for the sign and decrypt processes.
 
+
+## Key rollover
+
+If you plan to update the SP x509cert and privateKey you can define the parameter 'certificate_new' at the settings and that new SP public certificate will be published on the SP metadata so Identity Providers can read them and get ready for rollover.
+
+
 ## Single Log Out
 
 The Ruby Toolkit supports SP-initiated Single Logout and IdP-Initiated Single Logout.
@@ -583,6 +640,7 @@ class SamlController < ApplicationController
   end
 end
 ```
+
 
 ## Clock Drift
 
