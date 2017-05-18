@@ -94,7 +94,7 @@ module OneLogin
       end
 
       # Setter for Single Logout Service Binding.
-      # 
+      #
       # (Currently we only support "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect")
       # @param url [String]
       #
