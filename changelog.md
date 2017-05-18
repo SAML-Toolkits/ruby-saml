@@ -1,4 +1,18 @@
 # RubySaml Changelog
+### 1.4.3 (May 18, 2017)
+* Added SubjectConfirmation Recipient validation
+* [#393](https://github.com/onelogin/ruby-saml/pull/393) Implement IdpMetadataParser#parse_to_hash
+* Adapt IdP XML metadata parser to take care of multiple IdP certificates and be able to inject the data obtained on the settings.
+* Improve binding detection on idp metadata parser
+* [#373](https://github.com/onelogin/ruby-saml/pull/373) Allow metadata to be retrieved from source containing data for multiple entities
+* Be able to register future SP x509cert on the settings and publish it on SP metadata
+* Be able to register future SP x509cert on the settings and publish it on SP metadata.
+* Be able to register more than 1 Identity Provider x509cert, linked with an specific use (signing or encryption.
+* Improve regex to detect base64 encoded messages
+* Fix binding configuration example in README.md
+* Add Fix SLO request. Correct NameQualifier/SPNameQualifier values.
+* Validate serial number as string to work around libxml2 limitation
+* Propagate isRequired on md:RequestedAttribute when generating SP metadata
 
 ### 1.4.2 (January 11, 2017)
 * Improve tests format
