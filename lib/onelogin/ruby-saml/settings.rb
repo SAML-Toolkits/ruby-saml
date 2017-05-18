@@ -34,6 +34,7 @@ module OneLogin
       attr_accessor :issuer
       attr_accessor :assertion_consumer_service_url
       attr_accessor :assertion_consumer_service_binding
+      attr_accessor :assertion_consumer_service_index
       attr_accessor :sp_name_qualifier
       attr_accessor :name_identifier_format
       attr_accessor :name_identifier_value
