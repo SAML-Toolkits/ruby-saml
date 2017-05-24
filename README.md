@@ -169,7 +169,6 @@ def saml_settings
 
   settings.assertion_consumer_service_url = "http://#{request.host}/saml/consume"
   settings.issuer                         = "http://#{request.host}/saml/metadata"
-  settings.idp_sso_target_url             = "https://app.onelogin.com/saml/metadata/#{OneLoginAppId}"
   settings.idp_entity_id                  = "https://app.onelogin.com/saml/metadata/#{OneLoginAppId}"
   settings.idp_sso_target_url             = "https://app.onelogin.com/trust/saml2/http-post/sso/#{OneLoginAppId}"
   settings.idp_slo_target_url             = "https://app.onelogin.com/trust/saml2/http-redirect/slo/#{OneLoginAppId}"
