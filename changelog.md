@@ -6,7 +6,6 @@
 * Improve binding detection on idp metadata parser
 * [#373](https://github.com/onelogin/ruby-saml/pull/373) Allow metadata to be retrieved from source containing data for multiple entities
 * Be able to register future SP x509cert on the settings and publish it on SP metadata
-* Be able to register future SP x509cert on the settings and publish it on SP metadata.
 * Be able to register more than 1 Identity Provider x509cert, linked with an specific use (signing or encryption.
 * Improve regex to detect base64 encoded messages
 * Fix binding configuration example in README.md

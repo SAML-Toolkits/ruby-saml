@@ -1,5 +1,13 @@
 # Ruby SAML [![Build Status](https://secure.travis-ci.org/onelogin/ruby-saml.svg)](http://travis-ci.org/onelogin/ruby-saml) [![Coverage Status](https://coveralls.io/repos/onelogin/ruby-saml/badge.svg?branch=master%0A)](https://coveralls.io/r/onelogin/ruby-saml?branch=master%0A) [![Gem Version](https://badge.fury.io/rb/ruby-saml.svg)](http://badge.fury.io/rb/ruby-saml)
 
+## Updating from 1.4.2 to 1.4.3
+
+Version `1.4.3` introduces Recipient validation of SubjectConfirmation elements.
+The 'Recipient' value is compared with the settings.assertion_consumer_service_url
+value.
+If you want to skip that validation, add the :skip_recipient_check option to the
+initialize method of the Response object.
+
 ## Updating from 1.3.x to 1.4.X
 
 Version `1.4.0` is a recommended update for all Ruby SAML users as it includes security improvements.

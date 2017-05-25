@@ -37,6 +37,7 @@ module OneLogin
       #                          with the :skip_conditions, or allow a clock_drift when checking dates with :allowed_clock_drift
       #                          or :matches_request_id that will validate that the response matches the ID of the request,
       #                          or skip the subject confirmation validation with the :skip_subject_confirmation option
+      #                          or skip the recipient validation of the subject confirmation element with :skip_recipient_check option 
       def initialize(response, options = {})
         raise ArgumentError.new("Response cannot be nil") if response.nil?
 
