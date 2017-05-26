@@ -333,9 +333,9 @@ module OneLogin
       private
 
       # Validates the SAML Response (calls several validation methods)
-      # @param collect_errors [Boolean] Stop validation when first error appears or keep validating. (if soft=true)
-      # @return [Boolean] True if the SAML Response is valid, otherwise False if soft=True
-      # @raise [ValidationError] if soft == false and validation fails
+      # @param collect_errors [Boolean] Stop validation when first error appears or keep validating. (if collect_errors == true)
+      # @return [Boolean] True if the SAML Response is valid, otherwise false if collect_errors == true
+      # @raise [ValidationError] if collect_errors == false and validation fails
       #
       def validate(collect_errors = false)
         reset_errors!
