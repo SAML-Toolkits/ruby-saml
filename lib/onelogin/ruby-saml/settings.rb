@@ -52,6 +52,7 @@ module OneLogin
       attr_accessor :authn_context
       attr_accessor :authn_context_comparison
       attr_accessor :authn_context_decl_ref
+      attr_accessor :no_destination
       attr_reader :attribute_consuming_service
       # Work-flow
       attr_accessor :security

@@ -36,6 +36,22 @@ class RequestTest < Minitest::Test
       zstream.close
 
       assert_match /<samlp:AuthnRequest[^<]* Destination='http:\/\/example.com'/, inflated
+      assert_match /Destination/, inflated
+    end
+
+    it "respect the no_destination option" do
+      settings = OneLogin::RubySaml::Settings.new
+      settings.idp_sso_target_url = "http://example.com"
+      settings.no_destination = true
+      auth_url = OneLogin::RubySaml::Authrequest.new.create(settings)
+      payload  = CGI.unescape(auth_url.split("=").last)
+      decoded  = Base64.decode64(payload)
+
+      zstream  = Zlib::Inflate.new(-Zlib::MAX_WBITS)
+      inflated = zstream.inflate(decoded)
+      zstream.finish
+      zstream.close
+      refute_match /Destination/, inflated
     end
 
     it "create the SAMLRequest URL parameter without deflating" do
