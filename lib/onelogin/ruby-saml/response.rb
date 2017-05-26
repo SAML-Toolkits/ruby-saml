@@ -25,6 +25,7 @@ module OneLogin
 
       attr_reader :document
       attr_reader :decrypted_document
+      attr_reader :errors
       attr_reader :response
       attr_reader :options
 
