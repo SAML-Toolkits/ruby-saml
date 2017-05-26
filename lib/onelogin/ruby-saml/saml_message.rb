@@ -121,7 +121,7 @@ module OneLogin
       # @return [String] The encoded string
       #
       def encode(string)
-        Base64.encode64(string).gsub(/\n/, "")
+        Base64.encode64(string)
       end
 
       # Check if a string is base64 encoded
