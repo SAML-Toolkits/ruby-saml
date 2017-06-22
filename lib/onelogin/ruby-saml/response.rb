@@ -37,7 +37,7 @@ module OneLogin
       #                          with the :skip_conditions, or allow a clock_drift when checking dates with :allowed_clock_drift
       #                          or :matches_request_id that will validate that the response matches the ID of the request,
       #                          or skip the subject confirmation validation with the :skip_subject_confirmation option
-      #                          or skip the recipient validation of the subject confirmation element with :skip_recipient_check option 
+      #                          or skip the recipient validation of the subject confirmation element with :skip_recipient_check option
       def initialize(response, options = {})
         raise ArgumentError.new("Response cannot be nil") if response.nil?
 
@@ -651,13 +651,13 @@ module OneLogin
 
         now = Time.now.utc
 
-        if not_before && (now + allowed_clock_drift) < not_before
-          error_msg = "Current time is earlier than NotBefore condition #{(now + allowed_clock_drift)} < #{not_before})"
+        if not_before && (now_with_drift = now + allowed_clock_drift) < not_before
+          error_msg = "Current time is earlier than NotBefore condition (#{now_with_drift} < #{not_before})"
           return append_error(error_msg)
         end
 
-        if not_on_or_after && now >= (not_on_or_after + allowed_clock_drift)
-          error_msg = "Current time is on or after NotOnOrAfter condition (#{now} >= #{not_on_or_after + allowed_clock_drift})"
+        if not_on_or_after && now >= (not_on_or_after_with_drift = not_on_or_after + allowed_clock_drift)
+          error_msg = "Current time is on or after NotOnOrAfter condition (#{now} >= #{not_on_or_after_with_drift})"
           return append_error(error_msg)
         end
 
@@ -814,7 +814,7 @@ module OneLogin
           opts[:cert] = settings.get_idp_cert
           fingerprint = settings.get_fingerprint
 
-          unless fingerprint && doc.validate_document(fingerprint, @soft, opts)          
+          unless fingerprint && doc.validate_document(fingerprint, @soft, opts)
             return append_error(error_msg)
           end
         else

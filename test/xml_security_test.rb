@@ -106,7 +106,7 @@ class XmlSecurityTest < Minitest::Test
     end
   end
 
-  describe "#algorithm" do    
+  describe "#algorithm" do
     it "SHA1" do
       alg = OpenSSL::Digest::SHA1
       assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2000/09/xmldsig#rsa-sha1")
@@ -130,7 +130,7 @@ class XmlSecurityTest < Minitest::Test
       alg = OpenSSL::Digest::SHA512
       assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#rsa-sha512")
       assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#sha512")
-    end        
+    end
   end
 
   describe "Fingerprint Algorithms" do
@@ -278,7 +278,7 @@ class XmlSecurityTest < Minitest::Test
         logout_request2.sign_document(ruby_saml_key, ruby_saml_cert_text)
         # verify our signature
         signed_doc2 = XMLSecurity::SignedDocument.new(logout_request2.to_s)
-        signed_doc2.validate_document(ruby_saml_cert_fingerprint, false)        
+        signed_doc2.validate_document(ruby_saml_cert_fingerprint, false)
         assert signed_doc2.validate_document(ruby_saml_cert_fingerprint, false)
       end
 
@@ -293,7 +293,7 @@ class XmlSecurityTest < Minitest::Test
         logout_response2.sign_document(ruby_saml_key, ruby_saml_cert_text)
         # verify our signature
         signed_doc2 = XMLSecurity::SignedDocument.new(logout_response2.to_s)
-        signed_doc2.validate_document(ruby_saml_cert_fingerprint, false)        
+        signed_doc2.validate_document(ruby_saml_cert_fingerprint, false)
         assert signed_doc2.validate_document(ruby_saml_cert_fingerprint, false)
       end
     end
@@ -316,9 +316,14 @@ class XmlSecurityTest < Minitest::Test
         Timecop.freeze Time.parse('2012-11-20 17:55:00 UTC') do
           assert !response.is_valid?
 
-          contains_expected_error = response.errors.include? "Current time is earlier than NotBefore condition 2012-11-20 17:55:00 UTC < 2012-11-28 17:53:45 UTC)"
-          contains_expected_error ||= response.errors.include? "Current time is earlier than NotBefore condition Tue Nov 20 17:55:00 UTC 2012 < Wed Nov 28 17:53:45 UTC 2012)"
-          assert contains_expected_error
+          time_1 = '2012-11-20 17:55:00 UTC < 2012-11-28 17:53:45 UTC'
+          time_2 = 'Tue Nov 20 17:55:00 UTC 2012 < Wed Nov 28 17:53:45 UTC 2012'
+
+          errors = [time_1, time_2].map do |time|
+            "Current time is earlier than NotBefore condition (#{time})"
+          end
+
+          assert_predicate response.errors & errors, :any?
         end
       end
 
@@ -344,7 +349,7 @@ class XmlSecurityTest < Minitest::Test
             assert document.validate_document(fingerprint, true), 'Document should be valid'
           end
         end
-        
+
         describe 'when response has signed assertion' do
           let(:document_data) { read_response('response_with_signed_assertion_3.xml') }
           let(:document) { OneLogin::RubySaml::Response.new(document_data).document }
