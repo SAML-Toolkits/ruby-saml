@@ -138,6 +138,7 @@ class RubySamlTest < Minitest::Test
         it "raise when No fingerprint or certificate on settings" do
           settings.idp_cert_fingerprint = nil
           settings.idp_cert = nil
+          settings.idp_cert_multi = nil
           response.settings = settings
           error_msg = "No fingerprint or certificate on settings"
           assert_raises(OneLogin::RubySaml::ValidationError, error_msg) do

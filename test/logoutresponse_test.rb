@@ -90,6 +90,7 @@ class RubySamlTest < Minitest::Test
         it "invalidate logout response when initiated with no idp cert or fingerprint" do
           settings.idp_cert_fingerprint = nil
           settings.idp_cert = nil
+          settings.idp_cert_multi = nil
           logoutresponse = OneLogin::RubySaml::Logoutresponse.new(valid_logout_response_document, settings)
           assert !logoutresponse.validate
           assert_includes logoutresponse.errors, "No fingerprint or certificate on settings of the logout response"

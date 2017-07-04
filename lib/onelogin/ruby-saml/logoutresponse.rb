@@ -168,7 +168,7 @@ module OneLogin
 
         return append_error("No issuer in settings of the logout response") if settings.issuer.nil?
 
-        if settings.idp_cert_fingerprint.nil? && settings.idp_cert.nil?
+        if settings.idp_cert_fingerprint.nil? && settings.idp_cert.nil? && settings.idp_cert_multi.nil?
           return append_error("No fingerprint or certificate on settings of the logout response")
         end
 
