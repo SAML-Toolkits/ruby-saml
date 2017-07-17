@@ -335,7 +335,8 @@ module OneLogin
             )
           end
         else
-          parsed_metadata[:idp_cert_multi] = certificates
+          # symbolize keys of certificates and pass it on
+          parsed_metadata[:idp_cert_multi] = Hash[certificates.map { |k, v| [k.to_sym, v] }]
         end
       end
 

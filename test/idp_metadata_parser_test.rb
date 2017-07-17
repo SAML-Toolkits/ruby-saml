@@ -202,10 +202,10 @@ class IdpMetadataParserTest < Minitest::Test
       assert_nil settings.idp_cert_fingerprint
       assert_nil settings.idp_cert
       assert_equal 2, settings.idp_cert_multi.size
-      assert settings.idp_cert_multi.key?("signing")
-      assert_equal 2, settings.idp_cert_multi["signing"].size
-      assert settings.idp_cert_multi.key?("encryption")
-      assert_equal 1, settings.idp_cert_multi["encryption"].size
+      assert settings.idp_cert_multi.key?(:signing)
+      assert_equal 2, settings.idp_cert_multi[:signing].size
+      assert settings.idp_cert_multi.key?(:encryption)
+      assert_equal 1, settings.idp_cert_multi[:encryption].size
     end
   end
 
