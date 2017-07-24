@@ -260,9 +260,11 @@ module XMLSecurity
         # check saml response cert matches provided idp cert
         if idp_cert.to_pem != cert.to_pem
           return false
+        end
+      else
+        base64_cert = Base64.encode64(idp_cert.to_pem)
       end
-        validate_signature(base64_cert, true)
-      end
+      validate_signature(base64_cert, true)
     end
 
     def validate_signature(base64_cert, soft = true)
