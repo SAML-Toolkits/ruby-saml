@@ -332,4 +332,15 @@ class IdpMetadataParserTest < Minitest::Test
       assert_equal ["AuthToken", "SSOStartPage"], @settings.idp_attribute_names
     end
   end
+
+  describe "parsing metadata with no IDPSSODescriptor element" do
+    before do
+      @idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      @idp_metadata = no_idp_metadata_descriptor
+    end
+
+    it "raise due no IDPSSODescriptor element" do
+        assert_raises(ArgumentError) { @idp_metadata_parser.parse(@idp_metadata) }
+    end
+  end
 end

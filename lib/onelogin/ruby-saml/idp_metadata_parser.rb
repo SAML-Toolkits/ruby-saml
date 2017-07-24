@@ -102,6 +102,10 @@ module OneLogin
         @options = options
         @entity_descriptor = nil
 
+        if idpsso_descriptor.nil?
+          raise ArgumentError.new("idp_metadata may contain an IDPSSODescriptor element")
+        end
+
         {
           :idp_entity_id => idp_entity_id,
           :name_identifier_format => idp_name_id_format,
@@ -163,6 +167,16 @@ module OneLogin
         return path unless entity_id
         path << "[@entityID=\"#{entity_id}\"]"
       end
+
+      def idpsso_descriptor
+        unless entity_descriptor.nil?
+          return REXML::XPath.first(
+            entity_descriptor,
+            "md:IDPSSODescriptor",
+            namespace
+          )
+        end
+      end 
 
       # @return [String|nil] IdP Entity ID value if exists
       #
