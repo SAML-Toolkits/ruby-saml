@@ -87,7 +87,15 @@ module OneLogin
       # @return [String] The status error message
       def self.status_error_msg(error_msg, status_code = nil, status_message = nil)
         unless status_code.nil?
-          printable_code = status_code.split(':').last
+          if status_code.include? "|"
+            status_codes = status_code.split(' | ')
+            values = status_codes.collect do |status_code|
+              status_code.split(':').last
+            end
+            printable_code = values.join(" => ")
+          else
+            printable_code = status_code.split(':').last
+          end
           error_msg << ', was ' + printable_code
         end
 

@@ -207,7 +207,23 @@ module OneLogin
           )
           if nodes.size == 1
             node = nodes[0]
-            node.attributes["Value"] if node && node.attributes
+            code = node.attributes["Value"] if node && node.attributes
+
+            unless code == "urn:oasis:names:tc:SAML:2.0:status:Success"
+              nodes = REXML::XPath.match(
+                document,
+                "/p:Response/p:Status/p:StatusCode/p:StatusCode",
+                { "p" => PROTOCOL }
+              )
+              statuses = nodes.collect do |node|
+                node.attributes["Value"]
+              end
+              extra_code = statuses.join(" | ")
+              if extra_code
+                code = "#{code} | #{extra_code}"
+              end
+            end
+            code
           end
         end
       end

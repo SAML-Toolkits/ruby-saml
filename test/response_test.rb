@@ -30,6 +30,7 @@ class RubySamlTest < Minitest::Test
     let(:response_no_statuscode) { OneLogin::RubySaml::Response.new(read_invalid_response("no_status_code.xml.base64")) }
     let(:response_statuscode_responder) { OneLogin::RubySaml::Response.new(read_invalid_response("status_code_responder.xml.base64")) }
     let(:response_statuscode_responder_and_msg) { OneLogin::RubySaml::Response.new(read_invalid_response("status_code_responer_and_msg.xml.base64")) }
+    let(:response_double_statuscode) { OneLogin::RubySaml::Response.new(response_document_double_status_code) }
     let(:response_encrypted_attrs) { OneLogin::RubySaml::Response.new(response_document_encrypted_attrs) }
     let(:response_no_signed_elements) { OneLogin::RubySaml::Response.new(read_invalid_response("no_signature.xml.base64")) }
     let(:response_multiple_signed) { OneLogin::RubySaml::Response.new(read_invalid_response("multiple_signed.xml.base64")) }
@@ -517,12 +518,12 @@ class RubySamlTest < Minitest::Test
         assert_empty response.errors
       end
 
-      it "return false when the status if no Status provided" do
+      it "return false when no Status provided" do
         assert !response_no_status.send(:validate_success_status)
         assert_includes response_no_status.errors, "The status code of the Response was not Success"
       end
 
-      it "return false when the status if no StatusCode provided" do
+      it "return false when no StatusCode provided" do
         assert !response_no_statuscode.send(:validate_success_status)
         assert_includes response_no_statuscode.errors, "The status code of the Response was not Success"
       end
@@ -535,6 +536,11 @@ class RubySamlTest < Minitest::Test
       it "return false when the status is not 'Success', and shows the StatusMessage" do
         assert !response_statuscode_responder_and_msg.send(:validate_success_status)
         assert_includes response_statuscode_responder_and_msg.errors, "The status code of the Response was not Success, was Responder -> something_is_wrong"
+      end
+
+      it "return false when the status is not 'Success'" do
+        assert !response_double_statuscode.send(:validate_success_status)
+        assert_includes response_double_statuscode.errors, "The status code of the Response was not Success, was Requester => UnsupportedBinding"
       end
     end
 
