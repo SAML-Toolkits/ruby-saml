@@ -1278,6 +1278,11 @@ class RubySamlTest < Minitest::Test
 
         response4 = OneLogin::RubySaml::Response.new(unsigned_message_encrypted_unsigned_assertion, :settings => settings)
         assert response4.decrypted_document
+
+        assert OneLogin::RubySaml::Response.new(
+          Base64.encode64(File.read('test/responses/unsigned_encrypted_adfs.xml')),
+          :settings => settings
+        ).decrypted_document
       end
     end
 
