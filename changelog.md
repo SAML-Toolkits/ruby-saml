@@ -1,4 +1,13 @@
 # RubySaml Changelog
+### 1.5.0 (August 31, 2017)
+* [#400](https://github.com/onelogin/ruby-saml/pull/400) When validating Signature use stored IdP certficate if Signature contains no info about Certificate
+* [#402](https://github.com/onelogin/ruby-saml/pull/402)  Fix validate_response_state method that rejected SAMLResponses when using idp_cert_multi and idp_cert and idp_cert_fingerprint were not provided.
+* [#411](https://github.com/onelogin/ruby-saml/pull/411) Allow space in Base64 string
+* [#407](https://github.com/onelogin/ruby-saml/issues/407) Improve IdpMetadataParser raising an ArgumentError when parser method receive a metadata string with no IDPSSODescriptor element.
+* [#374](https://github.com/onelogin/ruby-saml/issues/374) Support more than one level of StatusCode
+* [#405](https://github.com/onelogin/ruby-saml/pull/405) Support ADFS encrypted key (Accept KeyInfo nodes with no ds namespace)
+
+
 ### 1.4.3 (May 18, 2017)
 * Added SubjectConfirmation Recipient validation
 * [#393](https://github.com/onelogin/ruby-saml/pull/393) Implement IdpMetadataParser#parse_to_hash
