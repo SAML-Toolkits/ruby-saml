@@ -103,7 +103,7 @@ module OneLogin
         @entity_descriptor = nil
 
         if idpsso_descriptor.nil?
-          raise ArgumentError.new("idp_metadata may contain an IDPSSODescriptor element")
+          raise ArgumentError.new("idp_metadata must contain an IDPSSODescriptor element")
         end
 
         {
