@@ -67,6 +67,24 @@ module OneLogin
         url_string << "&SigAlg=#{CGI.escape(sig_alg)}"
       end
 
+      # Reconstruct a canonical query string from raw URI-encoded parts, to be used in verifying a signature
+      # sent by an IDP.
+      #
+      # @param params [Hash] Parameters to build the Query String
+      # @option params [String] :type 'SAMLRequest' or 'SAMLResponse'
+      # @option params [String] :raw_data URI-encoded, base64 encoded SAMLRequest or SAMLResponse, as sent by IDP
+      # @option params [String] :raw_relay_state URI-encoded RelayState parameter, as sent by IDP
+      # @option params [String] :raw_sig_alg URI-encoded SigAlg parameter, as sent by IDP
+      # @return [String] The Query String
+      #
+      def self.build_query_from_raw_parts(params)
+        type, raw_data, raw_relay_state, raw_sig_alg = [:type, :raw_data, :raw_relay_state, :raw_sig_alg].map { |k| params[k]}
+
+        url_string = "#{type}=#{raw_data}"
+        url_string << "&RelayState=#{raw_relay_state}" if raw_relay_state
+        url_string << "&SigAlg=#{raw_sig_alg}"
+      end
+
       # Validate the Signature parameter sent on the HTTP-Redirect binding
       # @param params [Hash] Parameters to be used in the validation process
       # @option params [OpenSSL::X509::Certificate] cert The Identity provider public certtificate
