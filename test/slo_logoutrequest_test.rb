@@ -322,6 +322,78 @@ class RubySamlTest < Minitest::Test
           logout_request_sign_test.send(:validate_signature)
         end
       end
+
+      it "raise when get_params encoding differs from what this library generates" do
+        # Use Logoutrequest only to build the SAMLRequest parameter.
+        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+        settings.soft = false
+        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings, "RelayState" => "http://example.com")
+        # Assemble query string.
+        query = OneLogin::RubySaml::Utils.build_query(
+          type: 'SAMLRequest',
+          data: params['SAMLRequest'],
+          relay_state: params['RelayState'],
+          sig_alg: params['SigAlg'],
+        )
+        # Modify the query string so that it encodes the same values,
+        # but with different percent-encoding. Sanity-check that they
+        # really are equialent before moving on.
+        original_query = query.dup
+        query.gsub!("example", "ex%61mple")
+        refute_equal(query, original_query)
+        assert_equal(CGI.unescape(query), CGI.unescape(original_query))
+        # Make normalised signature based on our modified params.
+        sign_algorithm = XMLSecurity::BaseDocument.new.algorithm(settings.security[:signature_method])
+        signature = settings.get_sp_key.sign(sign_algorithm.new, query)
+        params['Signature'] = Base64.encode64(signature).gsub(/\n/, "")
+        # Construct SloLogoutrequest and ask it to validate the signature.
+        # It will do it incorrectly, because it will compute it based on re-encoded
+        # query parameters, rather than their original encodings.
+        options = {}
+        options[:get_params] = params
+        options[:settings] = settings
+        logout_request_sign_test = OneLogin::RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
+        assert_raises(OneLogin::RubySaml::ValidationError, "Invalid Signature on Logout Request") do
+          logout_request_sign_test.send(:validate_signature)
+        end
+      end
+
+      it "return true even if raw_get_params encoding differs from what this library generates" do
+        # Use Logoutrequest only to build the SAMLRequest parameter.
+        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+        settings.soft = false
+        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings, "RelayState" => "http://example.com")
+        # Assemble query string.
+        query = OneLogin::RubySaml::Utils.build_query(
+          type: 'SAMLRequest',
+          data: params['SAMLRequest'],
+          relay_state: params['RelayState'],
+          sig_alg: params['SigAlg'],
+        )
+        # Modify the query string so that it encodes the same values,
+        # but with different percent-encoding. Sanity-check that they
+        # really are equialent before moving on.
+        original_query = query.dup
+        query.gsub!("example", "ex%61mple")
+        refute_equal(query, original_query)
+        assert_equal(CGI.unescape(query), CGI.unescape(original_query))
+        # Make normalised signature based on our modified params.
+        sign_algorithm = XMLSecurity::BaseDocument.new.algorithm(settings.security[:signature_method])
+        signature = settings.get_sp_key.sign(sign_algorithm.new, query)
+        params['Signature'] = Base64.encode64(signature).gsub(/\n/, "")
+        # Construct SloLogoutrequest and ask it to validate the signature.
+        # Provide the altered parameter in its raw URI-encoded form,
+        # so that we don't have to guess the value that contributed to the signature.
+        options = {}
+        options[:get_params] = params
+        options[:get_params].delete("RelayState")
+        options[:raw_get_params] = {
+          "RelayState" => "http%3A%2F%2Fex%61mple.com",
+        }
+        options[:settings] = settings
+        logout_request_sign_test = OneLogin::RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
+        assert logout_request_sign_test.send(:validate_signature)
+      end
     end
 
     describe "#validate_signature with multiple idp certs" do
