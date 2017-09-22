@@ -8,8 +8,7 @@ The new preferred way to provide _SAMLResponse_, _RelayState_, and _SigAlg_ is v
 
 ```ruby
 # In this example `query_params` is assumed to contain decoded query parameters,
-# and `raw_query_params` is assumed to contain encoded query parameters as sent
-# by the IDP.
+# and `raw_query_params` is assumed to contain encoded query parameters as sent by the IDP.
 settings = {
   settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
   settings.soft = false
