@@ -66,6 +66,18 @@ module OneLogin
 
       alias_method :nameid, :name_id
 
+      # @return [String] Gets the NameID Format of the Logout Request.
+      #
+      def name_id_format
+        @name_id_node ||= REXML::XPath.first(document, "/p:LogoutRequest/a:NameID", { "p" => PROTOCOL, "a" => ASSERTION })
+        @name_id_format ||=
+          if @name_id_node && @name_id_node.attribute("Format")
+            @name_id_node.attribute("Format").value
+          end
+      end
+
+      alias_method :nameid_format, :name_id_format
+
       # @return [String|nil] Gets the ID attribute from the Logout Request. if exists.
       #
       def id
