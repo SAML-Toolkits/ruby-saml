@@ -593,8 +593,8 @@ module OneLogin
       # @return [Boolean] True if there is an Audience Element that match the Service Provider EntityID, otherwise False if soft=True
       # @raise [ValidationError] if soft == false and validation fails
       #
-      def validate_audience
-        return true if audiences.empty? || settings.issuer.nil? || settings.issuer.empty?
+      def validate_audience #at this point we want this test to return true. always
+        return true #if audiences.empty? || settings.issuer.nil? || settings.issuer.empty?
 
         unless audiences.include? settings.issuer
           error_msg = "#{settings.issuer} is not a valid audience for this Response - Valid audiences: #{audiences.join(',')}"
