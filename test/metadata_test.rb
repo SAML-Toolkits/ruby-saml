@@ -32,7 +32,7 @@ class MetadataTest < Minitest::Test
       assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress", REXML::XPath.first(xml_doc, "//md:NameIDFormat").text.strip
 
       assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST", acs.attribute("Binding").value
-      assert_equal "https://foo.example/saml/consume", acs.attribute("Location").value      
+      assert_equal "https://foo.example/saml/consume", acs.attribute("Location").value
 
       assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
     end
@@ -225,7 +225,7 @@ class MetadataTest < Minitest::Test
       before do
         settings.attribute_consuming_service.configure do
           service_name "Test Service"
-          add_attribute(:name => "Name", :name_format => "Name Format", :friendly_name => "Friendly Name", :attribute_value => ["Attribute Value One", "Attribute Value Two"])
+          add_attribute(:name => 'Name', :name_format => 'Name Format', :friendly_name => 'Friendly Name', :attribute_value => ['Attribute Value One', false])
         end
       end
 
@@ -240,20 +240,20 @@ class MetadataTest < Minitest::Test
 
         attribute_values = REXML::XPath.match(xml_doc, "//saml:AttributeValue").map(&:text)
         assert_equal "Attribute Value One", attribute_values[0]
-        assert_equal "Attribute Value Two", attribute_values[1]
+        assert_equal 'false', attribute_values[1]
 
         assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
       end
     end
 
     describe "when attribute service is configured" do
-      let(:attr_svc)  { REXML::XPath.first(xml_doc, "//md:AttributeConsumingService") }
-      let(:req_attr)  { REXML::XPath.first(xml_doc, "//md:RequestedAttribute") }
+      let(:attr_svc) { REXML::XPath.first(xml_doc, '//md:AttributeConsumingService') }
+      let(:req_attr) { REXML::XPath.first(xml_doc, '//md:RequestedAttribute') }
 
       before do
         settings.attribute_consuming_service.configure do
           service_name "Test Service"
-          add_attribute(:name => "Name", :name_format => "Name Format", :friendly_name => "Friendly Name", :attribute_value => "Attribute Value")
+          add_attribute(:name => 'active', :name_format => 'format', :friendly_name => 'Active', :attribute_value => true)
         end
       end
 
@@ -262,10 +262,10 @@ class MetadataTest < Minitest::Test
         assert_equal "1", attr_svc.attribute("index").value
         assert_equal REXML::XPath.first(xml_doc, "//md:ServiceName").text.strip, "Test Service"
 
-        assert_equal "Name", req_attr.attribute("Name").value
-        assert_equal "Name Format", req_attr.attribute("NameFormat").value
-        assert_equal "Friendly Name", req_attr.attribute("FriendlyName").value
-        assert_equal "Attribute Value", REXML::XPath.first(xml_doc, "//saml:AttributeValue").text.strip
+        assert_equal 'active', req_attr.attribute('Name').value
+        assert_equal 'format', req_attr.attribute('NameFormat').value
+        assert_equal 'Active', req_attr.attribute('FriendlyName').value
+        assert_equal 'true', REXML::XPath.first(xml_doc, '//saml:AttributeValue').text.strip
 
         assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
       end
@@ -303,7 +303,7 @@ class MetadataTest < Minitest::Test
         assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], xml_text
         assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2000/09/xmldsig#sha1'/>], xml_text
         signed_metadata = XMLSecurity::SignedDocument.new(xml_text)
-        assert signed_metadata.validate_document(ruby_saml_cert_fingerprint, false)        
+        assert signed_metadata.validate_document(ruby_saml_cert_fingerprint, false)
 
         assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
       end
@@ -321,7 +321,7 @@ class MetadataTest < Minitest::Test
 
           signed_metadata_2 = XMLSecurity::SignedDocument.new(xml_text)
 
-          assert signed_metadata_2.validate_document(ruby_saml_cert_fingerprint, false)          
+          assert signed_metadata_2.validate_document(ruby_saml_cert_fingerprint, false)
 
           assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
         end
