@@ -24,11 +24,19 @@ module OneLogin
         # don't try to format an encoded certificate or if is empty or nil
         return cert if cert.nil? || cert.empty? || cert.match(/\x0d/)
 
-        cert = cert.gsub(/\-{5}\s?(BEGIN|END) CERTIFICATE\s?\-{5}/, "")
-        cert = cert.gsub(/[\n\r\s]/, "")
-        cert = cert.scan(/.{1,64}/)
-        cert = cert.join("\n")
-        "-----BEGIN CERTIFICATE-----\n#{cert}\n-----END CERTIFICATE-----"
+        if cert.scan(/BEGIN CERTIFICATE/).length > 1
+          formatted_cert = []
+          cert.scan(/-{5}BEGIN CERTIFICATE-{5}[\n\r]?.*?-{5}END CERTIFICATE-{5}[\n\r]?/m) {|c|
+            formatted_cert << format_cert(c)
+          }
+          formatted_cert.join("\n")
+        else
+          cert = cert.gsub(/\-{5}\s?(BEGIN|END) CERTIFICATE\s?\-{5}/, "")
+          cert = cert.gsub(/[\n\r\s]/, "")
+          cert = cert.scan(/.{1,64}/)
+          cert = cert.join("\n")
+          "-----BEGIN CERTIFICATE-----\n#{cert}\n-----END CERTIFICATE-----"
+        end
       end
 
       # Return a properly formatted private key
