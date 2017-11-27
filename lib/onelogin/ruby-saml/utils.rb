@@ -93,7 +93,7 @@ module OneLogin
       end
 
       # Prepare raw GET parameters (build them from normal parameters
-      # if not provided). 
+      # if not provided).
       #
       # @param rawparams [Hash] Raw GET Parameters
       # @param params [Hash] GET Parameters

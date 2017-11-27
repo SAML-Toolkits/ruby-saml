@@ -338,10 +338,10 @@ class RubySamlTest < Minitest::Test
         params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings, "RelayState" => "http://example.com")
         # Assemble query string.
         query = OneLogin::RubySaml::Utils.build_query(
-          type: 'SAMLRequest',
-          data: params['SAMLRequest'],
-          relay_state: params['RelayState'],
-          sig_alg: params['SigAlg'],
+          :type => 'SAMLRequest',
+          :data => params['SAMLRequest'],
+          :relay_state => params['RelayState'],
+          :sig_alg => params['SigAlg']
         )
         # Modify the query string so that it encodes the same values,
         # but with different percent-encoding. Sanity-check that they
@@ -373,10 +373,10 @@ class RubySamlTest < Minitest::Test
         params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings, "RelayState" => "http://example.com")
         # Assemble query string.
         query = OneLogin::RubySaml::Utils.build_query(
-          type: 'SAMLRequest',
-          data: params['SAMLRequest'],
-          relay_state: params['RelayState'],
-          sig_alg: params['SigAlg'],
+          :type => 'SAMLRequest',
+          :data => params['SAMLRequest'],
+          :relay_state => params['RelayState'],
+          :sig_alg => params['SigAlg']
         )
         # Modify the query string so that it encodes the same values,
         # but with different percent-encoding. Sanity-check that they
