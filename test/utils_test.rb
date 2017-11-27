@@ -2,9 +2,8 @@ require File.expand_path(File.join(File.dirname(__FILE__), "test_helper"))
 
 class UtilsTest < Minitest::Test
   describe ".format_cert" do
-    let(:formatted_certificate) do
-      read_certificate("formatted_certificate")
-    end
+    let(:formatted_certificate) {read_certificate("formatted_certificate")}
+    let(:formatted_chained_certificate) {read_certificate("formatted_chained_certificate")}
 
     it "returns empty string when the cert is an empty string" do
       cert = ""
@@ -34,6 +33,16 @@ class UtilsTest < Minitest::Test
       invalid_certificate3 = read_certificate("invalid_certificate3")
       assert_equal formatted_certificate, OneLogin::RubySaml::Utils.format_cert(invalid_certificate3)
     end
+
+    it "returns the chained certificate when it is a valid chained certificate" do
+      assert_equal formatted_chained_certificate, OneLogin::RubySaml::Utils.format_cert(formatted_chained_certificate)
+    end
+
+    it "reformats the chained certificate when there are spaces and no line breaks" do
+      invalid_chained_certificate1 = read_certificate("invalid_chained_certificate1")
+      assert_equal formatted_chained_certificate, OneLogin::RubySaml::Utils.format_cert(invalid_chained_certificate1)
+    end
+
   end
 
   describe ".format_private_key" do
@@ -138,7 +147,7 @@ class UtilsTest < Minitest::Test
       status_error_msg2 = OneLogin::RubySaml::Utils.status_error_msg(error_msg, status_code)
       assert_equal = "The status code of the Logout Response was not Success, was Requester", status_error_msg2
 
-      status_error_msg3 =  OneLogin::RubySaml::Utils.status_error_msg(error_msg)
+      status_error_msg3 = OneLogin::RubySaml::Utils.status_error_msg(error_msg)
       assert_equal = "The status code of the Logout Response was not Success", status_error_msg3
     end
   end
