@@ -24,7 +24,7 @@ options = {
   },
 }
 slo_logout_request = OneLogin::RubySaml::SloLogoutrequest.new(query_params["SAMLRequest"], settings, options)
-raise "Uh oh!" unless slo_logout_request.is_valid?
+raise "Invalid Logout Request" unless slo_logout_request.is_valid?
 ```
 
 The old form is still supported for backward compatibility, but all Ruby SAML users should prefer `options[:raw_get_params]` where possible to ensure compatibility with other SAML implementations.

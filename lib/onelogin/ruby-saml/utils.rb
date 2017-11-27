@@ -76,7 +76,6 @@ module OneLogin
       end
 
       # Reconstruct a canonical query string from raw URI-encoded parts, to be used in verifying a signature
-      # sent by an IDP.
       #
       # @param params [Hash] Parameters to build the Query String
       # @option params [String] :type 'SAMLRequest' or 'SAMLResponse'
@@ -91,6 +90,32 @@ module OneLogin
         url_string = "#{type}=#{raw_data}"
         url_string << "&RelayState=#{raw_relay_state}" if raw_relay_state
         url_string << "&SigAlg=#{raw_sig_alg}"
+      end
+
+      # Prepare raw GET parameters (build them from normal parameters
+      # if not provided). 
+      #
+      # @param rawparams [Hash] Raw GET Parameters
+      # @param params [Hash] GET Parameters
+      # @return [Hash] New raw parameters
+      # 
+      def self.prepare_raw_get_params(rawparams, params)
+        rawparams ||= {}
+
+        if rawparams['SAMLRequest'].nil? && !params['SAMLRequest'].nil?
+          rawparams['SAMLRequest'] = CGI.escape(params['SAMLRequest'])
+        end
+        if rawparams['SAMLResponse'].nil? && !params['SAMLResponse'].nil?
+          rawparams['SAMLResponse'] = CGI.escape(params['SAMLResponse'])
+        end        
+        if rawparams['RelayState'].nil? && !params['RelayState'].nil?
+          rawparams['RelayState'] = CGI.escape(params['RelayState'])
+        end
+        if rawparams['SigAlg'].nil? && !params['SigAlg'].nil?
+          rawparams['SigAlg'] = CGI.escape(params['SigAlg'])
+        end
+
+        rawparams
       end
 
       # Validate the Signature parameter sent on the HTTP-Redirect binding
