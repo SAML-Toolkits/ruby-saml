@@ -1,5 +1,34 @@
 # Ruby SAML [![Build Status](https://secure.travis-ci.org/onelogin/ruby-saml.svg)](http://travis-ci.org/onelogin/ruby-saml) [![Coverage Status](https://coveralls.io/repos/onelogin/ruby-saml/badge.svg?branch=master%0A)](https://coveralls.io/r/onelogin/ruby-saml?branch=master%0A) [![Gem Version](https://badge.fury.io/rb/ruby-saml.svg)](http://badge.fury.io/rb/ruby-saml)
 
+## Updating from 1.5.0 to 1.6.0
+
+Version `1.6.0` changes the preferred way to construct instances of `Logoutresponse` and `SloLogoutrequest`. Previously the _SAMLResponse_, _RelayState_, and _SigAlg_ parameters of these message types were provided via the constructor's `options[:get_params]` parameter. Unfortunately this can result in incompatibility with other SAML implementations; signatures are specified to be computed based on the _sender's_ URI-encoding of the message, which can differ from that of Ruby SAML. In particular, Ruby SAML's URI-encoding does not match that of Microsoft ADFS, so messages from ADFS can fail signature validation.
+
+The new preferred way to provide _SAMLResponse_, _RelayState_, and _SigAlg_ is via the `options[:raw_get_params]` parameter. For example:
+
+```ruby
+# In this example `query_params` is assumed to contain decoded query parameters,
+# and `raw_query_params` is assumed to contain encoded query parameters as sent by the IDP.
+settings = {
+  settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+  settings.soft = false
+}
+options = {
+  get_params: {
+    "Signature" => query_params["Signature"],
+  },
+  raw_get_params: {
+    "SAMLRequest" => raw_query_params["SAMLRequest"],
+    "SigAlg" => raw_query_params["SigAlg"],
+    "RelayState" => raw_query_params["RelayState"],
+  },
+}
+slo_logout_request = OneLogin::RubySaml::SloLogoutrequest.new(query_params["SAMLRequest"], settings, options)
+raise "Invalid Logout Request" unless slo_logout_request.is_valid?
+```
+
+The old form is still supported for backward compatibility, but all Ruby SAML users should prefer `options[:raw_get_params]` where possible to ensure compatibility with other SAML implementations.
+
 ## Updating from 1.4.2 to 1.4.3
 
 Version `1.4.3` introduces Recipient validation of SubjectConfirmation elements.

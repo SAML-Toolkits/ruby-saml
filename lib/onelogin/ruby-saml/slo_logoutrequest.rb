@@ -241,6 +241,36 @@ module OneLogin
         return true unless options.has_key? :get_params
         return true unless options[:get_params].has_key? 'Signature'
 
+        # SAML specifies that the signature should be derived from a concatenation
+        # of URI-encoded values _as sent by the IDP_:
+        #
+        # > Further, note that URL-encoding is not canonical; that is, there are multiple legal encodings for a given
+        # > value. The relying party MUST therefore perform the verification step using the original URL-encoded
+        # > values it received on the query string. It is not sufficient to re-encode the parameters after they have been
+        # > processed by software because the resulting encoding may not match the signer's encoding.
+        #
+        # <http://docs.oasis-open.org/security/saml/v2.0/saml-bindings-2.0-os.pdf>
+        #
+        # If we don't have the original parts (for backward compatibility) required to correctly verify the signature,
+        # then fabricate them by re-encoding the parsed URI parameters, and hope that we're lucky enough to use
+        # the exact same URI-encoding as the IDP. (This is not the case if the IDP is ADFS!)
+        options[:raw_get_params] ||= {}
+        if options[:raw_get_params]['SAMLRequest'].nil? && !options[:get_params]['SAMLRequest'].nil?
+          options[:raw_get_params]['SAMLRequest'] = CGI.escape(options[:get_params]['SAMLRequest'])
+        end
+        if options[:raw_get_params]['RelayState'].nil? && !options[:get_params]['RelayState'].nil?
+          options[:raw_get_params]['RelayState'] = CGI.escape(options[:get_params]['RelayState'])
+        end
+        if options[:raw_get_params]['SigAlg'].nil? && !options[:get_params]['SigAlg'].nil?
+          options[:raw_get_params]['SigAlg'] = CGI.escape(options[:get_params]['SigAlg'])
+        end
+
+        # If we only received the raw version of SigAlg,
+        # then parse it back into the decoded params hash for convenience.
+        if options[:get_params]['SigAlg'].nil? && !options[:raw_get_params]['SigAlg'].nil?
+          options[:get_params]['SigAlg'] = CGI.unescape(options[:raw_get_params]['SigAlg'])
+        end
+
         idp_cert = settings.get_idp_cert
         idp_certs = settings.get_idp_cert_multi
 
@@ -248,11 +278,11 @@ module OneLogin
           return options.has_key? :relax_signature_validation
         end
 
-        query_string = OneLogin::RubySaml::Utils.build_query(
-          :type        => 'SAMLRequest',
-          :data        => options[:get_params]['SAMLRequest'],
-          :relay_state => options[:get_params]['RelayState'],
-          :sig_alg     => options[:get_params]['SigAlg']
+        query_string = OneLogin::RubySaml::Utils.build_query_from_raw_parts(
+          :type            => 'SAMLRequest',
+          :raw_data        => options[:raw_get_params]['SAMLRequest'],
+          :raw_relay_state => options[:raw_get_params]['RelayState'],
+          :raw_sig_alg     => options[:raw_get_params]['SigAlg']
         )
 
         if idp_certs.nil? || idp_certs[:signing].empty?

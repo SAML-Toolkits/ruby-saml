@@ -211,6 +211,12 @@ module OneLogin
         return true unless options.has_key? :get_params
         return true unless options[:get_params].has_key? 'Signature'
 
+        options[:raw_get_params] = OneLogin::RubySaml::Utils.prepare_raw_get_params(options[:raw_get_params], options[:get_params])
+
+        if options[:get_params]['SigAlg'].nil? && !options[:raw_get_params]['SigAlg'].nil?
+          options[:get_params]['SigAlg'] = CGI.unescape(options[:raw_get_params]['SigAlg'])
+        end
+
         idp_cert = settings.get_idp_cert
         idp_certs = settings.get_idp_cert_multi
 
@@ -218,11 +224,11 @@ module OneLogin
           return options.has_key? :relax_signature_validation
         end
 
-        query_string = OneLogin::RubySaml::Utils.build_query(
-          :type        => 'SAMLResponse',
-          :data        => options[:get_params]['SAMLResponse'],
-          :relay_state => options[:get_params]['RelayState'],
-          :sig_alg     => options[:get_params]['SigAlg']
+        query_string = OneLogin::RubySaml::Utils.build_query_from_raw_parts(
+          :type            => 'SAMLResponse',
+          :raw_data        => options[:raw_get_params]['SAMLResponse'],
+          :raw_relay_state => options[:raw_get_params]['RelayState'],
+          :raw_sig_alg     => options[:raw_get_params]['SigAlg']
         )
 
         if idp_certs.nil? || idp_certs[:signing].empty?
