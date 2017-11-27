@@ -91,6 +91,14 @@ class RubySamlTest < Minitest::Test
       end
     end
 
+    describe "#nameid_format" do
+      let(:logout_request) { OneLogin::RubySaml::SloLogoutrequest.new(logout_request_document_with_name_id_format) }
+
+      it "extract the format attribute of the name id element" do
+        assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress", logout_request.nameid_format
+      end
+    end
+
     describe "#issuer" do
       it "return the issuer inside the logout request" do
         assert_equal "https://app.onelogin.com/saml/metadata/SOMEACCOUNT", logout_request.issuer
