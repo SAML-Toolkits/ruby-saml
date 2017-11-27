@@ -1,9 +1,9 @@
 # RubySaml Changelog
 ### 1.6.0 (November 27, 2017)
-# [#418](https://github.com/onelogin/ruby-saml/pull/418) Improve SAML message signature validation using original encoded parameters instead decoded in order to avoid conflicts (URL-encoding is not canonical, reported issues with ADFS)
-# [#420](https://github.com/onelogin/ruby-saml/pull/420) Expose NameID Format on SloLogoutrequest
-# [#423](https://github.com/onelogin/ruby-saml/pull/423) Allow format_cert to work with chained certificates
-# [#422](https://github.com/onelogin/ruby-saml/pull/422) Use to_s for requested attribute value
+* [#418](https://github.com/onelogin/ruby-saml/pull/418) Improve SAML message signature validation using original encoded parameters instead decoded in order to avoid conflicts (URL-encoding is not canonical, reported issues with ADFS)
+* [#420](https://github.com/onelogin/ruby-saml/pull/420) Expose NameID Format on SloLogoutrequest
+* [#423](https://github.com/onelogin/ruby-saml/pull/423) Allow format_cert to work with chained certificates
+* [#422](https://github.com/onelogin/ruby-saml/pull/422) Use to_s for requested attribute value
 
 
 ### 1.5.0 (August 31, 2017)
