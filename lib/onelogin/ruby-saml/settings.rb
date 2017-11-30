@@ -38,6 +38,7 @@ module OneLogin
       attr_accessor :sp_name_qualifier
       attr_accessor :name_identifier_format
       attr_accessor :name_identifier_value
+      attr_accessor :name_identifier_allow_create
       attr_accessor :sessionindex
       attr_accessor :compress_request
       attr_accessor :compress_response

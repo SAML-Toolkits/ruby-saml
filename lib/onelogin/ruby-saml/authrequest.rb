@@ -111,20 +111,26 @@ module OneLogin
         if settings.assertion_consumer_service_url != nil
           root.attributes["AssertionConsumerServiceURL"] = settings.assertion_consumer_service_url
         end
+
         if settings.issuer != nil
           issuer = root.add_element "saml:Issuer"
           issuer.text = settings.issuer
         end
+
         if settings.name_identifier_format != nil
-          root.add_element "samlp:NameIDPolicy", {
-              # Might want to make AllowCreate a setting?
-              "AllowCreate" => "true",
-              "Format" => settings.name_identifier_format
+          atributes = {
+            "Format" => settings.name_identifier_format,
+            "AllowCreate" => "true"
           }
+
+          if settings.name_identifier_allow_create != nil
+            atributes["AllowCreate"] = settings.name_identifier_allow_create.to_s
+          end
+
+          root.add_element "samlp:NameIDPolicy", atributes
         end
 
         if settings.authn_context || settings.authn_context_decl_ref
-
           if settings.authn_context_comparison != nil
             comparison = settings.authn_context_comparison
           else
@@ -157,7 +163,7 @@ module OneLogin
 
       def sign_document(document, settings)
         # embed signature
-        if settings.security[:authn_requests_signed] && settings.private_key && settings.certificate && settings.security[:embed_sign] 
+        if settings.security[:authn_requests_signed] && settings.private_key && settings.certificate && settings.security[:embed_sign]
           private_key = settings.get_sp_key
           cert = settings.get_sp_cert
           document.sign_document(private_key, cert, settings.security[:signature_method], settings.security[:digest_method])

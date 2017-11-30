@@ -121,6 +121,40 @@ class RequestTest < Minitest::Test
       assert_match /<samlp:NameIDPolicy[^<]* Format='urn:oasis:names:tc:SAML:2.0:nameid-format:transient'/, inflated
     end
 
+    it "create the SAMLRequest URL parameter with NameID AllowCreate = true" do
+      settings.name_identifier_format = "urn:oasis:names:tc:SAML:2.0:nameid-format:transient"
+      settings.name_identifier_allow_create = true
+
+      auth_url = OneLogin::RubySaml::Authrequest.new.create(settings)
+      assert_match /^http:\/\/example\.com\?SAMLRequest=/, auth_url
+      payload = CGI.unescape(auth_url.split("=").last)
+      decoded = Base64.decode64(payload)
+
+      zstream = Zlib::Inflate.new(-Zlib::MAX_WBITS)
+      inflated = zstream.inflate(decoded)
+      zstream.finish
+      zstream.close
+
+      assert_match /<samlp:NameIDPolicy[^<]* AllowCreate='true'/, inflated
+    end
+
+    it "create the SAMLRequest URL parameter with NameID AllowCreate = false" do
+      settings.name_identifier_format = "urn:oasis:names:tc:SAML:2.0:nameid-format:transient"
+      settings.name_identifier_allow_create = false
+
+      auth_url = OneLogin::RubySaml::Authrequest.new.create(settings)
+      assert_match /^http:\/\/example\.com\?SAMLRequest=/, auth_url
+      payload = CGI.unescape(auth_url.split("=").last)
+      decoded = Base64.decode64(payload)
+
+      zstream = Zlib::Inflate.new(-Zlib::MAX_WBITS)
+      inflated = zstream.inflate(decoded)
+      zstream.finish
+      zstream.close
+
+      assert_match /<samlp:NameIDPolicy[^<]* AllowCreate='false'/, inflated
+    end
+
     it "accept extra parameters" do
       auth_url = OneLogin::RubySaml::Authrequest.new.create(settings, { :hello => "there" })
       assert_match /&hello=there$/, auth_url
@@ -222,7 +256,7 @@ class RequestTest < Minitest::Test
         settings.certificate = ruby_saml_cert_text
         settings.private_key = ruby_saml_key_text
       end
-      
+
       it "create a signature parameter with RSA_SHA1 and validate it" do
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
 
@@ -255,7 +289,7 @@ class RequestTest < Minitest::Test
 
         signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
         assert_equal signature_algorithm, OpenSSL::Digest::SHA256
-        assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)        
+        assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
       end
     end
 
