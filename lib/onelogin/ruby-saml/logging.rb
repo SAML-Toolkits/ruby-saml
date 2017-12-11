@@ -7,7 +7,7 @@ module OneLogin
       DEFAULT_LOGGER = ::Logger.new(STDOUT)
 
       def self.logger
-        @logger || (defined?(::Rails) && Rails.logger) || DEFAULT_LOGGER
+        @logger || (defined?(::Rails) && Rails.respond_to?(:logger) && Rails.logger) || DEFAULT_LOGGER
       end
 
       def self.logger=(logger)
