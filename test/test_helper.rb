@@ -174,6 +174,22 @@ class Minitest::Test
     @idp_metadata_multiple_descriptors ||= File.read(File.join(File.dirname(__FILE__), 'metadata', 'idp_multiple_descriptors.xml'))
   end
 
+  def idp_metadata_multiple_certs
+    @idp_metadata_multiple_descriptors ||= File.read(File.join(File.dirname(__FILE__), 'metadata', 'idp_metadata_multi_certs.xml'))
+  end
+
+  def idp_metadata_multiple_signing_certs
+    @idp_metadata_multiple_signing_certs ||= File.read(File.join(File.dirname(__FILE__), 'metadata', 'idp_metadata_multi_signing_certs.xml'))
+  end
+
+  def idp_metadata_same_sign_and_encrypt_cert
+    @idp_metadata_same_sign_and_encrypt_cert ||= File.read(File.join(File.dirname(__FILE__), 'metadata', 'idp_metadata_same_sign_and_encrypt_cert.xml'))
+  end
+
+  def idp_metadata_different_sign_and_encrypt_cert
+    @idp_metadata_different_sign_and_encrypt_cert ||= File.read(File.join(File.dirname(__FILE__), 'metadata', 'idp_metadata_different_sign_and_encrypt_cert.xml'))
+  end
+
   def logout_request_document
     unless @logout_request_document
       xml = read_logout_request("slo_request.xml")

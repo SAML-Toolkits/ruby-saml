@@ -330,10 +330,10 @@ module OneLogin
       end
 
       def merge_certificates_into(parsed_metadata)
-        if certificates.size == 1 ||
-          ((certificates.key?("signing") && certificates["signing"].size == 1) &&
-            (certificates.key?("encryption") && certificates["encryption"].size == 1) &&
-            certificates["signing"][0] == certificates["encryption"][0])
+        if (certificates.size == 1 &&
+              (certificates_has_one('signing') || certificates_has_one('encryption'))) ||
+              (certificates_has_one('signing') && certificates_has_one('encryption') &&
+              certificates["signing"][0] == certificates["encryption"][0])
 
           if certificates.key?("signing")
             parsed_metadata[:idp_cert] = certificates["signing"][0]
@@ -352,6 +352,10 @@ module OneLogin
           # symbolize keys of certificates and pass it on
           parsed_metadata[:idp_cert_multi] = Hash[certificates.map { |k, v| [k.to_sym, v] }]
         end
+      end
+
+      def certificates_has_one(key)
+        certificates.key?(key) && certificates[key].size == 1
       end
 
       def merge_parsed_metadata_into(settings, parsed_metadata)
