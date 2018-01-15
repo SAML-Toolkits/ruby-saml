@@ -1,4 +1,9 @@
 # RubySaml Changelog
+
+### 1.6.1 (January 15, 2018)
+* [#428](https://github.com/onelogin/ruby-saml/issues/428) Fix a bug on IdPMetadataParser when parsing certificates
+* [#426](https://github.com/onelogin/ruby-saml/pull/426) Ensure `Rails` responds to `logger`
+
 ### 1.6.0 (November 27, 2017)
 * [#418](https://github.com/onelogin/ruby-saml/pull/418) Improve SAML message signature validation using original encoded parameters instead decoded in order to avoid conflicts (URL-encoding is not canonical, reported issues with ADFS)
 * [#420](https://github.com/onelogin/ruby-saml/pull/420) Expose NameID Format on SloLogoutrequest
