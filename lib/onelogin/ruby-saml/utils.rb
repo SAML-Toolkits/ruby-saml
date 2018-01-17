@@ -124,13 +124,13 @@ module OneLogin
       def self.retrieve_symmetric_key(encrypt_data, private_key)
         encrypted_symmetric_key_element = REXML::XPath.first(
           encrypt_data,
-          "//xenc:EncryptedData/ds:KeyInfo/xenc:EncryptedKey/xenc:CipherData/xenc:CipherValue",
+          "//xenc:EncryptedKey/xenc:CipherData/xenc:CipherValue",
           { "ds" => DSIG, "xenc" => XENC }
         )
         cipher_text = Base64.decode64(encrypted_symmetric_key_element.text)
         encrypt_method = REXML::XPath.first(
           encrypt_data,
-          "//xenc:EncryptedData/ds:KeyInfo/xenc:EncryptedKey/xenc:EncryptionMethod",
+          "//xenc:EncryptedKey/xenc:EncryptionMethod",
           {"ds" => DSIG,  "xenc" => XENC }
         )
         algorithm = encrypt_method.attributes['Algorithm']
