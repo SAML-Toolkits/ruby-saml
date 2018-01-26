@@ -22,7 +22,7 @@ module OneLogin
       #
       def self.format_cert(cert)
         # don't try to format an encoded certificate or if is empty or nil
-        return cert if cert.nil? || cert.empty? || cert.match(/\x0d/)
+        return cert if cert.nil? || cert.empty? || !cert.ascii_only?
 
         if cert.scan(/BEGIN CERTIFICATE/).length > 1
           formatted_cert = []
