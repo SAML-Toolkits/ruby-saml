@@ -72,7 +72,7 @@ module OneLogin
           params['Signature'] = encode(signature)
         end
 
-        params.compact.each_pair do |key, value|
+        params.reject { |_, v| v.nil? }.each_pair do |key, value|
           request_params[key] = value.to_s
         end
 
