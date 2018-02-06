@@ -78,7 +78,7 @@ module OneLogin
           params['Signature'] = encode(signature)
         end
 
-        params.each_pair do |key, value|
+        params.compact.each_pair do |key, value|
           response_params[key] = value.to_s
         end
 
@@ -108,7 +108,7 @@ module OneLogin
           issuer = root.add_element "saml:Issuer"
           issuer.text = settings.issuer
         end
-        
+
         # add success message
         status = root.add_element 'samlp:Status'
 

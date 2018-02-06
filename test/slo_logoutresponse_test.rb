@@ -27,14 +27,14 @@ class SloLogoutresponseTest < Minitest::Test
     end
 
     it "support additional params" do
-      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, nil, { :hello => nil })
-      assert_match /&hello=$/, unauth_url
-
       unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, nil, { :foo => "bar" })
       assert_match /&foo=bar$/, unauth_url
 
       unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, nil, { :RelayState => "http://idp.example.com" })
       assert_match /&RelayState=http%3A%2F%2Fidp.example.com$/, unauth_url
+
+      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, nil, { :hello => nil })
+      assert_match /(?!hello)/, unauth_url
     end
 
     it "set InResponseTo to the ID from the logout request" do

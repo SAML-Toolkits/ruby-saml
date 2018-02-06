@@ -126,7 +126,7 @@ class RequestTest < Minitest::Test
       assert_match /&hello=there$/, auth_url
 
       auth_url = OneLogin::RubySaml::Authrequest.new.create(settings, { :hello => nil })
-      assert_match /&hello=$/, auth_url
+      assert_match /(?!hello)/, auth_url
     end
 
     describe "when the target url doesn't contain a query string" do
@@ -222,7 +222,7 @@ class RequestTest < Minitest::Test
         settings.certificate = ruby_saml_cert_text
         settings.private_key = ruby_saml_key_text
       end
-      
+
       it "create a signature parameter with RSA_SHA1 and validate it" do
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
 
@@ -255,7 +255,7 @@ class RequestTest < Minitest::Test
 
         signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
         assert_equal signature_algorithm, OpenSSL::Digest::SHA256
-        assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)        
+        assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
       end
     end
 

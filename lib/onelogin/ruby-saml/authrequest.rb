@@ -75,7 +75,7 @@ module OneLogin
           params['Signature'] = encode(signature)
         end
 
-        params.each_pair do |key, value|
+        params.compact.each_pair do |key, value|
           request_params[key] = value.to_s
         end
 
@@ -157,7 +157,7 @@ module OneLogin
 
       def sign_document(document, settings)
         # embed signature
-        if settings.security[:authn_requests_signed] && settings.private_key && settings.certificate && settings.security[:embed_sign] 
+        if settings.security[:authn_requests_signed] && settings.private_key && settings.certificate && settings.security[:embed_sign]
           private_key = settings.get_sp_key
           cert = settings.get_sp_cert
           document.sign_document(private_key, cert, settings.security[:signature_method], settings.security[:digest_method])
