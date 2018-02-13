@@ -53,6 +53,11 @@ class RubySamlTest < Minitest::Test
     let(:response_invalid_signature_position) { OneLogin::RubySaml::Response.new(read_invalid_response("invalid_signature_position.xml.base64")) }
     let(:response_encrypted_nameid) { OneLogin::RubySaml::Response.new(response_document_encrypted_nameid) }
 
+    def generate_audience_error(expected, actual)
+      s = actual.count > 1 ? 's' : '';
+      return "Invalid Audience#{s}. The audience#{s} #{actual.join(',')}, did not match the expected audience #{expected}"
+    end
+
     it "raise an exception when response is initialized with nil" do
       assert_raises(ArgumentError) { OneLogin::RubySaml::Response.new(nil) }
     end
@@ -207,7 +212,7 @@ class RubySamlTest < Minitest::Test
           settings.issuer = 'invalid'
           response_valid_signed.settings = settings
           response_valid_signed.soft = false
-          error_msg = "#{response_valid_signed.settings.issuer} is not a valid audience for this Response - Valid audiences: https://someone.example.com/audience"
+          error_msg = generate_audience_error(response_valid_signed.settings.issuer, ['https://someone.example.com/audience'])
           assert_raises(OneLogin::RubySaml::ValidationError, error_msg) do
             response_valid_signed.is_valid?
           end
@@ -363,7 +368,8 @@ class RubySamlTest < Minitest::Test
           settings.issuer = 'invalid'
           response_valid_signed.settings = settings
           response_valid_signed.is_valid?
-          assert_includes response_valid_signed.errors, "#{response_valid_signed.settings.issuer} is not a valid audience for this Response - Valid audiences: https://someone.example.com/audience"
+
+          assert_includes response_valid_signed.errors, generate_audience_error(response_valid_signed.settings.issuer, ['https://someone.example.com/audience'])
         end
 
         it "return false when no ID present in the SAML Response" do
@@ -399,7 +405,7 @@ class RubySamlTest < Minitest::Test
           response_invalid_subjectconfirmation_recipient.settings = settings
           collect_errors = true
           response_invalid_subjectconfirmation_recipient.is_valid?(collect_errors)
-          assert_includes response_invalid_subjectconfirmation_recipient.errors, "invalid is not a valid audience for this Response - Valid audiences: http://stuff.com/endpoints/metadata.php"
+          assert_includes response_invalid_subjectconfirmation_recipient.errors, generate_audience_error('invalid', ['http://stuff.com/endpoints/metadata.php'])
           assert_includes response_invalid_subjectconfirmation_recipient.errors, "Invalid Signature on SAML Response"
         end
       end
@@ -417,7 +423,7 @@ class RubySamlTest < Minitest::Test
         response.settings = settings
         response.settings.issuer = 'invalid_audience'
         assert !response.send(:validate_audience)
-        assert_includes response.errors, "#{response.settings.issuer} is not a valid audience for this Response - Valid audiences: {audience}"
+        assert_includes response.errors, generate_audience_error(response.settings.issuer, ['{audience}'])
       end
     end
 
@@ -603,7 +609,7 @@ class RubySamlTest < Minitest::Test
         response_invalid_audience.settings = settings
         response_invalid_audience.settings.issuer = "https://invalid.example.com/audience"
         assert !response_invalid_audience.send(:validate_audience)
-        assert_includes response_invalid_audience.errors, "#{response_invalid_audience.settings.issuer} is not a valid audience for this Response - Valid audiences: http://invalid.audience.com"
+        assert_includes response_invalid_audience.errors, generate_audience_error(response_invalid_audience.settings.issuer, ['http://invalid.audience.com'])
       end
     end
 
