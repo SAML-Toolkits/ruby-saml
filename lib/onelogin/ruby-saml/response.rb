@@ -37,7 +37,7 @@ module OneLogin
       def name_id
         @name_id ||= begin
           node = xpath_first_from_signed_assertion('/a:Subject/a:NameID')
-          node.nil? ? nil : node.text
+          Utils.element_text(node)
         end
       end
 
@@ -58,7 +58,7 @@ module OneLogin
 
           stmt_element.elements.each do |attr_element|
             name  = attr_element.attributes["Name"]
-            value = attr_element.elements.first.text
+            value = Utils.element_text(attr_element.elements.first)
 
             result[name] = value
           end
@@ -104,7 +104,7 @@ module OneLogin
         @issuer ||= begin
           node = REXML::XPath.first(document, "/p:Response/a:Issuer", { "p" => PROTOCOL, "a" => ASSERTION })
           node ||= xpath_first_from_signed_assertion('/a:Issuer')
-          node.nil? ? nil : node.text
+          Utils.element_text(node)
         end
       end
 

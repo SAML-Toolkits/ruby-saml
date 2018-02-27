@@ -151,6 +151,14 @@ class RubySamlTest < Test::Unit::TestCase
         response.settings = settings
         assert_raises(OneLogin::RubySaml::ValidationError, 'Digest mismatch'){ response.validate! }
       end
+
+      should "Prevent node text with comment (VU#475445) attack" do
+        response_doc = File.read(File.join(File.dirname(__FILE__), "responses", 'response_node_text_attack.xml.base64'))
+        response = OneLogin::RubySaml::Response.new(response_doc)
+
+        assert_equal "support@onelogin.com", response.name_id
+        assert_equal "smith", response.attributes["surname"]
+      end
     end
 
     context "#name_id" do
