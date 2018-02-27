@@ -1,4 +1,8 @@
 # RubySaml Changelog
+
+### 0.9.3 (Feb 27, 2018)
+* Fix vulnerability CVE-2017-11428. Process text of nodes properly, ignoring comments
+
 ### 0.9.2 (Apr 28, 2015)
 * [#216](https://github.com/onelogin/ruby-saml/pull/216) Add fingerprint algorithm support
 * [#218](https://github.com/onelogin/ruby-saml/pull/218) Update README.md
