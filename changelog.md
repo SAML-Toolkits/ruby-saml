@@ -1,5 +1,9 @@
 # RubySaml Changelog
 
+### 0.8.3 (Feb 27, 2018)
+* Fix vulnerability CVE-2017-11428. Process text of nodes properly, ignoring comments
+* Fix DigestMethod lookup bug #144
+
 ### 0.8.2 (Jan 26, 2014)
 * [#183](https://github.com/onelogin/ruby-saml/pull/183) Resolved a security vulnerability where string interpolation in a `REXML::XPath.first()` method call allowed for arbitrary code execution.
 
