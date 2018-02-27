@@ -80,7 +80,7 @@ module OneLogin
             "/p:LogoutResponse/a:Issuer",
             { "p" => PROTOCOL, "a" => ASSERTION }
           )
-          node.nil? ? nil : node.text
+          Utils.element_text(node)
         end
       end
 
@@ -100,7 +100,7 @@ module OneLogin
             "/p:LogoutResponse/p:Status/p:StatusMessage",
             { "p" => PROTOCOL, "a" => ASSERTION }
           )
-          node.text if node
+          Utils.element_text(node)
         end
       end
 

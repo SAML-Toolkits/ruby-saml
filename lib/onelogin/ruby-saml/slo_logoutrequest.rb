@@ -60,7 +60,7 @@ module OneLogin
       def name_id
         @name_id ||= begin
           node = REXML::XPath.first(document, "/p:LogoutRequest/a:NameID", { "p" => PROTOCOL, "a" => ASSERTION })
-          node.nil? ? nil : node.text
+          Utils.element_text(node)
         end
       end
 
@@ -93,7 +93,7 @@ module OneLogin
             "/p:LogoutRequest/a:Issuer",
             { "p" => PROTOCOL, "a" => ASSERTION }
           )
-          node.nil? ? nil : node.text
+          Utils.element_text(node)
         end
       end
 
@@ -115,18 +115,13 @@ module OneLogin
       # @return [Array] Gets the SessionIndex if exists (Supported multiple values). Empty Array if none found
       #
       def session_indexes
-        s_indexes = []
         nodes = REXML::XPath.match(
           document,
           "/p:LogoutRequest/p:SessionIndex",
           { "p" => PROTOCOL }
         )
 
-        nodes.each do |node|
-          s_indexes << node.text
-        end
-
-        s_indexes
+        nodes.map { |node| Utils.element_text(node) }
       end
 
       private
