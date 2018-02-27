@@ -1,5 +1,9 @@
 # Ruby SAML [![Build Status](https://secure.travis-ci.org/onelogin/ruby-saml.svg)](http://travis-ci.org/onelogin/ruby-saml) [![Coverage Status](https://coveralls.io/repos/onelogin/ruby-saml/badge.svg?branch=master%0A)](https://coveralls.io/r/onelogin/ruby-saml?branch=master%0A) [![Gem Version](https://badge.fury.io/rb/ruby-saml.svg)](http://badge.fury.io/rb/ruby-saml)
 
+## Updating from 1.6.0 to 1.7.0
+
+Version `1.7.0` is a recommended update for all Ruby SAML users as it includes a fix for the [CVE-2017-11428](https://www.cvedetails.com/cve/CVE-2017-11428/) vulnerability.
+
 ## Updating from 1.5.0 to 1.6.0
 
 Version `1.6.0` changes the preferred way to construct instances of `Logoutresponse` and `SloLogoutrequest`. Previously the _SAMLResponse_, _RelayState_, and _SigAlg_ parameters of these message types were provided via the constructor's `options[:get_params]` parameter. Unfortunately this can result in incompatibility with other SAML implementations; signatures are specified to be computed based on the _sender's_ URI-encoding of the message, which can differ from that of Ruby SAML. In particular, Ruby SAML's URI-encoding does not match that of Microsoft ADFS, so messages from ADFS can fail signature validation.
