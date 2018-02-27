@@ -29,6 +29,7 @@ require "openssl"
 require 'nokogiri'
 require "digest/sha1"
 require "digest/sha2"
+require "onelogin/ruby-saml/utils"
 require "onelogin/ruby-saml/validation_error"
 
 module XMLSecurity
@@ -192,7 +193,7 @@ module XMLSecurity
           raise OneLogin::RubySaml::ValidationError.new("Certificate element missing in response (ds:X509Certificate)")
         end
       end
-      base64_cert = cert_element.text
+      base64_cert = OneLogin::RubySaml::Utils.element_text(cert_element)
       cert_text = Base64.decode64(base64_cert)
       cert = OpenSSL::X509::Certificate.new(cert_text)
 
@@ -248,7 +249,7 @@ module XMLSecurity
         digest_algorithm              = algorithm(REXML::XPath.first(ref, "//ds:DigestMethod", 'ds' => DSIG))
 
         hash                          = digest_algorithm.digest(canon_hashed_element)
-        digest_value                  = Base64.decode64(REXML::XPath.first(ref, "//ds:DigestValue", {"ds"=>DSIG}).text)
+        digest_value                  = Base64.decode64(OneLogin::RubySaml::Utils.element_text(REXML::XPath.first(ref, "//ds:DigestValue", {"ds"=>DSIG})))
 
         unless digests_match?(hash, digest_value)
           @errors << "Digest mismatch"
@@ -256,7 +257,7 @@ module XMLSecurity
         end
       end
 
-      base64_signature        = REXML::XPath.first(@sig_element, "//ds:SignatureValue", {"ds"=>DSIG}).text
+      base64_signature        = OneLogin::RubySaml::Utils.element_text(REXML::XPath.first(@sig_element, "//ds:SignatureValue", {"ds"=>DSIG}))
       signature               = Base64.decode64(base64_signature)
 
       # get certificate object

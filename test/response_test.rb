@@ -124,6 +124,14 @@ class RubySamlTest < Minitest::Test
         assert_equal response.name_id, "test@onelogin.com"
       end
 
+      it "Prevent node text with comment (VU#475445) attack" do
+        response_doc = File.read(File.join(File.dirname(__FILE__), "responses", 'response_node_text_attack.xml.base64'))
+        response = OneLogin::RubySaml::Response.new(response_doc)
+
+        assert_equal "support@onelogin.com", response.name_id
+        assert_equal "smith", response.attributes["surname"]
+      end
+
       it "support dynamic namespace resolution on signature elements" do
         response = OneLogin::RubySaml::Response.new(fixture("no_signature_ns.xml"))
         response.stubs(:conditions).returns(nil)
@@ -335,14 +343,14 @@ class RubySamlTest < Minitest::Test
 
         it "check what happens when trying retrieve attribute that does not exists" do
           response = OneLogin::RubySaml::Response.new(fixture(:response_with_multiple_attribute_values))
-          assert_equal nil, response.attributes[:attribute_not_exists]
-          assert_equal nil, response.attributes.single(:attribute_not_exists)
-          assert_equal nil, response.attributes.multi(:attribute_not_exists)
+          assert_nil response.attributes[:attribute_not_exists]
+          assert_nil response.attributes.single(:attribute_not_exists)
+          assert_nil response.attributes.multi(:attribute_not_exists)
 
           OneLogin::RubySaml::Attributes.single_value_compatibility = false
-          assert_equal nil, response.attributes[:attribute_not_exists]
-          assert_equal nil, response.attributes.single(:attribute_not_exists)
-          assert_equal nil, response.attributes.multi(:attribute_not_exists)
+          assert_nil response.attributes[:attribute_not_exists]
+          assert_nil response.attributes.single(:attribute_not_exists)
+          assert_nil response.attributes.multi(:attribute_not_exists)
           OneLogin::RubySaml::Attributes.single_value_compatibility = true
         end
 
@@ -383,7 +391,7 @@ class RubySamlTest < Minitest::Test
         malicious_response_document = fixture('response_eval', false)
         response = OneLogin::RubySaml::Response.new(malicious_response_document)
         response.send(:xpath_first_from_signed_assertion)
-        assert_equal($evalled, nil)
+        assert_nil $evalled
       end
     end
 

@@ -45,7 +45,7 @@ module OneLogin
       def name_id
         @name_id ||= begin
           node = xpath_first_from_signed_assertion('/a:Subject/a:NameID')
-          node.nil? ? nil : node.text
+          Utils.element_text(node)
         end
       end
 
@@ -79,7 +79,7 @@ module OneLogin
             values = attr_element.elements.collect{|e|
               # SAMLCore requires that nil AttributeValues MUST contain xsi:nil XML attribute set to "true" or "1"
               # otherwise the value is to be regarded as empty.
-              ["true", "1"].include?(e.attributes['xsi:nil']) ? nil : e.text.to_s
+              ["true", "1"].include?(e.attributes['xsi:nil']) ? nil : Utils.element_text(e)
             }
 
             attributes.add(name, values)
@@ -108,7 +108,7 @@ module OneLogin
       def status_message
         @status_message ||= begin
           node = REXML::XPath.first(document, "/p:Response/p:Status/p:StatusMessage", { "p" => PROTOCOL, "a" => ASSERTION })
-          node.text if node
+          Utils.element_text(node)
         end
       end
 
@@ -129,7 +129,7 @@ module OneLogin
         @issuer ||= begin
           node = REXML::XPath.first(document, "/p:Response/a:Issuer", { "p" => PROTOCOL, "a" => ASSERTION })
           node ||= xpath_first_from_signed_assertion('/a:Issuer')
-          node.nil? ? nil : node.text
+          Utils.element_text(node)
         end
       end
 

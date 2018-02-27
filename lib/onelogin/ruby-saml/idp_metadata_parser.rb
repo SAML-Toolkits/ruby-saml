@@ -73,7 +73,7 @@ module OneLogin
 
       def idp_name_id_format
         node = REXML::XPath.first(document, "/md:EntityDescriptor/md:IDPSSODescriptor/md:NameIDFormat", { "md" => METADATA })
-        node.text if node
+        Utils.element_text(node)
       end
 
       def single_signon_service_url
@@ -89,7 +89,7 @@ module OneLogin
       def certificate
         @certificate ||= begin
           node = REXML::XPath.first(document, "/md:EntityDescriptor/md:IDPSSODescriptor/md:KeyDescriptor[@use='signing']/ds:KeyInfo/ds:X509Data/ds:X509Certificate", { "md" => METADATA, "ds" => DSIG })
-          Base64.decode64(node.text) if node
+          Base64.decode64(Utils.element_text(node)) if node
         end
       end
 

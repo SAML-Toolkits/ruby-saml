@@ -58,7 +58,7 @@ module OneLogin
         @issuer ||= begin
           node = REXML::XPath.first(document, "/p:LogoutResponse/a:Issuer", { "p" => PROTOCOL, "a" => ASSERTION })
           node ||= REXML::XPath.first(document, "/p:LogoutResponse/a:Assertion/a:Issuer", { "p" => PROTOCOL, "a" => ASSERTION })
-          node.nil? ? nil : node.text
+          Utils.element_text(node)
         end
       end
 
