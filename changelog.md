@@ -1,5 +1,8 @@
 # RubySaml Changelog
 
+### 1.7.2 (Feb 28, 2018)
+* [#446](https://github.com/onelogin/ruby-saml/pull/446) Normalize text returned by OneLogin::RubySaml::Utils.element_text
+
 ### 1.7.1 (Feb 28, 2018)
 * [#444](https://github.com/onelogin/ruby-saml/pull/444) Fix audience validation for empty audience restriction
 
