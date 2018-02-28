@@ -60,7 +60,7 @@ module OneLogin
       def name_id
         @name_id ||= begin
           node = REXML::XPath.first(document, "/p:LogoutRequest/a:NameID", { "p" => PROTOCOL, "a" => ASSERTION })
-          node.nil? ? nil : node.text
+          Utils.element_text(node)
         end
       end
 
@@ -93,7 +93,7 @@ module OneLogin
             "/p:LogoutRequest/a:Issuer",
             { "p" => PROTOCOL, "a" => ASSERTION }
           )
-          node.nil? ? nil : node.text
+          Utils.element_text(node)
         end
       end
 
@@ -123,7 +123,7 @@ module OneLogin
         )
 
         nodes.each do |node|
-          s_indexes << node.text
+          s_indexes << Utils.element_text(node)
         end
 
         s_indexes

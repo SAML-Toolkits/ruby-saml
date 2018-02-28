@@ -71,10 +71,7 @@ module OneLogin
       # @return [String] the NameID provided by the SAML response from the IdP.
       #
       def name_id
-        @name_id ||=
-          if name_id_node
-            name_id_node.text
-          end
+        @name_id ||= Utils.element_text(name_id_node)
       end
 
       alias_method :nameid, :name_id
@@ -159,14 +156,14 @@ module OneLogin
                 if (e.elements.nil? || e.elements.size == 0)
                   # SAMLCore requires that nil AttributeValues MUST contain xsi:nil XML attribute set to "true" or "1"
                   # otherwise the value is to be regarded as empty.
-                  ["true", "1"].include?(e.attributes['xsi:nil']) ? nil : e.text.to_s
+                  ["true", "1"].include?(e.attributes['xsi:nil']) ? nil : Utils.element_text(e)
                 # explicitly support saml2:NameID with saml2:NameQualifier if supplied in attributes
                 # this is useful for allowing eduPersonTargetedId to be passed as an opaque identifier to use to
                 # identify the subject in an SP rather than email or other less opaque attributes
                 # NameQualifier, if present is prefixed with a "/" to the value
                 else
                  REXML::XPath.match(e,'a:NameID', { "a" => ASSERTION }).collect{|n|
-                    (n.attributes['NameQualifier'] ? n.attributes['NameQualifier'] +"/" : '') + n.text.to_s
+                    (n.attributes['NameQualifier'] ? n.attributes['NameQualifier'] +"/" : '') + Utils.element_text(n)
                   }
                 end
               }
@@ -238,8 +235,7 @@ module OneLogin
             { "p" => PROTOCOL }
           )
           if nodes.size == 1
-            node = nodes[0]
-            node.text if node
+            Utils.element_text(nodes.first)
           end
         end
       end
@@ -293,7 +289,10 @@ module OneLogin
 
           nodes = issuer_response_nodes + issuer_assertion_nodes
           nodes.each do |node|
-            issuers << node.text if node.text
+            text = Utils.element_text(node)
+            if text
+              issuers << text
+            end
           end
           issuers.uniq
         end
@@ -332,8 +331,11 @@ module OneLogin
           audiences = []
           nodes = xpath_from_signed_assertion('/a:Conditions/a:AudienceRestriction/a:Audience')
           nodes.each do |node|
-            if node && node.text
-              audiences << node.text
+            if node
+              text = Utils.element_text(node)
+              if text
+                audiences << text
+              end
             end
           end
           audiences

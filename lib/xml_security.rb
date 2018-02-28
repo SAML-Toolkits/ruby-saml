@@ -29,6 +29,7 @@ require "openssl"
 require 'nokogiri'
 require "digest/sha1"
 require "digest/sha2"
+require "onelogin/ruby-saml/utils"
 require "onelogin/ruby-saml/error_handling"
 
 module XMLSecurity
@@ -206,7 +207,7 @@ module XMLSecurity
       )
 
       if cert_element
-        base64_cert = cert_element.text
+        base64_cert = OneLogin::RubySaml::Utils.element_text(cert_element)
         cert_text = Base64.decode64(base64_cert)
         begin
           cert = OpenSSL::X509::Certificate.new(cert_text)
@@ -249,7 +250,7 @@ module XMLSecurity
       )
 
       if cert_element
-        base64_cert = cert_element.text
+        base64_cert = OneLogin::RubySaml::Utils.element_text(cert_element)
         cert_text = Base64.decode64(base64_cert)
         begin
           cert = OpenSSL::X509::Certificate.new(cert_text)
@@ -296,8 +297,8 @@ module XMLSecurity
         sig_element,
         "./ds:SignatureValue",
         {"ds" => DSIG}
-      ).text
-      signature = Base64.decode64(base64_signature)
+      )
+      signature = Base64.decode64(OneLogin::RubySaml::Utils.element_text(base64_signature))
 
       # canonicalization method
       canon_algorithm = canon_algorithm REXML::XPath.first(
@@ -338,8 +339,8 @@ module XMLSecurity
         ref,
         "//ds:DigestValue",
         { "ds" => DSIG }
-      ).text
-      digest_value = Base64.decode64(encoded_digest_value)
+      )
+      digest_value = Base64.decode64(OneLogin::RubySaml::Utils.element_text(encoded_digest_value))
 
       unless digests_match?(hash, digest_value)
         @errors << "Digest mismatch"

@@ -69,6 +69,20 @@ class RubySamlTest < Minitest::Test
       assert_includes ampersands_response.errors, "SAML Response must contain 1 assertion"
     end
 
+    describe "Prevent node text with comment attack (VU#475445)" do
+      before do
+        @response = OneLogin::RubySaml::Response.new(read_response('response_node_text_attack.xml.base64'))
+      end
+
+      it "receives the full NameID when there is an injected comment" do
+        assert_equal "support@onelogin.com", @response.name_id
+      end
+
+      it "receives the full AttributeValue when there is an injected comment" do
+        assert_equal "smith", @response.attributes["surname"]
+      end
+    end
+
     describe "Prevent XEE attack" do
       before do
         @response = OneLogin::RubySaml::Response.new(fixture(:attackxee))

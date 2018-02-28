@@ -192,7 +192,7 @@ module OneLogin
           "md:IDPSSODescriptor/md:NameIDFormat",
           namespace
         )
-        node.text if node
+        Utils.element_text(node)
       end
 
       # @param binding_priority [Array]
@@ -281,14 +281,14 @@ module OneLogin
             unless signing_nodes.empty?
               certs['signing'] = []
               signing_nodes.each do |cert_node|
-                certs['signing'] << cert_node.text
+                certs['signing'] << Utils.element_text(cert_node)
               end
             end
 
             unless encryption_nodes.empty?
               certs['encryption'] = []
               encryption_nodes.each do |cert_node|
-                certs['encryption'] << cert_node.text
+                certs['encryption'] << Utils.element_text(cert_node)
               end
             end
           end
