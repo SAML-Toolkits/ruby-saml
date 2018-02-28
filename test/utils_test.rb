@@ -213,5 +213,22 @@ class UtilsTest < Minitest::Test
         assert !OneLogin::RubySaml::Utils.uri_match?(destination, settings)
       end
     end
+
+    describe 'element_text' do
+      it 'returns the element text' do
+        element = REXML::Document.new('<element>element text</element>').elements.first
+        assert_equal 'element text', OneLogin::RubySaml::Utils.element_text(element)
+      end
+
+      it 'returns all segments of the element text' do
+        element = REXML::Document.new('<element>element <!-- comment -->text</element>').elements.first
+        assert_equal 'element text', OneLogin::RubySaml::Utils.element_text(element)
+      end
+
+      it 'returns normalized element text' do
+        element = REXML::Document.new('<element>element &amp; text</element>').elements.first
+        assert_equal 'element & text', OneLogin::RubySaml::Utils.element_text(element)
+      end
+    end
   end
 end
