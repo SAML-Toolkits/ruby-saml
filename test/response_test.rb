@@ -82,7 +82,33 @@ class RubySamlTest < Minitest::Test
       it "receives the full AttributeValue when there is an injected comment" do
         assert_equal "smith", @response.attributes["surname"]
       end
+    end
 
+    describe "Another test to prevent with comment attack (VU#475445)" do
+      before do
+        @response = OneLogin::RubySaml::Response.new(read_response('response_node_text_attack2.xml.base64'), {:skip_recipient_check => true })
+        @response.settings = settings
+        @response.settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
+      end
+
+      it "receives the full NameID when there is an injected comment, validates the response" do
+        assert_equal "test@onelogin.com", @response.name_id
+        assert @response.is_valid?
+      end
+    end
+
+    describe "Another test with CDATA injected" do
+      before do
+        @response = OneLogin::RubySaml::Response.new(read_response('response_node_text_attack3.xml.base64'), {:skip_recipient_check => true })
+        @response.settings = settings
+        @response.settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
+      end
+
+      it "it normalizes CDATA but reject SAMLResponse due signature invalidation" do
+        assert_equal "test@onelogin.com.evil.com", @response.name_id
+        assert !@response.is_valid?
+        assert_includes @response.errors, "Invalid Signature on SAML Response"
+      end
     end
 
     describe "Prevent XEE attack" do
