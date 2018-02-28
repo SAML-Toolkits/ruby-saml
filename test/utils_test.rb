@@ -229,6 +229,15 @@ class UtilsTest < Minitest::Test
         element = REXML::Document.new('<element>element &amp; text</element>').elements.first
         assert_equal 'element & text', OneLogin::RubySaml::Utils.element_text(element)
       end
+
+      it 'returns nil when element is nil' do
+        assert_nil OneLogin::RubySaml::Utils.element_text(nil)
+      end
+
+      it 'returns empty string when element has no text' do
+        element = REXML::Document.new('<element></element>').elements.first
+        assert_equal '', OneLogin::RubySaml::Utils.element_text(element)
+      end
     end
   end
 end
