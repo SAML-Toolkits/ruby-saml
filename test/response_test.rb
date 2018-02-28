@@ -1129,12 +1129,12 @@ class RubySamlTest < Minitest::Test
 
         it "return multiple values including nil and empty string" do
           response = OneLogin::RubySaml::Response.new(fixture(:response_with_multiple_attribute_values))
-          assert_equal ["", "valuePresent", nil, nil], response.attributes.multi(:attribute_with_nils_and_empty_strings)
+          assert_equal [nil, "valuePresent", nil, nil], response.attributes.multi(:attribute_with_nils_and_empty_strings)
         end
 
         it "return multiple values from [] when not in compatibility mode off" do
           OneLogin::RubySaml::Attributes.single_value_compatibility = false
-          assert_equal ["", "valuePresent", nil, nil], response_multiple_attr_values.attributes[:attribute_with_nils_and_empty_strings]
+          assert_equal [nil, "valuePresent", nil, nil], response_multiple_attr_values.attributes[:attribute_with_nils_and_empty_strings]
           OneLogin::RubySaml::Attributes.single_value_compatibility = true
         end
 
