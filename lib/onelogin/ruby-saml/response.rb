@@ -322,7 +322,7 @@ module OneLogin
       def audiences
         @audiences ||= begin
           nodes = xpath_from_signed_assertion('/a:Conditions/a:AudienceRestriction/a:Audience')
-          nodes.map { |node| Utils.element_text(node) }.compact
+          nodes.map { |node| Utils.element_text(node) }.reject(&:empty?)
         end
       end
 
