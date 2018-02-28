@@ -34,6 +34,7 @@ class RubySamlTest < Minitest::Test
     let(:response_encrypted_attrs) { OneLogin::RubySaml::Response.new(response_document_encrypted_attrs) }
     let(:response_no_signed_elements) { OneLogin::RubySaml::Response.new(read_invalid_response("no_signature.xml.base64")) }
     let(:response_multiple_signed) { OneLogin::RubySaml::Response.new(read_invalid_response("multiple_signed.xml.base64")) }
+    let(:response_audience_self_closed) { OneLogin::RubySaml::Response.new(read_response("response_audience_self_closed_tag.xml.base64")) }
     let(:response_invalid_audience) { OneLogin::RubySaml::Response.new(read_invalid_response("invalid_audience.xml.base64")) }
     let(:response_invalid_signed_element) { OneLogin::RubySaml::Response.new(read_invalid_response("response_invalid_signed_element.xml.base64")) }
     let(:response_invalid_issuer_assertion) { OneLogin::RubySaml::Response.new(read_invalid_response("invalid_issuer_assertion.xml.base64")) }
@@ -426,6 +427,13 @@ class RubySamlTest < Minitest::Test
         response.settings.issuer = '{audience}'
         assert response.send(:validate_audience)
         assert_empty response.errors
+      end
+
+      it "return true when the audience is self closing" do
+        response_audience_self_closed.settings = settings
+        response_audience_self_closed.settings.issuer = '{audience}'
+        assert response_audience_self_closed.send(:validate_audience)
+        assert_empty response_audience_self_closed.errors
       end
 
       it "return false when the audience is valid" do
