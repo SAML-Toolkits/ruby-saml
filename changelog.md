@@ -1,5 +1,8 @@
 # RubySaml Changelog
 
+### 1.7.1 (Feb 28, 2018)
+* [#444](https://github.com/onelogin/ruby-saml/pull/444) Fix audience validation for empty audience restriction
+
 ### 1.7.0 (Feb 27, 2018)
 * Fix vulnerability CVE-2017-11428. Process text of nodes properly, ignoring comments
 
