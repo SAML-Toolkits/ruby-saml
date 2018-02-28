@@ -230,6 +230,16 @@ class UtilsTest < Minitest::Test
         assert_equal 'element & text', OneLogin::RubySaml::Utils.element_text(element)
       end
 
+      it 'returns the CDATA element text' do
+        element = REXML::Document.new('<element><![CDATA[element & text]]></element>').elements.first
+        assert_equal 'element & text', OneLogin::RubySaml::Utils.element_text(element)
+      end
+
+      it 'returns the element text with newlines and additional whitespace' do
+        element = REXML::Document.new("<element>  element \n text  </element>").elements.first
+        assert_equal "  element \n text  ", OneLogin::RubySaml::Utils.element_text(element)
+      end
+
       it 'returns nil when element is nil' do
         assert_nil OneLogin::RubySaml::Utils.element_text(nil)
       end
@@ -238,6 +248,7 @@ class UtilsTest < Minitest::Test
         element = REXML::Document.new('<element></element>').elements.first
         assert_equal '', OneLogin::RubySaml::Utils.element_text(element)
       end
+
     end
   end
 end
