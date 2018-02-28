@@ -1,5 +1,8 @@
 # RubySaml Changelog
 
+### 1.6.2 (Feb 28, 2018)
+* Fix vulnerability CVE-2017-11428. Process text of nodes properly, ignoring comments
+
 ### 1.6.1 (January 15, 2018)
 * [#428](https://github.com/onelogin/ruby-saml/issues/428) Fix a bug on IdPMetadataParser when parsing certificates
 * [#426](https://github.com/onelogin/ruby-saml/pull/426) Ensure `Rails` responds to `logger`
