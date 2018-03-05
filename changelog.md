@@ -1,5 +1,8 @@
 # RubySaml Changelog
 
+### 0.9.4 (March 5, 2018)
+* Improve the fix for CVE-2017-11428 to parse CDATA properly
+
 ### 0.9.3 (Feb 27, 2018)
 * Fix vulnerability CVE-2017-11428. Process text of nodes properly, ignoring comments
 
