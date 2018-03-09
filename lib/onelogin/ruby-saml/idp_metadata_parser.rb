@@ -101,6 +101,8 @@ module OneLogin
         @document = REXML::Document.new(idp_metadata)
         @options = options
         @entity_descriptor = nil
+        @certificates = nil
+        @fingerprint = nil
 
         if idpsso_descriptor.nil?
           raise ArgumentError.new("idp_metadata must contain an IDPSSODescriptor element")
