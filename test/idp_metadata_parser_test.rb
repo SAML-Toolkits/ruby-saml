@@ -185,6 +185,17 @@ class IdpMetadataParserTest < Minitest::Test
       assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", parsed_metadata[:idp_cert_fingerprint]
       assert_nil parsed_metadata[:security]
     end
+
+    it "can extract certificates multiple times in sequence" do
+      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata1 = idp_metadata_descriptor
+      idp_metadata2 = idp_metadata_descriptor4
+      metadata1 = idp_metadata_parser.parse_to_hash(idp_metadata1)
+      metadata2 = idp_metadata_parser.parse_to_hash(idp_metadata2)
+
+      assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", metadata1[:idp_cert_fingerprint]
+      assert_equal "CD:2B:2B:DA:FF:F5:DB:64:10:7C:AC:FD:FE:0F:CB:5D:73:5F:16:07", metadata2[:idp_cert_fingerprint]
+    end
   end
 
   describe "parsing an IdP descriptor file with multiple signing certs" do
