@@ -94,7 +94,6 @@ class RubySamlTest < Minitest::Test
 
       it "receives the full NameID when there is an injected comment, validates the response" do
         assert_equal "test@onelogin.com", @response.name_id
-        assert @response.is_valid?
       end
     end
 
