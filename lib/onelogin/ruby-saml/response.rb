@@ -633,6 +633,8 @@ module OneLogin
       # @return [Boolean] True if there is a authnstatement element and is unique
       #
       def validate_one_authnstatement
+        return true if options[:skip_authnstatement]
+        
         authnstatement_nodes = xpath_from_signed_assertion('/a:AuthnStatement')
         unless authnstatement_nodes.size == 1
           error_msg = "The Assertion must include one AuthnStatement element"

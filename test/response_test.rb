@@ -24,6 +24,7 @@ class RubySamlTest < Minitest::Test
     let(:response_multi_assertion) { OneLogin::RubySaml::Response.new(read_invalid_response("multiple_assertions.xml.base64")) }
     let(:response_no_conditions) { OneLogin::RubySaml::Response.new(read_invalid_response("no_conditions.xml.base64")) }
     let(:response_no_authnstatement) { OneLogin::RubySaml::Response.new(read_invalid_response("no_authnstatement.xml.base64")) }
+    let(:response_no_authnstatement_with_skip) { OneLogin::RubySaml::Response.new(read_invalid_response("no_authnstatement.xml.base64"), {:skip_authnstatement => true}) }
     let(:response_empty_destination) { OneLogin::RubySaml::Response.new(read_invalid_response("empty_destination.xml.base64")) }
     let(:response_empty_destination_with_skip) { OneLogin::RubySaml::Response.new(read_invalid_response("empty_destination.xml.base64"), {:skip_destination => true}) }
     let(:response_no_status) { OneLogin::RubySaml::Response.new(read_invalid_response("no_status.xml.base64")) }
@@ -996,6 +997,12 @@ class RubySamlTest < Minitest::Test
       it "return true when one authnstatement element" do
         response.soft = true
         assert response.send(:validate_one_authnstatement)
+      end
+
+      it "return true when SAML Response is empty but skip_authstatement option is used" do
+        response_no_authnstatement_with_skip.soft = true
+        assert response_no_authnstatement_with_skip.send(:validate_one_authnstatement)
+        assert_empty response_empty_destination_with_skip.errors
       end
     end
 
