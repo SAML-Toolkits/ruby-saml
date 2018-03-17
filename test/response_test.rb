@@ -23,6 +23,7 @@ class RubySamlTest < Minitest::Test
     let(:response_no_version) { OneLogin::RubySaml::Response.new(read_invalid_response("no_saml2.xml.base64")) }
     let(:response_multi_assertion) { OneLogin::RubySaml::Response.new(read_invalid_response("multiple_assertions.xml.base64")) }
     let(:response_no_conditions) { OneLogin::RubySaml::Response.new(read_invalid_response("no_conditions.xml.base64")) }
+    let(:response_no_conditions_with_skip) { OneLogin::RubySaml::Response.new(read_invalid_response("no_conditions.xml.base64"), { :skip_conditions => true }) }
     let(:response_no_authnstatement) { OneLogin::RubySaml::Response.new(read_invalid_response("no_authnstatement.xml.base64")) }
     let(:response_no_authnstatement_with_skip) { OneLogin::RubySaml::Response.new(read_invalid_response("no_authnstatement.xml.base64"), {:skip_authnstatement => true}) }
     let(:response_empty_destination) { OneLogin::RubySaml::Response.new(read_invalid_response("empty_destination.xml.base64")) }
@@ -983,6 +984,11 @@ class RubySamlTest < Minitest::Test
       it "return true when one conditions element" do
         response.soft = true
         assert response.send(:validate_one_conditions)
+      end
+
+      it "return true when no conditions are present and skip_conditions is true" do
+        response_no_conditions_with_skip.soft = true
+        assert response_no_conditions_with_skip.send(:validate_one_conditions)
       end
     end
 

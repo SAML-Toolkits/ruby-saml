@@ -615,10 +615,13 @@ module OneLogin
       end
 
       # Checks that the samlp:Response/saml:Assertion/saml:Conditions element exists and is unique.
+      # (If the response was initialized with the :skip_conditions option, this validation is skipped)
       # If fails, the error is added to the errors array
       # @return [Boolean] True if there is a conditions element and is unique
       #
       def validate_one_conditions
+        return true if options[:skip_conditions]
+
         conditions_nodes = xpath_from_signed_assertion('/a:Conditions')
         unless conditions_nodes.size == 1
           error_msg = "The Assertion must include one Conditions element"
@@ -634,7 +637,7 @@ module OneLogin
       #
       def validate_one_authnstatement
         return true if options[:skip_authnstatement]
-        
+
         authnstatement_nodes = xpath_from_signed_assertion('/a:AuthnStatement')
         unless authnstatement_nodes.size == 1
           error_msg = "The Assertion must include one AuthnStatement element"
