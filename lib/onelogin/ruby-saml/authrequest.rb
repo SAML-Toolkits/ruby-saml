@@ -36,6 +36,7 @@ module OneLogin
         params.each_pair do |key, value|
           request_params << "&#{key.to_s}=#{CGI.escape(value.to_s)}"
         end
+        raise "Invalid settings, idp_sso_target_url is not set!" if settings.idp_sso_target_url.nil?
         @login_url = settings.idp_sso_target_url + request_params
       end
 

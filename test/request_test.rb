@@ -129,6 +129,19 @@ class RequestTest < Minitest::Test
       assert_match /&hello=$/, auth_url
     end
 
+    describe "when the target url is not set" do
+      before do
+        settings.idp_sso_target_url = nil
+      end
+
+      it "raises an error with a descriptive message" do
+        err = assert_raises RuntimeError do
+          OneLogin::RubySaml::Authrequest.new.create(settings)
+        end
+        assert_match /idp_sso_target_url is not set/, err.message
+      end
+    end
+
     describe "when the target url doesn't contain a query string" do
       it "create the SAMLRequest parameter correctly" do
 
