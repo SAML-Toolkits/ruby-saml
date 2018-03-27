@@ -30,6 +30,15 @@ module OneLogin
 
       attr_accessor :soft
 
+      # Response available options
+      # This is not a whitelist to allow people extending OneLogin::RubySaml:Response
+      # and pass custom options
+      AVAILABLE_OPTIONS = [
+        :allowed_clock_drift, :check_duplicated_attributes, :matches_request_id, :settings, :skip_authnstatement, :skip_conditions,
+        :skip_destination, :skip_recipient_check, :skip_subject_confirmation
+      ]
+      # TODO: Update the comment on initialize to describe every option
+
       # Constructs the SAML Response. A Response Object that is an extension of the SamlMessage class.
       # @param response [String] A UUEncoded SAML response from the IdP.
       # @param options  [Hash]   :settings to provide the OneLogin::RubySaml::Settings object
