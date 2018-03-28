@@ -60,6 +60,13 @@ class RubySamlTest < Minitest::Test
       assert_raises(ArgumentError) { OneLogin::RubySaml::Response.new(nil) }
     end
 
+    it "not filter available options only" do
+      options = { :skip_destination => true, :foo => :bar }
+      response = OneLogin::RubySaml::Response.new(response_document_valid_signed, options)
+      assert_includes response.options.keys, :skip_destination
+      assert_includes response.options.keys, :foo
+    end
+
     it "be able to parse a document which contains ampersands" do
       XMLSecurity::SignedDocument.any_instance.stubs(:digests_match?).returns(true)
       OneLogin::RubySaml::Response.any_instance.stubs(:validate_conditions).returns(true)
