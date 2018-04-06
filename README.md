@@ -41,6 +41,10 @@ value.
 If you want to skip that validation, add the :skip_recipient_check option to the
 initialize method of the Response object.
 
+Parsing metadata that contains more than one certificate will propagate the
+idp_cert_multi property rather than idp_cert. See [signature validation
+section](#signature-validation) for details.
+
 ## Updating from 1.3.x to 1.4.X
 
 Version `1.4.0` is a recommended update for all Ruby SAML users as it includes security improvements.
