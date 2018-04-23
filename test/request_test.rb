@@ -126,7 +126,7 @@ class RequestTest < Minitest::Test
       assert_match /&hello=there$/, auth_url
 
       auth_url = OneLogin::RubySaml::Authrequest.new.create(settings, { :hello => nil })
-      assert_match /&hello=$/, auth_url
+      assert_match /(?!hello)/, auth_url
     end
 
     it "RelayState cases" do
