@@ -28,6 +28,20 @@ class RequestTest < Minitest::Test
       assert_match /&foo=bar$/, unauth_url
     end
 
+    it "RelayState cases" do
+      unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings, { :RelayState => nil })
+      assert !unauth_url.include?('RelayState')
+
+      unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings, { :RelayState => "http://example.com" })
+      assert unauth_url.include?('&RelayState=http%3A%2F%2Fexample.com')
+
+      unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings, { 'RelayState' => nil })
+      assert !unauth_url.include?('RelayState')
+
+      unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings, { 'RelayState' => "http://example.com" })
+      assert unauth_url.include?('&RelayState=http%3A%2F%2Fexample.com')
+    end
+
     it "set sessionindex" do
       settings.idp_slo_target_url = "http://example.com"
       sessionidx = OneLogin::RubySaml::Utils.uuid

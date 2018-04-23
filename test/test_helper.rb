@@ -117,15 +117,15 @@ class Minitest::Test
   end
 
   def signed_message_encrypted_unsigned_assertion
-    @signed_message_encrypted_unsigned_assertion ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'signed_message_encrypted_unsigned_assertion.xml.base64'))    
+    @signed_message_encrypted_unsigned_assertion ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'signed_message_encrypted_unsigned_assertion.xml.base64'))
   end
 
   def signed_message_encrypted_signed_assertion
-    @signed_message_encrypted_signed_assertion ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'signed_message_encrypted_signed_assertion.xml.base64'))    
+    @signed_message_encrypted_signed_assertion ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'signed_message_encrypted_signed_assertion.xml.base64'))
   end
 
   def unsigned_message_encrypted_signed_assertion
-    @unsigned_message_encrypted_signed_assertion ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'unsigned_message_encrypted_signed_assertion.xml.base64'))    
+    @unsigned_message_encrypted_signed_assertion ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'unsigned_message_encrypted_signed_assertion.xml.base64'))
   end
 
   def unsigned_message_encrypted_unsigned_assertion
@@ -145,7 +145,7 @@ class Minitest::Test
   end
 
   # certificate used on response_with_undefined_recipient
-  def signature_1  
+  def signature_1
     @signature1 ||= read_certificate("certificate1")
   end
 

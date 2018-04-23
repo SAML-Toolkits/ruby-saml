@@ -53,6 +53,11 @@ module OneLogin
         # conflicts so this line will solve them.
         relay_state = params[:RelayState] || params['RelayState']
 
+        if relay_state.nil?
+          params.delete(:RelayState)
+          params.delete('RelayState')
+        end
+
         response_doc = create_logout_response_xml_doc(settings, request_id, logout_message)
         response_doc.context[:attribute_quote] = :quote if settings.double_quote_xml_attribute_values
 
@@ -108,7 +113,7 @@ module OneLogin
           issuer = root.add_element "saml:Issuer"
           issuer.text = settings.issuer
         end
-        
+
         # add success message
         status = root.add_element 'samlp:Status'
 

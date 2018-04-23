@@ -47,6 +47,11 @@ module OneLogin
         # conflicts so this line will solve them.
         relay_state = params[:RelayState] || params['RelayState']
 
+        if relay_state.nil?
+          params.delete(:RelayState)
+          params.delete('RelayState')
+        end
+
         request_doc = create_logout_request_xml_doc(settings)
         request_doc.context[:attribute_quote] = :quote if settings.double_quote_xml_attribute_values
 

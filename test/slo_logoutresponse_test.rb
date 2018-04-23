@@ -37,6 +37,20 @@ class SloLogoutresponseTest < Minitest::Test
       assert_match /&RelayState=http%3A%2F%2Fidp.example.com$/, unauth_url
     end
 
+    it "RelayState cases" do
+      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, nil, { :RelayState => nil })
+      assert !unauth_url.include?('RelayState')
+
+      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, nil, { :RelayState => "http://example.com" })
+      assert unauth_url.include?('&RelayState=http%3A%2F%2Fexample.com')
+
+      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, nil, { 'RelayState' => nil })
+      assert !unauth_url.include?('RelayState')
+
+      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, nil, { 'RelayState' => "http://example.com" })
+      assert unauth_url.include?('&RelayState=http%3A%2F%2Fexample.com')
+    end
+
     it "set InResponseTo to the ID from the logout request" do
       unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, logout_request.id)
 

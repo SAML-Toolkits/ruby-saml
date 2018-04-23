@@ -129,6 +129,20 @@ class RequestTest < Minitest::Test
       assert_match /&hello=$/, auth_url
     end
 
+    it "RelayState cases" do
+      auth_url = OneLogin::RubySaml::Authrequest.new.create(settings, { :RelayState => nil })
+      assert !auth_url.include?('RelayState')
+
+      auth_url = OneLogin::RubySaml::Authrequest.new.create(settings, { :RelayState => "http://example.com" })
+      assert auth_url.include?('&RelayState=http%3A%2F%2Fexample.com')
+
+      auth_url = OneLogin::RubySaml::Authrequest.new.create(settings, { 'RelayState' => nil })
+      assert !auth_url.include?('RelayState')
+
+      auth_url = OneLogin::RubySaml::Authrequest.new.create(settings, { 'RelayState' => "http://example.com" })
+      assert auth_url.include?('&RelayState=http%3A%2F%2Fexample.com')
+    end
+
     describe "when the target url is not set" do
       before do
         settings.idp_sso_target_url = nil
@@ -235,7 +249,7 @@ class RequestTest < Minitest::Test
         settings.certificate = ruby_saml_cert_text
         settings.private_key = ruby_saml_key_text
       end
-      
+
       it "create a signature parameter with RSA_SHA1 and validate it" do
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
 
@@ -268,7 +282,7 @@ class RequestTest < Minitest::Test
 
         signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
         assert_equal signature_algorithm, OpenSSL::Digest::SHA256
-        assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)        
+        assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
       end
     end
 
