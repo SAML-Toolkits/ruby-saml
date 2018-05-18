@@ -668,12 +668,12 @@ module OneLogin
 
         now = Time.now.utc
 
-        if not_before && (now_with_drift = now + allowed_clock_drift) < not_before
+        if not_before.nil? || (now_with_drift = now + allowed_clock_drift) < not_before
           error_msg = "Current time is earlier than NotBefore condition (#{now_with_drift} < #{not_before})"
           return append_error(error_msg)
         end
 
-        if not_on_or_after && now >= (not_on_or_after_with_drift = not_on_or_after + allowed_clock_drift)
+        if not_on_or_after.nil? || now >= (not_on_or_after_with_drift = not_on_or_after + allowed_clock_drift)
           error_msg = "Current time is on or after NotOnOrAfter condition (#{now} >= #{not_on_or_after_with_drift})"
           return append_error(error_msg)
         end
@@ -754,7 +754,7 @@ module OneLogin
 
           attrs = confirmation_data_node.attributes
           next if (attrs.include? "InResponseTo" and attrs['InResponseTo'] != in_response_to) ||
-                  (attrs.include? "NotOnOrAfter" and (parse_time(confirmation_data_node, "NotOnOrAfter") + allowed_clock_drift) <= now) ||
+                  (!attrs.include? "NotOnOrAfter" or (parse_time(confirmation_data_node, "NotOnOrAfter") + allowed_clock_drift) <= now) ||
                   (attrs.include? "NotBefore" and parse_time(confirmation_data_node, "NotBefore") > (now + allowed_clock_drift)) ||
                   (attrs.include? "Recipient" and !options[:skip_recipient_check] and settings and attrs['Recipient'] != settings.assertion_consumer_service_url)
 
