@@ -627,6 +627,21 @@ class RubySamlTest < Minitest::Test
       end
     end
 
+    describe "validate_formatted_x509_certificate" do
+      let(:response_with_formatted_x509certificate) {
+        OneLogin::RubySaml::Response.new(read_response("valid_response_with_formatted_x509certificate.xml.base64"), {
+          :skip_conditions => true,
+          :skip_subject_confirmation => true })
+        }
+      
+      it "be able to parse the response wihout errors" do
+        response_with_formatted_x509certificate.settings = settings
+        response_with_formatted_x509certificate.settings.idp_cert = ruby_saml_cert_text        
+        assert response_with_formatted_x509certificate.is_valid?
+        assert_empty response_with_formatted_x509certificate.errors
+      end
+    end
+    
     describe "#validate_in_response_to" do
       it "return true when the inResponseTo value matches the Request ID" do
         response = OneLogin::RubySaml::Response.new(response_document_valid_signed, :settings => settings, :matches_request_id => "_fc4a34b0-7efb-012e-caae-782bcb13bb38")
