@@ -78,6 +78,23 @@ class RequestTest < Minitest::Test
       assert_match /<samlp:AuthnRequest[^<]* ProtocolBinding='urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'/, inflated
     end
 
+    it "create the SAMLRequest URL parameter with AssertionConsumerServiceIndex" do
+      settings.assertion_consumer_service_index = 0
+      settings.assertion_consumer_service_url = "http://www.example.com/"
+      auth_url = OneLogin::RubySaml::Authrequest.new.create(settings)
+      assert_match /^http:\/\/example\.com\?SAMLRequest=/, auth_url
+      payload  = CGI.unescape(auth_url.split("=").last)
+      decoded  = Base64.decode64(payload)
+
+      zstream  = Zlib::Inflate.new(-Zlib::MAX_WBITS)
+      inflated = zstream.inflate(decoded)
+      zstream.finish
+      zstream.close
+
+      assert_match /<samlp:AuthnRequest[^<]* AssertionConsumerServiceIndex='0'/, inflated
+      refute_match /<samlp:AuthnRequest[^<]* AssertionConsumerServiceURL='http:\/\/www.example.com\/'/, inflated
+    end
+
     it "create the SAMLRequest URL parameter with AttributeConsumingServiceIndex" do
       settings.attributes_index = 30
       auth_url = OneLogin::RubySaml::Authrequest.new.create(settings)

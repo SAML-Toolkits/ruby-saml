@@ -114,9 +114,12 @@ module OneLogin
         root.attributes['ForceAuthn'] = settings.force_authn unless settings.force_authn.nil?
 
         # Conditionally defined elements based on settings
-        if settings.assertion_consumer_service_url != nil
+        if settings.assertion_consumer_service_index != nil
+          root.attributes["AssertionConsumerServiceIndex"] = settings.assertion_consumer_service_index
+        elsif settings.assertion_consumer_service_url != nil
           root.attributes["AssertionConsumerServiceURL"] = settings.assertion_consumer_service_url
         end
+
         if settings.issuer != nil
           issuer = root.add_element "saml:Issuer"
           issuer.text = settings.issuer

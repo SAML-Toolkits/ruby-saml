@@ -13,7 +13,7 @@ class SettingsTest < Minitest::Test
       accessors = [
         :idp_entity_id, :idp_sso_target_url, :idp_slo_target_url,
         :idp_cert, :idp_cert_fingerprint, :idp_cert_fingerprint_algorithm, :idp_cert_multi,
-        :idp_attribute_names, :issuer, :assertion_consumer_service_url, :assertion_consumer_service_binding,
+        :idp_attribute_names, :issuer, :assertion_consumer_service_url, :assertion_consumer_service_binding, :assertion_consumer_service_index,
         :single_logout_service_url, :single_logout_service_binding,
         :sp_name_qualifier, :name_identifier_format, :name_identifier_value,
         :sessionindex, :attributes_index, :passive, :force_authn,
@@ -35,6 +35,7 @@ class SettingsTest < Minitest::Test
     it "create settings from hash" do
       config = {
           :assertion_consumer_service_url => "http://app.muda.no/sso",
+          :assertion_consumer_service_index => 0,
           :issuer => "http://muda.no",
           :sp_name_qualifier => "http://sso.muda.no",
           :idp_sso_target_url => "http://sso.muda.no/sso",
@@ -93,7 +94,7 @@ class SettingsTest < Minitest::Test
 
         assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", @settings.single_logout_service_binding
       end
-    end    
+    end
 
     describe "#get_idp_cert" do
       it "returns nil when the cert is an empty string" do
@@ -169,7 +170,7 @@ class SettingsTest < Minitest::Test
 
         assert @settings.get_idp_cert_multi.kind_of? Hash
         assert @settings.get_idp_cert_multi[:signing].kind_of? Array
-        assert @settings.get_idp_cert_multi[:encryption].kind_of? Array        
+        assert @settings.get_idp_cert_multi[:encryption].kind_of? Array
         assert @settings.get_idp_cert_multi[:signing][0].kind_of? OpenSSL::X509::Certificate
         assert @settings.get_idp_cert_multi[:encryption][0].kind_of? OpenSSL::X509::Certificate
       end
