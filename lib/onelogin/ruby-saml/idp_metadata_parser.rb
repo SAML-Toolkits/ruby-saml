@@ -67,8 +67,25 @@ module OneLogin
       #
       # @raise [HttpError] Failure to fetch remote IdP metadata
       def parse_remote_to_hash(url, validate_cert = true, options = {})
+        parse_remote_to_array(url, validate_cert, options)[0]
+      end
+
+      # Parse all Identity Provider metadata and return the results as Array
+      #
+      # @param url [String] Url where the XML of the Identity Provider Metadata is published.
+      # @param validate_cert [Boolean] If true and the URL is HTTPs, the cert of the domain is checked.
+      #
+      # @param options [Hash] options used for parsing the metadata
+      # @option options [Array<String>, nil] :sso_binding an ordered list of bindings to detect the single signon URL. The first binding in the list that is included in the metadata will be used.
+      # @option options [Array<String>, nil] :slo_binding an ordered list of bindings to detect the single logout URL. The first binding in the list that is included in the metadata will be used.
+      # @option options [String, nil] :entity_id when this is given, the entity descriptor for this ID is used. When ommitted, all found IdPs are returned.
+      #
+      # @return [Array<Hash>]
+      #
+      # @raise [HttpError] Failure to fetch remote IdP metadata
+      def parse_remote_to_array(url, validate_cert = true, options = {})
         idp_metadata = get_idp_metadata(url, validate_cert)
-        parse_to_hash(idp_metadata, options)
+        parse_to_array(idp_metadata, options)
       end
 
       # Parse the Identity Provider metadata and update the settings with the IdP values
@@ -107,15 +124,29 @@ module OneLogin
       #
       # @return [Hash]
       def parse_to_hash(idp_metadata, options = {})
+        parse_to_array(idp_metadata, options)[0]
+      end
+
+      # Parse all Identity Provider metadata and return the results as Array
+      #
+      # @param idp_metadata [String]
+      #
+      # @param options [Hash] options used for parsing the metadata and the returned Settings instance
+      # @option options [Array<String>, nil] :sso_binding an ordered list of bindings to detect the single signon URL. The first binding in the list that is included in the metadata will be used.
+      # @option options [Array<String>, nil] :slo_binding an ordered list of bindings to detect the single logout URL. The first binding in the list that is included in the metadata will be used.
+      # @option options [String, nil] :entity_id when this is given, the entity descriptor for this ID is used. When ommitted, all found IdPs are returned.
+      #
+      # @return [Array<Hash>]
+      def parse_to_array(idp_metadata, options = {})
         @document = REXML::Document.new(idp_metadata)
         @options = options
 
-        idpsso_descriptor = IdpMetadata::get_idps(@document, options[:entity_id])[0]
-        if idpsso_descriptor.nil?
+        idpsso_descriptors = IdpMetadata::get_idps(@document, options[:entity_id])
+        if !idpsso_descriptors.any?
           raise ArgumentError.new("idp_metadata must contain an IDPSSODescriptor element")
         end
 
-        return IdpMetadata.new(idpsso_descriptor, idpsso_descriptor.parent.attributes["entityID"]).to_hash(options)
+        return idpsso_descriptors.map{|id| IdpMetadata.new(id, id.parent.attributes["entityID"]).to_hash(options)}
       end
 
       private

@@ -342,6 +342,14 @@ class IdpMetadataParserTest < Minitest::Test
       assert_equal "https://hello.example.com/access/saml/logout", @settings.idp_slo_target_url
       assert_equal ["AuthToken", "SSOStartPage"], @settings.idp_attribute_names
     end
+
+    it "should handle multiple descriptors at once" do
+      settings = @idp_metadata_parser.parse_to_array(@idp_metadata)
+      assert_equal "https://foo.example.com/access/saml/idp.xml", settings.first[:idp_entity_id]
+      assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", settings.first[:idp_cert_fingerprint]
+      assert_equal "https://bar.example.com/access/saml/idp.xml", settings.last[:idp_entity_id]
+      assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", settings.last[:idp_cert_fingerprint]
+    end
   end
 
   describe "parsing metadata with no IDPSSODescriptor element" do
