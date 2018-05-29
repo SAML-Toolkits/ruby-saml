@@ -145,7 +145,7 @@ module OneLogin
         end
 
         get = Net::HTTP::Get.new(uri.request_uri)
-        response = http.request(get)
+        @response = http.request(get)
         return response.body if response.is_a? Net::HTTPSuccess
 
         raise OneLogin::RubySaml::HttpError.new(
