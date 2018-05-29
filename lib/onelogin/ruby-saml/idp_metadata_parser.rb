@@ -1,6 +1,4 @@
 require "base64"
-require "zlib"
-require "cgi"
 require "net/http"
 require "net/https"
 require "rexml/document"
