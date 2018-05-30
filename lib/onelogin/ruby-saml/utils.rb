@@ -32,7 +32,7 @@ module OneLogin
           formatted_cert.join("\n")
         else
           cert = cert.gsub(/\-{5}\s?(BEGIN|END) CERTIFICATE\s?\-{5}/, "")
-          cert = cert.gsub(/[\r]/, "")
+          cert = cert.gsub(/\r/, "")
           cert = cert.gsub(/\n/, "")
           cert = cert.gsub(/\s/, "")
           cert = cert.scan(/.{1,64}/)
@@ -53,9 +53,9 @@ module OneLogin
         # is this an rsa key?
         rsa_key = key.match("RSA PRIVATE KEY")
         key = key.gsub(/\-{5}\s?(BEGIN|END)( RSA)? PRIVATE KEY\s?\-{5}/, "")
-        key = key.gsub(/[\n]/, "")
-        key = key.gsub(/[\r]/, "")
-        key = key.gsub(/[\s]/, "")
+        key = key.gsub(/\n/, "")
+        key = key.gsub(/\r/, "")
+        key = key.gsub(/\s/, "")
         key = key.scan(/.{1,64}/)
         key = key.join("\n")
         key_label = rsa_key ? "RSA PRIVATE KEY" : "PRIVATE KEY"
