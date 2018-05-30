@@ -318,7 +318,6 @@ module XMLSecurity
 
       # check digests
       ref = REXML::XPath.first(sig_element, "//ds:Reference", {"ds"=>DSIG})
-      _uri = ref.attributes.get_attribute("URI").value
 
       hashed_element = document.at_xpath("//*[@ID=$id]", nil, { 'id' => extract_signed_element_id })
 

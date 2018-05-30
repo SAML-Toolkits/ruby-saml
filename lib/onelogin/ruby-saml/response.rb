@@ -289,7 +289,6 @@ module OneLogin
             raise ValidationError.new(error_msg)
           end
 
-          _doc = decrypted_document.nil? ? document : decrypted_document
           issuer_assertion_nodes = xpath_from_signed_assertion("/a:Issuer")
           unless issuer_assertion_nodes.size == 1
             error_msg = "Issuer of the Assertion not found or multiple."
