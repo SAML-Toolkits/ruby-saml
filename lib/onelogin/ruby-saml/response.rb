@@ -171,9 +171,10 @@ module OneLogin
                 # identify the subject in an SP rather than email or other less opaque attributes
                 # NameQualifier, if present is prefixed with a "/" to the value
                 else
-                 REXML::XPath.match(e,'a:NameID', { "a" => ASSERTION }).collect{|n|
-                    (n.attributes['NameQualifier'] ? n.attributes['NameQualifier'] +"/" : '') + Utils.element_text(n)
-                  }
+                  REXML::XPath.match(e,'a:NameID', { "a" => ASSERTION }).collect do |n|
+                    base_path = n.attributes['NameQualifier'] ? "#{n.attributes['NameQualifier']}/" : ''
+                    base_path + Utils.element_text(n)
+                  end
                 end
               }
 
@@ -221,8 +222,8 @@ module OneLogin
                 "/p:Response/p:Status/p:StatusCode/p:StatusCode",
                 { "p" => PROTOCOL }
               )
-              statuses = nodes.collect do |node|
-                node.attributes["Value"]
+              statuses = nodes.collect do |inner_node|
+                inner_node.attributes["Value"]
               end
               extra_code = statuses.join(" | ")
               if extra_code
@@ -288,7 +289,6 @@ module OneLogin
             raise ValidationError.new(error_msg)
           end
 
-          doc = decrypted_document.nil? ? document : decrypted_document
           issuer_assertion_nodes = xpath_from_signed_assertion("/a:Issuer")
           unless issuer_assertion_nodes.size == 1
             error_msg = "Issuer of the Assertion not found or multiple."

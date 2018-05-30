@@ -16,7 +16,7 @@ module OneLogin
       end
 
       def configure(&block)
-        instance_eval &block
+        instance_eval(&block)
       end
 
       # @return [Boolean] True if the AttributeService object has been initialized and set with the required values

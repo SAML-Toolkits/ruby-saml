@@ -62,7 +62,7 @@ module OneLogin
       # @param document [REXML::Document] The message that will be validated
       # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the message is invalid or not)
       # @return [Boolean] True if the XML is valid, otherwise False, if soft=True
-      # @raise [ValidationError] if soft == false and validation fails 
+      # @raise [ValidationError] if soft == false and validation fails
       #
       def valid_saml?(document, soft = true)
         begin
@@ -74,9 +74,9 @@ module OneLogin
           raise ValidationError.new("XML load failed: #{error.message}")
         end
 
-        SamlMessage.schema.validate(xml).map do |error|
+        SamlMessage.schema.validate(xml).map do |schema_error|
           return false if soft
-          raise ValidationError.new("#{error.message}\n\n#{xml.to_s}")
+          raise ValidationError.new("#{schema_error.message}\n\n#{xml.to_s}")
         end
       end
 

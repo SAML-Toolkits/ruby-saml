@@ -91,7 +91,7 @@ module XMLSecurity
     ENVELOPED_SIG   = "http://www.w3.org/2000/09/xmldsig#enveloped-signature"
     INC_PREFIX_LIST = "#default samlp saml ds xs xsi md"
 
-    attr_accessor :uuid
+    attr_writer :uuid
 
     def uuid
       @uuid ||= begin
@@ -187,7 +187,7 @@ module XMLSecurity
   class SignedDocument < BaseDocument
     include OneLogin::RubySaml::ErrorHandling
 
-    attr_accessor :signed_element_id
+    attr_writer :signed_element_id
 
     def initialize(response, errors = [])
       super(response)
@@ -211,7 +211,7 @@ module XMLSecurity
         cert_text = Base64.decode64(base64_cert)
         begin
           cert = OpenSSL::X509::Certificate.new(cert_text)
-        rescue OpenSSL::X509::CertificateError => e
+        rescue OpenSSL::X509::CertificateError => _e
           return append_error("Certificate Error", soft)
         end
 
@@ -254,7 +254,7 @@ module XMLSecurity
         cert_text = Base64.decode64(base64_cert)
         begin
           cert = OpenSSL::X509::Certificate.new(cert_text)
-        rescue OpenSSL::X509::CertificateError => e
+        rescue OpenSSL::X509::CertificateError => _e
           return append_error("Certificate Error", soft)
         end
 
@@ -318,10 +318,9 @@ module XMLSecurity
 
       # check digests
       ref = REXML::XPath.first(sig_element, "//ds:Reference", {"ds"=>DSIG})
-      uri = ref.attributes.get_attribute("URI").value
 
       hashed_element = document.at_xpath("//*[@ID=$id]", nil, { 'id' => extract_signed_element_id })
-      
+
       canon_algorithm = canon_algorithm REXML::XPath.first(
         ref,
         '//ds:CanonicalizationMethod',
