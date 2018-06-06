@@ -12,6 +12,7 @@ rvm:
   - ree
   - jruby-1.7.21
   - jruby-9.0.0.0
+  - jruby-9.2.0.0
 gemfile:
   - Gemfile
   - gemfiles/nokogiri-1.5.gemfile
