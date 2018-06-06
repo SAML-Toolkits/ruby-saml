@@ -173,7 +173,7 @@ module OneLogin
                 else
                   REXML::XPath.match(e,'a:NameID', { "a" => ASSERTION }).collect do |n|
                     base_path = n.attributes['NameQualifier'] ? "#{n.attributes['NameQualifier']}/" : ''
-                    base_path + Utils.element_text(n)
+                    "#{base_path}#{Utils.element_text(n)}"
                   end
                 end
               }
