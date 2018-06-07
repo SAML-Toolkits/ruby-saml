@@ -10,8 +10,9 @@ rvm:
   - 2.4.0
   - 2.5.0
   - ree
-  - jruby-1.7.21
-  - jruby-9.0.0.0
+  - jruby-1.7.27
+  - jruby-9.1.17.0
+  - jruby-9.2.0.0
 gemfile:
   - Gemfile
   - gemfiles/nokogiri-1.5.gemfile
@@ -21,7 +22,11 @@ matrix:
       gemfile: Gemfile
     - rvm: ree
       gemfile: Gemfile
-    - rvm: jruby-9.0.0.0
+    - rvm: jruby-1.7.27
       gemfile: gemfiles/nokogiri-1.5.gemfile
-    - rvm: jruby-1.7.21
+    - rvm: jruby-9.1.17.0
       gemfile: gemfiles/nokogiri-1.5.gemfile
+    - rvm: jruby-9.2.0.0
+      gemfile: gemfiles/nokogiri-1.5.gemfile
+env:
+  - JRUBY_OPTS="--debug"
