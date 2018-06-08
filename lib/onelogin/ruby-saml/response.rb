@@ -359,7 +359,7 @@ module OneLogin
           :validate_success_status,
           :validate_num_assertion,
           :validate_no_duplicated_attributes,
-          :validate_signed_elements,
+          # :validate_signed_elements,
           :validate_structure,
           :validate_in_response_to,
           :validate_one_conditions,
