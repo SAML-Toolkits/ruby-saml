@@ -359,7 +359,7 @@ module OneLogin
           :validate_success_status,
           :validate_num_assertion,
           :validate_no_duplicated_attributes,
-          # :validate_signed_elements,
+          :validate_signed_elements,
           :validate_structure,
           :validate_in_response_to,
           :validate_one_conditions,
@@ -512,8 +512,6 @@ module OneLogin
       #                                   an are a Response or an Assertion Element, otherwise False if soft=True
       #
       def validate_signed_elements
-        return true
-
         signature_nodes = REXML::XPath.match(
           decrypted_document.nil? ? document : decrypted_document,
           "//ds:Signature",
