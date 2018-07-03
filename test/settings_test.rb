@@ -77,7 +77,21 @@ class SettingsTest < Minitest::Test
       assert_equal new_settings.security[:signature_method], XMLSecurity::Document::RSA_SHA1
     end
 
-    it "overrides only provided security attributes" do
+    it "overrides only provided security attributes passing a second parameter" do
+      config = {
+        :security => {
+          :metadata_signed => true
+        }
+      }
+
+      @default_attributes = OneLogin::RubySaml::Settings::DEFAULTS
+
+      @settings = OneLogin::RubySaml::Settings.new(config, true)
+      assert_equal @settings.security[:metadata_signed], true
+      assert_equal @settings.security[:digest_method], @default_attributes[:security][:digest_method]
+    end
+
+    it "doesn't override only provided security attributes without passing a second parameter" do
       config = {
         :security => {
           :metadata_signed => true
@@ -88,7 +102,7 @@ class SettingsTest < Minitest::Test
 
       @settings = OneLogin::RubySaml::Settings.new(config)
       assert_equal @settings.security[:metadata_signed], true
-      assert_equal @settings.security[:digest_method], @default_attributes[:security][:digest_method]
+      assert_equal @settings.security[:digest_method], nil
     end
 
     describe "#single_logout_service_url" do
