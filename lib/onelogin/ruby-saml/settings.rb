@@ -9,8 +9,15 @@ module OneLogin
     # SAML2 Toolkit Settings
     #
     class Settings
-      def initialize(overrides = {})
-        config = DEFAULTS.merge(overrides)
+      def initialize(overrides = {}, keep_security_attributes = false)
+        if keep_security_attributes
+          security_attributes = overrides.delete(:security) || {}
+          config = DEFAULTS.merge(overrides)
+          config[:security] = DEFAULTS[:security].merge(security_attributes)
+        else
+          config = DEFAULTS.merge(overrides)
+        end
+
         config.each do |k,v|
           acc = "#{k.to_s}=".to_sym
           if respond_to? acc

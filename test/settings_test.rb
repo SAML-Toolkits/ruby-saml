@@ -77,6 +77,34 @@ class SettingsTest < Minitest::Test
       assert_equal new_settings.security[:signature_method], XMLSecurity::Document::RSA_SHA1
     end
 
+    it "overrides only provided security attributes passing a second parameter" do
+      config = {
+        :security => {
+          :metadata_signed => true
+        }
+      }
+
+      @default_attributes = OneLogin::RubySaml::Settings::DEFAULTS
+
+      @settings = OneLogin::RubySaml::Settings.new(config, true)
+      assert_equal @settings.security[:metadata_signed], true
+      assert_equal @settings.security[:digest_method], @default_attributes[:security][:digest_method]
+    end
+
+    it "doesn't override only provided security attributes without passing a second parameter" do
+      config = {
+        :security => {
+          :metadata_signed => true
+        }
+      }
+
+      @default_attributes = OneLogin::RubySaml::Settings::DEFAULTS
+
+      @settings = OneLogin::RubySaml::Settings.new(config)
+      assert_equal @settings.security[:metadata_signed], true
+      assert_equal @settings.security[:digest_method], nil
+    end
+
     describe "#single_logout_service_url" do
       it "when single_logout_service_url is nil but assertion_consumer_logout_service_url returns its value" do
         @settings.single_logout_service_url = nil
@@ -93,7 +121,7 @@ class SettingsTest < Minitest::Test
 
         assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", @settings.single_logout_service_binding
       end
-    end    
+    end
 
     describe "#get_idp_cert" do
       it "returns nil when the cert is an empty string" do
@@ -169,7 +197,7 @@ class SettingsTest < Minitest::Test
 
         assert @settings.get_idp_cert_multi.kind_of? Hash
         assert @settings.get_idp_cert_multi[:signing].kind_of? Array
-        assert @settings.get_idp_cert_multi[:encryption].kind_of? Array        
+        assert @settings.get_idp_cert_multi[:encryption].kind_of? Array
         assert @settings.get_idp_cert_multi[:signing][0].kind_of? OpenSSL::X509::Certificate
         assert @settings.get_idp_cert_multi[:encryption][0].kind_of? OpenSSL::X509::Certificate
       end
