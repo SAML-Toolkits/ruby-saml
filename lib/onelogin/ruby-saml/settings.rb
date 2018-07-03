@@ -10,7 +10,9 @@ module OneLogin
     #
     class Settings
       def initialize(overrides = {})
+        security_attributes = overrides.delete(:security) || {}
         config = DEFAULTS.merge(overrides)
+        config[:security] = DEFAULTS[:security].merge(security_attributes)
         config.each do |k,v|
           acc = "#{k.to_s}=".to_sym
           if respond_to? acc
