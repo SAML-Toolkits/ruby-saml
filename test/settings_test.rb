@@ -79,8 +79,8 @@ class SettingsTest < Minitest::Test
 
     it "overrides only provided security attributes" do
       config = {
-        security: {
-          metadata_signed: true
+        :security => {
+          :metadata_signed => true
         }
       }
 
@@ -107,7 +107,7 @@ class SettingsTest < Minitest::Test
 
         assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", @settings.single_logout_service_binding
       end
-    end    
+    end
 
     describe "#get_idp_cert" do
       it "returns nil when the cert is an empty string" do
@@ -183,7 +183,7 @@ class SettingsTest < Minitest::Test
 
         assert @settings.get_idp_cert_multi.kind_of? Hash
         assert @settings.get_idp_cert_multi[:signing].kind_of? Array
-        assert @settings.get_idp_cert_multi[:encryption].kind_of? Array        
+        assert @settings.get_idp_cert_multi[:encryption].kind_of? Array
         assert @settings.get_idp_cert_multi[:signing][0].kind_of? OpenSSL::X509::Certificate
         assert @settings.get_idp_cert_multi[:encryption][0].kind_of? OpenSSL::X509::Certificate
       end
