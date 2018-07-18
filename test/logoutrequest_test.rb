@@ -104,6 +104,24 @@ class RequestTest < Minitest::Test
         settings.private_key = ruby_saml_key_text
       end
 
+      it "doens't sign through create_xml_document" do
+        unauth_req = OneLogin::RubySaml::Logoutrequest.new
+        inflated = unauth_req.create_xml_document(settings).to_s
+
+        refute_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], inflated
+        refute_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], inflated
+        refute_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2000/09/xmldsig#sha1'/>], inflated
+      end
+
+      it "signs through create_logout_request_xml_doc" do
+        unauth_req = OneLogin::RubySaml::Logoutrequest.new
+        inflated = unauth_req.create_logout_request_xml_doc(settings).to_s
+
+        assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], inflated
+        assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], inflated
+        assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2000/09/xmldsig#sha1'/>], inflated
+      end
+
       it "created a signed logout request" do
         settings.compress_request = true
 
@@ -185,8 +203,8 @@ class RequestTest < Minitest::Test
         query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
         signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
-        assert_equal signature_algorithm, OpenSSL::Digest::SHA256 
-        assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string) 
+        assert_equal signature_algorithm, OpenSSL::Digest::SHA256
+        assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
       end
 
       it "create a signature parameter with RSA_SHA384 / SHA384 and validate it" do
@@ -201,8 +219,8 @@ class RequestTest < Minitest::Test
         query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
         signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
-        assert_equal signature_algorithm, OpenSSL::Digest::SHA384 
-        assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string) 
+        assert_equal signature_algorithm, OpenSSL::Digest::SHA384
+        assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
       end
 
       it "create a signature parameter with RSA_SHA512 / SHA512 and validate it" do
@@ -217,8 +235,8 @@ class RequestTest < Minitest::Test
         query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
         signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
-        assert_equal signature_algorithm, OpenSSL::Digest::SHA512 
-        assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string) 
+        assert_equal signature_algorithm, OpenSSL::Digest::SHA512
+        assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
       end
 
     end
