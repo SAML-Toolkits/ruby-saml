@@ -709,7 +709,7 @@ module OneLogin
       # this time validation is relaxed by the allowed_clock_drift value)
       # If fails, the error is added to the errors array
       # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the response is invalid or not)
-      # @return [Boolean] True if the SessionNotOnOrAfter of the AttributeStatement is valid, otherwise (when expired) False if soft=True
+      # @return [Boolean] True if the SessionNotOnOrAfter of the AuthnStatement is valid, otherwise (when expired) False if soft=True
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_session_expiration(soft = true)
@@ -717,7 +717,7 @@ module OneLogin
 
         now = Time.now.utc
         unless (session_expires_at + allowed_clock_drift) > now
-          error_msg = "The attributes have expired, based on the SessionNotOnOrAfter of the AttributeStatement of this Response"
+          error_msg = "The attributes have expired, based on the SessionNotOnOrAfter of the AuthnStatement of this Response"
           return append_error(error_msg)
         end
 

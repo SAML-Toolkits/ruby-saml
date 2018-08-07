@@ -102,7 +102,7 @@ class SettingsTest < Minitest::Test
 
       @settings = OneLogin::RubySaml::Settings.new(config)
       assert_equal @settings.security[:metadata_signed], true
-      assert_equal @settings.security[:digest_method], nil
+      assert_nil @settings.security[:digest_method]
     end
 
     describe "#single_logout_service_url" do

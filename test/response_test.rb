@@ -817,7 +817,7 @@ class RubySamlTest < Minitest::Test
       it "return false when the session has expired" do
         response.settings = settings
         assert !response.send(:validate_session_expiration)
-        assert_includes response.errors, "The attributes have expired, based on the SessionNotOnOrAfter of the AttributeStatement of this Response"
+        assert_includes response.errors, "The attributes have expired, based on the SessionNotOnOrAfter of the AuthnStatement of this Response"
       end
 
       it "returns true when the session has expired, but is still within the allowed_clock_drift" do
