@@ -633,15 +633,15 @@ class RubySamlTest < Minitest::Test
           :skip_conditions => true,
           :skip_subject_confirmation => true })
         }
-      
+
       it "be able to parse the response wihout errors" do
         response_with_formatted_x509certificate.settings = settings
-        response_with_formatted_x509certificate.settings.idp_cert = ruby_saml_cert_text        
+        response_with_formatted_x509certificate.settings.idp_cert = ruby_saml_cert_text
         assert response_with_formatted_x509certificate.is_valid?
         assert_empty response_with_formatted_x509certificate.errors
       end
     end
-    
+
     describe "#validate_in_response_to" do
       it "return true when the inResponseTo value matches the Request ID" do
         response = OneLogin::RubySaml::Response.new(response_document_valid_signed, :settings => settings, :matches_request_id => "_fc4a34b0-7efb-012e-caae-782bcb13bb38")
@@ -1069,6 +1069,24 @@ class RubySamlTest < Minitest::Test
           special_response_with_saml2_namespace = OneLogin::RubySaml::Response.new(
             response_document_with_saml2_namespace,
             :allowed_clock_drift => 0.516
+          )
+          assert special_response_with_saml2_namespace.send(:validate_conditions)
+        end
+
+        Timecop.freeze(Time.parse("2011-06-14T18:21:01Z")) do
+          settings.soft = true
+          special_response_with_saml2_namespace = OneLogin::RubySaml::Response.new(
+            response_document_with_saml2_namespace,
+            :allowed_clock_drift => '0.515',
+            :settings => settings
+          )
+          assert !special_response_with_saml2_namespace.send(:validate_conditions)
+        end
+
+        Timecop.freeze(Time.parse("2011-06-14T18:21:01Z")) do
+          special_response_with_saml2_namespace = OneLogin::RubySaml::Response.new(
+            response_document_with_saml2_namespace,
+            :allowed_clock_drift => '0.516'
           )
           assert special_response_with_saml2_namespace.send(:validate_conditions)
         end

@@ -338,7 +338,7 @@ module OneLogin
       # returns the allowed clock drift on timing validation
       # @return [Integer]
       def allowed_clock_drift
-        return options[:allowed_clock_drift] || 0
+        return options[:allowed_clock_drift].to_f
       end
 
       private
