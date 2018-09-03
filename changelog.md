@@ -1,5 +1,12 @@
 # RubySaml Changelog
 
+### 1.9.0 (Sept 03, 2018)
+* [#458](https://github.com/onelogin/ruby-saml/pull/458) Remove ruby 2.4+ warnings
+* Improve JRuby support
+* [#465](https://github.com/onelogin/ruby-saml/pull/465) Extend Settings initialization with the new keep_security_attributes parameter
+* Fix wrong message when SessionNotOnOrAfter expired
+* [#471](https://github.com/onelogin/ruby-saml/pull/471) Allow for `allowed_clock_drift` to be set as a string
+
 ### 1.8.0 (April 23, 2018)
 * [#437](https://github.com/onelogin/ruby-saml/issues/437) Creating AuthRequests/LogoutRequests/LogoutResponses with nil RelayState should not send empty RelayState URL param
 * [#454](https://github.com/onelogin/ruby-saml/pull/454) Added Response available options
