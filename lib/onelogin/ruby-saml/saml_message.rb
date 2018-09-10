@@ -105,7 +105,7 @@ module OneLogin
       def encode_raw_saml(saml, settings)
         saml = deflate(saml) if settings.compress_request
 
-        CGI.escape(Base64.encode64(saml))
+        CGI.escape(encode(saml))
       end
 
       # Base 64 decode method
