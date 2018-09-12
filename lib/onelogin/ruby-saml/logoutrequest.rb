@@ -20,7 +20,11 @@ module OneLogin
         request_doc.write(request)
 
         deflated_request  = Zlib::Deflate.deflate(request, 9)[2..-5]
-        base64_request    = Base64.encode64(deflated_request)
+        if Base64.respond_to?('strict_encode64')
+            base64_request    = Base64.strict_encode64(deflated_request)
+        else
+            base64_request    = Base64.encode64(deflated_request).gsub(/\n/, "")
+        end
         encoded_request   = CGI.escape(base64_request)
 
         params_prefix     = (settings.idp_slo_target_url =~ /\?/) ? '&' : '?'

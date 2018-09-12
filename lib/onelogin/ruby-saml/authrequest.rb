@@ -21,7 +21,11 @@ module OneLogin
         Logging.debug "Created AuthnRequest: #{request}"
 
         request           = Zlib::Deflate.deflate(request, 9)[2..-5] if settings.compress_request
-        base64_request    = Base64.encode64(request)
+        if Base64.respond_to?('strict_encode64')
+            base64_request    = Base64.strict_encode64(request)
+        else
+            base64_request    = Base64.encode64(request).gsub(/\n/, "")
+        end
         encoded_request   = CGI.escape(base64_request)
         params_prefix     = (settings.idp_sso_target_url =~ /\?/) ? '&' : '?'
         request_params    = "#{params_prefix}SAMLRequest=#{encoded_request}"
