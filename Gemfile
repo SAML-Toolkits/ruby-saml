@@ -22,6 +22,6 @@ group :test do
   gem 'rake',      '~> 10'
   gem 'shoulda',   '~> 2.11'
   gem 'systemu',   '~> 2'
-  gem 'test-unit', '~> 3'
+  gem 'test-unit', '~> 3.0.9'
   gem 'timecop',   '<= 0.6.0'
 end
