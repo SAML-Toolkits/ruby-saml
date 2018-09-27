@@ -89,6 +89,11 @@ module OneLogin
       # @return [String] The SAMLRequest String.
       #
       def create_logout_request_xml_doc(settings)
+        document = create_xml_document(settings)
+        sign_document(document, settings)
+      end
+
+      def create_xml_document(settings)
         time = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
 
         request_doc = XMLSecurity::Document.new
@@ -122,14 +127,18 @@ module OneLogin
           sessionindex.text = settings.sessionindex
         end
 
+        request_doc
+      end
+
+      def sign_document(document, settings)
         # embed signature
         if settings.security[:logout_requests_signed] && settings.private_key && settings.certificate && settings.security[:embed_sign]
           private_key = settings.get_sp_key
           cert = settings.get_sp_cert
-          request_doc.sign_document(private_key, cert, settings.security[:signature_method], settings.security[:digest_method])
+          document.sign_document(private_key, cert, settings.security[:signature_method], settings.security[:digest_method])
         end
 
-        request_doc
+        document
       end
     end
   end
