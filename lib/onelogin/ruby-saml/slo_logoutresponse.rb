@@ -97,6 +97,11 @@ module OneLogin
       # @return [String] The SAMLResponse String.
       #
       def create_logout_response_xml_doc(settings, request_id = nil, logout_message = nil)
+        document = create_xml_document(settings, request_id, logout_message)
+        sign_document(document, settings)
+      end
+
+      def create_xml_document(settings, request_id = nil, logout_message = nil)
         time = Time.now.utc.strftime('%Y-%m-%dT%H:%M:%SZ')
 
         response_doc = XMLSecurity::Document.new
@@ -126,14 +131,18 @@ module OneLogin
         status_message = status.add_element 'samlp:StatusMessage'
         status_message.text = logout_message
 
+        response_doc
+      end
+
+      def sign_document(document, settings)
         # embed signature
         if settings.security[:logout_responses_signed] && settings.private_key && settings.certificate && settings.security[:embed_sign]
           private_key = settings.get_sp_key
           cert = settings.get_sp_cert
-          response_doc.sign_document(private_key, cert, settings.security[:signature_method], settings.security[:digest_method])
+          document.sign_document(private_key, cert, settings.security[:signature_method], settings.security[:digest_method])
         end
 
-        response_doc
+        document
       end
 
     end
