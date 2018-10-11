@@ -1,5 +1,8 @@
 # Ruby SAML [![Build Status](https://secure.travis-ci.org/onelogin/ruby-saml.svg)](http://travis-ci.org/onelogin/ruby-saml) [![Coverage Status](https://coveralls.io/repos/onelogin/ruby-saml/badge.svg?branch=master%0A)](https://coveralls.io/r/onelogin/ruby-saml?branch=master%0A) [![Gem Version](https://badge.fury.io/rb/ruby-saml.svg)](http://badge.fury.io/rb/ruby-saml)
 
+## Updating from 1.8.0 to 1.9.0
+Version `1.8.0` better supports Ruby 2.4+ and JRuby 9.2.0.0. `Settings` initialization now has a second parameter, `keep_security_settings` (default: false), which saves security settings attributes that are not explicitly overridden, if set to true. 
+
 ## Updating from 1.7.X to 1.8.0
 On Version `1.8.0`, creating AuthRequests/LogoutRequests/LogoutResponses with nil RelayState param will not generate a URL with an empty RelayState parameter anymore. It also changes the invalid audience error message.
 
@@ -101,6 +104,7 @@ We created a demo project for Rails4 that uses the latest version of this librar
 * 2.4.x
 * JRuby 1.7.19
 * JRuby 9.0.0.0
+* JRuby 9.2.0.0
 
 ## Adding Features, Pull Requests
 * Fork the repository
@@ -121,7 +125,7 @@ Using `Gemfile`
 
 ```ruby
 # latest stable
-gem 'ruby-saml', '~> 1.8.0'
+gem 'ruby-saml', '~> 1.9.0'
 
 # or track master for bleeding-edge
 gem 'ruby-saml', :github => 'onelogin/ruby-saml'
