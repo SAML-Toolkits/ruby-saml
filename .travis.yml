@@ -17,7 +17,6 @@ gemfile:
   - Gemfile
   - gemfiles/nokogiri-1.5.gemfile
 before_install:
-  - unset _JAVA_OPTIONS
   - gem update bundler
 matrix:
   exclude:
