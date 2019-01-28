@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <md:EntitiesDescriptor validUntil="2014-04-17T18:02:33.910Z" xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata">
+  <md:EntityDescriptor entityID="https://biz.example.com/app" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="md:EntityDescriptorType">
+    <md:SPSSODescriptor AuthnRequestsSigned="true" WantAssertionsSigned="false" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+      <md:NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:transient</md:NameIDFormat>
+      <md:AssertionConsumerService isDefault="true" index="1" binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" location="https://biz.example.com/app/sso"></md:AssertionConsumerService>
+    </md:SPSSODescriptor>
+  </md:EntityDescriptor>
   <md:EntityDescriptor entityID="https://foo.example.com/access/saml/idp.xml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="md:EntityDescriptorType">
     <md:IDPSSODescriptor WantAuthnRequestsSigned="true" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
       <md:KeyDescriptor use="signing">

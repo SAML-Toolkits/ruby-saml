@@ -164,34 +164,32 @@ module OneLogin
       end
 
       def entity_descriptor_path
-        path = "//md:EntityDescriptor"
-        entity_id = options[:entity_id]
-        return path unless entity_id
+        path = "//md:EntityDescriptor"  
+        entity_id = options[:entity_id] 
+        return path unless entity_id    
         path << "[@entityID=\"#{entity_id}\"]"
       end
 
       def idpsso_descriptor
-        unless entity_descriptor.nil?
-          return REXML::XPath.first(
-            entity_descriptor,
-            "md:IDPSSODescriptor",
-            namespace
-          )
-        end
+        REXML::XPath.first(
+          document,
+          entity_descriptor_path << "/md:IDPSSODescriptor",
+          namespace
+        )
       end 
 
       # @return [String|nil] IdP Entity ID value if exists
       #
       def idp_entity_id
-        entity_descriptor.attributes["entityID"]
+        idpsso_descriptor.parent.attributes["entityID"]
       end
 
       # @return [String|nil] IdP Name ID Format value if exists
       #
       def idp_name_id_format
         node = REXML::XPath.first(
-          entity_descriptor,
-          "md:IDPSSODescriptor/md:NameIDFormat",
+          idpsso_descriptor,
+          "md:NameIDFormat",
           namespace
         )
         Utils.element_text(node)
@@ -202,8 +200,8 @@ module OneLogin
       #
       def single_signon_service_binding(binding_priority = nil)
         nodes = REXML::XPath.match(
-          entity_descriptor,
-          "md:IDPSSODescriptor/md:SingleSignOnService/@Binding",
+          idpsso_descriptor,
+          "md:SingleSignOnService/@Binding",
           namespace
         )
         if binding_priority
@@ -221,8 +219,8 @@ module OneLogin
         binding = single_signon_service_binding(options[:sso_binding])
         unless binding.nil?
           node = REXML::XPath.first(
-            entity_descriptor,
-            "md:IDPSSODescriptor/md:SingleSignOnService[@Binding=\"#{binding}\"]/@Location",
+            idpsso_descriptor,
+            "md:SingleSignOnService[@Binding=\"#{binding}\"]/@Location",
             namespace
           )
           return node.value if node
@@ -234,8 +232,8 @@ module OneLogin
       #
       def single_logout_service_binding(binding_priority = nil)
         nodes = REXML::XPath.match(
-          entity_descriptor,
-          "md:IDPSSODescriptor/md:SingleLogoutService/@Binding",
+          idpsso_descriptor,
+          "md:SingleLogoutService/@Binding",
           namespace
         )
         if binding_priority
@@ -253,8 +251,8 @@ module OneLogin
         binding = single_logout_service_binding(options[:slo_binding])
         unless binding.nil?
           node = REXML::XPath.first(
-            entity_descriptor,
-            "md:IDPSSODescriptor/md:SingleLogoutService[@Binding=\"#{binding}\"]/@Location",
+            idpsso_descriptor,
+            "md:SingleLogoutService[@Binding=\"#{binding}\"]/@Location",
             namespace
           )
           return node.value if node
@@ -266,14 +264,14 @@ module OneLogin
       def certificates
         @certificates ||= begin
           signing_nodes = REXML::XPath.match(
-            entity_descriptor,
-            "md:IDPSSODescriptor/md:KeyDescriptor[not(contains(@use, 'encryption'))]/ds:KeyInfo/ds:X509Data/ds:X509Certificate",
+            idpsso_descriptor,
+            "md:KeyDescriptor[not(contains(@use, 'encryption'))]/ds:KeyInfo/ds:X509Data/ds:X509Certificate",
             namespace
           )
 
           encryption_nodes = REXML::XPath.match(
-            entity_descriptor,
-            "md:IDPSSODescriptor/md:KeyDescriptor[not(contains(@use, 'signing'))]/ds:KeyInfo/ds:X509Data/ds:X509Certificate",
+            idpsso_descriptor,
+            "md:KeyDescriptor[not(contains(@use, 'signing'))]/ds:KeyInfo/ds:X509Data/ds:X509Certificate",
             namespace
           )
 
@@ -315,8 +313,8 @@ module OneLogin
       #
       def attribute_names
         nodes = REXML::XPath.match(
-          entity_descriptor,
-          "md:IDPSSODescriptor/saml:Attribute/@Name",
+          idpsso_descriptor,
+          "saml:Attribute/@Name",
           namespace
         )
         nodes.map(&:value)
