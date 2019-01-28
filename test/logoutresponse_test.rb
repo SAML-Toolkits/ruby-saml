@@ -107,13 +107,20 @@ class RubySamlTest < Minitest::Test
           assert_includes logoutresponse.errors, "The InResponseTo of the Logout Response: #{logoutresponse.in_response_to}, does not match the ID of the Logout Request sent by the SP: #{expected_request_id}"
         end
 
-        it "invalidate logout response with wrong request status" do
+        it "invalidate logout response with unexpected request status" do
           logoutresponse = OneLogin::RubySaml::Logoutresponse.new(unsuccessful_logout_response_document, settings)
 
           assert !logoutresponse.success?
           assert !logoutresponse.validate
-          assert_includes logoutresponse.errors, "Bad status code. Expected <urn:oasis:names:tc:SAML:2.0:status:Success>, but was: <urn:oasis:names:tc:SAML:2.0:status:Requester>"
           assert_includes logoutresponse.errors, "The status code of the Logout Response was not Success, was Requester"
+        end
+
+        it "invalidate logout response with unexpected request status and status message" do
+          logoutresponse = OneLogin::RubySaml::Logoutresponse.new(unsuccessful_logout_response_with_message_document, settings)
+
+          assert !logoutresponse.success?
+          assert !logoutresponse.validate
+          assert_includes logoutresponse.errors, "The status code of the Logout Response was not Success, was Requester -> Logoutrequest expired"
         end
 
         it "invalidate logout response when in lack of issuer setting" do
@@ -137,7 +144,7 @@ class RubySamlTest < Minitest::Test
           logoutresponse = OneLogin::RubySaml::Logoutresponse.new(unsuccessful_logout_response_document, settings)
           collect_errors = true
           assert !logoutresponse.validate(collect_errors)
-          assert_includes logoutresponse.errors, "Bad status code. Expected <urn:oasis:names:tc:SAML:2.0:status:Success>, but was: <urn:oasis:names:tc:SAML:2.0:status:Requester>"
+          assert_includes logoutresponse.errors, "The status code of the Logout Response was not Success, was Requester"
           assert_includes logoutresponse.errors, "Doesn't match the issuer, expected: <#{logoutresponse.settings.idp_entity_id}>, but was: <http://app.muda.no>"
         end
 
@@ -185,14 +192,14 @@ class RubySamlTest < Minitest::Test
           logoutresponse = OneLogin::RubySaml::Logoutresponse.new(unsuccessful_logout_response_document, settings)
 
           assert_raises(OneLogin::RubySaml::ValidationError) { logoutresponse.validate }
-          assert_includes logoutresponse.errors, "Bad status code. Expected <urn:oasis:names:tc:SAML:2.0:status:Success>, but was: <urn:oasis:names:tc:SAML:2.0:status:Requester>"
+          assert_includes logoutresponse.errors, "The status code of the Logout Response was not Success, was Requester"
         end
 
         it "raise validation error when in bad state" do
           # no settings
           logoutresponse = OneLogin::RubySaml::Logoutresponse.new(unsuccessful_logout_response_document, settings)
           assert_raises(OneLogin::RubySaml::ValidationError) { logoutresponse.validate }
-          assert_includes logoutresponse.errors, "Bad status code. Expected <urn:oasis:names:tc:SAML:2.0:status:Success>, but was: <urn:oasis:names:tc:SAML:2.0:status:Requester>"
+          assert_includes logoutresponse.errors, "The status code of the Logout Response was not Success, was Requester"
         end
 
         it "raise validation error when in lack of issuer setting" do

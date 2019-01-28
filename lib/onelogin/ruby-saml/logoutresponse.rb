@@ -52,10 +52,7 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def success?
-        unless status_code == "urn:oasis:names:tc:SAML:2.0:status:Success"
-          return append_error("Bad status code. Expected <urn:oasis:names:tc:SAML:2.0:status:Success>, but was: <#@status_code>")
-        end
-        true
+        return status_code == "urn:oasis:names:tc:SAML:2.0:status:Success"
       end
 
       # @return [String|nil] Gets the InResponseTo attribute from the Logout Response if exists.
@@ -65,7 +62,7 @@ module OneLogin
           node = REXML::XPath.first(
             document,
             "/p:LogoutResponse",
-            { "p" => PROTOCOL, "a" => ASSERTION }
+            { "p" => PROTOCOL }
           )
           node.nil? ? nil : node.attributes['InResponseTo']
         end
@@ -88,7 +85,7 @@ module OneLogin
       #
       def status_code
         @status_code ||= begin
-          node = REXML::XPath.first(document, "/p:LogoutResponse/p:Status/p:StatusCode", { "p" => PROTOCOL, "a" => ASSERTION })
+          node = REXML::XPath.first(document, "/p:LogoutResponse/p:Status/p:StatusCode", { "p" => PROTOCOL })
           node.nil? ? nil : node.attributes["Value"]
         end
       end
@@ -98,7 +95,7 @@ module OneLogin
           node = REXML::XPath.first(
             document,
             "/p:LogoutResponse/p:Status/p:StatusMessage",
-            { "p" => PROTOCOL, "a" => ASSERTION }
+            { "p" => PROTOCOL }
           )
           Utils.element_text(node)
         end

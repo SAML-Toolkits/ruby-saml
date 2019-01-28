@@ -44,6 +44,25 @@ def unsuccessful_logout_response_document(opts = {})
       </samlp:LogoutResponse>"
 end
 
+def unsuccessful_logout_response_with_message_document(opts = {})
+  opts = default_logout_response_opts.merge(opts)
+
+  "<samlp:LogoutResponse
+        xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\"
+        ID=\"#{random_id}\" Version=\"2.0\"
+        IssueInstant=\"#{opts[:issue_instant]}\"
+        Destination=\"#{opts[:settings].single_logout_service_url}\"
+        InResponseTo=\"#{opts[:uuid]}\">
+      <saml:Issuer xmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\">#{opts[:settings].issuer}</saml:Issuer>
+      <samlp:Status xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\">
+      <samlp:StatusCode xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\"
+          Value=\"urn:oasis:names:tc:SAML:2.0:status:Requester\">
+      </samlp:StatusCode>
+      <samlp:StatusMessage>Logoutrequest expired</samlp:StatusMessage>
+      </samlp:Status>
+      </samlp:LogoutResponse>"
+end
+
 def invalid_xml_logout_response_document
   "<samlp:SomethingAwful
         xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\"
