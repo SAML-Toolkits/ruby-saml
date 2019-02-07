@@ -231,6 +231,11 @@ class RubySamlTest < Test::Unit::TestCase
         response = OneLogin::RubySaml::Response.new(response_document_4)
         assert_equal Hash.new, response.attributes
       end
+
+      should "extract attributes from all AttributeStatement tags" do
+        assert_equal "smith", response_with_multiple_attribute_statements.attributes[:surname]
+        assert_equal "bob", response_with_multiple_attribute_statements.attributes[:firstname]
+      end
     end
 
     context "#session_expires_at" do
@@ -268,6 +273,98 @@ class RubySamlTest < Test::Unit::TestCase
         response = OneLogin::RubySaml::Response.new(malicious_response_document)
         response.send(:xpath_first_from_signed_assertion)
         assert_equal($evalled, nil)
+      end
+    end
+
+    context "#multiple values" do
+      should "extract single value as string" do
+        assert_equal "demo", response_multiple_attr_values.attributes[:uid]
+      end
+
+      should "extract single value as string in compatibility mode off" do
+        OneLogin::RubySaml::Attributes.single_value_compatibility = false
+        assert_equal ["demo"], response_multiple_attr_values.attributes[:uid]
+        # classes are not reloaded between tests so restore default
+        OneLogin::RubySaml::Attributes.single_value_compatibility = true
+      end
+
+      should "extract first of multiple values as string for b/w compatibility" do
+        assert_equal 'value1', response_multiple_attr_values.attributes[:another_value]
+      end
+
+      should "extract first of multiple values as string for b/w compatibility in compatibility mode off" do
+        OneLogin::RubySaml::Attributes.single_value_compatibility = false
+        assert_equal ['value1', 'value2'], response_multiple_attr_values.attributes[:another_value]
+        OneLogin::RubySaml::Attributes.single_value_compatibility = true
+      end
+
+      should "return array with all attributes when asked in XML order" do
+        assert_equal ['value1', 'value2'], response_multiple_attr_values.attributes.multi(:another_value)
+      end
+
+      should "return array with all attributes when asked in XML order in compatibility mode off" do
+        OneLogin::RubySaml::Attributes.single_value_compatibility = false
+        assert_equal ['value1', 'value2'], response_multiple_attr_values.attributes.multi(:another_value)
+        OneLogin::RubySaml::Attributes.single_value_compatibility = true
+      end
+
+      should "return first of multiple values when multiple Attribute tags in XML" do
+        assert_equal 'role1', response_multiple_attr_values.attributes[:role]
+      end
+
+      should "return first of multiple values when multiple Attribute tags in XML in compatibility mode off" do
+        OneLogin::RubySaml::Attributes.single_value_compatibility = false
+        assert_equal ['role1', 'role2', 'role3'], response_multiple_attr_values.attributes[:role]
+        OneLogin::RubySaml::Attributes.single_value_compatibility = true
+      end
+
+      should "return all of multiple values in reverse order when multiple Attribute tags in XML" do
+        assert_equal ['role1', 'role2', 'role3'], response_multiple_attr_values.attributes.multi(:role)
+      end
+
+      should "return all of multiple values in reverse order when multiple Attribute tags in XML in compatibility mode off" do
+        OneLogin::RubySaml::Attributes.single_value_compatibility = false
+        assert_equal ['role1', 'role2', 'role3'], response_multiple_attr_values.attributes.multi(:role)
+        OneLogin::RubySaml::Attributes.single_value_compatibility = true
+      end
+
+      should "return all of multiple values when multiple Attribute tags in multiple AttributeStatement tags" do
+        OneLogin::RubySaml::Attributes.single_value_compatibility = false
+        assert_equal ['role1', 'role2', 'role3'], response_with_multiple_attribute_statements.attributes.multi(:role)
+        OneLogin::RubySaml::Attributes.single_value_compatibility = true
+      end
+
+      should "return nil value correctly" do
+        assert_nil response_multiple_attr_values.attributes[:attribute_with_nil_value]
+      end
+
+      should "return nil value correctly when not in compatibility mode off" do
+        OneLogin::RubySaml::Attributes.single_value_compatibility = false
+        assert_equal [nil], response_multiple_attr_values.attributes[:attribute_with_nil_value]
+        OneLogin::RubySaml::Attributes.single_value_compatibility = true
+      end
+
+      should "return multiple values including nil and empty string" do
+        response = OneLogin::RubySaml::Response.new(fixture(:response_with_multiple_attribute_values))
+        assert_equal ["", "valuePresent", nil, nil], response.attributes.multi(:attribute_with_nils_and_empty_strings)
+      end
+
+      should "return multiple values from [] when not in compatibility mode off" do
+        OneLogin::RubySaml::Attributes.single_value_compatibility = false
+        assert_equal ["", "valuePresent", nil, nil], response_multiple_attr_values.attributes[:attribute_with_nils_and_empty_strings]
+        OneLogin::RubySaml::Attributes.single_value_compatibility = true
+      end
+
+      should "check what happens when trying retrieve attribute that does not exists" do
+        assert_equal nil, response_multiple_attr_values.attributes[:attribute_not_exists]
+        assert_equal nil, response_multiple_attr_values.attributes.single(:attribute_not_exists)
+        assert_equal nil, response_multiple_attr_values.attributes.multi(:attribute_not_exists)
+
+        OneLogin::RubySaml::Attributes.single_value_compatibility = false
+        assert_equal nil, response_multiple_attr_values.attributes[:attribute_not_exists]
+        assert_equal nil, response_multiple_attr_values.attributes.single(:attribute_not_exists)
+        assert_equal nil, response_multiple_attr_values.attributes.multi(:attribute_not_exists)
+        OneLogin::RubySaml::Attributes.single_value_compatibility = true
       end
     end
   end

@@ -71,4 +71,12 @@ class Test::Unit::TestCase
     @signature2 ||= File.read(File.join(File.dirname(__FILE__), 'certificates', 'r1_certificate2_base64'))
   end
 
+  def response_with_multiple_attribute_statements
+    @response_with_multiple_attribute_statements = OneLogin::RubySaml::Response.new(fixture(:response_with_multiple_attribute_statements))
+  end
+
+  def response_multiple_attr_values
+    @response_multiple_attr_values = OneLogin::RubySaml::Response.new(fixture(:response_with_multiple_attribute_values)) 
+  end
+
 end
