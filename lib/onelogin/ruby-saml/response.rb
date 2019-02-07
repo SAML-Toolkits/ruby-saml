@@ -48,26 +48,48 @@ module OneLogin
         end
       end
 
-      # A hash of alle the attributes with the response. Assuming there is only one value for each key
+      # Gets the Attributes from the AttributeStatement element.
+      #
+      # All attributes can be iterated over +attributes.each+ or returned as array by +attributes.all+
+      # For backwards compatibility ruby-saml returns by default only the first value for a given attribute with
+      #    attributes['name']
+      # To get all of the attributes, use:
+      #    attributes.multi('name')
+      # Or turn off the compatibility:
+      #    OneLogin::RubySaml::Attributes.single_value_compatibility = false
+      # Now this will return an array:
+      #    attributes['name']
+      #
+      # @return [Attributes] OneLogin::RubySaml::Attributes enumerable collection.
+      #
       def attributes
         @attr_statements ||= begin
-          result = {}
+          attributes = Attributes.new
 
-          stmt_element = xpath_first_from_signed_assertion('/a:AttributeStatement')
-          return {} if stmt_element.nil?
+          stmt_elements = xpath_from_signed_assertion('/a:AttributeStatement')
+          stmt_elements.each do |stmt_element|
+            stmt_element.elements.each do |attr_element|
+              name = attr_element.attributes["Name"]
+              values = attr_element.elements.collect{|e|
+                if (e.elements.nil? || e.elements.size == 0)
+                  # SAMLCore requires that nil AttributeValues MUST contain xsi:nil XML attribute set to "true" or "1"
+                  # otherwise the value is to be regarded as empty.
+                  ["true", "1"].include?(e.attributes['xsi:nil']) ? nil : e.text.to_s
+                # explicitly support saml2:NameID with saml2:NameQualifier if supplied in attributes
+                # this is useful for allowing eduPersonTargetedId to be passed as an opaque identifier to use to
+                # identify the subject in an SP rather than email or other less opaque attributes
+                # NameQualifier, if present is prefixed with a "/" to the value
+                else
+                 REXML::XPath.match(e,'a:NameID', { "a" => ASSERTION }).collect{|n|
+                    (n.attributes['NameQualifier'] ? n.attributes['NameQualifier'] +"/" : '') + n.text.to_s
+                  }
+                end
+              }
 
-          stmt_element.elements.each do |attr_element|
-            name  = attr_element.attributes["Name"]
-            value = Utils.element_text(attr_element.elements.first)
-
-            result[name] = value
+              attributes.add(name, values.flatten)
+            end
           end
-
-          result.keys.each do |key|
-            result[key.intern] = result[key]
-          end
-
-          result
+          attributes
         end
       end
 
@@ -164,6 +186,26 @@ module OneLogin
             { 'id' => document.signed_element_id }
         )
         node
+      end
+
+      # Extracts all the appearances that matchs the subelt (pattern)
+      # Search on any Assertion that is signed, or has a Response parent signed
+      # @param subelt [String] The XPath pattern
+      # @return [Array of REXML::Element] Return all matches
+      #
+      def xpath_from_signed_assertion(subelt=nil)
+        node = REXML::XPath.match(
+            document,
+            "/p:Response/a:Assertion[@ID=$id]#{subelt}",
+            { "p" => PROTOCOL, "a" => ASSERTION },
+            { 'id' => document.signed_element_id }
+        )
+        node.concat( REXML::XPath.match(
+            document,
+            "/p:Response[@ID=$id]/a:Assertion#{subelt}",
+            { "p" => PROTOCOL, "a" => ASSERTION },
+            { 'id' => document.signed_element_id }
+        ))
       end
 
       def get_fingerprint
