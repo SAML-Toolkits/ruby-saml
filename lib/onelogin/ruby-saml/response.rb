@@ -1,6 +1,7 @@
 require "xml_security"
 require "time"
 require "nokogiri"
+require 'onelogin/ruby-saml/attributes'
 
 # Only supports SAML 2.0
 module OneLogin
