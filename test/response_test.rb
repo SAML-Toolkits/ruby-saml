@@ -229,7 +229,7 @@ class RubySamlTest < Test::Unit::TestCase
 
       should "not raise on responses without attributes" do
         response = OneLogin::RubySaml::Response.new(response_document_4)
-        assert_equal Hash.new, response.attributes
+        assert_equal OneLogin::RubySaml::Attributes.new, response.attributes
       end
 
       should "extract attributes from all AttributeStatement tags" do
