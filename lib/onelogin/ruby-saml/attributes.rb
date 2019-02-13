@@ -48,7 +48,7 @@ module OneLogin
       # @param name [String] The attribute name to be checked
       #
       def include?(name)
-        attributes.has_key?(canonize_name(name))
+        attributes.has_key?(canonize_name(name)) || attributes.has_key?(name)
       end
       
       # Return first value for an attribute
@@ -56,7 +56,7 @@ module OneLogin
       # @return [String] The value (First occurrence)
       #
       def single(name)
-        attributes[canonize_name(name)].first if include?(name)
+        (attributes[canonize_name(name)] || attributes[name]).first if include?(name)
       end
 
       # Return all values for an attribute
@@ -64,7 +64,7 @@ module OneLogin
       # @return [Array] Values of the attribute
       #
       def multi(name)
-        attributes[canonize_name(name)]
+        attributes[canonize_name(name)] || attributes[name]
       end
 
       # Retrieve attribute value(s)
@@ -76,7 +76,7 @@ module OneLogin
       #                          response.attributes['mail']  # => ['user@example.com','user@example.net']
       #
       def [](name)
-        self.class.single_value_compatibility ? single(canonize_name(name)) : multi(canonize_name(name))
+        self.class.single_value_compatibility ? single(name) : multi(name)
       end
 
       # @return [Array] Return all attributes as an array
