@@ -56,7 +56,8 @@ module OneLogin
       # @return [String] The value (First occurrence)
       #
       def single(name)
-        (attributes[canonize_name(name)] || attributes[name]).first if include?(name)
+        values = multi(name)
+        values.first if include?(name)
       end
 
       # Return all values for an attribute
