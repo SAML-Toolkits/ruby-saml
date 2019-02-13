@@ -236,6 +236,28 @@ class RubySamlTest < Test::Unit::TestCase
         assert_equal "smith", response_with_multiple_attribute_statements.attributes[:surname]
         assert_equal "bob", response_with_multiple_attribute_statements.attributes[:firstname]
       end
+
+      should "be manipulable by hash methods such as #merge and not raise an exception" do
+        response = OneLogin::RubySaml::Response.new(response_document)
+        response.attributes.merge({ :testing_attribute => "test" })
+      end
+
+      should "be manipulable by hash methods such as #shift and not raise an exception" do
+        response = OneLogin::RubySaml::Response.new(response_document)
+        response.attributes.shift
+      end
+
+      should "be manipulable by hash methods such as #merge! and actually contain the value" do
+        response = OneLogin::RubySaml::Response.new(response_document)
+        response.attributes.merge!({ :testing_attribute => "test" })
+        assert response.attributes[:testing_attribute]
+      end
+
+      should "be manipulable by hash methods such as #shift and actually remove the value" do
+        response = OneLogin::RubySaml::Response.new(response_document)
+        removed_value = response.attributes.shift
+        assert_nil response.attributes[removed_value[0]]
+      end
     end
 
     context "#session_expires_at" do

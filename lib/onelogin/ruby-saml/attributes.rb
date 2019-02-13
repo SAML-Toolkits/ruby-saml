@@ -48,7 +48,7 @@ module OneLogin
       # @param name [String] The attribute name to be checked
       #
       def include?(name)
-        attributes.has_key?(canonize_name(name))
+        attributes.has_key?(canonize_name(name)) || attributes.has_key?(name)
       end
       
       # Return first value for an attribute
@@ -56,7 +56,7 @@ module OneLogin
       # @return [String] The value (First occurrence)
       #
       def single(name)
-        attributes[canonize_name(name)].first if include?(name)
+        multi(name).first if include?(name)
       end
 
       # Return all values for an attribute
@@ -64,7 +64,15 @@ module OneLogin
       # @return [Array] Values of the attribute
       #
       def multi(name)
-        attributes[canonize_name(name)]
+        values = attributes[canonize_name(name)] || attributes[name]
+        
+        if values.is_a?(Array)
+          values
+        elsif !values.nil?
+          Array(values)
+        else
+          nil
+        end
       end
 
       # Retrieve attribute value(s)
@@ -76,7 +84,7 @@ module OneLogin
       #                          response.attributes['mail']  # => ['user@example.com','user@example.net']
       #
       def [](name)
-        self.class.single_value_compatibility ? single(canonize_name(name)) : multi(canonize_name(name))
+        self.class.single_value_compatibility ? single(name) : multi(name)
       end
 
       # @return [Array] Return all attributes as an array
@@ -113,6 +121,10 @@ module OneLogin
         end
       end
 
+      def respond_to?(name)
+        attributes.respond_to?(name) || super
+      end
+
       protected
 
       # stringifies all names so both 'email' and :email return the same result
@@ -123,6 +135,13 @@ module OneLogin
         name.to_s
       end
 
+      def method_missing(name, *args, &block)
+        if attributes.respond_to?(name)
+          attributes.send(name, *args, &block)
+        else
+          super
+        end
+      end
     end
   end
 end
