@@ -1,5 +1,12 @@
 # Ruby SAML [![Build Status](https://secure.travis-ci.org/onelogin/ruby-saml.png)](http://travis-ci.org/onelogin/ruby-saml)
 
+## Note on versions 0.8.6 and 0.8.7
+Version `0.8.6` introduced an incompatibility with regards to manipulating the `OneLogin::RubySaml::Response#attributes` property; in this version 
+the `#attributes` property is a class (`OneLogin::RubySaml::Attributes`) which implements the `Enumerator` module, thus any non-overriden Hash method
+will throw a NoMethodError.
+Version `0.8.7` overrides the behavior of class `OneLogin::RubySaml::Attributes` by making any method not found on the class be tested on the 
+internal hash structure, thus all methods available in the `Hash` class are now available in `OneLogin::RubySaml::Response#attributes`.
+
 ## Updating from 0.7.x to 0.8.x
 Version `0.8.x` changes the namespace of the gem from `OneLogin::Saml` to `OneLogin::RubySaml`.  Please update your implementations of the gem accordingly.
 
