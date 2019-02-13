@@ -113,6 +113,10 @@ module OneLogin
         end
       end
 
+      def respond_to?(name)
+        attributes.respond_to?(name) || super
+      end
+
       protected
 
       # stringifies all names so both 'email' and :email return the same result
@@ -123,6 +127,13 @@ module OneLogin
         name.to_s
       end
 
+      def method_missing(name, *args, &block)
+        if attributes.respond_to?(name)
+          attributes.send(name, *args, &block)
+        else
+          super
+        end
+      end
     end
   end
 end
