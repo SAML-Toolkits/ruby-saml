@@ -56,8 +56,7 @@ module OneLogin
       # @return [String] The value (First occurrence)
       #
       def single(name)
-        values = multi(name)
-        values.first if include?(name)
+        multi(name).first if include?(name)
       end
 
       # Return all values for an attribute
@@ -65,7 +64,8 @@ module OneLogin
       # @return [Array] Values of the attribute
       #
       def multi(name)
-        attributes[canonize_name(name)] || attributes[name]
+        values = attributes[canonize_name(name)] || attributes[name]
+        values.is_a?(Array) ? values : Array(values)
       end
 
       # Retrieve attribute value(s)
