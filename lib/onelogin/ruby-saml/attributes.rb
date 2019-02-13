@@ -65,7 +65,14 @@ module OneLogin
       #
       def multi(name)
         values = attributes[canonize_name(name)] || attributes[name]
-        values.is_a?(Array) ? values : Array(values)
+        
+        if values.is_a?(Array)
+          values
+        elsif !values.nil?
+          Array(values)
+        else
+          nil
+        end
       end
 
       # Retrieve attribute value(s)
