@@ -189,6 +189,17 @@ def init
 end
 ```
 
+If the SP knows who should be authenticated in the IdP, then can provide that info as follows:
+
+```ruby
+def init
+  request = OneLogin::RubySaml::Authrequest.new
+  saml_settings.name_identifier_value_requested = "testuser@example.com"
+  saml_settings.name_identifier_format = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+  redirect_to(request.create(saml_settings))
+end
+```
+
 Once you've redirected back to the identity provider, it will ensure that the user has been authorized and redirect back to your application for final consumption. This can look something like this (the `authorize_success` and `authorize_failure` methods are specific to your application):
 
 ```ruby
@@ -502,6 +513,9 @@ pp(response.attributes.multi(:not_exists))
 
 The `saml:AuthnContextClassRef` of the AuthNRequest can be provided by `settings.authn_context`; possible values are described at [SAMLAuthnCxt]. The comparison method can be set using `settings.authn_context_comparison` parameter. Possible values include: 'exact', 'better', 'maximum' and 'minimum' (default value is 'exact').
 To add a `saml:AuthnContextDeclRef`, define `settings.authn_context_decl_ref`.
+
+In a SP-initiaited flow, the SP can indicate to the IdP the subject that should be authenticated. This is done by defining the `settings.name_identifier_value_requested` before
+building the authrequest object.
 
 
 ## Signing

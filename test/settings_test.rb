@@ -15,7 +15,7 @@ class SettingsTest < Minitest::Test
         :idp_cert, :idp_cert_fingerprint, :idp_cert_fingerprint_algorithm, :idp_cert_multi,
         :idp_attribute_names, :issuer, :assertion_consumer_service_url, :assertion_consumer_service_binding,
         :single_logout_service_url, :single_logout_service_binding,
-        :sp_name_qualifier, :name_identifier_format, :name_identifier_value,
+        :sp_name_qualifier, :name_identifier_format, :name_identifier_value, :name_identifier_value_requested,
         :sessionindex, :attributes_index, :passive, :force_authn,
         :compress_request, :double_quote_xml_attribute_values, :protocol_binding,
         :security, :certificate, :private_key,
