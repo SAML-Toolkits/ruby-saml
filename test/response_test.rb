@@ -905,6 +905,7 @@ class RubySamlTest < Minitest::Test
         response_wrapped.settings = settings
         assert !response_wrapped.send(:validate_signature)
         assert_includes response_wrapped.errors, "Invalid Signature on SAML Response"
+        assert_includes response_wrapped.errors, "Signed element id #pfxc3d2b542-0f7e-8767-8e87-5b0dc6913375 is not found"
       end
     end
 
