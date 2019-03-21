@@ -10,9 +10,9 @@ class SettingsTest < Test::Unit::TestCase
       accessors = [
         :assertion_consumer_service_url, :issuer, :sp_name_qualifier,
         :idp_sso_target_url, :idp_cert_fingerprint, :name_identifier_format,
-        :idp_slo_target_url, :name_identifier_value, :sessionindex,
-        :assertion_consumer_logout_service_url,
-        :passive, :protocol_binding
+        :idp_slo_target_url, :name_identifier_value, :name_identifier_value_requested,
+        :sessionindex, :assertion_consumer_logout_service_url,
+        :passive, :force_authn, :protocol_binding
       ]
 
       accessors.each do |accessor|

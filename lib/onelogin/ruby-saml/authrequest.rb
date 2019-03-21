@@ -43,22 +43,35 @@ module OneLogin
         # Create AuthnRequest root element using REXML
         request_doc = REXML::Document.new
 
-        root = request_doc.add_element "samlp:AuthnRequest", { "xmlns:samlp" => "urn:oasis:names:tc:SAML:2.0:protocol" }
+        root = request_doc.add_element "samlp:AuthnRequest", { "xmlns:samlp" => "urn:oasis:names:tc:SAML:2.0:protocol", "xmlns:saml" => "urn:oasis:names:tc:SAML:2.0:assertion" }
         root.attributes['ID'] = uuid
         root.attributes['IssueInstant'] = time
         root.attributes['Version'] = "2.0"
         root.attributes['Destination'] = settings.idp_sso_target_url unless settings.idp_sso_target_url.nil?
         root.attributes['IsPassive'] = settings.passive unless settings.passive.nil?
         root.attributes['ProtocolBinding'] = settings.protocol_binding unless settings.protocol_binding.nil?
+        root.attributes['ForceAuthn'] = settings.force_authn unless settings.force_authn.nil?
 
         # Conditionally defined elements based on settings
         if settings.assertion_consumer_service_url != nil
           root.attributes["AssertionConsumerServiceURL"] = settings.assertion_consumer_service_url
         end
         if settings.issuer != nil
-          issuer = root.add_element "saml:Issuer", { "xmlns:saml" => "urn:oasis:names:tc:SAML:2.0:assertion" }
+          issuer = root.add_element "saml:Issuer"
           issuer.text = settings.issuer
         end
+
+        if settings.name_identifier_value_requested != nil
+          subject = root.add_element "saml:Subject"
+
+          nameid = subject.add_element "saml:NameID"
+          nameid.attributes['Format'] = settings.name_identifier_format if settings.name_identifier_format
+          nameid.text = settings.name_identifier_value_requested
+
+          subject_confirmation = subject.add_element "saml:SubjectConfirmation"
+          subject_confirmation.attributes['Method'] = "urn:oasis:names:tc:SAML:2.0:cm:bearer"
+        end
+
         if settings.name_identifier_format != nil
           root.add_element "samlp:NameIDPolicy", {
               "xmlns:samlp" => "urn:oasis:names:tc:SAML:2.0:protocol",
