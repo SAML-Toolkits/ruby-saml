@@ -1,5 +1,8 @@
 # Ruby SAML [![Build Status](https://secure.travis-ci.org/onelogin/ruby-saml.png)](http://travis-ci.org/onelogin/ruby-saml)
 
+# Updating from 0.8.7 to 0.8.8
+Version `0.8.8` adds support for ForceAuthn and Subjects on AuthNRequests by the new name_identifier_value_requested setting
+
 ## Note on versions 0.8.6 and 0.8.7
 Version `0.8.6` introduced an incompatibility with regards to manipulating the `OneLogin::RubySaml::Response#attributes` property; in this version 
 the `#attributes` property is a class (`OneLogin::RubySaml::Attributes`) which implements the `Enumerator` module, thus any non-overriden Hash method
