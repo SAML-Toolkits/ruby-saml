@@ -178,6 +178,10 @@ class Minitest::Test
     @idp_metadata_multiple_descriptors ||= File.read(File.join(File.dirname(__FILE__), 'metadata', 'idp_multiple_descriptors.xml'))
   end
 
+  def idp_metadata_multiple_descriptors2
+    @idp_metadata_multiple_descriptors2 ||= File.read(File.join(File.dirname(__FILE__), 'metadata', 'idp_multiple_descriptors_2.xml'))
+  end
+
   def idp_metadata_multiple_certs
     @idp_metadata_multiple_descriptors ||= File.read(File.join(File.dirname(__FILE__), 'metadata', 'idp_metadata_multi_certs.xml'))
   end

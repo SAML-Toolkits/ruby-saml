@@ -319,7 +319,7 @@ class IdpMetadataParserTest < Minitest::Test
   describe "parsing metadata with many entity descriptors" do
     before do
       @idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
-      @idp_metadata = idp_metadata_multiple_descriptors
+      @idp_metadata = idp_metadata_multiple_descriptors2
       @settings = @idp_metadata_parser.parse(@idp_metadata)
     end
 
@@ -348,7 +348,7 @@ class IdpMetadataParserTest < Minitest::Test
       assert_equal "https://foo.example.com/access/saml/idp.xml", settings.first[:idp_entity_id]
       assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", settings.first[:idp_cert_fingerprint]
       assert_equal "https://bar.example.com/access/saml/idp.xml", settings.last[:idp_entity_id]
-      assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", settings.last[:idp_cert_fingerprint]
+      assert_equal "08:EB:6E:60:A2:14:4E:89:EC:FA:05:74:9D:72:BF:5D:BE:54:F0:1A", settings.last[:idp_cert_fingerprint]
     end
   end
 
