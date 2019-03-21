@@ -1,7 +1,10 @@
 # Ruby SAML [![Build Status](https://secure.travis-ci.org/onelogin/ruby-saml.svg)](http://travis-ci.org/onelogin/ruby-saml) [![Coverage Status](https://coveralls.io/repos/onelogin/ruby-saml/badge.svg?branch=master%0A)](https://coveralls.io/r/onelogin/ruby-saml?branch=master%0A) [![Gem Version](https://badge.fury.io/rb/ruby-saml.svg)](http://badge.fury.io/rb/ruby-saml)
 
+# Updating from 1.9.0 to 1.10.0
+Version `1.10.0` improves IdpMetadataParser to allow parse multiple IDPSSODescriptor, Add Subject support on AuthNRequest to allow SPs provide info to the IdP about the user to be authenticated and updates the format_cert method to accept certs with /\x0d/
+
 ## Updating from 1.8.0 to 1.9.0
-Version `1.8.0` better supports Ruby 2.4+ and JRuby 9.2.0.0. `Settings` initialization now has a second parameter, `keep_security_settings` (default: false), which saves security settings attributes that are not explicitly overridden, if set to true. 
+Version `1.9.0` better supports Ruby 2.4+ and JRuby 9.2.0.0. `Settings` initialization now has a second parameter, `keep_security_settings` (default: false), which saves security settings attributes that are not explicitly overridden, if set to true.
 
 ## Updating from 1.7.X to 1.8.0
 On Version `1.8.0`, creating AuthRequests/LogoutRequests/LogoutResponses with nil RelayState param will not generate a URL with an empty RelayState parameter anymore. It also changes the invalid audience error message.

@@ -1,4 +1,9 @@
 # RubySaml Changelog
+### 1.10.0 (Mar 21, 2019)
+* Add Subject support on AuthNRequest to allow SPs provide info to the IdP about the user to be authenticated
+* Improves IdpMetadataParser to allow parse multiple IDPSSODescriptors
+* Improves format_cert method to accept certs with /\x0d/
+* Forces nokogiri >= 1.8.2 when possible
 
 ### 1.9.0 (Sept 03, 2018)
 * [#458](https://github.com/onelogin/ruby-saml/pull/458) Remove ruby 2.4+ warnings
