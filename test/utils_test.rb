@@ -29,6 +29,11 @@ class UtilsTest < Minitest::Test
       assert_equal formatted_certificate, OneLogin::RubySaml::Utils.format_cert(invalid_certificate2)
     end
 
+    it "returns the cert when it's encoded" do
+      encoded_certificate = read_certificate("certificate.der")
+      assert_equal encoded_certificate, OneLogin::RubySaml::Utils.format_cert(encoded_certificate)
+    end
+
     it "reformats the certificate when there line breaks and no headers" do
       invalid_certificate3 = read_certificate("invalid_certificate3")
       assert_equal formatted_certificate, OneLogin::RubySaml::Utils.format_cert(invalid_certificate3)
