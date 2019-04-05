@@ -31,5 +31,7 @@ matrix:
       gemfile: gemfiles/nokogiri-1.5.gemfile
     - rvm: jruby-9.2.0.0
       gemfile: gemfiles/nokogiri-1.5.gemfile
+    - rvm: 2.6.2
+      gemfile: gemfiles/nokogiri-1.5.gemfile
 env:
   - JRUBY_OPTS="--debug"
