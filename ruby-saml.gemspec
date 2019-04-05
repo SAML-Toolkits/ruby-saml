@@ -21,13 +21,10 @@ Gem::Specification.new do |s|
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.3.7}
-  s.required_ruby_version = '>= 1.8.7'
+  s.required_ruby_version = '>= 1.9.3'
   s.summary = %q{SAML Ruby Tookit}
   s.test_files = `git ls-files test/*`.split("\n")
 
-  # Because runtime dependencies are determined at build time, we cannot make
-  # Nokogiri's version dependent on the Ruby version, even though we would
-  # have liked to constrain Ruby 1.8.7 to install only the 1.5.x versions.
   if defined?(JRUBY_VERSION)
     if JRUBY_VERSION < '9.2.0.0'
       s.add_runtime_dependency('nokogiri', '>= 1.8.2', '<= 1.8.5')
@@ -35,9 +32,6 @@ Gem::Specification.new do |s|
     else
       s.add_runtime_dependency('nokogiri', '>= 1.8.2')
     end
-  elsif RUBY_VERSION < '1.9'
-    s.add_runtime_dependency('uuid')
-    s.add_runtime_dependency('nokogiri', '<= 1.5.11')
   elsif RUBY_VERSION < '2.1'
     s.add_runtime_dependency('nokogiri', '>= 1.5.10', '<= 1.6.8.1')
   else
@@ -55,9 +49,6 @@ Gem::Specification.new do |s|
   if defined?(JRUBY_VERSION)
     # All recent versions of JRuby play well with pry
     s.add_development_dependency('pry')
-  elsif RUBY_VERSION < '1.9'
-    # 1.8.7
-    s.add_development_dependency('ruby-debug', '~> 0.10.4')
   elsif RUBY_VERSION < '2.0'
     # 1.9.x
     s.add_development_dependency('debugger-linecache', '~> 1.2.0')

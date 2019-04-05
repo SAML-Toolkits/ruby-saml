@@ -1,8 +1,4 @@
-if RUBY_VERSION < '1.9'
-  require 'uuid'
-else
-  require 'securerandom'
-end
+require 'securerandom'
 
 module OneLogin
   module RubySaml
@@ -10,7 +6,6 @@ module OneLogin
     # SAML2 Auxiliary class
     #
     class Utils
-      @@uuid_generator = UUID.new if RUBY_VERSION < '1.9'
 
       DSIG      = "http://www.w3.org/2000/09/xmldsig#"
       XENC      = "http://www.w3.org/2001/04/xmlenc#"
@@ -256,7 +251,7 @@ module OneLogin
       end
 
       def self.uuid
-        RUBY_VERSION < '1.9' ? "_#{@@uuid_generator.generate}" : "_#{SecureRandom.uuid}"
+        "_#{SecureRandom.uuid}"
       end
 
       # Given two strings, attempt to match them as URIs using Rails' parse method.  If they can be parsed,

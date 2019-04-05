@@ -98,7 +98,6 @@ SAML authorization is a two step process and you are expected to implement suppo
 We created a demo project for Rails4 that uses the latest version of this library: [ruby-saml-example](https://github.com/onelogin/ruby-saml-example)
 
 ### Supported versions of Ruby
-* 1.8.7
 * 1.9.x
 * 2.0.x
 * 2.1.x
@@ -151,22 +150,6 @@ or just the required components individually:
 ```ruby
 require 'onelogin/ruby-saml/authrequest'
 ```
-
-### Installation on Ruby 1.8.7
-
-This gem uses Nokogiri as a dependency, which dropped support for Ruby 1.8.x in Nokogiri 1.6. When installing this gem on Ruby 1.8.7, you will need to make sure a version of Nokogiri prior to 1.6 is installed or specified if it hasn't been already.
-
-Using `Gemfile`
-
-```ruby
-gem 'nokogiri', '~> 1.5.10'
-```
-
-Using RubyGems
-
-```sh
-gem install nokogiri --version '~> 1.5.10'
-````
 
 ### Configuring Logging
 
