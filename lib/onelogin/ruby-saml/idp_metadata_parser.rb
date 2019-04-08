@@ -12,6 +12,7 @@ module OneLogin
     # Auxiliary class to retrieve and parse the Identity Provider Metadata
     #
     class IdpMetadataParser
+
       module SamlMetadata
         module Vocabulary
           METADATA       = "urn:oasis:names:tc:SAML:2.0:metadata"
@@ -385,7 +386,9 @@ module OneLogin
         settings
       end
 
-      private_constant :SamlMetadata, :IdpMetadata
+      if self.respond_to?(:private_constant)
+        private_constant :SamlMetadata, :IdpMetadata
+      end
     end
   end
 end
