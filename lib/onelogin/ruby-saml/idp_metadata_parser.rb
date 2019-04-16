@@ -228,7 +228,8 @@ module OneLogin
         # @return [String|nil] 'validUntil' attribute of metadata
         #
         def valid_until
-          @idpsso_descriptor.parent&.attributes&.[]('validUntil')
+          root = @idpsso_descriptor.root
+          root.attributes['validUntil'] if root && root.attributes
         end
 
         # @param binding_priority [Array]
