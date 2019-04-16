@@ -207,7 +207,8 @@ module OneLogin
             :idp_attribute_names => attribute_names,
             :idp_cert => nil,
             :idp_cert_fingerprint => nil,
-            :idp_cert_multi => nil
+            :idp_cert_multi => nil,
+            :valid_until => valid_until
           }.tap do |response_hash|
             merge_certificates_into(response_hash) unless certificates.nil?
           end
@@ -222,6 +223,13 @@ module OneLogin
             SamlMetadata::NAMESPACE
           )
           Utils.element_text(node)
+        end
+
+        # @return [String|nil] 'validUntil' attribute of metadata
+        #
+        def valid_until
+          root = @idpsso_descriptor.root
+          root.attributes['validUntil'] if root && root.attributes
         end
 
         # @param binding_priority [Array]

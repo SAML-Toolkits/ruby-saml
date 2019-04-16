@@ -38,6 +38,7 @@ module OneLogin
       attr_accessor :idp_cert_multi
       attr_accessor :idp_attribute_names
       attr_accessor :idp_name_qualifier
+      attr_accessor :valid_until
       # SP Data
       attr_accessor :issuer
       attr_accessor :assertion_consumer_service_url
