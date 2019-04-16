@@ -29,6 +29,7 @@ class IdpMetadataParserTest < Minitest::Test
       assert_equal "https://hello.example.com/access/saml/logout", settings.idp_slo_target_url
       assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified", settings.name_identifier_format
       assert_equal ["AuthToken", "SSOStartPage"], settings.idp_attribute_names
+      assert_equal '2014-04-17T18:02:33.910Z', settings.valid_until
     end
 
     it "extract certificate from md:KeyDescriptor[@use='signing']" do
@@ -76,7 +77,7 @@ class IdpMetadataParserTest < Minitest::Test
 
       options[:sso_binding] = ['invalid_binding', 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect']
       settings = idp_metadata_parser.parse(idp_metadata, options)
-      assert_equal "https://idp.example.com/idp/profile/SAML2/Redirect/SSO", settings.idp_sso_target_url      
+      assert_equal "https://idp.example.com/idp/profile/SAML2/Redirect/SSO", settings.idp_sso_target_url
     end
 
     it "uses settings options as hash for overrides" do
@@ -121,6 +122,7 @@ class IdpMetadataParserTest < Minitest::Test
       assert_equal "https://hello.example.com/access/saml/logout", metadata[:idp_slo_target_url]
       assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified", metadata[:name_identifier_format]
       assert_equal ["AuthToken", "SSOStartPage"], metadata[:idp_attribute_names]
+      assert_equal '2014-04-17T18:02:33.910Z', metadata[:valid_until]
     end
 
     it "extract certificate from md:KeyDescriptor[@use='signing']" do
@@ -242,6 +244,7 @@ class IdpMetadataParserTest < Minitest::Test
       assert_equal "https://hello.example.com/access/saml/logout", settings.idp_slo_target_url
       assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified", settings.name_identifier_format
       assert_equal ["AuthToken", "SSOStartPage"], settings.idp_attribute_names
+      assert_equal '2014-04-17T18:02:33.910Z', settings.valid_until
       assert_equal OpenSSL::SSL::VERIFY_PEER, @http.verify_mode
     end
 
@@ -275,6 +278,7 @@ class IdpMetadataParserTest < Minitest::Test
       assert_equal "https://hello.example.com/access/saml/logout", parsed_metadata[:idp_slo_target_url]
       assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified", parsed_metadata[:name_identifier_format]
       assert_equal ["AuthToken", "SSOStartPage"], parsed_metadata[:idp_attribute_names]
+      assert_equal '2014-04-17T18:02:33.910Z', settings.valid_until
       assert_equal OpenSSL::SSL::VERIFY_PEER, @http.verify_mode
     end
 
@@ -341,14 +345,17 @@ class IdpMetadataParserTest < Minitest::Test
       assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", @settings.idp_cert_fingerprint
       assert_equal "https://hello.example.com/access/saml/logout", @settings.idp_slo_target_url
       assert_equal ["AuthToken", "SSOStartPage"], @settings.idp_attribute_names
+      assert_equal '2014-04-17T18:02:33.910Z', @settings.valid_until
     end
 
     it "should handle multiple descriptors at once" do
       settings = @idp_metadata_parser.parse_to_array(@idp_metadata)
       assert_equal "https://foo.example.com/access/saml/idp.xml", settings.first[:idp_entity_id]
       assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", settings.first[:idp_cert_fingerprint]
+      assert_equal '2014-04-17T18:02:33.910Z', settings.first.valid_until
       assert_equal "https://bar.example.com/access/saml/idp.xml", settings.last[:idp_entity_id]
       assert_equal "08:EB:6E:60:A2:14:4E:89:EC:FA:05:74:9D:72:BF:5D:BE:54:F0:1A", settings.last[:idp_cert_fingerprint]
+      assert_equal '2014-04-17T18:02:33.910Z', settings.last.valid_until
     end
   end
 
