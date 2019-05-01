@@ -159,6 +159,39 @@ class RubySamlTest < Test::Unit::TestCase
         assert_equal "support@onelogin.com", response.name_id
         assert_equal "smith", response.attributes["surname"]
       end
+
+      context '#validate_audience' do
+        should "return true when issuer not set or empty" do
+          response = OneLogin::RubySaml::Response.new(response_document_4)
+          response.stubs(:conditions).returns(nil)
+          settings = OneLogin::RubySaml::Settings.new
+          response.settings = settings
+          settings.idp_cert_fingerprint = signature_fingerprint_1
+          assert response.is_valid?
+          settings.issuer = ''
+          assert response.is_valid?
+        end
+
+        should "return false when issuer set to incorrectly" do
+          response = OneLogin::RubySaml::Response.new(response_document_4)
+          response.stubs(:conditions).returns(nil)
+          settings = OneLogin::RubySaml::Settings.new
+          response.settings = settings
+          settings.idp_cert_fingerprint = signature_fingerprint_1
+          settings.issuer = 'wrong_audience'
+          assert !response.is_valid?
+        end
+
+        should "return true when issuer set to correctly" do
+          response = OneLogin::RubySaml::Response.new(response_document_4)
+          response.stubs(:conditions).returns(nil)
+          settings = OneLogin::RubySaml::Settings.new
+          response.settings = settings
+          settings.idp_cert_fingerprint = signature_fingerprint_1
+          settings.issuer = 'audience'
+          assert response.is_valid?
+        end
+      end
     end
 
     context "#name_id" do

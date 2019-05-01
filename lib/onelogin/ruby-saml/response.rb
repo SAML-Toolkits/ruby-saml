@@ -131,6 +131,15 @@ module OneLogin
         end
       end
 
+      # @return [Array] The Audience elements from the Contitions of the SAML Response.
+      #
+      def audiences
+        @audiences ||= begin
+          nodes = xpath_from_signed_assertion('/a:Conditions/a:AudienceRestriction/a:Audience')
+          nodes.map { |node| Utils.element_text(node) }.reject(&:empty?)
+        end
+      end
+
       private
 
       def validation_error(message)
@@ -141,6 +150,7 @@ module OneLogin
         validate_structure(soft)      &&
         validate_response_state(soft) &&
         validate_conditions(soft)     &&
+        validate_audience(soft)       &&
         document.validate_document(get_fingerprint, soft) &&
         success?
       end
@@ -239,6 +249,23 @@ module OneLogin
         if node && node.attributes[attribute]
           Time.parse(node.attributes[attribute])
         end
+      end
+
+      # Validates the Audience, (If the Audience match the Service Provider EntityID)
+      # If fails, the error is added to the errors array
+      # @return [Boolean] True if there is an Audience Element that match the Service Provider EntityID, otherwise False if soft=True
+      # @raise [ValidationError] if soft == false and validation fails
+      #
+      def validate_audience(soft = true)
+        return true if audiences.empty? || settings.issuer.nil? || settings.issuer.empty?
+
+        unless audiences.include? settings.issuer
+          s = audiences.count > 1 ? 's' : '';
+          error_msg = "Invalid Audience#{s}. The audience#{s} #{audiences.join(',')}, did not match the expected audience #{settings.issuer}"
+          return soft ? false : validation_error(error_msg)
+        end
+
+        true
       end
     end
   end
