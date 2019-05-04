@@ -20,13 +20,35 @@ module OneLogin
       def generate(settings, pretty_print=false)
         meta_doc = XMLSecurity::Document.new
         namespaces = {
-            "xmlns:md" => "urn:oasis:names:tc:SAML:2.0:metadata"
+            "xmlns" => "urn:oasis:names:tc:SAML:2.0:metadata"
         }
         if settings.attribute_consuming_service.configured?
           namespaces["xmlns:saml"] = "urn:oasis:names:tc:SAML:2.0:assertion"
         end
-        root = meta_doc.add_element "md:EntityDescriptor", namespaces
-        sp_sso = root.add_element "md:SPSSODescriptor", {
+        root = meta_doc.add_element "EntityDescriptor", namespaces
+
+        # WS-Fed implementation
+        if settings.claims_requested.configured?
+          fed_rd = root.add_element "RoleDescriptor", {
+            "xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance",
+            "xmlns:fed" => "http://docs.oasis-open.org/wsfed/federation/200706",
+            "xsi:type" => "fed:ApplicationServiceType",
+            "protocolSupportEnumeration" => "http://docs.oasis-open.org/ws-sx/ws-trust/200512 http://schemas.xmlsoap.org/ws/2005/02/trust http://docs.oasis-open.org/wsfed/federation/200706",
+            "ServiceDisplayName" => "SPIDR Test Fed"
+          }
+          fed_claims_requested = fed_rd.add_element "fed:ClaimTypesRequested"
+          settings.claims_requested.attributes.each do |attribute|
+            fed_ct = fed_claims_requested.add_element "auth:ClaimType", {
+              "xmlns:auth" => "http://docs.oasis-open.org/wsfed/authorization/200706",
+              "Uri" => attribute[:uri],
+              "Optional" => attribute[:optional]
+            }
+            #fed_ct.add_element("auth:DisplayName").text = "Foo"
+            #fed_ct.add_element("auth:Description").text = "Bar"
+          end
+        end
+
+        sp_sso = root.add_element "SPSSODescriptor", {
             "protocolSupportEnumeration" => "urn:oasis:names:tc:SAML:2.0:protocol",
             "AuthnRequestsSigned" => settings.security[:authn_requests_signed],
             "WantAssertionsSigned" => settings.security[:want_assertions_signed],
@@ -40,14 +62,14 @@ module OneLogin
         for sp_cert in [cert, cert_new]
           if sp_cert
             cert_text = Base64.encode64(sp_cert.to_der).gsub("\n", '')
-            kd = sp_sso.add_element "md:KeyDescriptor", { "use" => "signing" }
+            kd = sp_sso.add_element "KeyDescriptor", { "use" => "signing" }
             ki = kd.add_element "ds:KeyInfo", {"xmlns:ds" => "http://www.w3.org/2000/09/xmldsig#"}
             xd = ki.add_element "ds:X509Data"
             xc = xd.add_element "ds:X509Certificate"
             xc.text = cert_text
 
             if settings.security[:want_assertions_encrypted]
-              kd2 = sp_sso.add_element "md:KeyDescriptor", { "use" => "encryption" }
+              kd2 = sp_sso.add_element "KeyDescriptor", { "use" => "encryption" }
               ki2 = kd2.add_element "ds:KeyInfo", {"xmlns:ds" => "http://www.w3.org/2000/09/xmldsig#"}
               xd2 = ki2.add_element "ds:X509Data"
               xc2 = xd2.add_element "ds:X509Certificate"
@@ -61,18 +83,18 @@ module OneLogin
           root.attributes["entityID"] = settings.issuer
         end
         if settings.single_logout_service_url
-          sp_sso.add_element "md:SingleLogoutService", {
+          sp_sso.add_element "SingleLogoutService", {
               "Binding" => settings.single_logout_service_binding,
               "Location" => settings.single_logout_service_url,
               "ResponseLocation" => settings.single_logout_service_url
           }
         end
         if settings.name_identifier_format
-          nameid = sp_sso.add_element "md:NameIDFormat"
+          nameid = sp_sso.add_element "NameIDFormat"
           nameid.text = settings.name_identifier_format
         end
         if settings.assertion_consumer_service_url
-          sp_sso.add_element "md:AssertionConsumerService", {
+          sp_sso.add_element "AssertionConsumerService", {
               "Binding" => settings.assertion_consumer_service_binding,
               "Location" => settings.assertion_consumer_service_url,
               "isDefault" => true,
@@ -81,16 +103,16 @@ module OneLogin
         end
 
         if settings.attribute_consuming_service.configured?
-          sp_acs = sp_sso.add_element "md:AttributeConsumingService", {
+          sp_acs = sp_sso.add_element "AttributeConsumingService", {
             "isDefault" => "true",
             "index" => settings.attribute_consuming_service.index
           }
-          srv_name = sp_acs.add_element "md:ServiceName", {
+          srv_name = sp_acs.add_element "ServiceName", {
             "xml:lang" => "en"
           }
           srv_name.text = settings.attribute_consuming_service.name
           settings.attribute_consuming_service.attributes.each do |attribute|
-            sp_req_attr = sp_acs.add_element "md:RequestedAttribute", {
+            sp_req_attr = sp_acs.add_element "RequestedAttribute", {
               "NameFormat" => attribute[:name_format],
               "Name" => attribute[:name],
               "FriendlyName" => attribute[:friendly_name],

@@ -26,6 +26,7 @@ module OneLogin
           end
         end
         @attribute_consuming_service = AttributeService.new
+        @claims_requested = AttributeService.new
       end
 
       # IdP Data
@@ -61,6 +62,7 @@ module OneLogin
       attr_accessor :authn_context_comparison
       attr_accessor :authn_context_decl_ref
       attr_reader :attribute_consuming_service
+      attr_reader :claims_requested
       # Work-flow
       attr_accessor :security
       attr_accessor :soft
