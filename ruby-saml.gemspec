@@ -44,6 +44,7 @@ Gem::Specification.new do |s|
     s.add_runtime_dependency('nokogiri', '>= 1.5.10')
   end
 
+  s.add_development_dependency('coveralls')
   s.add_development_dependency('minitest', '~> 5.5')
   s.add_development_dependency('mocha',    '~> 0.14')
   s.add_development_dependency('rake',     '~> 10')
