@@ -257,11 +257,11 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_audience(soft = true)
-        return true if audiences.empty? || settings.issuer.nil? || settings.issuer.empty?
+        return true if audiences.empty? || settings.sp_entity_id.nil? || settings.sp_entity_id.empty?
 
-        unless audiences.include? settings.issuer
+        unless audiences.include? settings.sp_entity_id
           s = audiences.count > 1 ? 's' : '';
-          error_msg = "Invalid Audience#{s}. The audience#{s} #{audiences.join(',')}, did not match the expected audience #{settings.issuer}"
+          error_msg = "Invalid Audience#{s}. The audience#{s} #{audiences.join(',')}, did not match the expected audience #{settings.sp_entity_id}"
           return soft ? false : validation_error(error_msg)
         end
 

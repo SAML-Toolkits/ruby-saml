@@ -47,9 +47,9 @@ module OneLogin
         root.attributes['IssueInstant'] = time
         root.attributes['Version'] = "2.0"
 
-        if settings.issuer
+        if settings.sp_entity_id
           issuer = root.add_element "saml:Issuer", { "xmlns:saml" => "urn:oasis:names:tc:SAML:2.0:assertion" }
-          issuer.text = settings.issuer
+          issuer.text = settings.sp_entity_id
         end
 
         if settings.name_identifier_value

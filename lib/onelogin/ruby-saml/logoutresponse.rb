@@ -117,8 +117,8 @@ module OneLogin
           return soft ? false : validation_error("No settings on response")
         end
 
-        if settings.issuer.nil?
-          return soft ? false : validation_error("No issuer in settings")
+        if settings.sp_entity_id.nil?
+          return soft ? false : validation_error("No sp_entity_id in settings")
         end
 
         if settings.idp_cert_fingerprint.nil? && settings.idp_cert.nil?
@@ -139,8 +139,8 @@ module OneLogin
       end
 
       def valid_issuer?(soft = true)
-        unless URI.parse(issuer) == URI.parse(self.settings.issuer)
-          return soft ? false : validation_error("Doesn't match the issuer, expected: <#{self.settings.issuer}>, but was: <#{issuer}>")
+        unless URI.parse(issuer) == URI.parse(self.settings.sp_entity_id)
+          return soft ? false : validation_error("Doesn't match the issuer, expected: <#{self.settings.sp_entity_id}>, but was: <#{issuer}>")
         end
         true
       end

@@ -161,34 +161,34 @@ class RubySamlTest < Test::Unit::TestCase
       end
 
       context '#validate_audience' do
-        should "return true when issuer not set or empty" do
+        should "return true when sp_entity_id not set or empty" do
           response = OneLogin::RubySaml::Response.new(response_document_4)
           response.stubs(:conditions).returns(nil)
           settings = OneLogin::RubySaml::Settings.new
           response.settings = settings
           settings.idp_cert_fingerprint = signature_fingerprint_1
           assert response.is_valid?
-          settings.issuer = ''
+          settings.sp_entity_id = ''
           assert response.is_valid?
         end
 
-        should "return false when issuer set to incorrectly" do
+        should "return false when sp_entity_id set to incorrectly" do
           response = OneLogin::RubySaml::Response.new(response_document_4)
           response.stubs(:conditions).returns(nil)
           settings = OneLogin::RubySaml::Settings.new
           response.settings = settings
           settings.idp_cert_fingerprint = signature_fingerprint_1
-          settings.issuer = 'wrong_audience'
+          settings.sp_entity_id = 'wrong_audience'
           assert !response.is_valid?
         end
 
-        should "return true when issuer set to correctly" do
+        should "return true when sp_entity_id set to correctly" do
           response = OneLogin::RubySaml::Response.new(response_document_4)
           response.stubs(:conditions).returns(nil)
           settings = OneLogin::RubySaml::Settings.new
           response.settings = settings
           settings.idp_cert_fingerprint = signature_fingerprint_1
-          settings.issuer = 'audience'
+          settings.sp_entity_id = 'audience'
           assert response.is_valid?
         end
       end

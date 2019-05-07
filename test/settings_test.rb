@@ -8,11 +8,11 @@ class SettingsTest < Test::Unit::TestCase
     end
     should "should provide getters and settings" do
       accessors = [
-        :assertion_consumer_service_url, :issuer, :sp_name_qualifier,
+        :assertion_consumer_service_url, :issuer, :sp_entity_id, :sp_name_qualifier,
         :idp_sso_target_url, :idp_cert_fingerprint, :name_identifier_format,
         :idp_slo_target_url, :name_identifier_value, :name_identifier_value_requested,
         :sessionindex, :assertion_consumer_logout_service_url,
-        :passive, :force_authn, :protocol_binding
+        :passive, :force_authn, :protocol_binding, :single_logout_service_url, :single_logout_service_binding
       ]
 
       accessors.each do |accessor|

@@ -36,7 +36,7 @@ class RubySamlTest < Test::Unit::TestCase
 
         assert logoutresponse.validate
 
-        assert_equal settings.issuer, logoutresponse.issuer
+        assert_equal settings.sp_entity_id, logoutresponse.issuer
         assert_equal in_relation_to_request_id, logoutresponse.in_response_to
 
         assert logoutresponse.success?
@@ -92,9 +92,10 @@ class RubySamlTest < Test::Unit::TestCase
         assert_raises(OneLogin::RubySaml::ValidationError) { logoutresponse.validate! }
       end
 
-      should "raise validation error when in lack of issuer setting" do
+      should "raise validation error when in lack of sp_entity_id setting" do
         bad_settings = settings
         bad_settings.issuer = nil
+        bad_settings.sp_entity_id = nil
         logoutresponse = OneLogin::RubySaml::Logoutresponse.new(unsuccessful_response, bad_settings)
         assert_raises(OneLogin::RubySaml::ValidationError) { logoutresponse.validate! }
       end

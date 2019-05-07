@@ -56,9 +56,9 @@ module OneLogin
         if settings.assertion_consumer_service_url != nil
           root.attributes["AssertionConsumerServiceURL"] = settings.assertion_consumer_service_url
         end
-        if settings.issuer != nil
+        if settings.sp_entity_id != nil
           issuer = root.add_element "saml:Issuer"
-          issuer.text = settings.issuer
+          issuer.text = settings.sp_entity_id
         end
 
         if settings.name_identifier_value_requested != nil

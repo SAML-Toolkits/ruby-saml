@@ -22,15 +22,15 @@ module OneLogin
             # However we would like assertions signed if idp_cert_fingerprint or idp_cert is set
             "WantAssertionsSigned" => (!settings.idp_cert_fingerprint.nil? || !settings.idp_cert.nil?)
         }
-        if settings.issuer != nil
-          root.attributes["entityID"] = settings.issuer
+        if settings.sp_entity_id != nil
+          root.attributes["entityID"] = settings.sp_entity_id
         end
-        if settings.assertion_consumer_logout_service_url != nil
+        if settings.single_logout_service_url != nil
           sp_sso.add_element "md:SingleLogoutService", {
               # Add this as a setting to create different bindings?
               "Binding" => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
-              "Location" => settings.assertion_consumer_logout_service_url,
-              "ResponseLocation" => settings.assertion_consumer_logout_service_url,
+              "Location" => settings.single_logout_service_url,
+              "ResponseLocation" => settings.single_logout_service_url,
               "isDefault" => true,
               "index" => 0
           }
