@@ -259,10 +259,10 @@ class RubySamlTest < Minitest::Test
 
         it "raise when there is no valid audience" do
           settings.idp_cert_fingerprint = signature_fingerprint_1
-          settings.issuer = 'invalid'
+          settings.sp_entity_id = 'invalid'
           response_valid_signed.settings = settings
           response_valid_signed.soft = false
-          error_msg = generate_audience_error(response_valid_signed.settings.issuer, ['https://someone.example.com/audience'])
+          error_msg = generate_audience_error(response_valid_signed.settings.sp_entity_id, ['https://someone.example.com/audience'])
           assert_raises(OneLogin::RubySaml::ValidationError, error_msg) do
             response_valid_signed.is_valid?
           end
@@ -415,11 +415,11 @@ class RubySamlTest < Minitest::Test
 
         it "return false when there is no valid audience" do
           settings.idp_cert_fingerprint = signature_fingerprint_1
-          settings.issuer = 'invalid'
+          settings.sp_entity_id = 'invalid'
           response_valid_signed.settings = settings
           response_valid_signed.is_valid?
 
-          assert_includes response_valid_signed.errors, generate_audience_error(response_valid_signed.settings.issuer, ['https://someone.example.com/audience'])
+          assert_includes response_valid_signed.errors, generate_audience_error(response_valid_signed.settings.sp_entity_id, ['https://someone.example.com/audience'])
         end
 
         it "return false when no ID present in the SAML Response" do
@@ -451,7 +451,7 @@ class RubySamlTest < Minitest::Test
 
         it "collect errors when collect_errors=true" do
           settings.idp_cert = ruby_saml_cert_text
-          settings.issuer = 'invalid'
+          settings.sp_entity_id = 'invalid'
           response_invalid_subjectconfirmation_recipient.settings = settings
           collect_errors = true
           response_invalid_subjectconfirmation_recipient.is_valid?(collect_errors)
@@ -464,23 +464,23 @@ class RubySamlTest < Minitest::Test
     describe "#validate_audience" do
       it "return true when the audience is valid" do
         response.settings = settings
-        response.settings.issuer = '{audience}'
+        response.settings.sp_entity_id = '{audience}'
         assert response.send(:validate_audience)
         assert_empty response.errors
       end
 
       it "return true when the audience is self closing" do
         response_audience_self_closed.settings = settings
-        response_audience_self_closed.settings.issuer = '{audience}'
+        response_audience_self_closed.settings.sp_entity_id = '{audience}'
         assert response_audience_self_closed.send(:validate_audience)
         assert_empty response_audience_self_closed.errors
       end
 
       it "return false when the audience is valid" do
         response.settings = settings
-        response.settings.issuer = 'invalid_audience'
+        response.settings.sp_entity_id = 'invalid_audience'
         assert !response.send(:validate_audience)
-        assert_includes response.errors, generate_audience_error(response.settings.issuer, ['{audience}'])
+        assert_includes response.errors, generate_audience_error(response.settings.sp_entity_id, ['{audience}'])
       end
     end
 
@@ -665,23 +665,23 @@ class RubySamlTest < Minitest::Test
     describe "#validate_audience" do
       it "return true when the audience is valid" do
         response_valid_signed.settings = settings
-        response_valid_signed.settings.issuer = "https://someone.example.com/audience"
+        response_valid_signed.settings.sp_entity_id = "https://someone.example.com/audience"
         assert response_valid_signed.send(:validate_audience)
         assert_empty response_valid_signed.errors
       end
 
-      it "return true when there is not issuer defined" do
+      it "return true when there is not sp_entity_id defined" do
         response_valid_signed.settings = settings
-        response_valid_signed.settings.issuer = nil
+        response_valid_signed.settings.sp_entity_id = nil
         assert response_valid_signed.send(:validate_audience)
         assert_empty response_valid_signed.errors
       end
 
       it "return false when there is no valid audience" do
         response_invalid_audience.settings = settings
-        response_invalid_audience.settings.issuer = "https://invalid.example.com/audience"
+        response_invalid_audience.settings.sp_entity_id = "https://invalid.example.com/audience"
         assert !response_invalid_audience.send(:validate_audience)
-        assert_includes response_invalid_audience.errors, generate_audience_error(response_invalid_audience.settings.issuer, ['http://invalid.audience.com'])
+        assert_includes response_invalid_audience.errors, generate_audience_error(response_invalid_audience.settings.sp_entity_id, ['http://invalid.audience.com'])
       end
     end
 
@@ -953,7 +953,7 @@ class RubySamlTest < Minitest::Test
       end
 
       it "return false when wrong_spnamequalifier" do
-        settings.issuer = 'sp_entity_id'
+        settings.sp_entity_id = 'sp_entity_id'
         response_wrong_spnamequalifier.settings = settings
         assert !response_wrong_spnamequalifier.send(:validate_name_id)
         assert_includes response_wrong_spnamequalifier.errors, "The SPNameQualifier value mistmatch the SP entityID value."
@@ -966,7 +966,7 @@ class RubySamlTest < Minitest::Test
       end
 
       it "return true when nameid is valid and response_wrong_spnamequalifier matches the SP issuer" do
-        settings.issuer = 'wrong-sp-entityid'
+        settings.sp_entity_id = 'wrong-sp-entityid'
         response_wrong_spnamequalifier.settings = settings
         assert response_wrong_spnamequalifier.send(:validate_name_id)
       end
@@ -1398,7 +1398,7 @@ class RubySamlTest < Minitest::Test
 
       before do
         settings.idp_cert_fingerprint = 'EE:17:4E:FB:A8:81:71:12:0D:2A:78:43:BC:E7:0C:07:58:79:F4:F4'
-        settings.issuer = 'http://rubysaml.com:3000/saml/metadata'
+        settings.sp_entity_id = 'http://rubysaml.com:3000/saml/metadata'
         settings.assertion_consumer_service_url = 'http://rubysaml.com:3000/saml/acs'
         settings.certificate = ruby_saml_cert_text
         settings.private_key = ruby_saml_key_text

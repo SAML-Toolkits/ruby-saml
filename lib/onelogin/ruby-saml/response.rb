@@ -589,11 +589,11 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_audience
-        return true if audiences.empty? || settings.issuer.nil? || settings.issuer.empty?
+        return true if audiences.empty? || settings.sp_entity_id.nil? || settings.sp_entity_id.empty?
 
-        unless audiences.include? settings.issuer
+        unless audiences.include? settings.sp_entity_id
           s = audiences.count > 1 ? 's' : '';
-          error_msg = "Invalid Audience#{s}. The audience#{s} #{audiences.join(',')}, did not match the expected audience #{settings.issuer}"
+          error_msg = "Invalid Audience#{s}. The audience#{s} #{audiences.join(',')}, did not match the expected audience #{settings.sp_entity_id}"
           return append_error(error_msg)
         end
 
@@ -781,8 +781,8 @@ module OneLogin
             return append_error("An empty NameID value found")
           end
 
-          unless settings.issuer.nil? || settings.issuer.empty? || name_id_spnamequalifier.nil? || name_id_spnamequalifier.empty?
-            if name_id_spnamequalifier != settings.issuer
+          unless settings.sp_entity_id.nil? || settings.sp_entity_id.empty? || name_id_spnamequalifier.nil? || name_id_spnamequalifier.empty?
+            if name_id_spnamequalifier != settings.sp_entity_id
               return append_error("The SPNameQualifier value mistmatch the SP entityID value.")
             end
           end

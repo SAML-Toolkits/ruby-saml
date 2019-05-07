@@ -238,7 +238,7 @@ def saml_settings
   settings = OneLogin::RubySaml::Settings.new
 
   settings.assertion_consumer_service_url = "http://#{request.host}/saml/consume"
-  settings.issuer                         = "http://#{request.host}/saml/metadata"
+  settings.sp_entity_id                   = "http://#{request.host}/saml/metadata"
   settings.idp_entity_id                  = "https://app.onelogin.com/saml/metadata/#{OneLoginAppId}"
   settings.idp_sso_target_url             = "https://app.onelogin.com/trust/saml2/http-post/sso/#{OneLoginAppId}"
   settings.idp_slo_target_url             = "https://app.onelogin.com/trust/saml2/http-redirect/slo/#{OneLoginAppId}"
@@ -261,6 +261,8 @@ def saml_settings
   settings
 end
 ```
+
+The use of settings.issuer is deprecated in favour of settings.sp_entity_id
 
 Some assertion validations can be skipped by passing parameters to `OneLogin::RubySaml::Response.new()`.  For example, you can skip the `AuthnStatement`, `Conditions`, `Recipient`, or the `SubjectConfirmation` validations by initializing the response with different options:
 
@@ -301,7 +303,7 @@ class SamlController < ApplicationController
     settings = OneLogin::RubySaml::Settings.new
 
     settings.assertion_consumer_service_url = "http://#{request.host}/saml/consume"
-    settings.issuer                         = "http://#{request.host}/saml/metadata"
+    settings.sp_entity_id                   = "http://#{request.host}/saml/metadata"
     settings.idp_sso_target_url             = "https://app.onelogin.com/saml/signon/#{OneLoginAppId}"
     settings.idp_cert_fingerprint           = OneLoginAppCertFingerPrint
     settings.name_identifier_format         = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
@@ -364,7 +366,7 @@ def saml_settings
   settings = idp_metadata_parser.parse_remote("https://example.com/auth/saml2/idp/metadata")
 
   settings.assertion_consumer_service_url = "http://#{request.host}/saml/consume"
-  settings.issuer                         = "http://#{request.host}/saml/metadata"
+  settings.sp_entity_id                   = "http://#{request.host}/saml/metadata"
   settings.name_identifier_format         = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
   # Optional for most SAML IdPs
   settings.authn_context = "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport"

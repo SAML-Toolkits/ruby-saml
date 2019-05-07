@@ -40,7 +40,6 @@ module OneLogin
       attr_accessor :idp_name_qualifier
       attr_accessor :valid_until
       # SP Data
-      attr_accessor :issuer
       attr_accessor :assertion_consumer_service_url
       attr_accessor :assertion_consumer_service_binding
       attr_accessor :sp_name_qualifier
@@ -68,6 +67,28 @@ module OneLogin
       # Compability
       attr_accessor :assertion_consumer_logout_service_url
       attr_accessor :assertion_consumer_logout_service_binding
+      attr_accessor :issuer
+
+      # @return [String] SP Entity ID
+      #
+      def sp_entity_id
+        val = nil
+        if @sp_entity_id.nil?
+          if @issuer
+            val = @issuer
+          end
+        else
+          val = @sp_entity_id
+        end
+        val
+      end
+
+      # Setter for SP Entity ID.
+      # @param val [String].
+      #
+      def sp_entity_id=(val)
+        @sp_entity_id = val
+      end
 
       # @return [String] Single Logout Service URL.
       #

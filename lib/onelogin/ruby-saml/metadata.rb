@@ -57,8 +57,8 @@ module OneLogin
         end
 
         root.attributes["ID"] = OneLogin::RubySaml::Utils.uuid
-        if settings.issuer
-          root.attributes["entityID"] = settings.issuer
+        if settings.sp_entity_id
+          root.attributes["entityID"] = settings.sp_entity_id
         end
         if settings.single_logout_service_url
           sp_sso.add_element "md:SingleLogoutService", {

@@ -114,9 +114,9 @@ module OneLogin
         root.attributes['InResponseTo'] = request_id unless request_id.nil?
         root.attributes['Destination'] = settings.idp_slo_target_url unless settings.idp_slo_target_url.nil?
 
-        if settings.issuer != nil
+        if settings.sp_entity_id != nil
           issuer = root.add_element "saml:Issuer"
-          issuer.text = settings.issuer
+          issuer.text = settings.sp_entity_id
         end
 
         # add success message

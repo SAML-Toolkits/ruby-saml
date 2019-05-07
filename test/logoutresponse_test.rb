@@ -62,7 +62,7 @@ class RubySamlTest < Minitest::Test
 
           assert logoutresponse.validate
 
-          assert_equal settings.issuer, logoutresponse.issuer
+          assert_equal settings.sp_entity_id, logoutresponse.issuer
           assert_equal in_relation_to_request_id, logoutresponse.in_response_to
 
           assert logoutresponse.success?
@@ -123,12 +123,13 @@ class RubySamlTest < Minitest::Test
           assert_includes logoutresponse.errors, "The status code of the Logout Response was not Success, was Requester -> Logoutrequest expired"
         end
 
-        it "invalidate logout response when in lack of issuer setting" do
+        it "invalidate logout response when in lack of sp_entity_id setting" do
           bad_settings = settings
           bad_settings.issuer = nil
+          bad_settings.sp_entity_id = nil
           logoutresponse = OneLogin::RubySaml::Logoutresponse.new(unsuccessful_logout_response_document, bad_settings)
           assert !logoutresponse.validate
-          assert_includes logoutresponse.errors, "No issuer in settings of the logout response"
+          assert_includes logoutresponse.errors, "No sp_entity_id in settings of the logout response"
         end
 
         it "invalidate logout response with wrong issuer" do
@@ -202,11 +203,12 @@ class RubySamlTest < Minitest::Test
           assert_includes logoutresponse.errors, "The status code of the Logout Response was not Success, was Requester"
         end
 
-        it "raise validation error when in lack of issuer setting" do
+        it "raise validation error when in lack of sp_entity_id setting" do
           settings.issuer = nil
+          settings.sp_entity_id = nil
           logoutresponse = OneLogin::RubySaml::Logoutresponse.new(unsuccessful_logout_response_document, settings)
           assert_raises(OneLogin::RubySaml::ValidationError) { logoutresponse.validate }
-          assert_includes logoutresponse.errors, "No issuer in settings of the logout response"
+          assert_includes logoutresponse.errors, "No sp_entity_id in settings of the logout response"
         end
 
         it "raise validation error when logout response with wrong issuer" do

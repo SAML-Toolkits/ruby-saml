@@ -105,9 +105,9 @@ module OneLogin
         root.attributes['Version'] = "2.0"
         root.attributes['Destination'] = settings.idp_slo_target_url  unless settings.idp_slo_target_url.nil?
 
-        if settings.issuer
+        if settings.sp_entity_id
           issuer = root.add_element "saml:Issuer"
-          issuer.text = settings.issuer
+          issuer.text = settings.sp_entity_id
         end
 
         nameid = root.add_element "saml:NameID"
