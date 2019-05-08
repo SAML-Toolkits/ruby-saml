@@ -28,7 +28,7 @@ module OneLogin
         root = meta_doc.add_element "EntityDescriptor", namespaces
 
         # WS-Fed implementation
-        if settings.claims_requested.configured?
+        if settings.attribute_consuming_service.configured?
           fed_rd = root.add_element "RoleDescriptor", {
             "xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance",
             "xmlns:fed" => "http://docs.oasis-open.org/wsfed/federation/200706",
@@ -37,14 +37,14 @@ module OneLogin
             "ServiceDisplayName" => "SPIDR Test Fed"
           }
           fed_claims_requested = fed_rd.add_element "fed:ClaimTypesRequested"
-          settings.claims_requested.attributes.each do |attribute|
+          settings.attribute_consuming_service.attributes.each do |attribute|
             fed_ct = fed_claims_requested.add_element "auth:ClaimType", {
               "xmlns:auth" => "http://docs.oasis-open.org/wsfed/authorization/200706",
-              "Uri" => attribute[:uri],
-              "Optional" => attribute[:optional]
+              "Uri" => attribute[:name],
+              "Optional" => !attribute[:is_required]
             }
-            #fed_ct.add_element("auth:DisplayName").text = "Foo"
-            #fed_ct.add_element("auth:Description").text = "Bar"
+            fed_ct.add_element("auth:DisplayName").text = attribute[:friendly_name] if attribute[:friendly_name]
+            #fed_ct.add_element("auth:Description").text = "Description here"
           end
         end
 
