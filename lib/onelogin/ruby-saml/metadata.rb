@@ -34,7 +34,7 @@ module OneLogin
             "xmlns:fed" => "http://docs.oasis-open.org/wsfed/federation/200706",
             "xsi:type" => "fed:ApplicationServiceType",
             "protocolSupportEnumeration" => "http://docs.oasis-open.org/ws-sx/ws-trust/200512 http://schemas.xmlsoap.org/ws/2005/02/trust http://docs.oasis-open.org/wsfed/federation/200706",
-            "ServiceDisplayName" => "SPIDR Test Fed"
+            "ServiceDisplayName" => settings.attribute_consuming_service.name
           }
           fed_claims_requested = fed_rd.add_element "fed:ClaimTypesRequested"
           settings.attribute_consuming_service.attributes.each do |attribute|
