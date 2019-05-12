@@ -1,5 +1,8 @@
 # Ruby SAML [![Build Status](https://secure.travis-ci.org/onelogin/ruby-saml.png)](http://travis-ci.org/onelogin/ruby-saml)
 
+# Updating from 0.8.8 to 0.8.9
+Version `0.8.9` deprecates the use of settings.issuer, use instead settings.sp_entity_id. Deprecates assertion_consumer_logout_service_url and assertion_consumer_logout_service_binding as well, use instead single_logout_service_url and single_logout_service_binding. Adds validate_audience.
+
 # Updating from 0.8.7 to 0.8.8
 Version `0.8.8` adds support for ForceAuthn and Subjects on AuthNRequests by the new name_identifier_value_requested setting
 
