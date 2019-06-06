@@ -320,8 +320,12 @@ module XMLSecurity
       ref = REXML::XPath.first(sig_element, "//ds:Reference", {"ds"=>DSIG})
       uri = ref.attributes.get_attribute("URI").value
 
-      hashed_element = document.at_xpath("//*[@ID=$id]", nil, { 'id' => extract_signed_element_id })
-      
+      hashed_element = if extract_signed_element_id
+        document.at_xpath("//*[@ID=$id]", nil, { 'id' => extract_signed_element_id })
+      else
+        document.root
+      end
+
       canon_algorithm = canon_algorithm REXML::XPath.first(
         ref,
         '//ds:CanonicalizationMethod',
@@ -375,7 +379,7 @@ module XMLSecurity
       return nil if reference_element.nil?
 
       sei = reference_element.attribute("URI").value[1..-1]
-      sei.nil? ? reference_element.parent.parent.parent.attribute("ID").value : sei
+      sei.nil? ? reference_element.parent.parent.parent.attribute("ID")&.value : sei
     end
 
     def extract_inclusive_namespaces
