@@ -17,7 +17,6 @@ Gem::Specification.new do |s|
   ]
   s.files = `git ls-files`.split("\n")
   s.homepage = %q{http://github.com/onelogin/ruby-saml}
-  s.rubyforge_project = %q{http://www.rubygems.org/gems/ruby-saml}
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.3.7}
