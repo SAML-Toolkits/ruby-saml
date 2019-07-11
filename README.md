@@ -123,6 +123,17 @@ We created a demo project for Rails4 that uses the latest version of this librar
 
 If you believe you have discovered a security vulnerability in this gem, please report it at https://www.onelogin.com/security with a description. We follow responsible disclosure guidelines, and will work with you to quickly find a resolution.
 
+### Security warning
+
+Some tools may incorrectly report ruby-saml is a potential security vulnerability.
+ruby-saml depends on Nokogiri, and it's possible to use Nokogiri in a dangerous way
+(by enabling its DTDLOAD option and disabling its NONET option).
+This dangerous Nokogiri configuration, which is sometimes used by other components,
+can create an XML External Entity (XXE) vulnerability if the XML data is not trusted.
+However, ruby-saml never enables this dangerous Nokogiri configuration;
+ruby-saml never enables DTDLOAD, and it never disables NONET.
+
+
 ## Getting Started
 In order to use the toolkit you will need to install the gem (either manually or using Bundler), and require the library in your Ruby application:
 
