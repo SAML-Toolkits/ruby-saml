@@ -1,6 +1,7 @@
 require "xml_security"
 require "onelogin/ruby-saml/attribute_service"
 require "onelogin/ruby-saml/utils"
+require "onelogin/ruby-saml/validation_error"
 
 # Only supports SAML 2.0
 module OneLogin
@@ -188,7 +189,15 @@ module OneLogin
         return nil if certificate.nil? || certificate.empty?
 
         formatted_cert = OneLogin::RubySaml::Utils.format_cert(certificate)
-        OpenSSL::X509::Certificate.new(formatted_cert)
+        cert = OpenSSL::X509::Certificate.new(formatted_cert)
+
+        if security[:check_sp_cert_expiration]
+          if OneLogin::RubySaml::Utils.is_cert_expired(cert)
+            raise OneLogin::RubySaml::ValidationError.new("The SP certificate expired.")
+          end
+        end
+
+        cert
       end
 
       # @return [OpenSSL::X509::Certificate|nil] Build the New SP certificate from the settings (previously format it)
@@ -218,6 +227,7 @@ module OneLogin
         :compress_request                          => true,
         :compress_response                         => true,
         :soft                                      => true,
+        :double_quote_xml_attribute_values         => false,
         :security                                  => {
           :authn_requests_signed      => false,
           :logout_requests_signed     => false,
@@ -228,9 +238,10 @@ module OneLogin
           :metadata_signed            => false,
           :embed_sign                 => false,
           :digest_method              => XMLSecurity::Document::SHA1,
-          :signature_method           => XMLSecurity::Document::RSA_SHA1
-        }.freeze,
-        :double_quote_xml_attribute_values         => false,
+          :signature_method           => XMLSecurity::Document::RSA_SHA1,
+          :check_idp_cert_expiration  => false,
+          :check_sp_cert_expiration   => false
+        }.freeze
       }.freeze
     end
   end

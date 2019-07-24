@@ -829,23 +829,42 @@ module OneLogin
           return append_error(error_msg)
         end
 
+
         idp_certs = settings.get_idp_cert_multi
         if idp_certs.nil? || idp_certs[:signing].empty?
           opts = {}
           opts[:fingerprint_alg] = settings.idp_cert_fingerprint_algorithm
-          opts[:cert] = settings.get_idp_cert
+          idp_cert = settings.get_idp_cert
           fingerprint = settings.get_fingerprint
+          opts[:cert] = idp_cert
 
-          unless fingerprint && doc.validate_document(fingerprint, @soft, opts)
+          if fingerprint && doc.validate_document(fingerprint, @soft, opts)
+            if settings.security[:check_idp_cert_expiration]
+              if OneLogin::RubySaml::Utils.is_cert_expired(idp_cert)
+                error_msg = "IdP x509 certificate expired"
+                return append_error(error_msg)
+              end
+            end
+          else
             return append_error(error_msg)
           end
         else
           valid = false
+          expired = false
           idp_certs[:signing].each do |idp_cert|
             valid = doc.validate_document_with_cert(idp_cert)
             if valid
+              if settings.security[:check_idp_cert_expiration]
+                if OneLogin::RubySaml::Utils.is_cert_expired(idp_cert)
+                  expired = true
+                end
+              end
               break
             end
+          end
+          if expired
+            error_msg = "IdP x509 certificate expired"
+            return append_error(error_msg)
           end
           unless valid
             return append_error(error_msg)

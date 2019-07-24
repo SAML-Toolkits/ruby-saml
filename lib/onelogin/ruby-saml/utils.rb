@@ -3,6 +3,7 @@ if RUBY_VERSION < '1.9'
 else
   require 'securerandom'
 end
+require "openssl"
 
 module OneLogin
   module RubySaml
@@ -14,6 +15,18 @@ module OneLogin
 
       DSIG      = "http://www.w3.org/2000/09/xmldsig#"
       XENC      = "http://www.w3.org/2001/04/xmlenc#"
+
+      # Checks if the x509 cert provided is expired
+      #
+      # @param cert [Certificate] The x509 certificate
+      #
+      def self.is_cert_expired(cert)
+        if cert.is_a?(String)
+          cert = OpenSSL::X509::Certificate.new(cert)
+        end
+
+        return cert.not_after < Time.now
+      end
 
       # Return a properly formatted x509 certificate
       #

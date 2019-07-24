@@ -391,8 +391,8 @@ The following attributes are set:
   * idp_sso_target_url
   * idp_slo_target_url
   * idp_attribute_names
-  * idp_cert 
-  * idp_cert_fingerprint 
+  * idp_cert
+  * idp_cert_fingerprint
   * idp_cert_multi
 
 ### Retrieve one Entity Descriptor when many exist in Metadata
@@ -561,6 +561,8 @@ The settings related to sign are stored in the `security` attribute of the setti
   # Embeded signature or HTTP GET parameter signature
   # Note that metadata signature is always embedded regardless of this value.
   settings.security[:embed_sign] = false
+  settings.security[:check_idp_cert_expiration] = false   # Enable or not IdP x509 cert expiration check
+  settings.security[:check_sp_cert_expiration] = false   # Enable or not SP x509 cert expiration check
 ```
 
 Notice that the RelayState parameter is used when creating the Signature on the HTTP-Redirect Binding.

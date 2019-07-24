@@ -1,6 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), "test_helper"))
 
 require 'onelogin/ruby-saml/settings'
+require 'onelogin/ruby-saml/validation_error'
 
 class SettingsTest < Minitest::Test
 
@@ -243,6 +244,13 @@ class SettingsTest < Minitest::Test
         }
       end
 
+      it "raises an error if SP certificate expired and check_sp_cert_expiration enabled" do
+        @settings.certificate = ruby_saml_cert_text
+        @settings.security[:check_sp_cert_expiration] = true
+        assert_raises(OneLogin::RubySaml::ValidationError) {
+          settings.get_sp_cert
+        }
+      end
     end
 
     describe "#get_sp_cert_new" do

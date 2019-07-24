@@ -880,6 +880,15 @@ class RubySamlTest < Minitest::Test
         assert_includes response_valid_signed_without_x509certificate.errors, "Invalid Signature on SAML Response"
       end
 
+      it "return false when cert expired and check_idp_cert_expiration enabled" do
+        settings.idp_cert_fingerprint = nil
+        settings.idp_cert = ruby_saml_cert_text
+        settings.security[:check_idp_cert_expiration] = true
+        response_valid_signed.settings = settings
+        assert !response_valid_signed.send(:validate_signature)
+        assert_includes response_valid_signed.errors, "IdP x509 certificate expired"
+      end
+
       it "return false when no X509Certificate and the cert provided at settings mismatches" do
         settings.idp_cert_fingerprint = nil
         settings.idp_cert = signature_1

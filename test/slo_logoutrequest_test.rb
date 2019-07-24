@@ -429,6 +429,23 @@ class RubySamlTest < Minitest::Test
         assert logout_request_sign_test.send(:validate_signature)
       end
 
+      it "return false when cert expired and check_idp_cert_expiration expired" do
+        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
+        params['RelayState'] = params[:RelayState]
+        options = {}
+        options[:get_params] = params
+        settings.security[:check_idp_cert_expiration] = true
+        logout_request_sign_test = OneLogin::RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
+        settings.idp_cert = nil
+        settings.idp_cert_multi = {
+          :signing => [ruby_saml_cert_text],
+          :encryption => []
+        }
+        logout_request_sign_test.settings = settings
+        assert !logout_request_sign_test.send(:validate_signature)
+        assert_includes logout_request_sign_test.errors, "IdP x509 certificate expired"
+      end
+
       it "return false when none cert on idp_cert_multi is valid" do
         params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
         params['RelayState'] = params[:RelayState]
@@ -442,6 +459,8 @@ class RubySamlTest < Minitest::Test
         }
         logout_request_sign_test.settings = settings
         assert !logout_request_sign_test.send(:validate_signature)
+        assert_includes logout_request_sign_test.errors, "Invalid Signature on Logout Request"
+
       end
     end
   end
