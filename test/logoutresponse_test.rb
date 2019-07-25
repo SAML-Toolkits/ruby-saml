@@ -1,7 +1,8 @@
 require File.expand_path(File.join(File.dirname(__FILE__), "test_helper"))
 require 'rexml/document'
 require 'responses/logoutresponse_fixtures'
-class RubySamlTest < Test::Unit::TestCase
+
+class LogoutResponseTest < Test::Unit::TestCase
 
   context "Logoutresponse" do
     context "#new" do

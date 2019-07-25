@@ -1,5 +1,6 @@
 require 'rubygems'
 require 'test/unit'
+require 'minitest/autorun'
 require 'shoulda'
 require 'mocha/setup'
 require 'timecop'
@@ -76,7 +77,42 @@ class Test::Unit::TestCase
   end
 
   def response_multiple_attr_values
-    @response_multiple_attr_values = OneLogin::RubySaml::Response.new(fixture(:response_with_multiple_attribute_values)) 
+    @response_multiple_attr_values = OneLogin::RubySaml::Response.new(fixture(:response_with_multiple_attribute_values))
   end
+end
 
+def ruby_saml_cert_text
+  read_certificate("ruby-saml.crt")
+end
+
+def ruby_saml_key_text
+  read_certificate("ruby-saml.key")
+end
+
+def read_certificate(certificate)
+  File.read(File.join(File.dirname(__FILE__), "certificates", certificate))
+end
+
+def decode_saml_request_payload(unauth_url)
+  payload = CGI.unescape(unauth_url.split("SAMLRequest=").last)
+  decoded = Base64.decode64(payload)
+
+  zstream = Zlib::Inflate.new(-Zlib::MAX_WBITS)
+  inflated = zstream.inflate(decoded)
+  zstream.finish
+  zstream.close
+  inflated
+end
+
+# decodes a base64 encoded SAML response for use in SloLogoutresponse tests
+#
+def decode_saml_response_payload(unauth_url)
+  payload = CGI.unescape(unauth_url.split("SAMLResponse=").last)
+  decoded = Base64.decode64(payload)
+
+  zstream = Zlib::Inflate.new(-Zlib::MAX_WBITS)
+  inflated = zstream.inflate(decoded)
+  zstream.finish
+  zstream.close
+  inflated
 end

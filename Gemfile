@@ -5,9 +5,16 @@ source 'http://rubygems.org'
 
 gemspec
 
+if RUBY_VERSION < '1.9'
+  gem 'nokogiri',   '~> 1.5.0'
+elsif RUBY_VERSION < '2.1'
+  gem 'nokogiri',   '>= 1.5.0', '<= 1.6.8.1'
+else
+  gem 'nokogiri',   '>= 1.5.0'
+end
+
 group :test do
   if RUBY_VERSION < '1.9'
-    gem 'nokogiri',   '~> 1.5.0'
     gem 'ruby-debug', '~> 0.10.4'
   elsif RUBY_VERSION < '2.0'
     gem 'debugger-linecache', '~> 1.2.0'
@@ -23,5 +30,6 @@ group :test do
   gem 'shoulda',   '~> 2.11'
   gem 'systemu',   '~> 2'
   gem 'test-unit', '~> 3.0.9'
+  gem 'minitest',  '~> 5.5'
   gem 'timecop',   '<= 0.6.0'
 end

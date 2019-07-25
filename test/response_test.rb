@@ -1,6 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__), "test_helper"))
 
-class RubySamlTest < Test::Unit::TestCase
+class ResponseTest < Test::Unit::TestCase
 
   context "Response" do
     should "raise an exception when response is initialized with nil" do
