@@ -674,7 +674,7 @@ def idp_logout_request
   logout_request = OneLogin::RubySaml::SloLogoutrequest.new(params[:SAMLRequest])
   if !logout_request.is_valid?
     logger.error "IdP initiated LogoutRequest was not valid!"
-    render :inline => logger.error
+    return render :inline => logger.error
   end
   logger.info "IdP initiated Logout for #{logout_request.name_id}"
 
