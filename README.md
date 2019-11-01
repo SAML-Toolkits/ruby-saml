@@ -1,6 +1,14 @@
 # Ruby SAML [![Build Status](https://secure.travis-ci.org/onelogin/ruby-saml.svg)](http://travis-ci.org/onelogin/ruby-saml) [![Coverage Status](https://coveralls.io/repos/onelogin/ruby-saml/badge.svg?branch=master%0A)](https://coveralls.io/r/onelogin/ruby-saml?branch=master%0A) [![Gem Version](https://badge.fury.io/rb/ruby-saml.svg)](http://badge.fury.io/rb/ruby-saml)
 
-# Updating from 1.9.0 to 1.10.0
+## Updating from 1.10.x to 1.11.0
+Version `1.11.0` deprecates the use of `settings.issuer` in favour of `settings.sp_entity_id`.
+There are two new security settings: `settings.security[:check_idp_cert_expiration]` and `settings.security[:check_sp_cert_expiration]` (both false by default) that check if the IdP or SP X.509 certificate has expired, respectively.
+
+Version `1.10.2` includes the `valid_until` attribute in parsed IdP metadata.
+
+Version `1.10.1` improves Ruby 1.8.7 support.
+
+## Updating from 1.9.0 to 1.10.0
 Version `1.10.0` improves IdpMetadataParser to allow parse multiple IDPSSODescriptor, Add Subject support on AuthNRequest to allow SPs provide info to the IdP about the user to be authenticated and updates the format_cert method to accept certs with /\x0d/
 
 ## Updating from 1.8.0 to 1.9.0
@@ -273,7 +281,7 @@ def saml_settings
 end
 ```
 
-The use of settings.issuer is deprecated in favour of settings.sp_entity_id
+The use of settings.issuer is deprecated in favour of settings.sp_entity_id since version 1.11.0
 
 Some assertion validations can be skipped by passing parameters to `OneLogin::RubySaml::Response.new()`.  For example, you can skip the `AuthnStatement`, `Conditions`, `Recipient`, or the `SubjectConfirmation` validations by initializing the response with different options:
 
