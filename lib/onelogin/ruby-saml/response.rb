@@ -42,6 +42,8 @@ module OneLogin
         end
       end
 
+      alias nameid name_id
+
       def sessionindex
         @sessionindex ||= begin
           node = xpath_first_from_signed_assertion('/a:AuthnStatement')
