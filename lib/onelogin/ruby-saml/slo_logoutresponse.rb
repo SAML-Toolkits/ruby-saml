@@ -2,6 +2,7 @@ require "base64"
 require "zlib"
 require "cgi"
 require "onelogin/ruby-saml/utils"
+require "onelogin/ruby-saml/setting_error"
 
 module OneLogin
   module RubySaml
@@ -35,7 +36,7 @@ module OneLogin
         params.each_pair do |key, value|
           response_params << "&#{key.to_s}=#{CGI.escape(value.to_s)}"
         end
-
+        raise SettingError.new "Invalid settings, idp_slo_target_url is not set!" if settings.idp_slo_target_url.nil? or settings.idp_slo_target_url.empty?
         @logout_url = settings.idp_slo_target_url + response_params
       end
 
@@ -119,7 +120,7 @@ module OneLogin
         root.attributes['IssueInstant'] = time
         root.attributes['Version'] = '2.0'
         root.attributes['InResponseTo'] = request_id unless request_id.nil?
-        root.attributes['Destination'] = settings.idp_slo_target_url unless settings.idp_slo_target_url.nil?
+        root.attributes['Destination'] = settings.idp_slo_target_url unless settings.idp_slo_target_url.nil? or settings.idp_slo_target_url.empty?
 
         if settings.sp_entity_id != nil
           issuer = root.add_element "saml:Issuer"
