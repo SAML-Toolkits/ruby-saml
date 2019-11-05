@@ -147,12 +147,153 @@ module OneLogin
       end
 
       def validate(soft = true)
+        validate_success_status       &&
+        validate_num_assertion        &&
+        validate_signed_elements      &&
         validate_structure(soft)      &&
         validate_response_state(soft) &&
         validate_conditions(soft)     &&
         validate_audience(soft)       &&
         document.validate_document(get_fingerprint, soft) &&
         success?
+      end
+
+      # Validates that the SAML Response only contains a single Assertion (encrypted or not).
+      # @return [Boolean] True if the SAML Response contains one unique Assertion, otherwise False
+      #
+      def validate_num_assertion(soft = true)
+        assertions = REXML::XPath.match(
+          document,
+          "//a:Assertion",
+          { "a" => ASSERTION }
+        )
+        encrypted_assertions = REXML::XPath.match(
+          document,
+          "//a:EncryptedAssertion",
+          { "a" => ASSERTION }
+        )
+
+        unless assertions.size != 0
+          return soft ? false : validation_error("Encrypted assertion is not supported")
+        end
+
+        unless assertions.size + encrypted_assertions.size == 1
+          return soft ? false : validation_error("SAML Response must contain 1 assertion")
+        end
+
+        true
+      end
+
+      # Validates the Signed elements
+      # @return [Boolean] True if there is 1 or 2 Elements signed in the SAML Response
+      #                        an are a Response or an Assertion Element, otherwise False if soft=True
+      #
+      def validate_signed_elements
+        signature_nodes = REXML::XPath.match(
+          document,
+          "//ds:Signature",
+          {"ds"=>DSIG}
+        )
+        signed_elements = []
+        verified_seis = []
+        verified_ids = []
+        signature_nodes.each do |signature_node|
+          signed_element = signature_node.parent.name
+          if signed_element != 'Response' && signed_element != 'Assertion'
+            return soft ? false : validation_error("Invalid Signature Element '#{signed_element}'. SAML Response rejected")
+          end
+
+          if signature_node.parent.attributes['ID'].nil?
+            return soft ? false : validation_error("Signed Element must contain an ID. SAML Response rejected")
+          end
+
+          id = signature_node.parent.attributes.get_attribute("ID").value
+          if verified_ids.include?(id)
+            return soft ? false : validation_error("Duplicated ID. SAML Response rejected")
+          end
+          verified_ids.push(id)
+
+          # Check that reference URI matches the parent ID and no duplicate References or IDs
+          ref = REXML::XPath.first(signature_node, ".//ds:Reference", {"ds"=>DSIG})
+          if ref
+            uri = ref.attributes.get_attribute("URI")
+            if uri && !uri.value.empty?
+              sei = uri.value[1..-1]
+
+              unless sei == id
+                return soft ? false : validation_error("Found an invalid Signed Element. SAML Response rejected")
+              end
+
+              if verified_seis.include?(sei)
+                return soft ? false : validation_error("Duplicated Reference URI. SAML Response rejected")
+                return append_error("Duplicated Reference URI. SAML Response rejected")
+              end
+
+              verified_seis.push(sei)
+            end
+          end
+
+          signed_elements << signed_element
+        end
+
+        unless signature_nodes.length < 3 && !signed_elements.empty?
+          return soft ? false : validation_error("Found an unexpected number of Signature Element. SAML Response rejected")
+        end
+
+        true
+      end
+
+      # Validates the Status of the SAML Response
+      # @return [Boolean] True if the SAML Response contains a Success code, otherwise False if soft == false
+      # @raise [ValidationError] if soft == false and validation fails
+      #
+      def validate_success_status
+        return true if success?
+
+        return false unless soft
+
+        error_msg = 'The status code of the Response was not Success'
+        status_error_msg = OneLogin::RubySaml::Utils.status_error_msg(error_msg, status_code, status_message)
+        return validation_error(status_error_msg)
+      end
+
+      # Checks if the Status has the "Success" code
+      # @return [Boolean] True if the StatusCode is Sucess
+      #
+      def success?
+        status_code == "urn:oasis:names:tc:SAML:2.0:status:Success"
+      end
+
+      # @return [String] StatusCode value from a SAML Response.
+      #
+      def status_code
+        @status_code ||= begin
+          nodes = REXML::XPath.match(
+            document,
+            "/p:Response/p:Status/p:StatusCode",
+            { "p" => PROTOCOL }
+          )
+          if nodes.size == 1
+            node = nodes[0]
+            code = node.attributes["Value"] if node && node.attributes
+
+            unless code == "urn:oasis:names:tc:SAML:2.0:status:Success"
+              nodes = REXML::XPath.match(
+                document,
+                "/p:Response/p:Status/p:StatusCode/p:StatusCode",
+                { "p" => PROTOCOL }
+              )
+              statuses = nodes.collect do |inner_node|
+                inner_node.attributes["Value"]
+              end
+              extra_code = statuses.join(" | ")
+              if extra_code
+                code = "#{code} | #{extra_code}"
+              end
+            end
+            code
+          end
+        end
       end
 
       def validate_structure(soft = true)
