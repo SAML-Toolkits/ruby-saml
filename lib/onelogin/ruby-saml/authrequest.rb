@@ -3,6 +3,7 @@ require "rexml/document"
 require "onelogin/ruby-saml/logging"
 require "onelogin/ruby-saml/saml_message"
 require "onelogin/ruby-saml/utils"
+require "onelogin/ruby-saml/setting_error"
 
 # Only supports SAML 2.0
 module OneLogin
@@ -36,7 +37,7 @@ module OneLogin
         params.each_pair do |key, value|
           request_params << "&#{key.to_s}=#{CGI.escape(value.to_s)}"
         end
-        raise "Invalid settings, idp_sso_target_url is not set!" if settings.idp_sso_target_url.nil?
+        raise SettingError.new "Invalid settings, idp_sso_target_url is not set!" if settings.idp_sso_target_url.nil? or settings.idp_sso_target_url.empty?
         @login_url = settings.idp_sso_target_url + request_params
       end
 
@@ -107,7 +108,7 @@ module OneLogin
         root.attributes['ID'] = uuid
         root.attributes['IssueInstant'] = time
         root.attributes['Version'] = "2.0"
-        root.attributes['Destination'] = settings.idp_sso_target_url unless settings.idp_sso_target_url.nil?
+        root.attributes['Destination'] = settings.idp_sso_target_url unless settings.idp_sso_target_url.nil? or settings.idp_sso_target_url.empty?
         root.attributes['IsPassive'] = settings.passive unless settings.passive.nil?
         root.attributes['ProtocolBinding'] = settings.protocol_binding unless settings.protocol_binding.nil?
         root.attributes["AttributeConsumingServiceIndex"] = settings.attributes_index unless settings.attributes_index.nil?
