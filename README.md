@@ -616,15 +616,20 @@ def sp_logout_request
     delete_session
   else
 
-    # Since we created a new SAML request, save the transaction_id
-    # to compare it with the response we get back
     logout_request = OneLogin::RubySaml::Logoutrequest.new()
-    session[:transaction_id] = logout_request.uuid
-    logger.info "New SP SLO for userid '#{session[:userid]}' transactionid '#{session[:transaction_id]}'"
 
     if settings.name_identifier_value.nil?
       settings.name_identifier_value = session[:userid]
     end
+
+    # Ensure user is logged out before redirect to IdP, in case anything
+    # goes wrong during single logout process
+    delete_session
+
+    # Since we created a new SAML request, save the transaction_id
+    # to compare it with the response we get back
+    session[:transaction_id] = logout_request.uuid
+    logger.info "New SP SLO for userid '#{session[:userid]}' transactionid '#{session[:transaction_id]}'"
 
     relayState =  url_for controller: 'saml', action: 'index'
     redirect_to(logout_request.create(settings, :RelayState => relayState))
@@ -654,6 +659,9 @@ def process_logout_response
   else
     # Actually log out this session
     logger.info "Delete session for '#{session[:userid]}'"
+
+    # Session should already have been deleted when generating SLO
+    # LogoutRequest; this is here as a failsafe
     delete_session
   end
 end
