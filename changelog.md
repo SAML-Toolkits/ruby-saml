@@ -1,5 +1,10 @@
 # RubySaml Changelog
 
+### 1.11.0 (Jul 24, 2019)
+
+* Deprecate settings.issuer in favor of settings.sp_entity_id
+* Add support for certification expiration
+
 ### 1.10.2 (Apr 29, 2019)
 
 * Add valid until, accessor
