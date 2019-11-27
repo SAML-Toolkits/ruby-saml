@@ -12,3 +12,4 @@ test/Test.iml
 *.gem
 .bundle
 *.patch
+/vendor

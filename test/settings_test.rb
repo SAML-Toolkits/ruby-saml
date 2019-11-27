@@ -22,7 +22,8 @@ class SettingsTest < Minitest::Test
         :security, :certificate, :private_key,
         :authn_context, :authn_context_comparison, :authn_context_decl_ref,
         :assertion_consumer_logout_service_url,
-        :assertion_consumer_logout_service_binding
+        :assertion_consumer_logout_service_binding,
+        :extensions
       ]
 
       accessors.each do |accessor|

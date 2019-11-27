@@ -4,11 +4,12 @@ require "onelogin/ruby-saml/logging"
 require "onelogin/ruby-saml/saml_message"
 require "onelogin/ruby-saml/utils"
 require "onelogin/ruby-saml/setting_error"
+require "onelogin/ruby-saml/requested_attribute"
 
 # Only supports SAML 2.0
 module OneLogin
   module RubySaml
-  include REXML
+    include REXML
 
     # SAML2 Authentication. AuthNRequest (SSO SP initiated, Builder)
     #
@@ -46,7 +47,7 @@ module OneLogin
       # @param params [Hash] Some extra parameters to be added in the GET for example the RelayState
       # @return [Hash] Parameters
       #
-      def create_params(settings, params={})
+      def create_params(settings, params = {})
         # The method expects :RelayState but sometimes we get 'RelayState' instead.
         # Based on the HashWithIndifferentAccess value in Rails we could experience
         # conflicts so this line will solve them.
@@ -70,12 +71,12 @@ module OneLogin
         request_params = {"SAMLRequest" => base64_request}
 
         if settings.security[:authn_requests_signed] && !settings.security[:embed_sign] && settings.private_key
-          params['SigAlg']    = settings.security[:signature_method]
+          params['SigAlg'] = settings.security[:signature_method]
           url_string = OneLogin::RubySaml::Utils.build_query(
-            :type => 'SAMLRequest',
-            :data => base64_request,
-            :relay_state => relay_state,
-            :sig_alg => params['SigAlg']
+              :type => 'SAMLRequest',
+              :data => base64_request,
+              :relay_state => relay_state,
+              :sig_alg => params['SigAlg']
           )
           sign_algorithm = XMLSecurity::BaseDocument.new.algorithm(settings.security[:signature_method])
           signature = settings.get_sp_key.sign(sign_algorithm.new, url_string)
@@ -104,7 +105,7 @@ module OneLogin
         request_doc = XMLSecurity::Document.new
         request_doc.uuid = uuid
 
-        root = request_doc.add_element "samlp:AuthnRequest", { "xmlns:samlp" => "urn:oasis:names:tc:SAML:2.0:protocol", "xmlns:saml" => "urn:oasis:names:tc:SAML:2.0:assertion" }
+        root = request_doc.add_element "samlp:AuthnRequest", {"xmlns:samlp" => "urn:oasis:names:tc:SAML:2.0:protocol", "xmlns:saml" => "urn:oasis:names:tc:SAML:2.0:assertion", "xmlns:eidas" => "http://eidas.europa.eu/saml-extensions"}
         root.attributes['ID'] = uuid
         root.attributes['IssueInstant'] = time
         root.attributes['Version'] = "2.0"
@@ -151,7 +152,7 @@ module OneLogin
           end
 
           requested_context = root.add_element "samlp:RequestedAuthnContext", {
-            "Comparison" => comparison,
+              "Comparison" => comparison,
           }
 
           if settings.authn_context != nil
@@ -167,6 +168,27 @@ module OneLogin
             authn_contexts_decl_refs.each do |authn_context_decl_ref|
               decl_ref = requested_context.add_element "saml:AuthnContextDeclRef"
               decl_ref.text = authn_context_decl_ref
+            end
+          end
+        end
+
+        if settings.extensions[:sptype] != false || settings.extensions[:requested_attributes] != false
+          req_extensions = root.add_element "samlp:Extensions"
+
+          sptype_value = settings.extensions[:sptype] != nil ? settings.extensions[:sptype] : 'public'
+          eidas_sptype = req_extensions.add_element 'eidas:SPType'
+          eidas_sptype.text = sptype_value
+
+          unless settings.extensions[:requested_attributes].empty?
+            req_attributes = req_extensions.add_element 'eidas:RequestedAttributes'
+            settings.extensions[:requested_attributes].each do |requested_attr|
+              next unless requested_attr.is_a? RequestedAttribute
+
+              el_attr = req_attributes.add_element 'eidas:RequestedAttribute', requested_attr.stringify_attribute_keys
+              next unless requested_attr.value
+
+              el_attr_val = el_attr.add_element 'eidas:AttributeValue'
+              el_attr_val.text = requested_attr.value.to_s
             end
           end
         end

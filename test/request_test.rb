@@ -15,10 +15,10 @@ class RequestTest < Minitest::Test
     it "create the deflated SAMLRequest URL parameter" do
       auth_url = OneLogin::RubySaml::Authrequest.new.create(settings)
       assert_match /^http:\/\/example\.com\?SAMLRequest=/, auth_url
-      payload  = CGI.unescape(auth_url.split("=").last)
-      decoded  = Base64.decode64(payload)
+      payload = CGI.unescape(auth_url.split("=").last)
+      decoded = Base64.decode64(payload)
 
-      zstream  = Zlib::Inflate.new(-Zlib::MAX_WBITS)
+      zstream = Zlib::Inflate.new(-Zlib::MAX_WBITS)
       inflated = zstream.inflate(decoded)
       zstream.finish
       zstream.close
@@ -28,10 +28,10 @@ class RequestTest < Minitest::Test
 
     it "create the deflated SAMLRequest URL parameter including the Destination" do
       auth_url = OneLogin::RubySaml::Authrequest.new.create(settings)
-      payload  = CGI.unescape(auth_url.split("=").last)
-      decoded  = Base64.decode64(payload)
+      payload = CGI.unescape(auth_url.split("=").last)
+      decoded = Base64.decode64(payload)
 
-      zstream  = Zlib::Inflate.new(-Zlib::MAX_WBITS)
+      zstream = Zlib::Inflate.new(-Zlib::MAX_WBITS)
       inflated = zstream.inflate(decoded)
       zstream.finish
       zstream.close
@@ -43,8 +43,8 @@ class RequestTest < Minitest::Test
       settings.compress_request = false
       auth_url = OneLogin::RubySaml::Authrequest.new.create(settings)
       assert_match /^http:\/\/example\.com\?SAMLRequest=/, auth_url
-      payload  = CGI.unescape(auth_url.split("=").last)
-      decoded  = Base64.decode64(payload)
+      payload = CGI.unescape(auth_url.split("=").last)
+      decoded = Base64.decode64(payload)
 
       assert_match /^<samlp:AuthnRequest/, decoded
     end
@@ -53,10 +53,10 @@ class RequestTest < Minitest::Test
       settings.passive = true
       auth_url = OneLogin::RubySaml::Authrequest.new.create(settings)
       assert_match /^http:\/\/example\.com\?SAMLRequest=/, auth_url
-      payload  = CGI.unescape(auth_url.split("=").last)
-      decoded  = Base64.decode64(payload)
+      payload = CGI.unescape(auth_url.split("=").last)
+      decoded = Base64.decode64(payload)
 
-      zstream  = Zlib::Inflate.new(-Zlib::MAX_WBITS)
+      zstream = Zlib::Inflate.new(-Zlib::MAX_WBITS)
       inflated = zstream.inflate(decoded)
       zstream.finish
       zstream.close
@@ -68,10 +68,10 @@ class RequestTest < Minitest::Test
       settings.protocol_binding = 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'
       auth_url = OneLogin::RubySaml::Authrequest.new.create(settings)
       assert_match /^http:\/\/example\.com\?SAMLRequest=/, auth_url
-      payload  = CGI.unescape(auth_url.split("=").last)
-      decoded  = Base64.decode64(payload)
+      payload = CGI.unescape(auth_url.split("=").last)
+      decoded = Base64.decode64(payload)
 
-      zstream  = Zlib::Inflate.new(-Zlib::MAX_WBITS)
+      zstream = Zlib::Inflate.new(-Zlib::MAX_WBITS)
       inflated = zstream.inflate(decoded)
       zstream.finish
       zstream.close
@@ -83,10 +83,10 @@ class RequestTest < Minitest::Test
       settings.attributes_index = 30
       auth_url = OneLogin::RubySaml::Authrequest.new.create(settings)
       assert_match /^http:\/\/example\.com\?SAMLRequest=/, auth_url
-      payload  = CGI.unescape(auth_url.split("=").last)
-      decoded  = Base64.decode64(payload)
+      payload = CGI.unescape(auth_url.split("=").last)
+      decoded = Base64.decode64(payload)
 
-      zstream  = Zlib::Inflate.new(-Zlib::MAX_WBITS)
+      zstream = Zlib::Inflate.new(-Zlib::MAX_WBITS)
       inflated = zstream.inflate(decoded)
       zstream.finish
       zstream.close
@@ -97,10 +97,10 @@ class RequestTest < Minitest::Test
       settings.force_authn = true
       auth_url = OneLogin::RubySaml::Authrequest.new.create(settings)
       assert_match /^http:\/\/example\.com\?SAMLRequest=/, auth_url
-      payload  = CGI.unescape(auth_url.split("=").last)
-      decoded  = Base64.decode64(payload)
+      payload = CGI.unescape(auth_url.split("=").last)
+      decoded = Base64.decode64(payload)
 
-      zstream  = Zlib::Inflate.new(-Zlib::MAX_WBITS)
+      zstream = Zlib::Inflate.new(-Zlib::MAX_WBITS)
       inflated = zstream.inflate(decoded)
       zstream.finish
       zstream.close
@@ -140,24 +140,24 @@ class RequestTest < Minitest::Test
     end
 
     it "accept extra parameters" do
-      auth_url = OneLogin::RubySaml::Authrequest.new.create(settings, { :hello => "there" })
+      auth_url = OneLogin::RubySaml::Authrequest.new.create(settings, {:hello => "there"})
       assert_match /&hello=there$/, auth_url
 
-      auth_url = OneLogin::RubySaml::Authrequest.new.create(settings, { :hello => nil })
+      auth_url = OneLogin::RubySaml::Authrequest.new.create(settings, {:hello => nil})
       assert_match /&hello=$/, auth_url
     end
 
     it "RelayState cases" do
-      auth_url = OneLogin::RubySaml::Authrequest.new.create(settings, { :RelayState => nil })
+      auth_url = OneLogin::RubySaml::Authrequest.new.create(settings, {:RelayState => nil})
       assert !auth_url.include?('RelayState')
 
-      auth_url = OneLogin::RubySaml::Authrequest.new.create(settings, { :RelayState => "http://example.com" })
+      auth_url = OneLogin::RubySaml::Authrequest.new.create(settings, {:RelayState => "http://example.com"})
       assert auth_url.include?('&RelayState=http%3A%2F%2Fexample.com')
 
-      auth_url = OneLogin::RubySaml::Authrequest.new.create(settings, { 'RelayState' => nil })
+      auth_url = OneLogin::RubySaml::Authrequest.new.create(settings, {'RelayState' => nil})
       assert !auth_url.include?('RelayState')
 
-      auth_url = OneLogin::RubySaml::Authrequest.new.create(settings, { 'RelayState' => "http://example.com" })
+      auth_url = OneLogin::RubySaml::Authrequest.new.create(settings, {'RelayState' => "http://example.com"})
       assert auth_url.include?('&RelayState=http%3A%2F%2Fexample.com')
     end
 
@@ -331,11 +331,22 @@ class RequestTest < Minitest::Test
       assert auth_doc.to_s =~ /<saml:AuthnContextDeclRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport<\/saml:AuthnContextDeclRef>/
     end
 
-    it "create multiple saml:AuthnContextDeclRef elements correctly " do
+    it "create multiple saml:AuthnContextDeclRef elements correctly" do
       settings.authn_context_decl_ref = ['name/password/uri', 'example/decl/ref']
       auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
       assert auth_doc.to_s =~ /<saml:AuthnContextDeclRef>name\/password\/uri<\/saml:AuthnContextDeclRef>/
       assert auth_doc.to_s =~ /<saml:AuthnContextDeclRef>example\/decl\/ref<\/saml:AuthnContextDeclRef>/
+    end
+
+    it "create samlp:Extensions correctly in AuthRequest" do
+      settings.extensions[:sptype] = 'public'
+      settings.extensions[:requested_attributes] = [
+        OneLogin::RubySaml::RequestedAttribute.new({:Name => "http://eidas.europa.eu/attributes/naturalperson/DateOfBirth"}, settings)
+      ]
+      auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+      assert auth_doc.to_s =~ /<samlp:Extensions/
+      assert auth_doc.to_s =~ /<eidas:SPType/
+      assert auth_doc.to_s =~ /<eidas:RequestedAttributes/
     end
   end
 end

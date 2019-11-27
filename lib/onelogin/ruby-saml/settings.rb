@@ -10,16 +10,18 @@ module OneLogin
     # SAML2 Toolkit Settings
     #
     class Settings
-      def initialize(overrides = {}, keep_security_attributes = false)
+      def initialize(overrides = {}, keep_security_attributes = false, keep_extensions_attributes = true)
+        config = DEFAULTS.merge(overrides)
         if keep_security_attributes
           security_attributes = overrides.delete(:security) || {}
-          config = DEFAULTS.merge(overrides)
           config[:security] = DEFAULTS[:security].merge(security_attributes)
-        else
-          config = DEFAULTS.merge(overrides)
+        end
+        if keep_extensions_attributes
+          extensions_attributes = overrides.delete(:extensions) || {}
+          config[:extensions] = DEFAULTS[:extensions].merge(extensions_attributes)
         end
 
-        config.each do |k,v|
+        config.each do |k, v|
           acc = "#{k.to_s}=".to_sym
           if respond_to? acc
             value = v.is_a?(Hash) ? v.dup : v
@@ -69,6 +71,8 @@ module OneLogin
       attr_accessor :assertion_consumer_logout_service_url
       attr_accessor :assertion_consumer_logout_service_binding
       attr_accessor :issuer
+      # EIDAS / samlp:Extensions
+      attr_accessor :extensions
 
       # @return [String] SP Entity ID
       #
@@ -164,7 +168,7 @@ module OneLogin
 
         raise ArgumentError.new("Invalid value for idp_cert_multi") if not idp_cert_multi.is_a?(Hash)
 
-        certs = {:signing => [], :encryption => [] }
+        certs = {:signing => [], :encryption => []}
 
         if idp_cert_multi.key?(:signing) and not idp_cert_multi[:signing].empty?
           idp_cert_multi[:signing].each do |idp_cert|
@@ -221,27 +225,31 @@ module OneLogin
       private
 
       DEFAULTS = {
-        :assertion_consumer_service_binding        => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST".freeze,
-        :single_logout_service_binding             => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect".freeze,
-        :idp_cert_fingerprint_algorithm            => XMLSecurity::Document::SHA1,
-        :compress_request                          => true,
-        :compress_response                         => true,
-        :soft                                      => true,
-        :double_quote_xml_attribute_values         => false,
-        :security                                  => {
-          :authn_requests_signed      => false,
-          :logout_requests_signed     => false,
-          :logout_responses_signed    => false,
-          :want_assertions_signed     => false,
-          :want_assertions_encrypted  => false,
-          :want_name_id               => false,
-          :metadata_signed            => false,
-          :embed_sign                 => false,
-          :digest_method              => XMLSecurity::Document::SHA1,
-          :signature_method           => XMLSecurity::Document::RSA_SHA1,
-          :check_idp_cert_expiration  => false,
-          :check_sp_cert_expiration   => false
-        }.freeze
+          :assertion_consumer_service_binding => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST".freeze,
+          :single_logout_service_binding => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect".freeze,
+          :idp_cert_fingerprint_algorithm => XMLSecurity::Document::SHA1,
+          :compress_request => true,
+          :compress_response => true,
+          :soft => true,
+          :double_quote_xml_attribute_values => false,
+          :extensions => {
+              :sptype => false,
+              :requested_attributes => false
+          }.freeze,
+          :security => {
+              :authn_requests_signed => false,
+              :logout_requests_signed => false,
+              :logout_responses_signed => false,
+              :want_assertions_signed => false,
+              :want_assertions_encrypted => false,
+              :want_name_id => false,
+              :metadata_signed => false,
+              :embed_sign => false,
+              :digest_method => XMLSecurity::Document::SHA1,
+              :signature_method => XMLSecurity::Document::RSA_SHA1,
+              :check_idp_cert_expiration => false,
+              :check_sp_cert_expiration => false
+          }.freeze
       }.freeze
     end
   end
