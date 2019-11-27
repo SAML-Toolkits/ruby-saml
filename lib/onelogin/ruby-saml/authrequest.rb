@@ -179,7 +179,7 @@ module OneLogin
           eidas_sptype = req_extensions.add_element 'eidas:SPType'
           eidas_sptype.text = sptype_value
 
-          unless settings.extensions[:requested_attributes].empty?
+          if settings.extensions[:requested_attributes].respond_to? :each
             req_attributes = req_extensions.add_element 'eidas:RequestedAttributes'
             settings.extensions[:requested_attributes].each do |requested_attr|
               next unless requested_attr.is_a? RequestedAttribute

@@ -338,15 +338,32 @@ class RequestTest < Minitest::Test
       assert auth_doc.to_s =~ /<saml:AuthnContextDeclRef>example\/decl\/ref<\/saml:AuthnContextDeclRef>/
     end
 
-    it "create samlp:Extensions correctly in AuthRequest" do
+    it 'create samlp:Extensions correctly in AuthRequest' do
       settings.extensions[:sptype] = 'public'
       settings.extensions[:requested_attributes] = [
-        OneLogin::RubySaml::RequestedAttribute.new({:Name => "http://eidas.europa.eu/attributes/naturalperson/DateOfBirth"}, settings)
+        OneLogin::RubySaml::RequestedAttribute.new({:Name => 'http://eidas.europa.eu/attributes/naturalperson/DateOfBirth'}, settings)
       ]
       auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
       assert auth_doc.to_s =~ /<samlp:Extensions/
       assert auth_doc.to_s =~ /<eidas:SPType/
       assert auth_doc.to_s =~ /<eidas:RequestedAttributes/
     end
+
+    it 'no extensions in output if no extensions configuration is provided' do
+      auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+      assert_nil auth_doc.to_s =~ /<samlp:Extensions/
+      assert_nil auth_doc.to_s =~ /<eidas:SPType/
+      assert_nil auth_doc.to_s =~ /<eidas:RequestedAttributes/
+    end
+
+    it 'only sptype is provided if no requested_attributes configuration' do
+      settings.extensions[:sptype] = 'public'
+      auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+
+      assert auth_doc.to_s =~ /<samlp:Extensions/
+      assert auth_doc.to_s =~ /<eidas:SPType/
+      assert_nil auth_doc.to_s =~ /<eidas:RequestedAttributes/
+    end
+
   end
 end
