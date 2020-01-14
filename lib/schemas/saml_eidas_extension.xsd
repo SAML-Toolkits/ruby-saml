@@ -8,9 +8,6 @@
         xmlns:eidas="http://eidas.europa.eu/saml-extensions"
         version="1">
 
-    <xsd:import namespace="http://eidas.europa.eu/attributes/naturalperson" schemaLocation="saml_eidas_natural_person.xsd"/>
-    <xsd:import namespace="http://schemas.microsoft.com/cgg/2016/identity/claims/approvedclaim" schemaLocation="microsoft_cgg_2016.xsd"/>
-
     <xsd:element name="SPType" type="SPTypeType"/>
 
     <xsd:simpleType name="SPTypeType">

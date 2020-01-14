@@ -1,0 +1,416 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Library:           ISA Core Vocabularies 1.1 BETA
+                     https://joinup.ec.europa.eu/asset/core_vocabularies/description
+  Module:            xsd/CoreVocabularies-BasicComponents-1.1.xsd
+  Generated on:      2015-02-03 07:46z
+-->
+<xsd:schema xmlns="http://www.w3.org/ns/corevocabulary/BasicComponents"
+            xmlns:udt="urn:oasis:names:specification:ubl:schema:xsd:UnqualifiedDataTypes-2"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="http://www.w3.org/ns/corevocabulary/BasicComponents"
+            elementFormDefault="qualified"
+            attributeFormDefault="unqualified"
+            version="1.91">
+   <!-- ===== Imports ===== -->
+   <xsd:import namespace="urn:oasis:names:specification:ubl:schema:xsd:UnqualifiedDataTypes-2"
+               schemaLocation="common/UBL-UnqualifiedDataTypes-2.1.xsd"/>
+   <!-- ===== Element Declarations ===== -->
+   <xsd:element name="AddressAddressArea" type="AddressAddressAreaType"/>
+   <xsd:element name="AddressAdminUnitLocationOne"
+                type="AddressAdminUnitLocationOneType"/>
+   <xsd:element name="AddressAdminUnitLocationTwo"
+                type="AddressAdminUnitLocationTwoType"/>
+   <xsd:element name="AddressFullAddress" type="AddressFullAddressType"/>
+   <xsd:element name="AddressID" type="AddressIDType"/>
+   <xsd:element name="AddressLocatorDesignator" type="AddressLocatorDesignatorType"/>
+   <xsd:element name="AddressLocatorName" type="AddressLocatorNameType"/>
+   <xsd:element name="AddressPostCode" type="AddressPostCodeType"/>
+   <xsd:element name="AddressPostName" type="AddressPostNameType"/>
+   <xsd:element name="AddressPostOfficeBox" type="AddressPostOfficeBoxType"/>
+   <xsd:element name="AddressThoroughfare" type="AddressThoroughfareType"/>
+   <xsd:element name="ChannelID" type="ChannelIDType"/>
+   <xsd:element name="GeometryCoordinateReferenceSystemID"
+                type="GeometryCoordinateReferenceSystemIDType"/>
+   <xsd:element name="GeometryCoordinates" type="GeometryCoordinatesType"/>
+   <xsd:element name="GeometryTypeCode" type="GeometryTypeCodeType"/>
+   <xsd:element name="InputDescription" type="InputDescriptionType"/>
+   <xsd:element name="InputName" type="InputNameType"/>
+   <xsd:element name="InputTypeCode" type="InputTypeCodeType"/>
+   <xsd:element name="JurisdictionID" type="JurisdictionIDType"/>
+   <xsd:element name="JurisdictionName" type="JurisdictionNameType"/>
+   <xsd:element name="LegalEntityAlternativeName" type="LegalEntityAlternativeNameType"/>
+   <xsd:element name="LegalEntityCompanyActivityCode"
+                type="LegalEntityCompanyActivityCodeType"/>
+   <xsd:element name="LegalEntityCompanyStatusCode"
+                type="LegalEntityCompanyStatusCodeType"/>
+   <xsd:element name="LegalEntityCompanyTypeCode" type="LegalEntityCompanyTypeCodeType"/>
+   <xsd:element name="LegalEntityID" type="LegalEntityIDType"/>
+   <xsd:element name="LegalEntityLegalID" type="LegalEntityLegalIDType"/>
+   <xsd:element name="LegalEntityLegalName" type="LegalEntityLegalNameType"/>
+   <xsd:element name="LocationGeographicID" type="LocationGeographicIDType"/>
+   <xsd:element name="LocationGeographicName" type="LocationGeographicNameType"/>
+   <xsd:element name="OutputDescription" type="OutputDescriptionType"/>
+   <xsd:element name="OutputName" type="OutputNameType"/>
+   <xsd:element name="OutputTypeCode" type="OutputTypeCodeType"/>
+   <xsd:element name="PeriodOfTimeEndDate" type="PeriodOfTimeEndDateType"/>
+   <xsd:element name="PeriodOfTimeStartDate" type="PeriodOfTimeStartDateType"/>
+   <xsd:element name="PersonAlternativeName" type="PersonAlternativeNameType"/>
+   <xsd:element name="PersonBirthDate" type="PersonBirthDateType"/>
+   <xsd:element name="PersonBirthName" type="PersonBirthNameType"/>
+   <xsd:element name="PersonDeathDate" type="PersonDeathDateType"/>
+   <xsd:element name="PersonFamilyName" type="PersonFamilyNameType"/>
+   <xsd:element name="PersonFullName" type="PersonFullNameType"/>
+   <xsd:element name="PersonGenderCode" type="PersonGenderCodeType"/>
+   <xsd:element name="PersonGivenName" type="PersonGivenNameType"/>
+   <xsd:element name="PersonID" type="PersonIDType"/>
+   <xsd:element name="PersonPatronymicName" type="PersonPatronymicNameType"/>
+   <xsd:element name="PublicServiceDescription" type="PublicServiceDescriptionType"/>
+   <xsd:element name="PublicServiceHomepageID" type="PublicServiceHomepageIDType"/>
+   <xsd:element name="PublicServiceLanguageCode" type="PublicServiceLanguageCodeType"/>
+   <xsd:element name="PublicServiceName" type="PublicServiceNameType"/>
+   <xsd:element name="PublicServiceTypeCode" type="PublicServiceTypeCodeType"/>
+   <xsd:element name="RuleID" type="RuleIDType"/>
+   <!-- ===== Type Definitions ===== -->
+   <!-- ===== Basic Business Information Entity Type Definitions ===== -->
+   <xsd:complexType name="AddressAddressAreaType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:TextType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="AddressAdminUnitLocationOneType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:TextType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="AddressAdminUnitLocationTwoType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:TextType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="AddressFullAddressType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:TextType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="AddressIDType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:IdentifierType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="AddressLocatorDesignatorType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:TextType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="AddressLocatorNameType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:TextType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="AddressPostCodeType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:TextType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="AddressPostNameType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:TextType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="AddressPostOfficeBoxType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:TextType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="AddressThoroughfareType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:TextType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="ChannelIDType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:IdentifierType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="GeometryCoordinateReferenceSystemIDType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:IdentifierType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="GeometryCoordinatesType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:TextType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="GeometryTypeCodeType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:CodeType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="InputDescriptionType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:TextType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="InputNameType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:TextType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="InputTypeCodeType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:CodeType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="JurisdictionIDType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:IdentifierType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="JurisdictionNameType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:NameType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="LegalEntityAlternativeNameType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:NameType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="LegalEntityCompanyActivityCodeType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:CodeType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="LegalEntityCompanyStatusCodeType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:CodeType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="LegalEntityCompanyTypeCodeType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:CodeType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="LegalEntityIDType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:IdentifierType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="LegalEntityLegalIDType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:IdentifierType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="LegalEntityLegalNameType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:NameType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="LocationGeographicIDType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:IdentifierType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="LocationGeographicNameType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:TextType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="OutputDescriptionType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:TextType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="OutputNameType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:TextType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="OutputTypeCodeType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:CodeType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="PeriodOfTimeEndDateType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:DateType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="PeriodOfTimeStartDateType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:DateType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="PersonAlternativeNameType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:NameType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="PersonBirthDateType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:DateType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="PersonBirthNameType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:NameType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="PersonDeathDateType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:DateType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="PersonFamilyNameType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:NameType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="PersonFullNameType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:NameType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="PersonGenderCodeType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:CodeType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="PersonGivenNameType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:NameType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="PersonIDType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:IdentifierType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="PersonPatronymicNameType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:NameType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="PublicServiceDescriptionType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:TextType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="PublicServiceHomepageIDType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:IdentifierType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="PublicServiceLanguageCodeType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:CodeType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="PublicServiceNameType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:TextType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="PublicServiceTypeCodeType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:CodeType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+   <xsd:complexType name="RuleIDType">
+      <xsd:simpleContent>
+         <xsd:extension base="udt:IdentifierType"/>
+      </xsd:simpleContent>
+   </xsd:complexType>
+</xsd:schema>
+<!-- ===== Copyright Notice ===== --><!--
+  Copyright (c) European Union, 2014
+  Licensed under the ISA Open Metadata Licence
+
+  ISA Open Metadata Licence v1.1
+
+  1. Copyright
+
+  The Work (as defined below) is provided under the terms of this ISA 
+  Open Metadata Licence (this Licence, or later versions of this Licence 
+  published by the European Commission). The work is protected by 
+  copyright and/or other applicable law. Any use of the work other than 
+  as authorised under this Licence or copyright law is prohibited.
+
+  By exercising any rights to the work provided here, you accept and
+  agree to be bound by the terms of this Licence. The Owner (as defined
+  below) grants You the rights contained here in consideration of your
+  acceptance of such terms and conditions.
+
+  2. Definitions
+
+  The “Owner” is the European Union represented by the European 
+  Commission, which is the original licensor and/or controls the 
+  copyright and any other intellectual and industrial property rights 
+  related to the Work.
+
+  The “Work” is the information and/or data offered to You under this 
+  Licence, according to the “Copyright Notice”:
+
+      Copyright (c) European Union, YEAR
+      Licensed under the ISA Open Metadata Licence,
+      Original author: CONTRIBUTOR(s)
+
+  "You" means the natural or legal person, or body of persons corporate 
+  or incorporate, acquiring rights under this licence.
+
+  "Contributor" means the natural or legal person whose Work is, by 
+  agreement with the European Commission, provided under this Licence.
+
+  "Use" means doing any act which is restricted by copyright or database 
+  right, whether in the original medium or in any other medium, and 
+  includes without limitation distributing, copying, adapting, modifying 
+  as may be technically necessary to use it in a different mode or 
+  format. It includes "re-Use", meaning the use, communication to the 
+  public and/or distribution of the Works for purposes other than the 
+  initial purpose for which the Work was produced.
+
+  3. Rights
+
+  In accordance to Commission Decision 2011/833/EU, You are herewith 
+  granted a worldwide, royalty-free, perpetual, non-exclusive licence to 
+  Use and re-Use the Works and any modifications thereof for any 
+  commercial and non-commercial purpose allowed by the law and provided 
+  that the following conditions are met:
+    a) Distributions or communication to the public must retain the 
+       above Copyright Notice;
+    b) Distributions must retain the following “No Warranty” disclaimer;
+    c) Where possible and practical, distributions or communication to 
+       the public will provide a link to the Joinup platform;
+    d) Acts directed to mislead others or misrepresent the Work, its 
+       content or source are prohibited;
+    e) You will not use the name of the European Commission and that of 
+       its Contributor(s) to endorse or promote products and services 
+       derived from the Use of the Work without specific prior written 
+       permission.
+
+  4. No Warranty
+
+  EACH WORK IS PROVIDED "AS IS" WITHOUT REPRESENTATIONS, WARRANTIES, 
+  OBLIGATIONS AND LIABILITIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, TO 
+  THE FULL EXTENT PERMITTED BY LAW INCLUDING, BUT NOT LIMITED TO, ANY 
+  IMPLIED WARRANTY OF MERCHANTABILITY, INTEGRATION, SATISFACTORY QUALITY 
+  AND FITNESS FOR A PARTICULAR PURPOSE.
+
+  EXCEPT IN THE CASES OF WILFUL MISCONDUCT OR DAMAGES DIRECTLY CAUSED TO 
+  NATURAL PERSONS, NEITHER EUROPEAN UNION NOR ITS CONTRIBUTOR(S) WILL BE 
+  LIABLE FOR ANY INCIDENTAL, CONSEQUENTIAL, DIRECT OR INDIRECT DAMAGES 
+  INCLUDING BUT NOT LIMITED TO THE LOSS OF DATA, LOST PROFITS, OR ANY 
+  OTHER FINANCIAL LOSS ARISING FROM THE USE OF, OR INABILITY TO USE, 
+  EVEN IF THE EUROPEAN UNION HAS BEEN NOTIFIED OF THE POSSIBILITY OF 
+  SUCH LOSS, DAMAGES, CLAIMS OR COSTS OR FOR ANY CLAIM BY ANY THIRD 
+  PARTY. HOWEVER, THE LICENSOR WILL BE LIABLE UNDER STATUTORY PRODUCT 
+  LIABILITY LAWS AS FAR SUCH LAWS APPLY TO THE WORK.
+
+  5. Governing Law
+
+  This licence is governed by the laws of the jurisdiction in which the 
+  first Contributor listed in the Copyright Notice has its principal 
+  place of business, unless otherwise specified by this Contributor.
+-->

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema 
+  elementFormDefault="qualified" 
+  targetNamespace="urn:eu:stork:names:tc:STORK:1.0:assertion" 
+  xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+  xmlns:storkp="urn:eu:stork:names:tc:STORK:1.0:protocol"
+  xmlns:stork="urn:eu:stork:names:tc:STORK:1.0:assertion">
+
+  <xs:element name="QualityAuthenticationAssuranceLevel" type="stork:QualityAuthenticationAssuranceLevelType" />
+  <xs:element name="spSector" type="stork:SPSectorType" />
+  <xs:element name="spApplication" type="stork:SPApplicationType"/>
+  <xs:element name="spCountry" type="stork:CountryCodeType"/>
+  <xs:element name="CitizenCountryCode" type="stork:CountryCodeType" />
+  <xs:element name="RequestedAttribute" type="stork:RequestedAttributeType" />
+  <xs:element name="AttributeValue" type="xs:anyType" />
+  <xs:element name="canonicalResidenceAddress" type="stork:canonicalResidenceAddressType"/>
+  <xs:element name="countryCodeAddress" type="xs:anyType"/>
+  
+  <xs:attribute name="AttributeStatus" type="stork:AttributeStatusType" />
+
+
+  <xs:simpleType name="SPSectorType">
+    <xs:restriction base="xs:string">
+      <xs:minLength value="1" />
+      <xs:maxLength value="20" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="SPApplicationType">
+    <xs:restriction base="xs:string">
+      <xs:minLength value="1" />
+      <xs:maxLength value="100" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:simpleType name="AttributeStatusType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Available" />
+      <xs:enumeration value="NotAvailable" />
+      <xs:enumeration value="Withheld" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="QualityAuthenticationAssuranceLevelType">
+    <xs:restriction base="xs:integer">
+      <xs:minInclusive value="1" />
+      <xs:maxInclusive value="4" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="canonicalResidenceAddressType">
+    <xs:all>
+      <xs:element name="countryCodeAddress" type="xs:anyType"/>
+      <xs:element name="state" type="xs:string" minOccurs="0"/>            		
+      <xs:element name="municipalityCode" type="xs:string" minOccurs="0"/>
+      <xs:element name="town" type="xs:string"/>
+      <xs:element name="postalCode" type="xs:string"/>
+      <xs:element name="streetName" type="xs:string"/>
+      <xs:element name="streetNumber" type="xs:string" minOccurs="0"/>
+      <xs:element name="apartmentNumber" type="xs:string" minOccurs="0"/>
+    </xs:all>
+  </xs:complexType>
+  
+  <xs:simpleType name="CountryCodeType">
+    <xs:restriction base="xs:token">
+      <xs:pattern value="[A-Z]{2}"/>
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:complexType name="RequestedAttributeType">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" ref="stork:AttributeValue"/>
+    </xs:sequence>
+    <xs:attribute name="Name" use="required" type="xs:string"/>
+    <xs:attribute name="NameFormat" use="required" type="xs:anyURI"/>
+    <xs:attribute name="FriendlyName" use="optional" type="xs:string"/>
+    <xs:attribute name="isRequired" use="optional" type="xs:boolean"/>
+    <xs:anyAttribute namespace="##other" processContents="lax"/>
+  </xs:complexType>
+</xs:schema>

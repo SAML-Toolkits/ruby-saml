@@ -1,0 +1,1703 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Library:           ISA Core Vocabularies 1.1 BETA
+                     https://joinup.ec.europa.eu/asset/core_vocabularies/description
+  Module:            xsd/CoreVocabularies-AggregateComponents-1.1.xsd
+  Generated on:      2015-02-03 07:46z
+-->
+<xsd:schema xmlns="http://www.w3.org/ns/corevocabulary/AggregateComponents"
+            xmlns:cva="http://www.w3.org/ns/corevocabulary/AggregateComponents"
+            xmlns:cvb="http://www.w3.org/ns/corevocabulary/BasicComponents"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:ccts="urn:un:unece:uncefact:documentation:2"
+            targetNamespace="http://www.w3.org/ns/corevocabulary/AggregateComponents"
+            elementFormDefault="qualified"
+            attributeFormDefault="unqualified"
+            version="1.91">
+   <!-- ===== Imports ===== -->
+   <xsd:import namespace="http://www.w3.org/ns/corevocabulary/BasicComponents"
+               schemaLocation="CoreVocabularies-BasicComponents-1.1.xsd"/>
+   <!-- ===== Element Declarations ===== -->
+   <xsd:element name="Agent" type="AgentType"/>
+   <xsd:element name="AgentPlaysRoleCorePublicService" type="CorePublicServiceType"/>
+   <xsd:element name="AgentProvidesCorePublicService" type="CorePublicServiceType"/>
+   <xsd:element name="AgentUsesCorePublicService" type="CorePublicServiceType"/>
+   <xsd:element name="Channel" type="ChannelType"/>
+   <xsd:element name="CoreAddress" type="CoreAddressType"/>
+   <xsd:element name="CoreBusiness" type="CoreBusinessType"/>
+   <xsd:element name="CoreLocation" type="CoreLocationType"/>
+   <xsd:element name="CorePerson" type="CorePersonType"/>
+   <xsd:element name="CorePublicService" type="CorePublicServiceType"/>
+   <xsd:element name="CreatorAgent" type="AgentType"/>
+   <xsd:element name="FormalFramework" type="FormalFrameworkType"/>
+   <xsd:element name="Geometry" type="GeometryType"/>
+   <xsd:element name="ImplementsFormalFramework" type="FormalFrameworkType"/>
+   <xsd:element name="Input" type="InputType"/>
+   <xsd:element name="Jurisdiction" type="JurisdictionType"/>
+   <xsd:element name="LegalEntityCoreAddress" type="CoreAddressType"/>
+   <xsd:element name="LegalEntityCoreLocation" type="CoreLocationType"/>
+   <xsd:element name="LocationCoreAddress" type="CoreAddressType"/>
+   <xsd:element name="LocationGeometry" type="GeometryType"/>
+   <xsd:element name="Output" type="OutputType"/>
+   <xsd:element name="PeriodOfTime" type="PeriodOfTimeType"/>
+   <xsd:element name="PersonCitizenshipJurisdiction" type="JurisdictionType"/>
+   <xsd:element name="PersonCoreAddress" type="CoreAddressType"/>
+   <xsd:element name="PersonCountryOfBirthCoreLocation" type="CoreLocationType"/>
+   <xsd:element name="PersonCountryOfDeathCoreLocation" type="CoreLocationType"/>
+   <xsd:element name="PersonPlaceOfBirthCoreLocation" type="CoreLocationType"/>
+   <xsd:element name="PersonPlaceOfDeathCoreLocation" type="CoreLocationType"/>
+   <xsd:element name="PersonResidencyJurisdiction" type="JurisdictionType"/>
+   <xsd:element name="PublicServiceChannel" type="ChannelType"/>
+   <xsd:element name="PublicServiceFollowsRule" type="RuleType"/>
+   <xsd:element name="PublicServiceInput" type="InputType"/>
+   <xsd:element name="PublicServicePhysicallyAvailableAtCoreLocation"
+                type="CoreLocationType"/>
+   <xsd:element name="PublicServiceProducesOutput" type="OutputType"/>
+   <xsd:element name="PublicServiceSpatialCoreLocation" type="CoreLocationType"/>
+   <xsd:element name="PublicServiceTemporalPeriodOfTime" type="PeriodOfTimeType"/>
+   <xsd:element name="RegisteredCoreAddress" type="CoreAddressType"/>
+   <xsd:element name="RelatedCorePublicService" type="CorePublicServiceType"/>
+   <xsd:element name="RelatedFormalFramework" type="FormalFrameworkType"/>
+   <xsd:element name="RequiresCorePublicService" type="CorePublicServiceType"/>
+   <xsd:element name="Rule" type="RuleType"/>
+   <!-- ===== Type Definitions ===== -->
+   <!-- ===== Aggregate Business Information Entity Type Definitions ===== -->
+   <xsd:complexType name="AgentType">
+      <xsd:annotation>
+         <xsd:documentation>
+            <ccts:Component>
+               <ccts:ComponentType>ABIE</ccts:ComponentType>
+               <ccts:DictionaryEntryName>Agent. Details</ccts:DictionaryEntryName>
+               <ccts:Definition>An entity that is able to carry out actions.</ccts:Definition>
+               <ccts:ObjectClass>Agent</ccts:ObjectClass>
+            </ccts:Component>
+         </xsd:documentation>
+      </xsd:annotation>
+      <xsd:sequence>
+         <xsd:element ref="AgentPlaysRoleCorePublicService" minOccurs="0" maxOccurs="1">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>ASBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Agent. Agent Plays Role_ Core Public Service. Core Public Service</ccts:DictionaryEntryName>
+                     <ccts:Definition>A public service in which the agent plays a role.</ccts:Definition>
+                     <ccts:Cardinality>0..1</ccts:Cardinality>
+                     <ccts:ObjectClass>Agent</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Agent Plays Role</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Core Public Service</ccts:PropertyTerm>
+                     <ccts:AssociatedObjectClass>Core Public Service</ccts:AssociatedObjectClass>
+                     <ccts:RepresentationTerm>Core Public Service</ccts:RepresentationTerm>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="AgentProvidesCorePublicService" minOccurs="0" maxOccurs="1">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>ASBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Agent. Agent Provides_ Core Public Service. Core Public Service</ccts:DictionaryEntryName>
+                     <ccts:Definition>A public service provided by the agent.</ccts:Definition>
+                     <ccts:Cardinality>0..1</ccts:Cardinality>
+                     <ccts:ObjectClass>Agent</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Agent Provides</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Core Public Service</ccts:PropertyTerm>
+                     <ccts:AssociatedObjectClass>Core Public Service</ccts:AssociatedObjectClass>
+                     <ccts:RepresentationTerm>Core Public Service</ccts:RepresentationTerm>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="AgentUsesCorePublicService" minOccurs="0" maxOccurs="1">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>ASBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Agent. Agent Uses_ Core Public Service. Core Public Service</ccts:DictionaryEntryName>
+                     <ccts:Definition>A public service used by the agent.</ccts:Definition>
+                     <ccts:Cardinality>0..1</ccts:Cardinality>
+                     <ccts:ObjectClass>Agent</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Agent Uses</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Core Public Service</ccts:PropertyTerm>
+                     <ccts:AssociatedObjectClass>Core Public Service</ccts:AssociatedObjectClass>
+                     <ccts:RepresentationTerm>Core Public Service</ccts:RepresentationTerm>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+      </xsd:sequence>
+   </xsd:complexType>
+   <xsd:complexType name="ChannelType">
+      <xsd:annotation>
+         <xsd:documentation>
+            <ccts:Component>
+               <ccts:ComponentType>ABIE</ccts:ComponentType>
+               <ccts:DictionaryEntryName>Channel. Details</ccts:DictionaryEntryName>
+               <ccts:Definition>A medium through which an agent provides, uses or otherwise interacts with a resource.</ccts:Definition>
+               <ccts:ObjectClass>Channel</ccts:ObjectClass>
+            </ccts:Component>
+         </xsd:documentation>
+      </xsd:annotation>
+      <xsd:sequence>
+         <xsd:element ref="cvb:ChannelID" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Channel. Channel_ Identifier. Identifier</ccts:DictionaryEntryName>
+                     <ccts:Definition>The identifier of the channel.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Channel</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Channel</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Identifier</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Identifier</ccts:RepresentationTerm>
+                     <ccts:DataType>Identifier. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+      </xsd:sequence>
+   </xsd:complexType>
+   <xsd:complexType name="CoreAddressType">
+      <xsd:annotation>
+         <xsd:documentation>
+            <ccts:Component>
+               <ccts:ComponentType>ABIE</ccts:ComponentType>
+               <ccts:DictionaryEntryName>Core Address. Details</ccts:DictionaryEntryName>
+               <ccts:Definition>An address representing a location.</ccts:Definition>
+               <ccts:ObjectClass>Core Address</ccts:ObjectClass>
+            </ccts:Component>
+         </xsd:documentation>
+      </xsd:annotation>
+      <xsd:sequence>
+         <xsd:element ref="cvb:AddressFullAddress" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Address. Address_ Full Address. Text</ccts:DictionaryEntryName>
+                     <ccts:Definition>The complete address with or without formatting.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Address</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Address</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Full Address</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Text</ccts:RepresentationTerm>
+                     <ccts:DataType>Text. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:AddressPostOfficeBox" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Address. Address_ Post Office Box. Text</ccts:DictionaryEntryName>
+                     <ccts:Definition>The Post Office Box number.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Address</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Address</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Post Office Box</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Text</ccts:RepresentationTerm>
+                     <ccts:DataType>Text. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:AddressThoroughfare" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Address. Address_ Thoroughfare. Text</ccts:DictionaryEntryName>
+                     <ccts:Definition>The name of a passage or way through from one location to another.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Address</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Address</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Thoroughfare</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Text</ccts:RepresentationTerm>
+                     <ccts:DataType>Text. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:AddressLocatorDesignator"
+                      minOccurs="0"
+                      maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Address. Address_ Locator Designator. Text</ccts:DictionaryEntryName>
+                     <ccts:Definition>A number or a sequence of characters that uniquely identifies the locator within the relevant scope.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Address</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Address</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Locator Designator</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Text</ccts:RepresentationTerm>
+                     <ccts:DataType>Text. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:AddressLocatorName" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Address. Address_ Locator Name. Text</ccts:DictionaryEntryName>
+                     <ccts:Definition>A proper noun applied to the real world entity identified by the address.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Address</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Address</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Locator Name</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Text</ccts:RepresentationTerm>
+                     <ccts:DataType>Text. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:AddressAddressArea" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Address. Address_ Address Area. Text</ccts:DictionaryEntryName>
+                     <ccts:Definition>The name of a geographic area or locality that groups a number of addressable objects for addressing purposes, without being an administrative unit.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Address</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Address</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Address Area</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Text</ccts:RepresentationTerm>
+                     <ccts:DataType>Text. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:AddressPostName" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Address. Address_ Post Name. Text</ccts:DictionaryEntryName>
+                     <ccts:Definition>The key postal division of the address, usually the city.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Address</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Address</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Post Name</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Text</ccts:RepresentationTerm>
+                     <ccts:DataType>Text. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:AddressAdminUnitLocationTwo"
+                      minOccurs="0"
+                      maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Address. Address_ Admin Unit Location Two. Text</ccts:DictionaryEntryName>
+                     <ccts:Definition>The region of the address, usually a county, state or other such area that typically encompasses several localities.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Address</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Address</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Admin Unit Location Two</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Text</ccts:RepresentationTerm>
+                     <ccts:DataType>Text. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:AddressAdminUnitLocationOne"
+                      minOccurs="0"
+                      maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Address. Address_ Admin Unit Location One. Text</ccts:DictionaryEntryName>
+                     <ccts:Definition>The uppermost administrative unit for the address, almost always a country.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Address</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Address</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Admin Unit Location One</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Text</ccts:RepresentationTerm>
+                     <ccts:DataType>Text. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:AddressPostCode" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Address. Address_ Post Code. Text</ccts:DictionaryEntryName>
+                     <ccts:Definition>The post code, a.k.a. postal code, ZIP code, etc.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Address</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Address</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Post Code</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Text</ccts:RepresentationTerm>
+                     <ccts:DataType>Text. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:AddressID" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Address. Address_ Identifier. Identifier</ccts:DictionaryEntryName>
+                     <ccts:Definition>A globally unique identifier for this instance of the address.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Address</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Address</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Identifier</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Identifier</ccts:RepresentationTerm>
+                     <ccts:DataType>Identifier. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+      </xsd:sequence>
+   </xsd:complexType>
+   <xsd:complexType name="CoreBusinessType">
+      <xsd:annotation>
+         <xsd:documentation>
+            <ccts:Component>
+               <ccts:ComponentType>ABIE</ccts:ComponentType>
+               <ccts:DictionaryEntryName>Core Business. Details</ccts:DictionaryEntryName>
+               <ccts:Definition>A business that is legally registered.</ccts:Definition>
+               <ccts:ObjectClass>Core Business</ccts:ObjectClass>
+            </ccts:Component>
+         </xsd:documentation>
+      </xsd:annotation>
+      <xsd:sequence>
+         <xsd:element ref="cvb:LegalEntityLegalID" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Business. Legal Entity_ Legal Identifier. Identifier</ccts:DictionaryEntryName>
+                     <ccts:Definition>The identifier given to the legal entity by the authority with which it is registered.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Business</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Legal Entity</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Legal Identifier</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Identifier</ccts:RepresentationTerm>
+                     <ccts:DataType>Identifier. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:LegalEntityID" minOccurs="1" maxOccurs="1">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Business. Legal Entity_ Identifier. Identifier</ccts:DictionaryEntryName>
+                     <ccts:Definition>A formally-issued identifier for the legal entity, other than the one that confers legal status upon it.</ccts:Definition>
+                     <ccts:Cardinality>1..1</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Business</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Legal Entity</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Identifier</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Identifier</ccts:RepresentationTerm>
+                     <ccts:DataType>Identifier. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:LegalEntityLegalName" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Business. Legal Entity_ Legal Name. Name</ccts:DictionaryEntryName>
+                     <ccts:Definition>The legal name of the business.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Business</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Legal Entity</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Legal Name</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Name</ccts:RepresentationTerm>
+                     <ccts:DataType>Name. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:LegalEntityAlternativeName"
+                      minOccurs="0"
+                      maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Business. Legal Entity_ Alternative Name. Name</ccts:DictionaryEntryName>
+                     <ccts:Definition>A recognized name other than the legal name.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Business</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Legal Entity</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Alternative Name</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Name</ccts:RepresentationTerm>
+                     <ccts:DataType>Name. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:LegalEntityCompanyTypeCode" minOccurs="0" maxOccurs="1">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Business. Legal Entity_ Company Type Code. Code</ccts:DictionaryEntryName>
+                     <ccts:Definition>The type of the business.</ccts:Definition>
+                     <ccts:Cardinality>0..1</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Business</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Legal Entity</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Company Type Code</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Code</ccts:RepresentationTerm>
+                     <ccts:DataType>Code. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:LegalEntityCompanyStatusCode" minOccurs="0" maxOccurs="1">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Business. Legal Entity_ Company Status Code. Code</ccts:DictionaryEntryName>
+                     <ccts:Definition>The status of the business.</ccts:Definition>
+                     <ccts:Cardinality>0..1</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Business</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Legal Entity</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Company Status Code</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Code</ccts:RepresentationTerm>
+                     <ccts:DataType>Code. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:LegalEntityCompanyActivityCode"
+                      minOccurs="0"
+                      maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Business. Legal Entity_ Company Activity Code. Code</ccts:DictionaryEntryName>
+                     <ccts:Definition>The activity of the business.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Business</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Legal Entity</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Company Activity Code</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Code</ccts:RepresentationTerm>
+                     <ccts:DataType>Code. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="RegisteredCoreAddress" minOccurs="0" maxOccurs="1">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>ASBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Business. Registered_ Core Address. Core Address</ccts:DictionaryEntryName>
+                     <ccts:Definition>The registered address of the business.</ccts:Definition>
+                     <ccts:Cardinality>0..1</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Business</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Registered</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Core Address</ccts:PropertyTerm>
+                     <ccts:AssociatedObjectClass>Core Address</ccts:AssociatedObjectClass>
+                     <ccts:RepresentationTerm>Core Address</ccts:RepresentationTerm>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="LegalEntityCoreAddress" minOccurs="0" maxOccurs="1">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>ASBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Business. Legal Entity_ Core Address. Core Address</ccts:DictionaryEntryName>
+                     <ccts:Definition>An address related to the business, other than the registered address.</ccts:Definition>
+                     <ccts:Cardinality>0..1</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Business</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Legal Entity</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Core Address</ccts:PropertyTerm>
+                     <ccts:AssociatedObjectClass>Core Address</ccts:AssociatedObjectClass>
+                     <ccts:RepresentationTerm>Core Address</ccts:RepresentationTerm>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="LegalEntityCoreLocation" minOccurs="0" maxOccurs="1">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>ASBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Business. Legal Entity_ Core Location. Core Location</ccts:DictionaryEntryName>
+                     <ccts:Definition>A location related to the business.</ccts:Definition>
+                     <ccts:Cardinality>0..1</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Business</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Legal Entity</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Core Location</ccts:PropertyTerm>
+                     <ccts:AssociatedObjectClass>Core Location</ccts:AssociatedObjectClass>
+                     <ccts:RepresentationTerm>Core Location</ccts:RepresentationTerm>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+      </xsd:sequence>
+   </xsd:complexType>
+   <xsd:complexType name="CoreLocationType">
+      <xsd:annotation>
+         <xsd:documentation>
+            <ccts:Component>
+               <ccts:ComponentType>ABIE</ccts:ComponentType>
+               <ccts:DictionaryEntryName>Core Location. Details</ccts:DictionaryEntryName>
+               <ccts:Definition>An identifiable geographic place.</ccts:Definition>
+               <ccts:ObjectClass>Core Location</ccts:ObjectClass>
+            </ccts:Component>
+         </xsd:documentation>
+      </xsd:annotation>
+      <xsd:sequence>
+         <xsd:element ref="cvb:LocationGeographicName" minOccurs="0" maxOccurs="1">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Location. Location Geographic_ Name. Text</ccts:DictionaryEntryName>
+                     <ccts:Definition>A proper noun applied to a spatial object.</ccts:Definition>
+                     <ccts:Cardinality>0..1</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Location</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Location Geographic</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Name</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Text</ccts:RepresentationTerm>
+                     <ccts:DataType>Text. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:LocationGeographicID" minOccurs="0" maxOccurs="1">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Location. Location Geographic_ Identifier. Identifier</ccts:DictionaryEntryName>
+                     <ccts:Definition>A URI that identifies the location.</ccts:Definition>
+                     <ccts:Cardinality>0..1</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Location</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Location Geographic</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Identifier</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Identifier</ccts:RepresentationTerm>
+                     <ccts:DataType>Identifier. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="LocationCoreAddress" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>ASBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Location. Location_ Core Address. Core Address</ccts:DictionaryEntryName>
+                     <ccts:Definition>An address representing the location.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Location</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Location</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Core Address</ccts:PropertyTerm>
+                     <ccts:AssociatedObjectClass>Core Address</ccts:AssociatedObjectClass>
+                     <ccts:RepresentationTerm>Core Address</ccts:RepresentationTerm>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="LocationGeometry" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>ASBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Location. Location_ Geometry. Geometry</ccts:DictionaryEntryName>
+                     <ccts:Definition>A geometry representing the location.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Location</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Location</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Geometry</ccts:PropertyTerm>
+                     <ccts:AssociatedObjectClass>Geometry</ccts:AssociatedObjectClass>
+                     <ccts:RepresentationTerm>Geometry</ccts:RepresentationTerm>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+      </xsd:sequence>
+   </xsd:complexType>
+   <xsd:complexType name="CorePersonType">
+      <xsd:annotation>
+         <xsd:documentation>
+            <ccts:Component>
+               <ccts:ComponentType>ABIE</ccts:ComponentType>
+               <ccts:DictionaryEntryName>Core Person. Details</ccts:DictionaryEntryName>
+               <ccts:Definition>A natural person.</ccts:Definition>
+               <ccts:ObjectClass>Core Person</ccts:ObjectClass>
+            </ccts:Component>
+         </xsd:documentation>
+      </xsd:annotation>
+      <xsd:sequence>
+         <xsd:element ref="cvb:PersonID" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Person. Person Identifier. Identifier</ccts:DictionaryEntryName>
+                     <ccts:Definition>A formally-issued identifier for the person.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Person</ccts:ObjectClass>
+                     <ccts:PropertyTerm>Person Identifier</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Identifier</ccts:RepresentationTerm>
+                     <ccts:DataType>Identifier. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:PersonFullName" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Person. Person_ Full Name. Name</ccts:DictionaryEntryName>
+                     <ccts:Definition>The complete name of the person as one string.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Person</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Person</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Full Name</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Name</ccts:RepresentationTerm>
+                     <ccts:DataType>Name. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:PersonFamilyName" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Person. Person_ Family Name. Name</ccts:DictionaryEntryName>
+                     <ccts:Definition>The denominator(s) that identify the person within a family.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Person</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Person</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Family Name</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Name</ccts:RepresentationTerm>
+                     <ccts:DataType>Name. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:PersonGivenName" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Person. Person_ Given Name. Name</ccts:DictionaryEntryName>
+                     <ccts:Definition>A name that is usually shared by members of a family.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Person</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Person</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Given Name</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Name</ccts:RepresentationTerm>
+                     <ccts:DataType>Name. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:PersonPatronymicName" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Person. Person_ Patronymic Name. Name</ccts:DictionaryEntryName>
+                     <ccts:Definition>A name referring to the father's given name.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Person</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Person</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Patronymic Name</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Name</ccts:RepresentationTerm>
+                     <ccts:DataType>Name. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:PersonAlternativeName" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Person. Person_ Alternative Name. Name</ccts:DictionaryEntryName>
+                     <ccts:Definition>A name by which the person is known other than her given name and/or full name.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Person</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Person</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Alternative Name</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Name</ccts:RepresentationTerm>
+                     <ccts:DataType>Name. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:PersonGenderCode" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Person. Person_ Gender Code. Code</ccts:DictionaryEntryName>
+                     <ccts:Definition>The gender of the person.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Person</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Person</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Gender Code</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Code</ccts:RepresentationTerm>
+                     <ccts:DataType>Code. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:PersonBirthName" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Person. Person_ Birth Name. Name</ccts:DictionaryEntryName>
+                     <ccts:Definition>The full name of the person at the time of her birth, irrespective of any subsequent changes.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Person</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Person</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Birth Name</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Name</ccts:RepresentationTerm>
+                     <ccts:DataType>Name. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:PersonBirthDate" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Person. Person_ Birth Date. Date</ccts:DictionaryEntryName>
+                     <ccts:Definition>The date on which the person was born.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Person</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Person</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Birth Date</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Date</ccts:RepresentationTerm>
+                     <ccts:DataType>Date. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:PersonDeathDate" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Person. Person_ Death Date. Date</ccts:DictionaryEntryName>
+                     <ccts:Definition>The date on which the person deceased.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Person</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Person</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Death Date</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Date</ccts:RepresentationTerm>
+                     <ccts:DataType>Date. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="PersonCountryOfBirthCoreLocation"
+                      minOccurs="0"
+                      maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>ASBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Person. Person Country Of Birth_ Core Location. Core Location</ccts:DictionaryEntryName>
+                     <ccts:Definition>The country where the person was born.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Person</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Person Country Of Birth</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Core Location</ccts:PropertyTerm>
+                     <ccts:AssociatedObjectClass>Core Location</ccts:AssociatedObjectClass>
+                     <ccts:RepresentationTerm>Core Location</ccts:RepresentationTerm>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="PersonCountryOfDeathCoreLocation"
+                      minOccurs="0"
+                      maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>ASBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Person. Person Country Of Death_ Core Location. Core Location</ccts:DictionaryEntryName>
+                     <ccts:Definition>The country where the person deceased.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Person</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Person Country Of Death</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Core Location</ccts:PropertyTerm>
+                     <ccts:AssociatedObjectClass>Core Location</ccts:AssociatedObjectClass>
+                     <ccts:RepresentationTerm>Core Location</ccts:RepresentationTerm>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="PersonPlaceOfBirthCoreLocation"
+                      minOccurs="0"
+                      maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>ASBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Person. Person Place Of Birth_ Core Location. Core Location</ccts:DictionaryEntryName>
+                     <ccts:Definition>The location where the person was born.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Person</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Person Place Of Birth</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Core Location</ccts:PropertyTerm>
+                     <ccts:AssociatedObjectClass>Core Location</ccts:AssociatedObjectClass>
+                     <ccts:RepresentationTerm>Core Location</ccts:RepresentationTerm>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="PersonPlaceOfDeathCoreLocation"
+                      minOccurs="0"
+                      maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>ASBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Person. Person Place Of Death_ Core Location. Core Location</ccts:DictionaryEntryName>
+                     <ccts:Definition>The location where the person deceased.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Person</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Person Place Of Death</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Core Location</ccts:PropertyTerm>
+                     <ccts:AssociatedObjectClass>Core Location</ccts:AssociatedObjectClass>
+                     <ccts:RepresentationTerm>Core Location</ccts:RepresentationTerm>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="PersonCitizenshipJurisdiction"
+                      minOccurs="0"
+                      maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>ASBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Person. Person Citizenship_ Jurisdiction. Jurisdiction</ccts:DictionaryEntryName>
+                     <ccts:Definition>The jurisdiction that has conferred citizenship rights on the person.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Person</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Person Citizenship</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Jurisdiction</ccts:PropertyTerm>
+                     <ccts:AssociatedObjectClass>Jurisdiction</ccts:AssociatedObjectClass>
+                     <ccts:RepresentationTerm>Jurisdiction</ccts:RepresentationTerm>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="PersonResidencyJurisdiction"
+                      minOccurs="0"
+                      maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>ASBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Person. Person Residency_ Jurisdiction. Jurisdiction</ccts:DictionaryEntryName>
+                     <ccts:Definition>The jurisdiction in which the person resides, typically providing the person with a subset of the rights of a citizen.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Person</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Person Residency</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Jurisdiction</ccts:PropertyTerm>
+                     <ccts:AssociatedObjectClass>Jurisdiction</ccts:AssociatedObjectClass>
+                     <ccts:RepresentationTerm>Jurisdiction</ccts:RepresentationTerm>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="PersonCoreAddress" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>ASBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Person. Person_ Core Address. Core Address</ccts:DictionaryEntryName>
+                     <ccts:Definition>An address related to the person.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Person</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Person</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Core Address</ccts:PropertyTerm>
+                     <ccts:AssociatedObjectClass>Core Address</ccts:AssociatedObjectClass>
+                     <ccts:RepresentationTerm>Core Address</ccts:RepresentationTerm>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+      </xsd:sequence>
+   </xsd:complexType>
+   <xsd:complexType name="CorePublicServiceType">
+      <xsd:annotation>
+         <xsd:documentation>
+            <ccts:Component>
+               <ccts:ComponentType>ABIE</ccts:ComponentType>
+               <ccts:DictionaryEntryName>Core Public Service. Details</ccts:DictionaryEntryName>
+               <ccts:Definition>A set of deeds and acts performed by or on behalf of a public agency for the benefit of a citizen, a business or another public agency.</ccts:Definition>
+               <ccts:ObjectClass>Core Public Service</ccts:ObjectClass>
+            </ccts:Component>
+         </xsd:documentation>
+      </xsd:annotation>
+      <xsd:sequence>
+         <xsd:element ref="cvb:PublicServiceName" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Public Service. Public Service Name. Text</ccts:DictionaryEntryName>
+                     <ccts:Definition>The name of the service.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Public Service</ccts:ObjectClass>
+                     <ccts:PropertyTerm>Public Service Name</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Text</ccts:RepresentationTerm>
+                     <ccts:DataType>Text. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:PublicServiceDescription"
+                      minOccurs="0"
+                      maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Public Service. Public Service Description. Text</ccts:DictionaryEntryName>
+                     <ccts:Definition>A free text description of the service.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Public Service</ccts:ObjectClass>
+                     <ccts:PropertyTerm>Public Service Description</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Text</ccts:RepresentationTerm>
+                     <ccts:DataType>Text. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:PublicServiceTypeCode" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Public Service. Public Service Type. Code</ccts:DictionaryEntryName>
+                     <ccts:Definition>The type of service.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Public Service</ccts:ObjectClass>
+                     <ccts:PropertyTerm>Public Service Type</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Code</ccts:RepresentationTerm>
+                     <ccts:DataType>Code. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:PublicServiceLanguageCode"
+                      minOccurs="0"
+                      maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Public Service. Public Service Language. Code</ccts:DictionaryEntryName>
+                     <ccts:Definition>The language(s) in which the service is available.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Public Service</ccts:ObjectClass>
+                     <ccts:PropertyTerm>Public Service Language</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Code</ccts:RepresentationTerm>
+                     <ccts:DataType>Code. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:PublicServiceHomepageID"
+                      minOccurs="0"
+                      maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Public Service. Public Service Homepage. Identifier</ccts:DictionaryEntryName>
+                     <ccts:Definition>The Web page through which the service may be available.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Public Service</ccts:ObjectClass>
+                     <ccts:PropertyTerm>Public Service Homepage</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Identifier</ccts:RepresentationTerm>
+                     <ccts:DataType>Identifier. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="PublicServiceChannel" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>ASBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Public Service. Public Service_ Channel. Channel</ccts:DictionaryEntryName>
+                     <ccts:Definition>A medium through which an agent interacts with the service.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Public Service</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Public Service</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Channel</ccts:PropertyTerm>
+                     <ccts:AssociatedObjectClass>Channel</ccts:AssociatedObjectClass>
+                     <ccts:RepresentationTerm>Channel</ccts:RepresentationTerm>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="PublicServicePhysicallyAvailableAtCoreLocation"
+                      minOccurs="0"
+                      maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>ASBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Public Service. Public Service Physically Available At_ Core Location. Core Location</ccts:DictionaryEntryName>
+                     <ccts:Definition>A physical location at which a user may interact with the service.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Public Service</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Public Service Physically Available At</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Core Location</ccts:PropertyTerm>
+                     <ccts:AssociatedObjectClass>Core Location</ccts:AssociatedObjectClass>
+                     <ccts:RepresentationTerm>Core Location</ccts:RepresentationTerm>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="RequiresCorePublicService" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>ASBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Public Service. Requires_ Core Public Service. Core Public Service</ccts:DictionaryEntryName>
+                     <ccts:Definition>Another public service required by this service.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Public Service</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Requires</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Core Public Service</ccts:PropertyTerm>
+                     <ccts:AssociatedObjectClass>Core Public Service</ccts:AssociatedObjectClass>
+                     <ccts:RepresentationTerm>Core Public Service</ccts:RepresentationTerm>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="RelatedCorePublicService" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>ASBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Public Service. Related_ Core Public Service. Core Public Service</ccts:DictionaryEntryName>
+                     <ccts:Definition>Another public service related to this service, without being required by this service.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Public Service</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Related</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Core Public Service</ccts:PropertyTerm>
+                     <ccts:AssociatedObjectClass>Core Public Service</ccts:AssociatedObjectClass>
+                     <ccts:RepresentationTerm>Core Public Service</ccts:RepresentationTerm>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="PublicServiceInput" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>ASBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Public Service. Public Service_ Input. Input</ccts:DictionaryEntryName>
+                     <ccts:Definition>A resource required by the service in order to operate.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Public Service</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Public Service</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Input</ccts:PropertyTerm>
+                     <ccts:AssociatedObjectClass>Input</ccts:AssociatedObjectClass>
+                     <ccts:RepresentationTerm>Input</ccts:RepresentationTerm>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="PublicServiceProducesOutput"
+                      minOccurs="0"
+                      maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>ASBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Public Service. Public Service Produces_ Output. Output</ccts:DictionaryEntryName>
+                     <ccts:Definition>A resource produced by the service.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Public Service</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Public Service Produces</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Output</ccts:PropertyTerm>
+                     <ccts:AssociatedObjectClass>Output</ccts:AssociatedObjectClass>
+                     <ccts:RepresentationTerm>Output</ccts:RepresentationTerm>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="PublicServiceFollowsRule" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>ASBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Public Service. Public Service Follows_ Rule. Rule</ccts:DictionaryEntryName>
+                     <ccts:Definition>A rule under which the public service operates.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Public Service</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Public Service Follows</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Rule</ccts:PropertyTerm>
+                     <ccts:AssociatedObjectClass>Rule</ccts:AssociatedObjectClass>
+                     <ccts:RepresentationTerm>Rule</ccts:RepresentationTerm>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="PublicServiceSpatialCoreLocation"
+                      minOccurs="0"
+                      maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>ASBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Public Service. Public Service Spatial_ Core Location. Core Location</ccts:DictionaryEntryName>
+                     <ccts:Definition>The area in which the service is available.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Public Service</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Public Service Spatial</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Core Location</ccts:PropertyTerm>
+                     <ccts:AssociatedObjectClass>Core Location</ccts:AssociatedObjectClass>
+                     <ccts:RepresentationTerm>Core Location</ccts:RepresentationTerm>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="PublicServiceTemporalPeriodOfTime"
+                      minOccurs="0"
+                      maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>ASBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Core Public Service. Public Service Temporal_ Period Of Time. Period Of Time</ccts:DictionaryEntryName>
+                     <ccts:Definition>The time frame in which the service is available.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Core Public Service</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Public Service Temporal</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Period Of Time</ccts:PropertyTerm>
+                     <ccts:AssociatedObjectClass>Period Of Time</ccts:AssociatedObjectClass>
+                     <ccts:RepresentationTerm>Period Of Time</ccts:RepresentationTerm>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+      </xsd:sequence>
+   </xsd:complexType>
+   <xsd:complexType name="FormalFrameworkType">
+      <xsd:annotation>
+         <xsd:documentation>
+            <ccts:Component>
+               <ccts:ComponentType>ABIE</ccts:ComponentType>
+               <ccts:DictionaryEntryName>Formal Framework. Details</ccts:DictionaryEntryName>
+               <ccts:Definition>Legislation, policy, or policies lying behind the rules that govern a public service.</ccts:Definition>
+               <ccts:ObjectClass>Formal Framework</ccts:ObjectClass>
+            </ccts:Component>
+         </xsd:documentation>
+      </xsd:annotation>
+      <xsd:sequence>
+         <xsd:element ref="CreatorAgent" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>ASBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Formal Framework. Creator_ Agent. Agent</ccts:DictionaryEntryName>
+                     <ccts:Definition>The public body responsible for the formal framework.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Formal Framework</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Creator</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Agent</ccts:PropertyTerm>
+                     <ccts:AssociatedObjectClass>Agent</ccts:AssociatedObjectClass>
+                     <ccts:RepresentationTerm>Agent</ccts:RepresentationTerm>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="RelatedFormalFramework" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>ASBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Formal Framework. Related_ Formal Framework. Formal Framework</ccts:DictionaryEntryName>
+                     <ccts:Definition>A formal framework related to this framework.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Formal Framework</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Related</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Formal Framework</ccts:PropertyTerm>
+                     <ccts:AssociatedObjectClass>Formal Framework</ccts:AssociatedObjectClass>
+                     <ccts:RepresentationTerm>Formal Framework</ccts:RepresentationTerm>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+      </xsd:sequence>
+   </xsd:complexType>
+   <xsd:complexType name="GeometryType">
+      <xsd:annotation>
+         <xsd:documentation>
+            <ccts:Component>
+               <ccts:ComponentType>ABIE</ccts:ComponentType>
+               <ccts:DictionaryEntryName>Geometry. Details</ccts:DictionaryEntryName>
+               <ccts:Definition>A geometry representing a location.</ccts:Definition>
+               <ccts:ObjectClass>Geometry</ccts:ObjectClass>
+            </ccts:Component>
+         </xsd:documentation>
+      </xsd:annotation>
+      <xsd:sequence>
+         <xsd:element ref="cvb:GeometryCoordinateReferenceSystemID"
+                      minOccurs="0"
+                      maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Geometry. Geometry Coordinate Reference System. Identifier</ccts:DictionaryEntryName>
+                     <ccts:Definition>The Coordinate Reference System (CRS) used to encode the coordinates.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Geometry</ccts:ObjectClass>
+                     <ccts:PropertyTerm>Geometry Coordinate Reference System</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Identifier</ccts:RepresentationTerm>
+                     <ccts:DataType>Identifier. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:GeometryTypeCode" minOccurs="0" maxOccurs="1">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Geometry. Geometry Type. Code</ccts:DictionaryEntryName>
+                     <ccts:Definition>The type of the geometry.</ccts:Definition>
+                     <ccts:Cardinality>0..1</ccts:Cardinality>
+                     <ccts:ObjectClass>Geometry</ccts:ObjectClass>
+                     <ccts:PropertyTerm>Geometry Type</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Code</ccts:RepresentationTerm>
+                     <ccts:DataType>Code. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:GeometryCoordinates" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Geometry. Geometry Coordinates. Text</ccts:DictionaryEntryName>
+                     <ccts:Definition>The ordered list of coordinates of the geometry.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Geometry</ccts:ObjectClass>
+                     <ccts:PropertyTerm>Geometry Coordinates</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Text</ccts:RepresentationTerm>
+                     <ccts:DataType>Text. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+      </xsd:sequence>
+   </xsd:complexType>
+   <xsd:complexType name="InputType">
+      <xsd:annotation>
+         <xsd:documentation>
+            <ccts:Component>
+               <ccts:ComponentType>ABIE</ccts:ComponentType>
+               <ccts:DictionaryEntryName>Input. Details</ccts:DictionaryEntryName>
+               <ccts:Definition>A resource to be processed to produce an output.</ccts:Definition>
+               <ccts:ObjectClass>Input</ccts:ObjectClass>
+            </ccts:Component>
+         </xsd:documentation>
+      </xsd:annotation>
+      <xsd:sequence>
+         <xsd:element ref="cvb:InputName" minOccurs="0" maxOccurs="1">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Input. Input_ Name. Text</ccts:DictionaryEntryName>
+                     <ccts:Definition>The name of the input.</ccts:Definition>
+                     <ccts:Cardinality>0..1</ccts:Cardinality>
+                     <ccts:ObjectClass>Input</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Input</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Name</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Text</ccts:RepresentationTerm>
+                     <ccts:DataType>Text. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:InputDescription" minOccurs="0" maxOccurs="1">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Input. Input_ Description. Text</ccts:DictionaryEntryName>
+                     <ccts:Definition>A free text description of the input.</ccts:Definition>
+                     <ccts:Cardinality>0..1</ccts:Cardinality>
+                     <ccts:ObjectClass>Input</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Input</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Description</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Text</ccts:RepresentationTerm>
+                     <ccts:DataType>Text. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:InputTypeCode" minOccurs="0" maxOccurs="1">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Input. Input_ Type. Code</ccts:DictionaryEntryName>
+                     <ccts:Definition>The type of the input.</ccts:Definition>
+                     <ccts:Cardinality>0..1</ccts:Cardinality>
+                     <ccts:ObjectClass>Input</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Input</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Type</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Code</ccts:RepresentationTerm>
+                     <ccts:DataType>Code. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+      </xsd:sequence>
+   </xsd:complexType>
+   <xsd:complexType name="JurisdictionType">
+      <xsd:annotation>
+         <xsd:documentation>
+            <ccts:Component>
+               <ccts:ComponentType>ABIE</ccts:ComponentType>
+               <ccts:DictionaryEntryName>Jurisdiction. Details</ccts:DictionaryEntryName>
+               <ccts:Definition>A jurisdiction, typically a country, dealing with and making pronouncements on legal matters.</ccts:Definition>
+               <ccts:ObjectClass>Jurisdiction</ccts:ObjectClass>
+            </ccts:Component>
+         </xsd:documentation>
+      </xsd:annotation>
+      <xsd:sequence>
+         <xsd:element ref="cvb:JurisdictionID" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Jurisdiction. Jurisdiction Identifier. Identifier</ccts:DictionaryEntryName>
+                     <ccts:Definition>The URI for the jurisdiction.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Jurisdiction</ccts:ObjectClass>
+                     <ccts:PropertyTerm>Jurisdiction Identifier</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Identifier</ccts:RepresentationTerm>
+                     <ccts:DataType>Identifier. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:JurisdictionName" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Jurisdiction. Jurisdiction Name. Name</ccts:DictionaryEntryName>
+                     <ccts:Definition>The name of the jurisdiction.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Jurisdiction</ccts:ObjectClass>
+                     <ccts:PropertyTerm>Jurisdiction Name</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Name</ccts:RepresentationTerm>
+                     <ccts:DataType>Name. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+      </xsd:sequence>
+   </xsd:complexType>
+   <xsd:complexType name="OutputType">
+      <xsd:annotation>
+         <xsd:documentation>
+            <ccts:Component>
+               <ccts:ComponentType>ABIE</ccts:ComponentType>
+               <ccts:DictionaryEntryName>Output. Details</ccts:DictionaryEntryName>
+               <ccts:Definition>An intended result whose required inputs and processes are entirely within the control of the planning organisation.</ccts:Definition>
+               <ccts:ObjectClass>Output</ccts:ObjectClass>
+            </ccts:Component>
+         </xsd:documentation>
+      </xsd:annotation>
+      <xsd:sequence>
+         <xsd:element ref="cvb:OutputName" minOccurs="0" maxOccurs="1">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Output. Output_ Name. Text</ccts:DictionaryEntryName>
+                     <ccts:Definition>The name of the output.</ccts:Definition>
+                     <ccts:Cardinality>0..1</ccts:Cardinality>
+                     <ccts:ObjectClass>Output</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Output</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Name</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Text</ccts:RepresentationTerm>
+                     <ccts:DataType>Text. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:OutputDescription" minOccurs="0" maxOccurs="1">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Output. Output_ Description. Text</ccts:DictionaryEntryName>
+                     <ccts:Definition>A free text description of the output.</ccts:Definition>
+                     <ccts:Cardinality>0..1</ccts:Cardinality>
+                     <ccts:ObjectClass>Output</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Output</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Description</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Text</ccts:RepresentationTerm>
+                     <ccts:DataType>Text. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:OutputTypeCode" minOccurs="0" maxOccurs="1">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Output. Output_ Type. Code</ccts:DictionaryEntryName>
+                     <ccts:Definition>The type of the output.</ccts:Definition>
+                     <ccts:Cardinality>0..1</ccts:Cardinality>
+                     <ccts:ObjectClass>Output</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Output</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Type</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Code</ccts:RepresentationTerm>
+                     <ccts:DataType>Code. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+      </xsd:sequence>
+   </xsd:complexType>
+   <xsd:complexType name="PeriodOfTimeType">
+      <xsd:annotation>
+         <xsd:documentation>
+            <ccts:Component>
+               <ccts:ComponentType>ABIE</ccts:ComponentType>
+               <ccts:DictionaryEntryName>Period Of Time. Details</ccts:DictionaryEntryName>
+               <ccts:Definition>An interval of time that is named or defined by its start and end dates.</ccts:Definition>
+               <ccts:ObjectClass>Period Of Time</ccts:ObjectClass>
+            </ccts:Component>
+         </xsd:documentation>
+      </xsd:annotation>
+      <xsd:sequence>
+         <xsd:element ref="cvb:PeriodOfTimeStartDate" minOccurs="0" maxOccurs="1">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Period Of Time. Period Of Time_ Start Date. Date</ccts:DictionaryEntryName>
+                     <ccts:Definition>The start date of the period.</ccts:Definition>
+                     <ccts:Cardinality>0..1</ccts:Cardinality>
+                     <ccts:ObjectClass>Period Of Time</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Period Of Time</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Start Date</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Date</ccts:RepresentationTerm>
+                     <ccts:DataType>Date. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="cvb:PeriodOfTimeEndDate" minOccurs="0" maxOccurs="1">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Period Of Time. Period Of Time_ End Date. Date</ccts:DictionaryEntryName>
+                     <ccts:Definition>The end date of the period.</ccts:Definition>
+                     <ccts:Cardinality>0..1</ccts:Cardinality>
+                     <ccts:ObjectClass>Period Of Time</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Period Of Time</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>End Date</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Date</ccts:RepresentationTerm>
+                     <ccts:DataType>Date. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+      </xsd:sequence>
+   </xsd:complexType>
+   <xsd:complexType name="RuleType">
+      <xsd:annotation>
+         <xsd:documentation>
+            <ccts:Component>
+               <ccts:ComponentType>ABIE</ccts:ComponentType>
+               <ccts:DictionaryEntryName>Rule. Details</ccts:DictionaryEntryName>
+               <ccts:Definition>A document that sets out the specific rules, guidelines, or procedures that a public service follows.</ccts:Definition>
+               <ccts:ObjectClass>Rule</ccts:ObjectClass>
+            </ccts:Component>
+         </xsd:documentation>
+      </xsd:annotation>
+      <xsd:sequence>
+         <xsd:element ref="cvb:RuleID" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>BBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Rule. Rule Identifier. Identifier</ccts:DictionaryEntryName>
+                     <ccts:Definition>Identifier for the rule.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Rule</ccts:ObjectClass>
+                     <ccts:PropertyTerm>Rule Identifier</ccts:PropertyTerm>
+                     <ccts:RepresentationTerm>Identifier</ccts:RepresentationTerm>
+                     <ccts:DataType>Identifier. Type</ccts:DataType>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="CreatorAgent" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>ASBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Rule. Creator_ Agent. Agent</ccts:DictionaryEntryName>
+                     <ccts:Definition>The organization that is responsible for the rule.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Rule</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Creator</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Agent</ccts:PropertyTerm>
+                     <ccts:AssociatedObjectClass>Agent</ccts:AssociatedObjectClass>
+                     <ccts:RepresentationTerm>Agent</ccts:RepresentationTerm>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element ref="ImplementsFormalFramework" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  <ccts:Component>
+                     <ccts:ComponentType>ASBIE</ccts:ComponentType>
+                     <ccts:DictionaryEntryName>Rule. Implements_ Formal Framework. Formal Framework</ccts:DictionaryEntryName>
+                     <ccts:Definition>The formal framework under which the rule is defined.</ccts:Definition>
+                     <ccts:Cardinality>0..n</ccts:Cardinality>
+                     <ccts:ObjectClass>Rule</ccts:ObjectClass>
+                     <ccts:PropertyTermQualifier>Implements</ccts:PropertyTermQualifier>
+                     <ccts:PropertyTerm>Formal Framework</ccts:PropertyTerm>
+                     <ccts:AssociatedObjectClass>Formal Framework</ccts:AssociatedObjectClass>
+                     <ccts:RepresentationTerm>Formal Framework</ccts:RepresentationTerm>
+                  </ccts:Component>
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+      </xsd:sequence>
+   </xsd:complexType>
+</xsd:schema>
+<!-- ===== Copyright Notice ===== --><!--
+  Copyright (c) European Union, 2014
+  Licensed under the ISA Open Metadata Licence
+
+  ISA Open Metadata Licence v1.1
+
+  1. Copyright
+
+  The Work (as defined below) is provided under the terms of this ISA 
+  Open Metadata Licence (this Licence, or later versions of this Licence 
+  published by the European Commission). The work is protected by 
+  copyright and/or other applicable law. Any use of the work other than 
+  as authorised under this Licence or copyright law is prohibited.
+
+  By exercising any rights to the work provided here, you accept and
+  agree to be bound by the terms of this Licence. The Owner (as defined
+  below) grants You the rights contained here in consideration of your
+  acceptance of such terms and conditions.
+
+  2. Definitions
+
+  The “Owner” is the European Union represented by the European 
+  Commission, which is the original licensor and/or controls the 
+  copyright and any other intellectual and industrial property rights 
+  related to the Work.
+
+  The “Work” is the information and/or data offered to You under this 
+  Licence, according to the “Copyright Notice”:
+
+      Copyright (c) European Union, YEAR
+      Licensed under the ISA Open Metadata Licence,
+      Original author: CONTRIBUTOR(s)
+
+  "You" means the natural or legal person, or body of persons corporate 
+  or incorporate, acquiring rights under this licence.
+
+  "Contributor" means the natural or legal person whose Work is, by 
+  agreement with the European Commission, provided under this Licence.
+
+  "Use" means doing any act which is restricted by copyright or database 
+  right, whether in the original medium or in any other medium, and 
+  includes without limitation distributing, copying, adapting, modifying 
+  as may be technically necessary to use it in a different mode or 
+  format. It includes "re-Use", meaning the use, communication to the 
+  public and/or distribution of the Works for purposes other than the 
+  initial purpose for which the Work was produced.
+
+  3. Rights
+
+  In accordance to Commission Decision 2011/833/EU, You are herewith 
+  granted a worldwide, royalty-free, perpetual, non-exclusive licence to 
+  Use and re-Use the Works and any modifications thereof for any 
+  commercial and non-commercial purpose allowed by the law and provided 
+  that the following conditions are met:
+    a) Distributions or communication to the public must retain the 
+       above Copyright Notice;
+    b) Distributions must retain the following “No Warranty” disclaimer;
+    c) Where possible and practical, distributions or communication to 
+       the public will provide a link to the Joinup platform;
+    d) Acts directed to mislead others or misrepresent the Work, its 
+       content or source are prohibited;
+    e) You will not use the name of the European Commission and that of 
+       its Contributor(s) to endorse or promote products and services 
+       derived from the Use of the Work without specific prior written 
+       permission.
+
+  4. No Warranty
+
+  EACH WORK IS PROVIDED "AS IS" WITHOUT REPRESENTATIONS, WARRANTIES, 
+  OBLIGATIONS AND LIABILITIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, TO 
+  THE FULL EXTENT PERMITTED BY LAW INCLUDING, BUT NOT LIMITED TO, ANY 
+  IMPLIED WARRANTY OF MERCHANTABILITY, INTEGRATION, SATISFACTORY QUALITY 
+  AND FITNESS FOR A PARTICULAR PURPOSE.
+
+  EXCEPT IN THE CASES OF WILFUL MISCONDUCT OR DAMAGES DIRECTLY CAUSED TO 
+  NATURAL PERSONS, NEITHER EUROPEAN UNION NOR ITS CONTRIBUTOR(S) WILL BE 
+  LIABLE FOR ANY INCIDENTAL, CONSEQUENTIAL, DIRECT OR INDIRECT DAMAGES 
+  INCLUDING BUT NOT LIMITED TO THE LOSS OF DATA, LOST PROFITS, OR ANY 
+  OTHER FINANCIAL LOSS ARISING FROM THE USE OF, OR INABILITY TO USE, 
+  EVEN IF THE EUROPEAN UNION HAS BEEN NOTIFIED OF THE POSSIBILITY OF 
+  SUCH LOSS, DAMAGES, CLAIMS OR COSTS OR FOR ANY CLAIM BY ANY THIRD 
+  PARTY. HOWEVER, THE LICENSOR WILL BE LIABLE UNDER STATUTORY PRODUCT 
+  LIABILITY LAWS AS FAR SUCH LAWS APPLY TO THE WORK.
+
+  5. Governing Law
+
+  This licence is governed by the laws of the jurisdiction in which the 
+  first Contributor listed in the Copyright Notice has its principal 
+  place of business, unless otherwise specified by this Contributor.
+-->

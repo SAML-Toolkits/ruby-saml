@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+        xmlns="http://schemas.microsoft.com/cgg/2016/identity/claims/approvedclaim"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        targetNamespace="http://schemas.microsoft.com/cgg/2016/identity/claims/approvedclaim"
+        elementFormDefault="qualified"
+        attributeFormDefault="unqualified"
+        version="1">
+
+    <xsd:simpleType name="string">
+        <xsd:annotation>
+            <xsd:documentation>
+                Unique identifier for the natural person as defined by the eIDAS Regulation.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string"/>
+    </xsd:simpleType>
+
+</xsd:schema>

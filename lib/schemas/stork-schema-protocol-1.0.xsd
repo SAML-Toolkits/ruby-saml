@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema
+  elementFormDefault="qualified" 
+  targetNamespace="urn:eu:stork:names:tc:STORK:1.0:protocol" 
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"  
+  xmlns:storkp="urn:eu:stork:names:tc:STORK:1.0:protocol" 
+  xmlns:stork="urn:eu:stork:names:tc:STORK:1.0:assertion"
+  xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+
+  <xs:import namespace="urn:eu:stork:names:tc:STORK:1.0:assertion" schemaLocation="stork-schema-assertion-1.0.xsd"/>
+  <!--  <xs:import namespace="http://www.w3.org/2000/09/xmldsig#" schemaLocation="http://www.w3.org/TR/2002/REC-xmldsig-core-20020212/xmldsig-core-schema.xsd" /> -->
+  <xs:import namespace="http://www.w3.org/2000/09/xmldsig#" schemaLocation="xmldsig-core-schema.xsd" />
+  
+
+  <xs:element name="eIDSectorShare" type="xs:boolean" default="false"/>
+  <xs:element name="eIDCrossSectorShare" type="xs:boolean" default="false"/>
+  <xs:element name="eIDCrossBorderShare" type="xs:boolean" default="false"/>
+  <xs:element name="RequestedAttributes" type="storkp:RequestedAttributesType" />  
+  <xs:element name="AuthenticationAttributes" type="storkp:AuthenticationAttributesType" />
+  
+  <xs:complexType name="RequestedAttributesType">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" ref="stork:RequestedAttribute"/>
+    </xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="AuthenticationAttributesType">
+    <xs:sequence>
+      <xs:element name="VIDPAuthenticationAttributes" type="storkp:VIDPAuthenticationAttributesType" minOccurs="0" maxOccurs="1" />
+    </xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="VIDPAuthenticationAttributesType">
+    <xs:sequence>
+      <xs:element name="CitizenCountryCode" minOccurs="0" maxOccurs="1" type="stork:CountryCodeType" />
+      <xs:element name="SPInformation" minOccurs="1" maxOccurs="1" type="storkp:SPInformationType"/>
+    </xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="SPInformationType">
+    <xs:sequence>
+      <xs:element name="SPID" minOccurs="1" maxOccurs="1" type="storkp:SPIDType" />
+      <xs:element name="SPCertSig" minOccurs="0" maxOccurs="1" type="storkp:SPCertSigType" />
+      <xs:element name="SPCertEnc" minOccurs="0" maxOccurs="1" type="storkp:SPCertEncType" />
+      <xs:element name="SPAuthRequest" minOccurs="0" maxOccurs="1" type="storkp:SPAuthRequestType"/>
+    </xs:sequence>
+  </xs:complexType>
+  
+  <xs:simpleType name="SPIDType">
+    <xs:restriction base="xs:string">
+      <xs:minLength value="1" />
+      <xs:maxLength value="20" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:complexType name="SPCertSigType">
+    <xs:sequence>
+      <xs:element minOccurs="1" ref="ds:KeyInfo" />
+    </xs:sequence>    
+  </xs:complexType>
+
+  <xs:complexType name="SPCertEncType">
+    <xs:sequence>
+      <xs:element minOccurs="1" ref="ds:KeyInfo" />
+    </xs:sequence>    
+  </xs:complexType>
+  
+  <xs:complexType name="SPAuthRequestType">
+    <xs:sequence>
+        <xs:any namespace="##other" processContents="lax" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType> 
+</xs:schema>
