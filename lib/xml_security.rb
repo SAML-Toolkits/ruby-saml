@@ -326,6 +326,9 @@ module XMLSecurity
         '//ds:CanonicalizationMethod',
         { "ds" => DSIG }
       )
+
+      canon_algorithm = process_transforms(ref, canon_algorithm)
+
       canon_hashed_element = hashed_element.canonicalize(canon_algorithm, inclusive_namespaces)
 
       digest_algorithm = algorithm(REXML::XPath.first(
@@ -359,6 +362,33 @@ module XMLSecurity
     end
 
     private
+
+    def process_transforms(ref, canon_algorithm)
+      transforms = REXML::XPath.match(
+        ref,
+        "//ds:Transforms/ds:Transform",
+        { "ds" => DSIG }
+      )
+
+      transforms.each do |transform_element|
+        if transform_element.attributes && transform_element.attributes["Algorithm"]
+          algorithm = transform_element.attributes["Algorithm"]
+          case algorithm
+            when "http://www.w3.org/TR/2001/REC-xml-c14n-20010315",
+                 "http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments"
+              canon_algorithm = Nokogiri::XML::XML_C14N_1_0
+            when "http://www.w3.org/2006/12/xml-c14n11",
+                 "http://www.w3.org/2006/12/xml-c14n11#WithComments"
+              canon_algorithm = Nokogiri::XML::XML_C14N_1_1
+            when "http://www.w3.org/2001/10/xml-exc-c14n#",
+                 "http://www.w3.org/2001/10/xml-exc-c14n#WithComments"
+              canon_algorithm = Nokogiri::XML::XML_C14N_EXCLUSIVE_1_0
+          end
+        end
+      end
+
+      canon_algorithm
+    end
 
     def digests_match?(hash, digest_value)
       hash == digest_value

@@ -280,13 +280,19 @@ module OneLogin
           :raw_sig_alg     => options[:raw_get_params]['SigAlg']
         )
 
+        expired = false
         if idp_certs.nil? || idp_certs[:signing].empty?
           valid = OneLogin::RubySaml::Utils.verify_signature(
-            :cert         => settings.get_idp_cert,
+            :cert         => idp_cert,
             :sig_alg      => options[:get_params]['SigAlg'],
             :signature    => options[:get_params]['Signature'],
             :query_string => query_string
           )
+          if valid && settings.security[:check_idp_cert_expiration]
+            if OneLogin::RubySaml::Utils.is_cert_expired(idp_cert)
+              expired = true
+            end
+          end
         else
           valid = false
           idp_certs[:signing].each do |signing_idp_cert|
@@ -297,11 +303,20 @@ module OneLogin
               :query_string => query_string
             )
             if valid
+              if settings.security[:check_idp_cert_expiration]
+                if OneLogin::RubySaml::Utils.is_cert_expired(signing_idp_cert)
+                  expired = true
+                end
+              end
               break
             end
           end
         end
 
+        if expired
+          error_msg = "IdP x509 certificate expired"
+          return append_error(error_msg)
+        end
         unless valid
           return append_error("Invalid Signature on Logout Request")
         end

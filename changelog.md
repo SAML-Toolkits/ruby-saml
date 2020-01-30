@@ -1,4 +1,19 @@
 # RubySaml Changelog
+
+### 1.11.0 (Jul 24, 2019)
+
+* Deprecate settings.issuer in favor of settings.sp_entity_id
+* Add support for certification expiration
+
+### 1.10.2 (Apr 29, 2019)
+
+* Add valid until, accessor
+* Fix Rubygem metadata that requested nokogiri <= 1.5.11
+
+### 1.10.1 (Apr 08, 2019)
+
+* Fix ruby 1.8.7 incompatibilities
+
 ### 1.10.0 (Mar 21, 2019)
 * Add Subject support on AuthNRequest to allow SPs provide info to the IdP about the user to be authenticated
 * Improves IdpMetadataParser to allow parse multiple IDPSSODescriptors

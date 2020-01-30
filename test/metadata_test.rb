@@ -12,7 +12,7 @@ class MetadataTest < Minitest::Test
     let(:acs)               { REXML::XPath.first(xml_doc, "//md:AssertionConsumerService") }
 
     before do
-      settings.issuer = "https://example.com"
+      settings.sp_entity_id = "https://example.com"
       settings.name_identifier_format = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
       settings.assertion_consumer_service_url = "https://foo.example/saml/consume"
     end

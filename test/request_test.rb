@@ -1,6 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), "test_helper"))
 
 require 'onelogin/ruby-saml/authrequest'
+require 'onelogin/ruby-saml/setting_error'
 
 class RequestTest < Minitest::Test
 
@@ -166,7 +167,7 @@ class RequestTest < Minitest::Test
       end
 
       it "raises an error with a descriptive message" do
-        err = assert_raises RuntimeError do
+        err = assert_raises OneLogin::RubySaml::SettingError do
           OneLogin::RubySaml::Authrequest.new.create(settings)
         end
         assert_match /idp_sso_target_url is not set/, err.message

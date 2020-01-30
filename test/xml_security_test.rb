@@ -239,7 +239,7 @@ class XmlSecurityTest < Minitest::Test
         settings.idp_sso_target_url = "https://idp.example.com/sso"
         settings.protocol_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
         settings.idp_slo_target_url = "https://idp.example.com/slo",
-        settings.issuer = "https://sp.example.com/saml2"
+        settings.sp_entity_id = "https://sp.example.com/saml2"
         settings.assertion_consumer_service_url = "https://sp.example.com/acs"
         settings.single_logout_service_url = "https://sp.example.com/sls"
       end

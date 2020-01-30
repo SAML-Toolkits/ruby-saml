@@ -17,7 +17,6 @@ Gem::Specification.new do |s|
   ]
   s.files = `git ls-files`.split("\n")
   s.homepage = %q{http://github.com/onelogin/ruby-saml}
-  s.rubyforge_project = %q{http://www.rubygems.org/gems/ruby-saml}
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.3.7}
@@ -40,10 +39,13 @@ Gem::Specification.new do |s|
     s.add_runtime_dependency('nokogiri', '<= 1.5.11')
   elsif RUBY_VERSION < '2.1'
     s.add_runtime_dependency('nokogiri', '>= 1.5.10', '<= 1.6.8.1')
+  elseif RUBY_VERSION < '2.3'
+    s.add_runtime_dependency('nokogiri', '>= 1.9.1', '<= 1.10.0')
   else
-    s.add_runtime_dependency('nokogiri', '>= 1.8.2')
+    s.add_runtime_dependency('nokogiri', '>= 1.10.5')
   end
 
+  s.add_development_dependency('coveralls')
   s.add_development_dependency('minitest', '~> 5.5')
   s.add_development_dependency('mocha',    '~> 0.14')
   s.add_development_dependency('rake',     '~> 10')

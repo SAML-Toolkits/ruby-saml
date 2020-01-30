@@ -1,19 +1,19 @@
-sudo: false
 language: ruby
 rvm:
   - 1.8.7
   - 1.9.3
   - 2.0.0
-  - 2.1.5
-  - 2.2.0
-  - 2.3.0
-  - 2.4.0
-  - 2.5.0
-  - 2.6.0
+  - 2.1.10
+  - 2.2.10
+  - 2.3.8
+  - 2.4.6
+  - 2.5.5
+  - 2.6.3
+  - 2.7.0
   - ree
   - jruby-1.7.27
   - jruby-9.1.17.0
-  - jruby-9.2.0.0
+  - jruby-9.2.7.0
 gemfile:
   - Gemfile
   - gemfiles/nokogiri-1.5.gemfile
@@ -29,19 +29,21 @@ matrix:
       gemfile: gemfiles/nokogiri-1.5.gemfile
     - rvm: jruby-9.1.17.0
       gemfile: gemfiles/nokogiri-1.5.gemfile
-    - rvm: jruby-9.2.0.0
+    - rvm: jruby-9.2.7.0
       gemfile: gemfiles/nokogiri-1.5.gemfile
     - rvm: 2.1.5
       gemfile: gemfiles/nokogiri-1.5.gemfile
-    - rvm: 2.2.0
+    - rvm: 2.2.10
       gemfile: gemfiles/nokogiri-1.5.gemfile
-    - rvm: 2.3.0
+    - rvm: 2.3.8
       gemfile: gemfiles/nokogiri-1.5.gemfile
-    - rvm: 2.4.0
+    - rvm: 2.4.6
       gemfile: gemfiles/nokogiri-1.5.gemfile
-    - rvm: 2.5.0
+    - rvm: 2.5.5
       gemfile: gemfiles/nokogiri-1.5.gemfile
-    - rvm: 2.6.0
+    - rvm: 2.6.3
+      gemfile: gemfiles/nokogiri-1.5.gemfile
+    - rvm: 2.7.0
       gemfile: gemfiles/nokogiri-1.5.gemfile
 env:
   - JRUBY_OPTS="--debug"

@@ -1,6 +1,14 @@
-# Ruby SAML [![Build Status](https://secure.travis-ci.org/onelogin/ruby-saml.svg)](http://travis-ci.org/onelogin/ruby-saml) [![Coverage Status](https://coveralls.io/repos/onelogin/ruby-saml/badge.svg?branch=master%0A)](https://coveralls.io/r/onelogin/ruby-saml?branch=master%0A) [![Gem Version](https://badge.fury.io/rb/ruby-saml.svg)](http://badge.fury.io/rb/ruby-saml)
+# Ruby SAML [![Build Status](https://secure.travis-ci.org/onelogin/ruby-saml.svg)](http://travis-ci.org/onelogin/ruby-saml) [![Coverage Status](https://coveralls.io/repos/onelogin/ruby-saml/badge.svg?branch=master)](https://coveralls.io/r/onelogin/ruby-saml?branch=master) [![Gem Version](https://badge.fury.io/rb/ruby-saml.svg)](http://badge.fury.io/rb/ruby-saml)
 
-# Updating from 1.9.0 to 1.10.0
+## Updating from 1.10.x to 1.11.0
+Version `1.11.0` deprecates the use of `settings.issuer` in favour of `settings.sp_entity_id`.
+There are two new security settings: `settings.security[:check_idp_cert_expiration]` and `settings.security[:check_sp_cert_expiration]` (both false by default) that check if the IdP or SP X.509 certificate has expired, respectively.
+
+Version `1.10.2` includes the `valid_until` attribute in parsed IdP metadata.
+
+Version `1.10.1` improves Ruby 1.8.7 support.
+
+## Updating from 1.9.0 to 1.10.0
 Version `1.10.0` improves IdpMetadataParser to allow parse multiple IDPSSODescriptor, Add Subject support on AuthNRequest to allow SPs provide info to the IdP about the user to be authenticated and updates the format_cert method to accept certs with /\x0d/
 
 ## Updating from 1.8.0 to 1.9.0
@@ -107,6 +115,7 @@ We created a demo project for Rails4 that uses the latest version of this librar
 * 2.4.x
 * 2.5.x
 * 2.6.x
+* 2.7.x
 * JRuby 1.7.19
 * JRuby 9.0.0.0
 * JRuby 9.2.0.0
@@ -122,6 +131,17 @@ We created a demo project for Rails4 that uses the latest version of this librar
 ## Security Guidelines
 
 If you believe you have discovered a security vulnerability in this gem, please report it at https://www.onelogin.com/security with a description. We follow responsible disclosure guidelines, and will work with you to quickly find a resolution.
+
+### Security warning
+
+Some tools may incorrectly report ruby-saml is a potential security vulnerability.
+ruby-saml depends on Nokogiri, and it's possible to use Nokogiri in a dangerous way
+(by enabling its DTDLOAD option and disabling its NONET option).
+This dangerous Nokogiri configuration, which is sometimes used by other components,
+can create an XML External Entity (XXE) vulnerability if the XML data is not trusted.
+However, ruby-saml never enables this dangerous Nokogiri configuration;
+ruby-saml never enables DTDLOAD, and it never disables NONET.
+
 
 ## Getting Started
 In order to use the toolkit you will need to install the gem (either manually or using Bundler), and require the library in your Ruby application:
@@ -238,7 +258,7 @@ def saml_settings
   settings = OneLogin::RubySaml::Settings.new
 
   settings.assertion_consumer_service_url = "http://#{request.host}/saml/consume"
-  settings.issuer                         = "http://#{request.host}/saml/metadata"
+  settings.sp_entity_id                   = "http://#{request.host}/saml/metadata"
   settings.idp_entity_id                  = "https://app.onelogin.com/saml/metadata/#{OneLoginAppId}"
   settings.idp_sso_target_url             = "https://app.onelogin.com/trust/saml2/http-post/sso/#{OneLoginAppId}"
   settings.idp_slo_target_url             = "https://app.onelogin.com/trust/saml2/http-redirect/slo/#{OneLoginAppId}"
@@ -261,6 +281,8 @@ def saml_settings
   settings
 end
 ```
+
+The use of settings.issuer is deprecated in favour of settings.sp_entity_id since version 1.11.0
 
 Some assertion validations can be skipped by passing parameters to `OneLogin::RubySaml::Response.new()`.  For example, you can skip the `AuthnStatement`, `Conditions`, `Recipient`, or the `SubjectConfirmation` validations by initializing the response with different options:
 
@@ -301,7 +323,7 @@ class SamlController < ApplicationController
     settings = OneLogin::RubySaml::Settings.new
 
     settings.assertion_consumer_service_url = "http://#{request.host}/saml/consume"
-    settings.issuer                         = "http://#{request.host}/saml/metadata"
+    settings.sp_entity_id                   = "http://#{request.host}/saml/metadata"
     settings.idp_sso_target_url             = "https://app.onelogin.com/saml/signon/#{OneLoginAppId}"
     settings.idp_cert_fingerprint           = OneLoginAppCertFingerPrint
     settings.name_identifier_format         = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
@@ -364,7 +386,7 @@ def saml_settings
   settings = idp_metadata_parser.parse_remote("https://example.com/auth/saml2/idp/metadata")
 
   settings.assertion_consumer_service_url = "http://#{request.host}/saml/consume"
-  settings.issuer                         = "http://#{request.host}/saml/metadata"
+  settings.sp_entity_id                   = "http://#{request.host}/saml/metadata"
   settings.name_identifier_format         = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
   # Optional for most SAML IdPs
   settings.authn_context = "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport"
@@ -378,8 +400,8 @@ The following attributes are set:
   * idp_sso_target_url
   * idp_slo_target_url
   * idp_attribute_names
-  * idp_cert 
-  * idp_cert_fingerprint 
+  * idp_cert
+  * idp_cert_fingerprint
   * idp_cert_multi
 
 ### Retrieve one Entity Descriptor when many exist in Metadata
@@ -518,7 +540,7 @@ pp(response.attributes.multi(:not_exists))
 The `saml:AuthnContextClassRef` of the AuthNRequest can be provided by `settings.authn_context`; possible values are described at [SAMLAuthnCxt]. The comparison method can be set using `settings.authn_context_comparison` parameter. Possible values include: 'exact', 'better', 'maximum' and 'minimum' (default value is 'exact').
 To add a `saml:AuthnContextDeclRef`, define `settings.authn_context_decl_ref`.
 
-In a SP-initiaited flow, the SP can indicate to the IdP the subject that should be authenticated. This is done by defining the `settings.name_identifier_value_requested` before
+In a SP-initiated flow, the SP can indicate to the IdP the subject that should be authenticated. This is done by defining the `settings.name_identifier_value_requested` before
 building the authrequest object.
 
 
@@ -548,6 +570,8 @@ The settings related to sign are stored in the `security` attribute of the setti
   # Embeded signature or HTTP GET parameter signature
   # Note that metadata signature is always embedded regardless of this value.
   settings.security[:embed_sign] = false
+  settings.security[:check_idp_cert_expiration] = false   # Enable or not IdP x509 cert expiration check
+  settings.security[:check_sp_cert_expiration] = false   # Enable or not SP x509 cert expiration check
 ```
 
 Notice that the RelayState parameter is used when creating the Signature on the HTTP-Redirect Binding.
@@ -659,7 +683,7 @@ def idp_logout_request
   logout_request = OneLogin::RubySaml::SloLogoutrequest.new(params[:SAMLRequest])
   if !logout_request.is_valid?
     logger.error "IdP initiated LogoutRequest was not valid!"
-    render :inline => logger.error
+    return render :inline => logger.error
   end
   logger.info "IdP initiated Logout for #{logout_request.name_id}"
 

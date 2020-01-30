@@ -8,9 +8,9 @@ module OneLogin
 
       def self.logger
         @logger ||= begin
-                      (defined?(::Rails) && Rails.respond_to?(:logger) && Rails.logger) ||
-                        DEFAULT_LOGGER
-                    end
+          (defined?(::Rails) && Rails.respond_to?(:logger) && Rails.logger) ||
+            DEFAULT_LOGGER
+        end
       end
 
       def self.logger=(logger)
