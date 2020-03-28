@@ -15,10 +15,10 @@ module OneLogin
 
       module SamlMetadata
         module Vocabulary
-          METADATA       = "urn:oasis:names:tc:SAML:2.0:metadata"
-          DSIG           = "http://www.w3.org/2000/09/xmldsig#"
-          NAME_FORMAT    = "urn:oasis:names:tc:SAML:2.0:attrname-format:*"
-          SAML_ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion"
+          METADATA       = "urn:oasis:names:tc:SAML:2.0:metadata".freeze
+          DSIG           = "http://www.w3.org/2000/09/xmldsig#".freeze
+          NAME_FORMAT    = "urn:oasis:names:tc:SAML:2.0:attrname-format:*".freeze
+          SAML_ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion".freeze
         end
 
         NAMESPACE = {
@@ -26,7 +26,7 @@ module OneLogin
           "NameFormat" => Vocabulary::NAME_FORMAT,
           "saml" => Vocabulary::SAML_ASSERTION,
           "ds" => Vocabulary::DSIG
-        }
+        }.freeze
       end
 
       include SamlMetadata::Vocabulary
@@ -34,6 +34,16 @@ module OneLogin
       attr_reader :response
       attr_reader :options
 
+      # fetch IdP descriptors from a metadata document
+      def self.get_idps(metadata_document, only_entity_id=nil)
+        path = "//md:EntityDescriptor#{only_entity_id && '[@entityID="' + only_entity_id + '"]'}/md:IDPSSODescriptor"
+        REXML::XPath.match(
+          metadata_document,
+          path,
+          SamlMetadata::NAMESPACE
+        )
+      end
+        
       # Parse the Identity Provider metadata and update the settings with the
       # IdP values
       #
@@ -139,17 +149,21 @@ module OneLogin
       #
       # @return [Array<Hash>]
       def parse_to_array(idp_metadata, options = {})
+        parse_to_idp_metadata_array(idp_metadata, options).map{|idp_md| idp_md.to_hash(options)}
+      end
+
+      def parse_to_idp_metadata_array(idp_metadata, options = {})
         @document = REXML::Document.new(idp_metadata)
         @options = options
 
-        idpsso_descriptors = IdpMetadata::get_idps(@document, options[:entity_id])
+        idpsso_descriptors = self.class.get_idps(@document, options[:entity_id])
         if !idpsso_descriptors.any?
           raise ArgumentError.new("idp_metadata must contain an IDPSSODescriptor element")
         end
 
-        return idpsso_descriptors.map{|id| IdpMetadata.new(id, id.parent.attributes["entityID"]).to_hash(options)}
+        return idpsso_descriptors.map{|id| IdpMetadata.new(id, id.parent.attributes["entityID"])}
       end
-
+      
       private
 
       # Retrieve the remote IdP metadata from the URL or a cached copy.
@@ -184,15 +198,8 @@ module OneLogin
       end
 
       class IdpMetadata
-        def self.get_idps(metadata_document, only_entity_id=nil)
-          path = "//md:EntityDescriptor#{only_entity_id && '[@entityID="' + only_entity_id + '"]'}/md:IDPSSODescriptor"
-          REXML::XPath.match(
-            metadata_document,
-            path,
-            SamlMetadata::NAMESPACE
-          )
-        end
-
+        attr_reader :idpsso_descriptor, :entity_id
+        
         def initialize(idpsso_descriptor, entity_id)
           @idpsso_descriptor = idpsso_descriptor
           @entity_id = entity_id
@@ -392,10 +399,6 @@ module OneLogin
         end
 
         settings
-      end
-
-      if self.respond_to?(:private_constant)
-        private_constant :SamlMetadata, :IdpMetadata
       end
     end
   end
