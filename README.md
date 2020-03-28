@@ -579,7 +579,7 @@ Remember to provide it to the Signature builder if you are sending a `GET RelayS
 signature validation process will fail at the Identity Provider.
 
 The Service Provider will sign the request/responses with its private key.
-The Identity Provider will validate the sign of the received request/responses with the public x500 cert of the
+The Identity Provider will validate the sign of the received request/responses with the public x509 cert of the
 Service Provider.
 
 Notice that this toolkit uses 'settings.certificate' and 'settings.private_key' for the sign and decrypt processes.
