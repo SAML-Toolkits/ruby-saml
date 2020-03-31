@@ -79,7 +79,7 @@ module OneLogin
         self.class.single_value_compatibility ? single(canonize_name(name)) : multi(canonize_name(name))
       end
 
-      # @return [Array] Return all attributes as an array
+      # @return [Hash] Return all attributes as a hash
       #
       def all
         attributes
