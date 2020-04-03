@@ -341,6 +341,17 @@ module OneLogin
         return options[:allowed_clock_drift].to_f
       end
 
+      # Checks if the SAML Response contains or not an EncryptedAssertion element
+      # @return [Boolean] True if the SAML Response contains an EncryptedAssertion element
+      #
+      def assertion_encrypted?
+        ! REXML::XPath.first(
+          document,
+          "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
+          { "p" => PROTOCOL, "a" => ASSERTION }
+        ).nil?
+      end
+
       private
 
       # Validates the SAML Response (calls several validation methods)
@@ -965,17 +976,6 @@ module OneLogin
         response_node.add(decrypt_assertion(encrypted_assertion_node))
         encrypted_assertion_node.remove
         XMLSecurity::SignedDocument.new(response_node.to_s)
-      end
-
-      # Checks if the SAML Response contains or not an EncryptedAssertion element
-      # @return [Boolean] True if the SAML Response contains an EncryptedAssertion element
-      #
-      def assertion_encrypted?
-        ! REXML::XPath.first(
-          document,
-          "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
-          { "p" => PROTOCOL, "a" => ASSERTION }
-        ).nil?
       end
 
       # Decrypts an EncryptedAssertion element
