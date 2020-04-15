@@ -237,6 +237,7 @@ def consume
      session[:attributes] = response.attributes
   else
     authorize_failure  # This method shows an error message
+    # List of errors is available in response.errors array
   end
 end
 ```
@@ -314,6 +315,7 @@ class SamlController < ApplicationController
        session[:attributes] = response.attributes
     else
       authorize_failure  # This method shows an error message
+      # List of errors is available in response.errors array
     end
   end
 
