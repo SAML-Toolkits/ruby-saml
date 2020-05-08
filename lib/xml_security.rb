@@ -212,10 +212,9 @@ module XMLSecurity
       # create a working copy so we don't modify the original
       @working_copy ||= REXML::Document.new(self.to_s).root
 
-      # store and remove signature node
+      # store signature node
       @sig_element ||= begin
         element = REXML::XPath.first(@working_copy, "//ds:Signature", {"ds"=>DSIG})
-        element.remove
       end
 
       # verify signature

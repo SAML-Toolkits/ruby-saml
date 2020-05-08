@@ -1,5 +1,4 @@
 require File.expand_path(File.join(File.dirname(__FILE__), "test_helper"))
-require 'uuid'
 
 class LogoutRequestTest < Minitest::Test
 
@@ -29,7 +28,7 @@ class LogoutRequestTest < Minitest::Test
     end
 
     it "set sessionindex" do
-      sessionidx = UUID.new.generate
+      sessionidx = random_id
       settings.sessionindex = sessionidx
 
       unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings, { :name_id => "there" })
@@ -78,169 +77,168 @@ class LogoutRequestTest < Minitest::Test
         assert_match %r[ID='#{unauth_req.uuid}'], inflated
       end
     end
+
+
+    describe "when the settings indicate to sign (embedded) logout request" do
+
+      before do
+        # sign the logout request
+        settings.security[:logout_requests_signed] = true
+        settings.security[:embed_sign] = true
+        settings.certificate = ruby_saml_cert_text
+        settings.private_key = ruby_saml_key_text
+      end
+
+      it "doesn't sign through create_xml_document" do
+        unauth_req = OneLogin::RubySaml::Logoutrequest.new
+        inflated = unauth_req.create_xml_document(settings).to_s
+
+        refute_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], inflated
+        refute_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], inflated
+        refute_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2000/09/xmldsig#sha1'/>], inflated
+      end
+
+      it "sign unsigned request" do
+        unauth_req = OneLogin::RubySaml::Logoutrequest.new
+        unauth_req_doc = unauth_req.create_xml_document(settings)
+        inflated = unauth_req_doc.to_s
+
+        refute_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], inflated
+        refute_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], inflated
+        refute_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2000/09/xmldsig#sha1'/>], inflated
+
+        inflated = unauth_req.sign_document(unauth_req_doc, settings).to_s
+
+        assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], inflated
+        assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], inflated
+        assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2000/09/xmldsig#sha1'/>], inflated
+      end
+
+      it "signs through create_logout_request_xml_doc" do
+        unauth_req = OneLogin::RubySaml::Logoutrequest.new
+        inflated = unauth_req.create_logout_request_xml_doc(settings).to_s
+
+        assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], inflated
+        assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], inflated
+        assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2000/09/xmldsig#sha1'/>], inflated
+      end
+
+      it "created a signed logout request" do
+        settings.compress_request = true
+
+        unauth_req = OneLogin::RubySaml::Logoutrequest.new
+        unauth_url = unauth_req.create(settings)
+
+        inflated = decode_saml_request_payload(unauth_url)
+        assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], inflated
+        assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], inflated
+        assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2000/09/xmldsig#sha1'/>], inflated
+      end
+
+      it "create a signed logout request with 256 digest and signature method" do
+        settings.compress_request = false
+        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
+        settings.security[:digest_method] = XMLSecurity::Document::SHA256
+
+        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings)
+        request_xml = Base64.decode64(params["SAMLRequest"])
+
+        assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], request_xml
+        assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], request_xml
+        assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmlenc#sha256'/>], request_xml
+      end
+
+      it "create a signed logout request with 512 digest and signature method RSA_SHA384" do
+        settings.compress_request = false
+        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA384
+        settings.security[:digest_method] = XMLSecurity::Document::SHA512
+
+        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings)
+        request_xml = Base64.decode64(params["SAMLRequest"])
+
+        assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], request_xml
+        assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha384'/>], request_xml
+        assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmlenc#sha512'/>], request_xml
+      end
+    end
+
+    describe "#create_params when the settings indicate to sign the logout request" do
+
+      let(:cert) { OpenSSL::X509::Certificate.new(ruby_saml_cert_text) }
+
+      before do
+        # sign the logout request
+        settings.security[:logout_requests_signed] = true
+        settings.security[:embed_sign] = false
+        settings.certificate = ruby_saml_cert_text
+        settings.private_key = ruby_saml_key_text
+      end
+
+      it "create a signature parameter with RSA_SHA1 / SHA1 and validate it" do
+        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+
+        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
+        assert params['SAMLRequest']
+        assert params[:RelayState]
+        assert params['Signature']
+        assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA1
+
+        query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
+        query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
+        query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
+
+        signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
+        assert_equal signature_algorithm, OpenSSL::Digest::SHA1
+        assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
+      end
+
+      it "create a signature parameter with RSA_SHA256 / SHA256 and validate it" do
+        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
+
+        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
+        assert params['Signature']
+        assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA256
+
+        query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
+        query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
+        query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
+
+        signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
+        assert_equal signature_algorithm, OpenSSL::Digest::SHA256
+        assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
+      end
+
+      it "create a signature parameter with RSA_SHA384 / SHA384 and validate it" do
+        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA384
+
+        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
+        assert params['Signature']
+        assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA384
+
+        query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
+        query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
+        query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
+
+        signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
+        assert_equal signature_algorithm, OpenSSL::Digest::SHA384
+        assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
+      end
+
+      it "create a signature parameter with RSA_SHA512 / SHA512 and validate it" do
+        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA512
+
+        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
+        assert params['Signature']
+        assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA512
+
+        query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
+        query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
+        query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
+
+        signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
+        assert_equal signature_algorithm, OpenSSL::Digest::SHA512
+        assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
+      end
+    end
   end
-
-  describe "when the settings indicate to sign (embedded) logout request" do
-
-    before do
-      # sign the logout request
-      settings.security[:logout_requests_signed] = true
-      settings.security[:embed_sign] = true
-      settings.certificate = ruby_saml_cert_text
-      settings.private_key = ruby_saml_key_text
-    end
-
-    it "doesn't sign through create_xml_document" do
-      unauth_req = OneLogin::RubySaml::Logoutrequest.new
-      inflated = unauth_req.create_xml_document(settings).to_s
-
-      refute_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], inflated
-      refute_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], inflated
-      refute_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2000/09/xmldsig#sha1'/>], inflated
-    end
-
-    it "sign unsigned request" do
-      unauth_req = OneLogin::RubySaml::Logoutrequest.new
-      unauth_req_doc = unauth_req.create_xml_document(settings)
-      inflated = unauth_req_doc.to_s
-
-      refute_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], inflated
-      refute_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], inflated
-      refute_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2000/09/xmldsig#sha1'/>], inflated
-
-      inflated = unauth_req.sign_document(unauth_req_doc, settings).to_s
-
-      assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], inflated
-      assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], inflated
-      assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2000/09/xmldsig#sha1'/>], inflated
-    end
-
-    it "signs through create_logout_request_xml_doc" do
-      unauth_req = OneLogin::RubySaml::Logoutrequest.new
-      inflated = unauth_req.create_logout_request_xml_doc(settings).to_s
-
-      assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], inflated
-      assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], inflated
-      assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2000/09/xmldsig#sha1'/>], inflated
-    end
-
-    it "created a signed logout request" do
-      settings.compress_request = true
-
-      unauth_req = OneLogin::RubySaml::Logoutrequest.new
-      unauth_url = unauth_req.create(settings)
-
-      inflated = decode_saml_request_payload(unauth_url)
-      assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], inflated
-      assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], inflated
-      assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2000/09/xmldsig#sha1'/>], inflated
-    end
-
-    it "create a signed logout request with 256 digest and signature method" do
-      settings.compress_request = false
-      settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
-      settings.security[:digest_method] = XMLSecurity::Document::SHA256
-
-      params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings)
-      request_xml = Base64.decode64(params["SAMLRequest"])
-
-      assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], request_xml
-      assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], request_xml
-      assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmlenc#sha256'/>], request_xml
-    end
-
-    it "create a signed logout request with 512 digest and signature method RSA_SHA384" do
-      settings.compress_request = false
-      settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA384
-      settings.security[:digest_method] = XMLSecurity::Document::SHA512
-
-      params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings)
-      request_xml = Base64.decode64(params["SAMLRequest"])
-
-      assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], request_xml
-      assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha384'/>], request_xml
-      assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmlenc#sha512'/>], request_xml
-    end
-  end
-
-  describe "#create_params when the settings indicate to sign the logout request" do
-
-    let(:cert) { OpenSSL::X509::Certificate.new(ruby_saml_cert_text) }
-
-    before do
-      # sign the logout request
-      settings.security[:logout_requests_signed] = true
-      settings.security[:embed_sign] = false
-      settings.certificate = ruby_saml_cert_text
-      settings.private_key = ruby_saml_key_text
-    end
-
-    it "create a signature parameter with RSA_SHA1 / SHA1 and validate it" do
-      settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
-
-      params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
-      assert params['SAMLRequest']
-      assert params[:RelayState]
-      assert params['Signature']
-      assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA1
-
-      query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
-      query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
-      query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
-
-      signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
-      assert_equal signature_algorithm, OpenSSL::Digest::SHA1
-      assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
-    end
-
-    it "create a signature parameter with RSA_SHA256 / SHA256 and validate it" do
-      settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
-
-      params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
-      assert params['Signature']
-      assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA256
-
-      query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
-      query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
-      query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
-
-      signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
-      assert_equal signature_algorithm, OpenSSL::Digest::SHA256
-      assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
-    end
-
-    it "create a signature parameter with RSA_SHA384 / SHA384 and validate it" do
-      settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA384
-
-      params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
-      assert params['Signature']
-      assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA384
-
-      query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
-      query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
-      query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
-
-      signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
-      assert_equal signature_algorithm, OpenSSL::Digest::SHA384
-      assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
-    end
-
-    it "create a signature parameter with RSA_SHA512 / SHA512 and validate it" do
-      settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA512
-
-      params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
-      assert params['Signature']
-      assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA512
-
-      query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
-      query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
-      query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
-
-      signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
-      assert_equal signature_algorithm, OpenSSL::Digest::SHA512
-      assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
-    end
-
-  end
-
 end

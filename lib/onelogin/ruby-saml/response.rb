@@ -149,13 +149,13 @@ module OneLogin
       end
 
       def validate(soft = true)
-        validate_success_status       &&
-        validate_num_assertion        &&
-        validate_signed_elements      &&
-        validate_structure(soft)      &&
-        validate_response_state(soft) &&
-        validate_conditions(soft)     &&
-        validate_audience(soft)       &&
+        validate_structure(soft)       &&
+        validate_success_status(soft)  &&
+        validate_num_assertion         &&
+        validate_signed_elements(soft) &&
+        validate_response_state(soft)  &&
+        validate_conditions(soft)      &&
+        validate_audience(soft)        &&
         document.validate_document(get_fingerprint, soft) &&
         success?
       end
@@ -175,10 +175,6 @@ module OneLogin
           { "a" => ASSERTION }
         )
 
-        unless assertions.size != 0
-          return soft ? false : validation_error("Encrypted assertion is not supported")
-        end
-
         unless assertions.size + encrypted_assertions.size == 1
           return soft ? false : validation_error("SAML Response must contain 1 assertion")
         end
@@ -190,7 +186,7 @@ module OneLogin
       # @return [Boolean] True if there is 1 or 2 Elements signed in the SAML Response
       #                        an are a Response or an Assertion Element, otherwise False if soft=True
       #
-      def validate_signed_elements
+      def validate_signed_elements(soft)
         signature_nodes = REXML::XPath.match(
           document,
           "//ds:Signature",
@@ -249,7 +245,7 @@ module OneLogin
       # @return [Boolean] True if the SAML Response contains a Success code, otherwise False if soft == false
       # @raise [ValidationError] if soft == false and validation fails
       #
-      def validate_success_status
+      def validate_success_status(soft = true)
         return true if success?
 
         return false unless soft
@@ -294,6 +290,21 @@ module OneLogin
               end
             end
             code
+          end
+        end
+      end
+
+      # @return [String] the StatusMessage value from a SAML Response.
+      #
+      def status_message
+        @status_message ||= begin
+          nodes = REXML::XPath.match(
+            document,
+            "/p:Response/p:Status/p:StatusMessage",
+            { "p" => PROTOCOL }
+          )
+          if nodes.size == 1
+            Utils.element_text(nodes.first)
           end
         end
       end

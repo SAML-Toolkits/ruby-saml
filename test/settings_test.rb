@@ -1,12 +1,12 @@
 require File.expand_path(File.join(File.dirname(__FILE__), "test_helper"))
 
-class SettingsTest < Test::Unit::TestCase
+class SettingsTest < Minitest::Test
 
-  context "Settings" do
-    setup do
+  describe "Settings" do
+    before do
       @settings = OneLogin::RubySaml::Settings.new
     end
-    should "should provide getters and settings" do
+    it "should provide getters and settings" do
       accessors = [
         :assertion_consumer_service_url, :issuer, :sp_entity_id, :sp_name_qualifier,
         :idp_sso_target_url, :idp_cert_fingerprint, :name_identifier_format,
@@ -22,7 +22,7 @@ class SettingsTest < Test::Unit::TestCase
       end
     end
 
-    should "create settings from hash" do
+    it "create settings from hash" do
 
       config = {
           :assertion_consumer_service_url => "http://app.muda.no/sso",

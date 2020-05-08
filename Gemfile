@@ -7,10 +7,13 @@ gemspec
 
 if RUBY_VERSION < '1.9'
   gem 'nokogiri',   '~> 1.5.0'
+  gem 'minitest',  '~> 5.5', '<= 5.11.3'
 elsif RUBY_VERSION < '2.1'
   gem 'nokogiri',   '>= 1.5.0', '<= 1.6.8.1'
+  gem 'minitest',  '~> 5.5'
 else
   gem 'nokogiri',   '>= 1.5.0'
+  gem 'minitest',  '~> 5.5'
 end
 
 group :test do
@@ -30,6 +33,5 @@ group :test do
   gem 'shoulda',   '~> 2.11'
   gem 'systemu',   '~> 2'
   gem 'test-unit', '~> 3.0.9'
-  gem 'minitest',  '~> 5.5'
   gem 'timecop',   '<= 0.6.0'
 end
