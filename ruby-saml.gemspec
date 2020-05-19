@@ -15,7 +15,9 @@ Gem::Specification.new do |s|
     "LICENSE",
     "README.md"
   ]
-  s.files = `git ls-files`.split("\n")
+  s.files = `git ls-files -z`.split("\x0").select { |f|
+    f.match(%r{^(LICENSE|lib|ruby-saml.gemspec)})
+  }
   s.homepage = %q{http://github.com/onelogin/ruby-saml}
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
