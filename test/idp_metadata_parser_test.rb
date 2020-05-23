@@ -25,6 +25,7 @@ class IdpMetadataParserTest < Minitest::Test
 
       assert_equal "https://hello.example.com/access/saml/idp.xml", settings.idp_entity_id
       assert_equal "https://hello.example.com/access/saml/login", settings.idp_sso_target_url
+      assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", settings.single_signon_service_binding
       assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", settings.idp_cert_fingerprint
       assert_equal "https://hello.example.com/access/saml/logout", settings.idp_slo_target_url
       assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified", settings.name_identifier_format
