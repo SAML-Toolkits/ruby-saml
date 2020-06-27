@@ -211,6 +211,26 @@ class RubySamlTest < Minitest::Test
           assert !response_wrapped.is_valid?
         end
 
+        it "raise when no signature" do
+            settings.idp_cert_fingerprint = signature_fingerprint_1
+            response_no_signed_elements.settings = settings
+            response_no_signed_elements.soft = false
+            error_msg = "Found an unexpected number of Signature Element. SAML Response rejected"
+            assert_raises(OneLogin::RubySaml::ValidationError, error_msg) do
+                response_no_signed_elements.is_valid?
+            end
+        end
+
+        it "raise when multiple signatures" do
+            settings.idp_cert_fingerprint = signature_fingerprint_1
+            response_multiple_signed.settings = settings
+            response_multiple_signed.soft = false
+            error_msg = "Duplicated ID. SAML Response rejected"
+            assert_raises(OneLogin::RubySaml::ValidationError, error_msg) do
+                response_multiple_signed.is_valid?
+            end
+        end
+
         it "validate SAML 2.0 XML structure" do
           resp_xml = Base64.decode64(response_document_unsigned).gsub(/emailAddress/,'test')
           response_unsigned_mod = OneLogin::RubySaml::Response.new(Base64.encode64(resp_xml))
