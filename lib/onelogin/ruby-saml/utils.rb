@@ -4,6 +4,9 @@ else
   require 'securerandom'
 end
 
+require "base64"
+require "zlib"
+
 module OneLogin
   module RubySaml
 
@@ -11,6 +14,8 @@ module OneLogin
     #
     class Utils
       @@uuid_generator = UUID.new if RUBY_VERSION < '1.9'
+
+      BASE64_FORMAT = %r(\A([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?\Z)
 
       # Given a REXML::Element instance, return the concatenation of all child text nodes. Assumes
       # that there all children other than text nodes can be ignored (e.g. comments). If nil is
@@ -114,6 +119,66 @@ module OneLogin
 
         error_msg
       end
+
+      # Base64 decode and try also to inflate a SAML Message
+      # @param saml [String] The deflated and encoded SAML Message
+      # @return [String] The plain SAML Message
+      #
+      def self.decode_raw_saml(saml)
+        return saml unless base64_encoded?(saml)
+
+        decoded = decode(saml)
+        begin
+          inflate(decoded)
+        rescue
+          decoded
+        end
+      end
+
+      # Base 64 decode method
+      # @param string [String] The string message
+      # @return [String] The decoded string
+      #
+      def self.decode(string)
+        Base64.decode64(string)
+      end
+
+      # Base 64 encode method
+      # @param string [String] The string
+      # @return [String] The encoded string
+      #
+      def self.encode(string)
+        if Base64.respond_to?('strict_encode64')
+          Base64.strict_encode64(string)
+        else
+          Base64.encode64(string).gsub(/\n/, "")
+        end
+      end
+
+      # Check if a string is base64 encoded
+      # @param string [String] string to check the encoding of
+      # @return [true, false] whether or not the string is base64 encoded
+      #
+      def self.base64_encoded?(string)
+        !!string.gsub(/[\r\n]|\\r|\\n|\s/, "").match(BASE64_FORMAT)
+      end
+
+      # Inflate method
+      # @param deflated [String] The string
+      # @return [String] The inflated string
+      #
+      def self.inflate(deflated)
+        Zlib::Inflate.new(-Zlib::MAX_WBITS).inflate(deflated)
+      end
+
+      # Deflate method
+      # @param inflated [String] The string
+      # @return [String] The deflated string
+      #
+      def self.deflate(inflated)
+        Zlib::Deflate.deflate(inflated, 9)[2..-5]
+      end
+
     end
   end
 end

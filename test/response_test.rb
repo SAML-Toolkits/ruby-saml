@@ -126,6 +126,26 @@ class ResponseTest <  Minitest::Test
         assert_nil response_wrapped.name_id
       end
 
+      it "raise when no signature" do
+        response_no_signed_elements = OneLogin::RubySaml::Response.new(read_invalid_response("no_signature.xml.base64"))
+        settings.idp_cert_fingerprint = signature_fingerprint_1
+        response_no_signed_elements.settings = settings
+        error_msg = "Found an unexpected number of Signature Element. SAML Response rejected"
+        assert_raises(OneLogin::RubySaml::ValidationError, error_msg) do
+          response_no_signed_elements.validate!
+        end
+      end
+
+      it "raise when multiple signatures" do
+        response_multiple_signed = OneLogin::RubySaml::Response.new(read_invalid_response("multiple_signed.xml.base64"))
+        settings.idp_cert_fingerprint = signature_fingerprint_1
+        response_multiple_signed.settings = settings
+        error_msg = "Duplicated ID. SAML Response rejected"
+        assert_raises(OneLogin::RubySaml::ValidationError, error_msg) do
+          response_multiple_signed.validate!
+        end
+      end
+
       it "support dynamic namespace resolution on signature elements" do
         response = OneLogin::RubySaml::Response.new(fixture("no_signature_ns.xml"))
         response.stubs(:conditions).returns(nil)

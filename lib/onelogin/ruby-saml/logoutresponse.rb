@@ -1,7 +1,5 @@
 require "xml_security"
 require "time"
-require "base64"
-require "zlib"
 
 module OneLogin
   module RubySaml
@@ -30,7 +28,7 @@ module OneLogin
         self.settings = settings
 
         @options = options
-        @response = decode_raw_response(response)
+        @response = OneLogin::RubySaml::Utils.decode_raw_saml(response)
         @document = XMLSecurity::SignedDocument.new(response)
       end
 
@@ -74,27 +72,6 @@ module OneLogin
       end
 
       private
-
-      def decode(encoded)
-        Base64.decode64(encoded)
-      end
-
-      def inflate(deflated)
-        zlib = Zlib::Inflate.new(-Zlib::MAX_WBITS)
-        zlib.inflate(deflated)
-      end
-
-      def decode_raw_response(response)
-        if response =~ /^</
-          return response
-        elsif (decoded  = decode(response)) =~ /^</
-          return decoded
-        elsif (inflated = inflate(decoded)) =~ /^</
-          return inflated
-        end
-
-        raise "Couldn't decode SAMLResponse"
-      end
 
       def valid_saml?(soft = true)
         Dir.chdir(File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'schemas'))) do

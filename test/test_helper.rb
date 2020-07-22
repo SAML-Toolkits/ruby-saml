@@ -30,6 +30,10 @@ class Minitest::Test
     RUBY_VERSION < '1.9' ? "_#{UUID.new.generate}" : "_#{SecureRandom.uuid}"
   end
 
+  def read_invalid_response(response)
+    File.read(File.join(File.dirname(__FILE__), "responses", "invalids", response))
+  end
+
   def read_response(response)
     File.read(File.join(File.dirname(__FILE__), "responses", response))
   end
@@ -81,6 +85,14 @@ class Minitest::Test
     response_document_valid_signed ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'valid_response.xml.base64'))
   end
 
+  def response_document_valid_signed_without_x509certificate
+    @response_document_valid_signed_without_x509certificate ||= read_response("valid_response_without_x509certificate.xml.base64")
+  end
+
+  def response_document_without_recipient
+    @response_document_without_recipient ||= read_response("response_with_undefined_recipient.xml.base64")
+  end
+
   def wrapped_response_2
     @wrapped_response_2 ||= File.read(File.join(File.dirname(__FILE__), 'responses', 'wrapped_response_2.xml.base64'))
   end
@@ -116,40 +128,60 @@ class Minitest::Test
   def response_multiple_attr_values
     @response_multiple_attr_values = OneLogin::RubySaml::Response.new(fixture(:response_with_multiple_attribute_values))
   end
-end
 
-def ruby_saml_cert_text
-  read_certificate("ruby-saml.crt")
-end
+  def ruby_saml_cert
+    @ruby_saml_cert ||= OpenSSL::X509::Certificate.new(ruby_saml_cert_text)
+  end
 
-def ruby_saml_key_text
-  read_certificate("ruby-saml.key")
-end
+  def ruby_saml_cert2
+    @ruby_saml_cert2 ||= OpenSSL::X509::Certificate.new(ruby_saml_cert_text2)
+  end
 
-def read_certificate(certificate)
-  File.read(File.join(File.dirname(__FILE__), "certificates", certificate))
-end
+  def ruby_saml_cert_fingerprint
+    @ruby_saml_cert_fingerprint ||= Digest::SHA1.hexdigest(ruby_saml_cert.to_der).scan(/../).join(":")
+  end
 
-def decode_saml_request_payload(unauth_url)
-  payload = CGI.unescape(unauth_url.split("SAMLRequest=").last)
-  decoded = Base64.decode64(payload)
+  def ruby_saml_cert_text
+    read_certificate("ruby-saml.crt")
+  end
 
-  zstream = Zlib::Inflate.new(-Zlib::MAX_WBITS)
-  inflated = zstream.inflate(decoded)
-  zstream.finish
-  zstream.close
-  inflated
-end
+  def ruby_saml_cert_text2
+    read_certificate("ruby-saml-2.crt")
+  end
 
-# decodes a base64 encoded SAML response for use in SloLogoutresponse tests
-#
-def decode_saml_response_payload(unauth_url)
-  payload = CGI.unescape(unauth_url.split("SAMLResponse=").last)
-  decoded = Base64.decode64(payload)
+  def ruby_saml_key_text
+    read_certificate("ruby-saml.key")
+  end
 
-  zstream = Zlib::Inflate.new(-Zlib::MAX_WBITS)
-  inflated = zstream.inflate(decoded)
-  zstream.finish
-  zstream.close
-  inflated
+  def ruby_saml_key
+    @ruby_saml_key ||= OpenSSL::PKey::RSA.new(ruby_saml_key_text)
+  end
+
+  def read_certificate(certificate)
+    File.read(File.join(File.dirname(__FILE__), "certificates", certificate))
+  end
+
+  def decode_saml_request_payload(unauth_url)
+    payload = CGI.unescape(unauth_url.split("SAMLRequest=").last)
+    decoded = Base64.decode64(payload)
+
+    zstream = Zlib::Inflate.new(-Zlib::MAX_WBITS)
+    inflated = zstream.inflate(decoded)
+    zstream.finish
+    zstream.close
+    inflated
+  end
+
+  # decodes a base64 encoded SAML response for use in SloLogoutresponse tests
+  #
+  def decode_saml_response_payload(unauth_url)
+    payload = CGI.unescape(unauth_url.split("SAMLResponse=").last)
+    decoded = Base64.decode64(payload)
+
+    zstream = Zlib::Inflate.new(-Zlib::MAX_WBITS)
+    inflated = zstream.inflate(decoded)
+    zstream.finish
+    zstream.close
+    inflated
+  end
 end

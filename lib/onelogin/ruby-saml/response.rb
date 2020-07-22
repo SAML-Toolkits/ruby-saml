@@ -1,6 +1,7 @@
 require "xml_security"
 require "time"
 require "nokogiri"
+require "onelogin/ruby-saml/utils"
 require 'onelogin/ruby-saml/attributes'
 
 # Only supports SAML 2.0
@@ -22,7 +23,7 @@ module OneLogin
       def initialize(response, options = {})
         raise ArgumentError.new("Response cannot be nil") if response.nil?
         @options  = options
-        @response = (response =~ /^</) ? response : Base64.decode64(response)
+        @response = OneLogin::RubySaml::Utils.decode_raw_saml(response)
         @document = XMLSecurity::SignedDocument.new(@response)
       end
 
@@ -421,6 +422,7 @@ module OneLogin
 
         true
       end
+
     end
   end
 end
