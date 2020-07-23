@@ -291,6 +291,11 @@ module XMLSecurity
         "./ds:SignatureValue",
         {"ds" => DSIG}
       )
+
+      if base64_signature.nil?
+        return soft ? false : (raise OneLogin::RubySaml::ValidationError.new("SignatureValue not found"))
+      end
+
       signature = Base64.decode64(OneLogin::RubySaml::Utils.element_text(base64_signature))
 
       # canonicalization method
