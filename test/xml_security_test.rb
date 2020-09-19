@@ -418,6 +418,17 @@ class XmlSecurityTest < Minitest::Test
               assert_equal(["Certificate Error"], document.errors)
             end
           end
+
+          describe 'when response cert is different from idp cert' do
+            let(:idp_cert) { OpenSSL::X509::Certificate.new(ruby_saml_cert_text2) }
+
+            it 'is not valid' do
+              exception = assert_raises(OneLogin::RubySaml::ValidationError) do
+                document.validate_document_with_cert(idp_cert, false)
+              end
+              assert_equal("SAML response certificate does not match idp certificate", exception.message)
+            end
+          end
         end
 
         describe 'when response has no cert but you have local cert' do
