@@ -405,8 +405,21 @@ class XmlSecurityTest < Minitest::Test
           it 'is valid' do
             assert document.validate_document_with_cert(idp_cert), 'Document should be valid'
           end
+
+          describe 'when response cert is invalid' do
+            let(:document_data) do
+              contents = read_response('response_with_signed_message_and_assertion.xml')
+              contents.sub(/<ds:X509Certificate>.*<\/ds:X509Certificate>/,
+                           "<ds:X509Certificate>an-invalid-certificate</ds:X509Certificate>")
+            end
+
+            it 'is not valid' do
+              assert !document.validate_document_with_cert(idp_cert), 'Document should be valid'
+              assert_equal(["Certificate Error"], document.errors)
+            end
+          end
         end
-        
+
         describe 'when response has no cert but you have local cert' do
           let(:document) { OneLogin::RubySaml::Response.new(response_document_valid_signed_without_x509certificate).document }
           let(:idp_cert) { OpenSSL::X509::Certificate.new(ruby_saml_cert_text) }
