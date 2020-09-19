@@ -260,7 +260,7 @@ module XMLSecurity
 
         # check saml response cert matches provided idp cert
         if idp_cert.to_pem != cert.to_pem
-          return false
+          return append_error("SAML response certificate does not match idp certificate", soft)
         end
       else
         base64_cert = Base64.encode64(idp_cert.to_pem)
