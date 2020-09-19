@@ -255,12 +255,12 @@ module XMLSecurity
         begin
           cert = OpenSSL::X509::Certificate.new(cert_text)
         rescue OpenSSL::X509::CertificateError => _e
-          return append_error("Certificate Error", soft)
+          return append_error("Document certificate error", soft)
         end
 
         # check saml response cert matches provided idp cert
         if idp_cert.to_pem != cert.to_pem
-          return append_error("SAML response certificate does not match idp certificate", soft)
+          return append_error("Document certificate does not match idp certificate", soft)
         end
       else
         base64_cert = Base64.encode64(idp_cert.to_pem)

@@ -415,7 +415,7 @@ class XmlSecurityTest < Minitest::Test
 
             it 'is not valid' do
               assert !document.validate_document_with_cert(idp_cert), 'Document should be valid'
-              assert_equal(["Certificate Error"], document.errors)
+              assert_equal(["Document certificate error"], document.errors)
             end
           end
 
@@ -426,7 +426,7 @@ class XmlSecurityTest < Minitest::Test
               exception = assert_raises(OneLogin::RubySaml::ValidationError) do
                 document.validate_document_with_cert(idp_cert, false)
               end
-              assert_equal("SAML response certificate does not match idp certificate", exception.message)
+              assert_equal("Document certificate does not match idp certificate", exception.message)
             end
           end
         end
