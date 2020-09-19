@@ -863,8 +863,12 @@ module OneLogin
           valid = false
           expired = false
           idp_certs[:signing].each do |idp_cert|
-            valid = doc.validate_document_with_cert(idp_cert, @soft)
+            valid = doc.validate_document_with_cert(idp_cert, true)
             if valid
+              # required to reset errors as there could be issues with previous certificates
+              doc.reset_errors!
+              reset_errors!
+
               if settings.security[:check_idp_cert_expiration]
                 if OneLogin::RubySaml::Utils.is_cert_expired(idp_cert)
                   expired = true
