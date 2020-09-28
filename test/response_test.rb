@@ -38,6 +38,7 @@ class RubySamlTest < Minitest::Test
     let(:response_multiple_signed) { OneLogin::RubySaml::Response.new(read_invalid_response("multiple_signed.xml.base64")) }
     let(:response_audience_self_closed) { OneLogin::RubySaml::Response.new(read_response("response_audience_self_closed_tag.xml.base64")) }
     let(:response_invalid_audience) { OneLogin::RubySaml::Response.new(read_invalid_response("invalid_audience.xml.base64")) }
+    let(:response_invalid_audience_with_skip) { OneLogin::RubySaml::Response.new(read_invalid_response("invalid_audience.xml.base64"), {:skip_audience => true}) }
     let(:response_invalid_signed_element) { OneLogin::RubySaml::Response.new(read_invalid_response("response_invalid_signed_element.xml.base64")) }
     let(:response_invalid_issuer_assertion) { OneLogin::RubySaml::Response.new(read_invalid_response("invalid_issuer_assertion.xml.base64")) }
     let(:response_invalid_issuer_message) { OneLogin::RubySaml::Response.new(read_invalid_response("invalid_issuer_message.xml.base64")) }
@@ -682,6 +683,13 @@ class RubySamlTest < Minitest::Test
         response_invalid_audience.settings.sp_entity_id = "https://invalid.example.com/audience"
         assert !response_invalid_audience.send(:validate_audience)
         assert_includes response_invalid_audience.errors, generate_audience_error(response_invalid_audience.settings.sp_entity_id, ['http://invalid.audience.com'])
+      end
+
+      it "return true when there is no valid audience but skip_destination option is used" do
+        response_invalid_audience_with_skip.settings = settings
+        response_invalid_audience_with_skip.settings.sp_entity_id = "https://invalid.example.com/audience"
+        assert response_invalid_audience_with_skip.send(:validate_audience)
+        assert_empty response_invalid_audience_with_skip.errors
       end
     end
 
