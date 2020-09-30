@@ -603,8 +603,8 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_audience
-        return true if audiences.empty? || settings.sp_entity_id.nil? || settings.sp_entity_id.empty?
         return true if options[:skip_audience]
+        return true if audiences.empty? || settings.sp_entity_id.nil? || settings.sp_entity_id.empty?
 
         unless audiences.include? settings.sp_entity_id
           s = audiences.count > 1 ? 's' : '';
