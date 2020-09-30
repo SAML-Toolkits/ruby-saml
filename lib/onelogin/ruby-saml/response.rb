@@ -34,7 +34,7 @@ module OneLogin
       # This is not a whitelist to allow people extending OneLogin::RubySaml:Response
       # and pass custom options
       AVAILABLE_OPTIONS = [
-        :allowed_clock_drift, :check_duplicated_attributes, :matches_request_id, :settings, :skip_authnstatement, :skip_conditions,
+        :allowed_clock_drift, :check_duplicated_attributes, :matches_request_id, :settings, :skip_audience, :skip_authnstatement, :skip_conditions,
         :skip_destination, :skip_recipient_check, :skip_subject_confirmation
       ]
       # TODO: Update the comment on initialize to describe every option
@@ -47,6 +47,8 @@ module OneLogin
       #                          or :matches_request_id that will validate that the response matches the ID of the request,
       #                          or skip the subject confirmation validation with the :skip_subject_confirmation option
       #                          or skip the recipient validation of the subject confirmation element with :skip_recipient_check option
+      #                          or skip the audience validation with :skip_audience option
+      #
       def initialize(response, options = {})
         raise ArgumentError.new("Response cannot be nil") if response.nil?
 
@@ -595,11 +597,13 @@ module OneLogin
       end
 
       # Validates the Audience, (If the Audience match the Service Provider EntityID)
+      # If the response was initialized with the :skip_audience option, this validation is skipped,
       # If fails, the error is added to the errors array
       # @return [Boolean] True if there is an Audience Element that match the Service Provider EntityID, otherwise False if soft=True
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_audience
+        return true if options[:skip_audience]
         return true if audiences.empty? || settings.sp_entity_id.nil? || settings.sp_entity_id.empty?
 
         unless audiences.include? settings.sp_entity_id

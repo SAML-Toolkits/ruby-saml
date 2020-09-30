@@ -292,6 +292,7 @@ response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], {skip_authnst
 response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], {skip_conditions: true}) # skips conditions
 response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], {skip_subject_confirmation: true}) # skips subject confirmation
 response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], {skip_recipient_check: true}) # doens't skip subject confirmation, but skips the recipient check which is a sub check of the subject_confirmation check
+response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], {skip_audience: true}) # skips audience check
 ```
 
 All that's left is to wrap everything in a controller and reference it in the initialization and consumption URLs in OneLogin. A full controller example could look like this:
