@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
     "README.md"
   ]
   s.files = `git ls-files`.split("\n")
-  s.homepage = %q{http://github.com/onelogin/ruby-saml}
+  s.homepage = %q{https://github.com/onelogin/ruby-saml}
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.3.7}
