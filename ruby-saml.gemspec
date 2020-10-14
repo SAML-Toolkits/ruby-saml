@@ -39,7 +39,7 @@ Gem::Specification.new do |s|
     s.add_runtime_dependency('nokogiri', '<= 1.5.11')
   elsif RUBY_VERSION < '2.1'
     s.add_runtime_dependency('nokogiri', '>= 1.5.10', '<= 1.6.8.1')
-  elseif RUBY_VERSION < '2.3'
+  elsif RUBY_VERSION < '2.3'
     s.add_runtime_dependency('nokogiri', '>= 1.9.1', '<= 1.10.0')
   else
     s.add_runtime_dependency('nokogiri', '>= 1.10.5')
