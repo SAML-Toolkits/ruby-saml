@@ -4,7 +4,10 @@ class ResponseTest <  Minitest::Test
 
   describe "Response" do
     it "raise an exception when response is initialized with nil" do
-      assert_raises(ArgumentError) { OneLogin::RubySaml::Response.new(nil) }
+      err = assert_raises(ArgumentError) do
+        OneLogin::RubySaml::Response.new(nil)
+      end
+      assert_equal "Response cannot be nil", err.message
     end
 
     it "be able to parse a document which contains ampersands" do
@@ -45,12 +48,71 @@ class ResponseTest <  Minitest::Test
     end
 
     describe "#validate!" do
-      it "raise when encountering a condition that prevents the document from being valid" do
+      it "raise when settings not initialized" do
         response = OneLogin::RubySaml::Response.new(response_document)
-        assert_raises(OneLogin::RubySaml::ValidationError) do
+        err = assert_raises(OneLogin::RubySaml::ValidationError) do
           response.validate!
         end
+        assert_equal "No settings on response", err.message
       end
+
+      it "raise when encountering a condition that prevents the document from being valid" do
+        response = OneLogin::RubySaml::Response.new(response_document)
+        response.settings = settings
+        err = assert_raises(OneLogin::RubySaml::ValidationError) do
+          response.validate!
+        end
+        assert_equal "Current time is on or after NotOnOrAfter condition", err.message
+      end
+
+      it "raises an exception when no cert or fingerprint provided" do
+        response = OneLogin::RubySaml::Response.new(response_document_valid_signed)
+        response.stubs(:conditions).returns(nil)
+        settings = OneLogin::RubySaml::Settings.new
+        response.settings = settings
+        settings.idp_cert = nil
+        settings.idp_cert_fingerprint = nil
+        err = assert_raises(OneLogin::RubySaml::ValidationError) do
+          response.validate!
+        end
+        assert_equal "No fingerprint or certificate on settings", err.message
+      end
+
+      it "raise when no signature" do
+        response_no_signed_elements = OneLogin::RubySaml::Response.new(read_invalid_response("no_signature.xml.base64"))
+        settings.idp_cert_fingerprint = signature_fingerprint_1
+        response_no_signed_elements.settings = settings
+        err = assert_raises(OneLogin::RubySaml::ValidationError) do
+          response_no_signed_elements.validate!
+        end
+        assert_equal "Found an unexpected number of Signature Element. SAML Response rejected", err.message
+      end
+
+      it "raise when multiple signatures" do
+        response_multiple_signed = OneLogin::RubySaml::Response.new(read_invalid_response("multiple_signed.xml.base64"))
+        settings.idp_cert_fingerprint = signature_fingerprint_1
+        response_multiple_signed.settings = settings
+        response_multiple_signed.stubs(:validate_structure).returns(true)
+        err = assert_raises(OneLogin::RubySaml::ValidationError) do
+          response_multiple_signed.validate!
+        end
+        assert_equal "Duplicated ID. SAML Response rejected", err.message
+      end
+
+      it "raise when fingerprint missmatch" do
+        resp_xml = Base64.decode64(response_document_valid_signed)
+        response = OneLogin::RubySaml::Response.new(Base64.encode64(resp_xml))
+        response.stubs(:conditions).returns(nil)
+        settings = OneLogin::RubySaml::Settings.new
+        settings.idp_cert_fingerprint = signature_fingerprint_1
+        response.settings = settings
+
+        err = assert_raises(OneLogin::RubySaml::ValidationError) do
+          response.validate!
+        end
+        assert_equal 'Fingerprint mismatch', err.message
+      end
+
     end
 
     describe "#is_valid?" do
@@ -61,6 +123,16 @@ class ResponseTest <  Minitest::Test
 
       it "return false if settings have not been set" do
         response = OneLogin::RubySaml::Response.new(response_document)
+        assert !response.is_valid?
+      end
+
+      it "return false when no cert or fingerprint provided" do
+        response = OneLogin::RubySaml::Response.new(response_document_valid_signed)
+        response.stubs(:conditions).returns(nil)
+        settings = OneLogin::RubySaml::Settings.new
+        response.settings = settings
+        settings.idp_cert = nil
+        settings.idp_cert_fingerprint = nil
         assert !response.is_valid?
       end
 
@@ -80,7 +152,7 @@ class ResponseTest <  Minitest::Test
         response = OneLogin::RubySaml::Response.new(response_document_valid_signed)
         response.stubs(:conditions).returns(nil)
         settings = OneLogin::RubySaml::Settings.new
-        response.settings = settings        
+        response.settings = settings
         assert !response.is_valid?
         assert !response.is_valid?
       end
@@ -95,7 +167,17 @@ class ResponseTest <  Minitest::Test
         assert response.is_valid?
       end
 
-      it "return true when using certificate instead of fingerprint" do
+      it "return true when valid response and using fingerprint" do
+        response = OneLogin::RubySaml::Response.new(response_document_valid_signed)
+        response.stubs(:conditions).returns(nil)
+        settings = OneLogin::RubySaml::Settings.new
+        response.settings = settings
+        settings.idp_cert = nil
+        settings.idp_cert_fingerprint = "4B:68:C4:53:C7:D9:94:AA:D9:02:5C:99:D5:EF:CF:56:62:87:FE:8D"
+        assert response.is_valid?
+      end
+
+      it "return true when valid response using certificate" do
         response = OneLogin::RubySaml::Response.new(response_document_valid_signed)
         response.stubs(:conditions).returns(nil)
         settings = OneLogin::RubySaml::Settings.new
@@ -126,26 +208,6 @@ class ResponseTest <  Minitest::Test
         assert_nil response_wrapped.name_id
       end
 
-      it "raise when no signature" do
-        response_no_signed_elements = OneLogin::RubySaml::Response.new(read_invalid_response("no_signature.xml.base64"))
-        settings.idp_cert_fingerprint = signature_fingerprint_1
-        response_no_signed_elements.settings = settings
-        error_msg = "Found an unexpected number of Signature Element. SAML Response rejected"
-        assert_raises(OneLogin::RubySaml::ValidationError, error_msg) do
-          response_no_signed_elements.validate!
-        end
-      end
-
-      it "raise when multiple signatures" do
-        response_multiple_signed = OneLogin::RubySaml::Response.new(read_invalid_response("multiple_signed.xml.base64"))
-        settings.idp_cert_fingerprint = signature_fingerprint_1
-        response_multiple_signed.settings = settings
-        error_msg = "Duplicated ID. SAML Response rejected"
-        assert_raises(OneLogin::RubySaml::ValidationError, error_msg) do
-          response_multiple_signed.validate!
-        end
-      end
-
       it "support dynamic namespace resolution on signature elements" do
         response = OneLogin::RubySaml::Response.new(fixture("no_signature_ns.xml"))
         response.stubs(:conditions).returns(nil)
@@ -154,6 +216,40 @@ class ResponseTest <  Minitest::Test
         settings.idp_cert_fingerprint = "28:74:9B:E8:1F:E8:10:9C:A8:7C:A9:C3:E3:C5:01:6C:92:1C:B4:BA"
         XMLSecurity::SignedDocument.any_instance.expects(:validate_signature).returns(true)
         assert response.validate!
+      end
+
+      it "support signature elements with no KeyInfo if cert provided" do
+        response = OneLogin::RubySaml::Response.new(response_document_valid_signed_without_x509certificate)
+        response.stubs(:conditions).returns(nil)
+        settings = OneLogin::RubySaml::Settings.new
+        response.settings = settings
+        settings.idp_cert = ruby_saml_cert
+        settings.idp_cert_fingerprint = nil
+        XMLSecurity::SignedDocument.any_instance.expects(:validate_signature).returns(true)
+        assert response.validate!
+      end
+
+      it "returns an error if the signature contains no KeyInfo, cert is not provided and soft" do
+        response = OneLogin::RubySaml::Response.new(response_document_valid_signed_without_x509certificate)
+        response.stubs(:conditions).returns(nil)
+        settings = OneLogin::RubySaml::Settings.new
+        response.settings = settings
+        settings.idp_cert = nil
+        settings.idp_cert_fingerprint = "28:74:9B:E8:1F:E8:10:9C:A8:7C:A9:C3:E3:C5:01:6C:92:1C:B4:BA"
+        assert !response.is_valid?
+      end
+
+      it "raises an exception if the signature contains no KeyInfo, cert is not provided and no soft" do
+        response = OneLogin::RubySaml::Response.new(response_document_valid_signed_without_x509certificate)
+        response.stubs(:conditions).returns(nil)
+        settings = OneLogin::RubySaml::Settings.new
+        response.settings = settings
+        settings.idp_cert = nil
+        settings.idp_cert_fingerprint = "28:74:9B:E8:1F:E8:10:9C:A8:7C:A9:C3:E3:C5:01:6C:92:1C:B4:BA"
+        err = assert_raises(OneLogin::RubySaml::ValidationError) do
+          response.validate!
+        end
+        assert_equal "Certificate element missing in response (ds:X509Certificate) and not cert provided at settings", err.message
       end
 
       it "validate ADFS assertions" do
@@ -172,16 +268,6 @@ class ResponseTest <  Minitest::Test
         settings.idp_cert = Base64.decode64(r1_signature_2)
         response.settings = settings
         assert response.validate!
-      end
-
-      it "validate SAML 2.0 XML structure" do
-        resp_xml = Base64.decode64(response_document_valid_signed).gsub(/emailAddress/,'test')
-        response = OneLogin::RubySaml::Response.new(Base64.encode64(resp_xml))
-        response.stubs(:conditions).returns(nil)
-        settings = OneLogin::RubySaml::Settings.new
-        settings.idp_cert_fingerprint = signature_fingerprint_1
-        response.settings = settings
-        assert_raises(OneLogin::RubySaml::ValidationError, 'Digest mismatch'){ response.validate! }
       end
 
       it "Prevent node text with comment (VU#475445) attack" do
@@ -269,6 +355,54 @@ class ResponseTest <  Minitest::Test
         Time.stubs(:now).returns(expected_time)
         response = OneLogin::RubySaml::Response.new(response_document_5, :allowed_clock_drift => 0.516)
         assert response.send(:validate_conditions, true)
+      end
+    end
+
+    describe "validate_signature" do
+      it "raises an exception when no cert or fingerprint provided" do
+        response = OneLogin::RubySaml::Response.new(response_document_valid_signed)
+        settings = OneLogin::RubySaml::Settings.new
+        response.settings = settings
+        settings.idp_cert = nil
+        settings.idp_cert_fingerprint = nil
+        err = assert_raises(OneLogin::RubySaml::ValidationError) do
+          response.send(:validate_signature, false)
+        end
+        assert_equal "No fingerprint or certificate on settings", err.message
+      end
+
+      it "raises an exception when wrong cert provided" do
+        response = OneLogin::RubySaml::Response.new(response_document_valid_signed)
+        settings = OneLogin::RubySaml::Settings.new
+        response.settings = settings
+        settings.idp_cert = ruby_saml_cert2
+        settings.idp_cert_fingerprint = nil
+        err = assert_raises(OneLogin::RubySaml::ValidationError) do
+          response.send(:validate_signature, false)
+        end
+        assert_equal "Fingerprint mismatch", err.message
+      end
+
+      it "raises an exception when wrong fingerprint provided" do
+        response = OneLogin::RubySaml::Response.new(response_document_valid_signed)
+        settings = OneLogin::RubySaml::Settings.new
+        response.settings = settings
+        settings.idp_cert = nil
+        settings.idp_cert_fingerprint = "28:74:9B:E8:1F:E8:10:9C:A8:7C:A9:C3:E3:C5:01:6C:92:1C:B4:BA"
+        err = assert_raises(OneLogin::RubySaml::ValidationError) do
+          response.send(:validate_signature, false)
+        end
+        assert_equal "Fingerprint mismatch", err.message
+      end
+
+      it "raises an exception when no signature" do
+        response_no_signed_elements = OneLogin::RubySaml::Response.new(read_invalid_response("no_signature.xml.base64"))
+        settings.idp_cert_fingerprint = signature_fingerprint_1
+        response_no_signed_elements.settings = settings
+        err = assert_raises(OneLogin::RubySaml::ValidationError) do
+          response_no_signed_elements.validate!
+        end
+        assert_equal "Found an unexpected number of Signature Element. SAML Response rejected", err.message
       end
     end
 
@@ -464,6 +598,10 @@ class ResponseTest <  Minitest::Test
         response_wrapped.stubs(:validate_subject_confirmation).returns(true)
         settings.idp_cert_fingerprint = "385b1eec71143f00db6af936e2ea12a28771d72c"
         assert !response_wrapped.is_valid?
+        err = assert_raises(OneLogin::RubySaml::ValidationError) do
+          response_wrapped.validate!
+        end
+        assert_equal "Found an invalid Signed Element. SAML Response rejected", err.message
       end
     end
 
@@ -475,8 +613,9 @@ class ResponseTest <  Minitest::Test
         settings.idp_cert_fingerprint = '4b68c453c7d994aad9025c99d5efcf566287fe8d'
         response_wrapped.stubs(:conditions).returns(nil)
         response_wrapped.stubs(:validate_subject_confirmation).returns(true)
+        response_wrapped.stubs(:validate_structure).returns(true)
         assert !response_wrapped.is_valid?
-        assert_raises(OneLogin::RubySaml::ValidationError, "SAML Response must contain 1 assertion"){ response_wrapped.validate! }
+        assert !response_wrapped.validate!
       end
     end
 

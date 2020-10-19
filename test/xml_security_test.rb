@@ -295,7 +295,7 @@ class XmlSecurityTest < Minitest::Test
     end
 
     describe "StarfieldTMS" do
-      before do        
+      before do
         @response = OneLogin::RubySaml::Response.new(fixture(:starfield_response))
         @response.settings = OneLogin::RubySaml::Settings.new( :idp_cert_fingerprint => "8D:BA:53:8E:A3:B6:F9:F1:69:6C:BB:D9:D8:BD:41:B3:AC:4F:9D:4D")
       end
@@ -373,6 +373,35 @@ class XmlSecurityTest < Minitest::Test
           assert document.name_id.nil?, 'Document should expose only signed, valid details'
         end
       end
+
+      describe 'when response has no cert and you provide cert' do
+        let(:document) { OneLogin::RubySaml::Response.new(response_document_valid_signed_without_x509certificate).document }
+        let(:idp_cert) { OpenSSL::X509::Certificate.new(ruby_saml_cert_text) }
+        let(:options) { {} }
+
+        it 'is valid' do
+          options[:cert] = idp_cert
+          assert document.document.validate_document(idp_cert, true, options), 'Document should be valid'
+        end
+      end
+
+      describe 'when response has no cert and you dont provide cert' do
+        let(:document) { OneLogin::RubySaml::Response.new(response_document_valid_signed_without_x509certificate).document }
+        let(:options) { {} }
+        let(:idp_cert) { nil }
+
+        it 'is invalid' do
+          options[:cert] = idp_cert
+          assert !document.document.validate_document(idp_cert, true, options), 'Document should not be valid'
+        end
+
+        it 'is invalid and error raised' do
+          options[:cert] = idp_cert
+          assert_raises(OneLogin::RubySaml::ValidationError) do
+            document.document.validate_document(idp_cert, false, options)
+          end
+        end
+      end
     end
 
     describe '#validate_document_with_cert' do
@@ -387,13 +416,28 @@ class XmlSecurityTest < Minitest::Test
             assert document.validate_document_with_cert(idp_cert), 'Document should be valid'
           end
         end
-        
-        describe 'when response has no cert but you have local cert' do
+
+        describe 'when response has no cert and you provide cert' do
           let(:document) { OneLogin::RubySaml::Response.new(response_document_valid_signed_without_x509certificate).document }
           let(:idp_cert) { OpenSSL::X509::Certificate.new(ruby_saml_cert_text) }
 
           it 'is valid' do
             assert document.validate_document_with_cert(idp_cert), 'Document should be valid'
+          end
+        end
+
+        describe 'when response has no cert and you dont provide cert' do
+          let(:document) { OneLogin::RubySaml::Response.new(response_document_valid_signed_without_x509certificate).document }
+          let(:idp_cert) { nil }
+
+          it 'is invalid' do
+            assert !document.validate_document_with_cert(idp_cert), 'Document should not be valid'
+          end
+
+          it 'is invalid and error raised' do
+            assert_raises(OneLogin::RubySaml::ValidationError) do
+              document.validate_document_with_cert(idp_cert, false)
+            end
           end
         end
       end

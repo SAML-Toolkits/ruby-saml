@@ -157,7 +157,7 @@ module OneLogin
         validate_response_state(soft)  &&
         validate_conditions(soft)      &&
         validate_audience(soft)        &&
-        document.validate_document(get_fingerprint, soft) &&
+        validate_signature(soft)       &&
         success?
       end
 
@@ -225,7 +225,6 @@ module OneLogin
 
               if verified_seis.include?(sei)
                 return soft ? false : validation_error("Duplicated Reference URI. SAML Response rejected")
-                return append_error("Duplicated Reference URI. SAML Response rejected")
               end
 
               verified_seis.push(sei)
@@ -400,17 +399,57 @@ module OneLogin
         true
       end
 
+      def validate_signature(soft = true)
+        error_msg = "Invalid Signature on SAML Response"
+
+        sig_elements = REXML::XPath.match(
+          document,
+          "/p:Response[@ID=$id]/ds:Signature]",
+          { "p" => PROTOCOL, "ds" => DSIG },
+          { 'id' => document.signed_element_id }
+        )
+
+        # Check signature nodes
+        if sig_elements.nil? || sig_elements.size == 0
+          sig_elements = REXML::XPath.match(
+            document,
+            "/p:Response/a:Assertion[@ID=$id]/ds:Signature",
+            {"p" => PROTOCOL, "a" => ASSERTION, "ds"=>DSIG},
+            { 'id' => document.signed_element_id }
+          )
+        end
+
+        if sig_elements.size != 1
+          if  sig_elements.size == 0
+             error_msg += ". Signed element id ##{doc.signed_element_id} is not found"
+          else
+             error_msg += ". Signed element id ##{doc.signed_element_id} is found more than once"
+          end
+          return soft ? false : validation_error(error_msg)
+        end
+
+        opts = {}
+        opts[:fingerprint_alg] = OpenSSL::Digest::SHA1.new
+        opts[:cert] = settings.idp_cert
+        fingerprint = get_fingerprint
+
+        unless fingerprint
+          return soft ? false : validation_error("No fingerprint or certificate on settings")
+        end
+
+        unless document.validate_document(fingerprint, soft, opts)
+          return soft ? false : validation_error(error_msg)
+        end
+
+        true
+      end
+
       def parse_time(node, attribute)
         if node && node.attributes[attribute]
           Time.parse(node.attributes[attribute])
         end
       end
 
-      # Validates the Audience, (If the Audience match the Service Provider EntityID)
-      # If fails, the error is added to the errors array
-      # @return [Boolean] True if there is an Audience Element that match the Service Provider EntityID, otherwise False if soft=True
-      # @raise [ValidationError] if soft == false and validation fails
-      #
       def validate_audience(soft = true)
         return true if audiences.empty? || settings.sp_entity_id.nil? || settings.sp_entity_id.empty?
 

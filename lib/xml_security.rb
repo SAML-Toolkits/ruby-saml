@@ -251,6 +251,8 @@ module XMLSecurity
         if idp_cert.to_pem != cert.to_pem
           return false
         end
+      elsif not idp_cert
+        return soft ? false : (raise OneLogin::RubySaml::ValidationError.new("Certificate element missing in response (ds:X509Certificate) and not cert provided at settings"))
       else
         base64_cert = Base64.encode64(idp_cert.to_pem)
       end
