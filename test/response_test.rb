@@ -229,6 +229,17 @@ class ResponseTest <  Minitest::Test
         assert response.validate!
       end
 
+      it "support signature elements with no KeyInfo if cert provided as text" do
+        response = OneLogin::RubySaml::Response.new(response_document_valid_signed_without_x509certificate)
+        response.stubs(:conditions).returns(nil)
+        settings = OneLogin::RubySaml::Settings.new
+        response.settings = settings
+        settings.idp_cert = ruby_saml_cert_text
+        settings.idp_cert_fingerprint = nil
+        XMLSecurity::SignedDocument.any_instance.expects(:validate_signature).returns(true)
+        assert response.validate!
+      end
+
       it "returns an error if the signature contains no KeyInfo, cert is not provided and soft" do
         response = OneLogin::RubySaml::Response.new(response_document_valid_signed_without_x509certificate)
         response.stubs(:conditions).returns(nil)

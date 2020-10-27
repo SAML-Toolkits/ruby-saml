@@ -222,7 +222,11 @@ module XMLSecurity
         end
       else
         if options[:cert]
-          base64_cert = Base64.encode64(options[:cert].to_pem)
+          cert = options[:cert]
+          if cert.is_a? String
+            cert = OpenSSL::X509::Certificate.new(cert)
+          end
+          base64_cert = Base64.encode64(cert.to_pem)
         else
           return soft ? false : (raise OneLogin::RubySaml::ValidationError.new("Certificate element missing in response (ds:X509Certificate) and not cert provided at settings"))
         end

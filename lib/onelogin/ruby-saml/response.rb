@@ -373,15 +373,6 @@ module OneLogin
         ))
       end
 
-      def get_fingerprint
-        if settings.idp_cert
-          cert = OpenSSL::X509::Certificate.new(settings.idp_cert)
-          Digest::SHA1.hexdigest(cert.to_der).upcase.scan(/../).join(":")
-        else
-          settings.idp_cert_fingerprint
-        end
-      end
-
       def validate_conditions(soft = true)
         return true if conditions.nil?
         return true if options[:skip_conditions]
@@ -430,8 +421,8 @@ module OneLogin
 
         opts = {}
         opts[:fingerprint_alg] = OpenSSL::Digest::SHA1.new
-        opts[:cert] = settings.idp_cert
-        fingerprint = get_fingerprint
+        opts[:cert] = settings.get_idp_cert
+        fingerprint = settings.get_fingerprint
 
         unless fingerprint
           return soft ? false : validation_error("No fingerprint or certificate on settings")

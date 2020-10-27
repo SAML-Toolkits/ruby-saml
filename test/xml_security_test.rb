@@ -383,6 +383,11 @@ class XmlSecurityTest < Minitest::Test
           options[:cert] = idp_cert
           assert document.document.validate_document(idp_cert, true, options), 'Document should be valid'
         end
+
+        it 'is valid if cert text instead x509cert provided' do
+          options[:cert] = ruby_saml_cert_text
+          assert document.document.validate_document(idp_cert, true, options), 'Document should be valid'
+        end
       end
 
       describe 'when response has no cert and you dont provide cert' do

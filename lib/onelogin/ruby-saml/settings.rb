@@ -117,6 +117,32 @@ module OneLogin
         @single_logout_service_binding = url
       end
 
+      # Calculates the fingerprint of the IdP x509 certificate.
+      # @return [String] The fingerprint
+      #
+      def get_fingerprint
+        idp_cert_fingerprint || begin
+          idp_cert = get_idp_cert
+          if idp_cert
+            Digest::SHA1.hexdigest(idp_cert.to_der).upcase.scan(/../).join(":")
+          end
+        end
+      end
+
+      # @return [OpenSSL::X509::Certificate|nil] Build the IdP certificate from the settings (previously format it)
+      #
+      def get_idp_cert
+        return nil if idp_cert.nil?
+
+        if idp_cert.respond_to?(:to_pem)
+          idp_cert
+        else
+          return nil if idp_cert.empty?
+          formatted_cert = OneLogin::RubySaml::Utils.format_cert(idp_cert)
+          OpenSSL::X509::Certificate.new(formatted_cert)
+        end
+      end
+
       # @return [OpenSSL::X509::Certificate|nil] Build the SP certificate from the settings (previously format it)
       #
       def get_sp_cert
