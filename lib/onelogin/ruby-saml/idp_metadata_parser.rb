@@ -189,6 +189,7 @@ module OneLogin
         end
 
         get = Net::HTTP::Get.new(uri.request_uri)
+        get.basic_auth uri.user, uri.password if uri.user
         @response = http.request(get)
         return response.body if response.is_a? Net::HTTPSuccess
 
