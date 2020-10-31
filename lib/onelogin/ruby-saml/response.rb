@@ -862,27 +862,37 @@ module OneLogin
         else
           valid = false
           expired = false
+          accumulated_doc_errors = []
           idp_certs[:signing].each do |idp_cert|
             valid = doc.validate_document_with_cert(idp_cert, true)
             if valid
-              # required to reset errors as there could be issues with previous certificates
-              doc.reset_errors!
-              reset_errors!
-
               if settings.security[:check_idp_cert_expiration]
                 if OneLogin::RubySaml::Utils.is_cert_expired(idp_cert)
                   expired = true
                 end
               end
+
+              #at least one certificate is valid, clear accumulated errors
+              accumulated_doc_errors = []
               break
             end
+
+            accumulated_doc_errors += doc.errors
+
+            # required to reset errors so we can collect other certificate errors
+            doc.reset_errors!
+            reset_errors!
           end
+
           if expired
             error_msg = "IdP x509 certificate expired"
             return append_error(error_msg)
           end
+
           unless valid
-            return append_error(error_msg)
+            # preventing repeated error messages
+            @errors = (errors + accumulated_doc_errors).uniq
+            return append_error(error_msg, @soft)
           end
         end
 
