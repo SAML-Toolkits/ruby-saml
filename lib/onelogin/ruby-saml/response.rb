@@ -134,6 +134,34 @@ module OneLogin
         end
       end
 
+      # Gets the Issuers (from Response and Assertion).
+      # (returns the first node that matches the supplied xpath from the Response and from the Assertion)
+      # @return [Array] Array with the Issuers (REXML::Element)
+      #
+      def issuers
+        @issuers ||= begin
+          issuer_response_nodes = REXML::XPath.match(
+            document,
+            "/p:Response/a:Issuer",
+            { "p" => PROTOCOL, "a" => ASSERTION }
+          )
+
+          unless issuer_response_nodes.size == 1
+            error_msg = "Issuer of the Response not found or multiple."
+            raise ValidationError.new(error_msg)
+          end
+
+          issuer_assertion_nodes = xpath_from_signed_assertion("/a:Issuer")
+          unless issuer_assertion_nodes.size == 1
+            error_msg = "Issuer of the Assertion not found or multiple."
+            raise ValidationError.new(error_msg)
+          end
+
+          nodes = issuer_response_nodes + issuer_assertion_nodes
+          nodes.map { |node| Utils.element_text(node) }.compact.uniq
+        end
+      end
+
       # @return [Array] The Audience elements from the Contitions of the SAML Response.
       #
       def audiences
@@ -157,6 +185,7 @@ module OneLogin
         validate_response_state(soft)  &&
         validate_conditions(soft)      &&
         validate_audience(soft)        &&
+        validate_issuer(soft)          &&
         validate_signature(soft)       &&
         success?
       end
@@ -385,6 +414,25 @@ module OneLogin
 
         if not_on_or_after && now >= not_on_or_after
           return soft ? false : validation_error("Current time is on or after NotOnOrAfter condition")
+        end
+
+        true
+      end
+
+      def validate_issuer(soft = true)
+        return true if settings.idp_entity_id.nil?
+
+        begin
+          obtained_issuers = issuers
+        rescue ValidationError => e
+          return soft ? false : validation_error("Error while extracting issuers")
+        end
+
+        obtained_issuers.each do |issuer|
+          unless OneLogin::RubySaml::Utils.uri_match?(issuer, settings.idp_entity_id)
+            error_msg = "Doesn't match the issuer, expected: <#{settings.idp_entity_id}>, but was: <#{issuer}>"
+            return soft ? false : validation_error(error_msg)
+          end
         end
 
         true

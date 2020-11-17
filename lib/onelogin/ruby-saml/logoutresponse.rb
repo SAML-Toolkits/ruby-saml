@@ -37,7 +37,7 @@ module OneLogin
       end
 
       def validate(soft = true)
-        return false unless valid_saml?(soft) && valid_state?(soft)
+        return false unless validate_structure(soft)
 
         valid_in_response_to?(soft) && valid_issuer?(soft) && success?(soft)
       end
@@ -51,7 +51,7 @@ module OneLogin
 
       def in_response_to
         @in_response_to ||= begin
-          node = REXML::XPath.first(document, "/p:LogoutResponse", { "p" => PROTOCOL, "a" => ASSERTION })
+          node = REXML::XPath.first(document, "/p:LogoutResponse", { "p" => PROTOCOL })
           node.nil? ? nil : node.attributes['InResponseTo']
         end
       end
@@ -59,7 +59,6 @@ module OneLogin
       def issuer
         @issuer ||= begin
           node = REXML::XPath.first(document, "/p:LogoutResponse/a:Issuer", { "p" => PROTOCOL, "a" => ASSERTION })
-          node ||= REXML::XPath.first(document, "/p:LogoutResponse/a:Assertion/a:Issuer", { "p" => PROTOCOL, "a" => ASSERTION })
           Utils.element_text(node)
         end
       end
@@ -73,7 +72,7 @@ module OneLogin
 
       private
 
-      def valid_saml?(soft = true)
+      def validate_structure(soft = true)
         Dir.chdir(File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'schemas'))) do
           @schema = Nokogiri::XML::Schema(IO.read('saml20protocol_schema.xsd'))
           @xml = Nokogiri::XML(self.document.to_s)
@@ -83,26 +82,6 @@ module OneLogin
         else
           @schema.validate(@xml).map{ |error| validation_error("#{error.message}\n\n#{@xml.to_s}") }
         end
-      end
-
-      def valid_state?(soft = true)
-        if response.empty?
-          return soft ? false : validation_error("Blank response")
-        end
-
-        if settings.nil?
-          return soft ? false : validation_error("No settings on response")
-        end
-
-        if settings.sp_entity_id.nil?
-          return soft ? false : validation_error("No sp_entity_id in settings")
-        end
-
-        if settings.idp_cert_fingerprint.nil? && settings.idp_cert.nil?
-          return soft ? false : validation_error("No fingerprint or certificate on settings")
-        end
-
-        true
       end
 
       def valid_in_response_to?(soft = true)
@@ -116,8 +95,10 @@ module OneLogin
       end
 
       def valid_issuer?(soft = true)
-        unless URI.parse(issuer) == URI.parse(self.settings.sp_entity_id)
-          return soft ? false : validation_error("Doesn't match the issuer, expected: <#{self.settings.sp_entity_id}>, but was: <#{issuer}>")
+        return true if settings.nil? || settings.idp_entity_id.nil? || issuer.nil?
+
+        unless OneLogin::RubySaml::Utils.uri_match?(issuer, settings.idp_entity_id)
+          return soft ? false : validation_error("Doesn't match the issuer, expected: <#{self.settings.idp_entity_id}>, but was: <#{issuer}>")
         end
         true
       end

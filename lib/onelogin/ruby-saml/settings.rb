@@ -27,6 +27,7 @@ module OneLogin
       attr_accessor :idp_cert_fingerprint
       attr_accessor :idp_cert
       attr_accessor :idp_slo_target_url
+      attr_accessor :idp_entity_id
       #sp data
       attr_accessor :sp_entity_id
       attr_accessor :assertion_consumer_service_url
@@ -149,15 +150,6 @@ module OneLogin
         return nil if certificate.nil? || certificate.empty?
 
         formatted_cert = OneLogin::RubySaml::Utils.format_cert(certificate)
-        OpenSSL::X509::Certificate.new(formatted_cert)
-      end
-
-      # @return [OpenSSL::X509::Certificate|nil] Build the New SP certificate from the settings (previously format it)
-      #
-      def get_sp_cert_new
-        return nil if certificate_new.nil? || certificate_new.empty?
-
-        formatted_cert = OneLogin::RubySaml::Utils.format_cert(certificate_new)
         OpenSSL::X509::Certificate.new(formatted_cert)
       end
 
