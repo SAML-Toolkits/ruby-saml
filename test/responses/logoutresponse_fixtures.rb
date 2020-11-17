@@ -15,9 +15,9 @@ def valid_response(opts = {})
         xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\"
         ID=\"#{random_id}\" Version=\"2.0\"
         IssueInstant=\"#{opts[:issue_instant]}\"
-        Destination=\"#{opts[:settings].single_logout_service_url}\"
+        Destination=\"#{opts[:settings].idp_slo_target_url}\"
         InResponseTo=\"#{opts[:uuid]}\">
-      <saml:Issuer xmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\">#{opts[:settings].sp_entity_id}</saml:Issuer>
+      <saml:Issuer xmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\">#{opts[:settings].idp_entity_id}</saml:Issuer>
       <samlp:Status xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\">
       <samlp:StatusCode xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\"
           Value=\"urn:oasis:names:tc:SAML:2.0:status:Success\">
@@ -33,9 +33,9 @@ def unsuccessful_response(opts = {})
         xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\"
         ID=\"#{random_id}\" Version=\"2.0\"
         IssueInstant=\"#{opts[:issue_instant]}\"
-        Destination=\"#{opts[:settings].single_logout_service_url}\"
+        Destination=\"#{opts[:settings].idp_slo_target_url}\"
         InResponseTo=\"#{opts[:uuid]}\">
-      <saml:Issuer xmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\">#{opts[:settings].sp_entity_id}</saml:Issuer>
+      <saml:Issuer xmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\">#{opts[:settings].idp_entity_id}</saml:Issuer>
       <samlp:Status xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\">
       <samlp:StatusCode xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\"
           Value=\"urn:oasis:names:tc:SAML:2.0:status:Requester\">

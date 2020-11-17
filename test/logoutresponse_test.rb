@@ -32,12 +32,12 @@ class LogoutResponseTest < Minitest::Test
     describe "#validate" do
       it "validate the response" do
         in_relation_to_request_id = random_id
-
+        settings.idp_entity_id = "https://example.com/idp"
         logoutresponse = OneLogin::RubySaml::Logoutresponse.new(valid_response({:uuid => in_relation_to_request_id}), settings)
 
         assert logoutresponse.validate
 
-        assert_equal settings.sp_entity_id, logoutresponse.issuer
+        assert_equal settings.idp_entity_id, logoutresponse.issuer
         assert_equal in_relation_to_request_id, logoutresponse.in_response_to
 
         assert logoutresponse.success?
@@ -84,20 +84,6 @@ class LogoutResponseTest < Minitest::Test
       it "raise validation error for wrong request status" do
         logoutresponse = OneLogin::RubySaml::Logoutresponse.new(unsuccessful_response, settings)
 
-        assert_raises(OneLogin::RubySaml::ValidationError) { logoutresponse.validate! }
-      end
-
-      it "raise validation error when in bad state" do
-        # no settings
-        logoutresponse = OneLogin::RubySaml::Logoutresponse.new(unsuccessful_response)
-        assert_raises(OneLogin::RubySaml::ValidationError) { logoutresponse.validate! }
-      end
-
-      it "raise validation error when in lack of sp_entity_id setting" do
-        bad_settings = settings
-        bad_settings.issuer = nil
-        bad_settings.sp_entity_id = nil
-        logoutresponse = OneLogin::RubySaml::Logoutresponse.new(unsuccessful_response, bad_settings)
         assert_raises(OneLogin::RubySaml::ValidationError) { logoutresponse.validate! }
       end
 

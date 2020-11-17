@@ -323,6 +323,31 @@ class ResponseTest <  Minitest::Test
       end
     end
 
+    describe "#validate_issuer" do
+      it "return true when the issuer of the Message/Assertion matches the IdP entityId" do
+        response = OneLogin::RubySaml::Response.new(response_document_valid_signed)
+        response.settings = settings
+        assert response.send(:validate_issuer)
+
+        response.settings.idp_entity_id = 'https://app.onelogin.com/saml2'
+        assert response.send(:validate_issuer)
+      end
+
+      it "return false when the issuer of the Message does not match the IdP entityId" do
+        response = OneLogin::RubySaml::Response.new(read_invalid_response("invalid_issuer_message.xml.base64"))
+        response.settings = settings
+        response.settings.idp_entity_id = 'http://idp.example.com/'
+        assert !response.send(:validate_issuer)
+      end
+
+      it "return false when the issuer of the Assertion does not match the IdP entityId" do
+        response = OneLogin::RubySaml::Response.new(read_invalid_response("invalid_issuer_assertion.xml.base64"))
+        response.settings = settings
+        response.settings.idp_entity_id = 'http://idp.example.com/'
+        assert !response.send(:validate_issuer)
+      end
+    end
+
     describe "#name_id" do
       it "extract the value of the name id element" do
         response = OneLogin::RubySaml::Response.new(response_document)
