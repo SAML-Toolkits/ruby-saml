@@ -29,7 +29,7 @@ module OneLogin
 
         @options = options
         @response = OneLogin::RubySaml::Utils.decode_raw_saml(response)
-        @document = XMLSecurity::SignedDocument.new(response)
+        @document = XMLSecurity::SignedDocument.new(@response)
       end
 
       def validate!

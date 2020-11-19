@@ -37,7 +37,6 @@ module OneLogin
       attr_accessor :name_identifier_value
       attr_accessor :name_identifier_value_requested
       attr_accessor :sessionindex
-      attr_accessor :assertion_consumer_logout_service_url
       attr_accessor :compress_request
       attr_accessor :compress_response
       attr_accessor :double_quote_xml_attribute_values
