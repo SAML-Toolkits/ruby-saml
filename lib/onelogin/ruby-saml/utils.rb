@@ -253,6 +253,9 @@ module OneLogin
           when 'http://www.w3.org/2001/04/xmlenc#aes128-cbc' then cipher = OpenSSL::Cipher.new('AES-128-CBC').decrypt
           when 'http://www.w3.org/2001/04/xmlenc#aes192-cbc' then cipher = OpenSSL::Cipher.new('AES-192-CBC').decrypt
           when 'http://www.w3.org/2001/04/xmlenc#aes256-cbc' then cipher = OpenSSL::Cipher.new('AES-256-CBC').decrypt
+          when 'http://www.w3.org/2009/xmlenc11#aes128-gcm' then auth_cipher = OpenSSL::Cipher.new('AES-128-GCM').decrypt
+          when 'http://www.w3.org/2009/xmlenc11#aes192-gcm' then auth_cipher = OpenSSL::Cipher.new('AES-192-GCM').decrypt
+          when 'http://www.w3.org/2009/xmlenc11#aes256-gcm' then auth_cipher = OpenSSL::Cipher.new('AES-256-GCM').decrypt
           when 'http://www.w3.org/2001/04/xmlenc#rsa-1_5' then rsa = symmetric_key
           when 'http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p' then oaep = symmetric_key
         end
@@ -263,6 +266,16 @@ module OneLogin
           cipher.padding, cipher.key, cipher.iv = 0, symmetric_key, cipher_text[0..iv_len-1]
           assertion_plaintext = cipher.update(data)
           assertion_plaintext << cipher.final
+        elsif auth_cipher
+          iv_len, text_len, tag_len = auth_cipher.iv_len, cipher_text.length, 16
+          data = cipher_text[iv_len..text_len-1-tag_len]
+          auth_cipher.padding = 0
+          auth_cipher.key = symmetric_key
+          auth_cipher.iv = cipher_text[0..iv_len-1]
+          auth_cipher.auth_data = ''
+          auth_cipher.auth_tag = cipher_text[text_len-tag_len..-1]
+          assertion_plaintext = auth_cipher.update(data)
+          assertion_plaintext << auth_cipher.final
         elsif rsa
           rsa.private_decrypt(cipher_text)
         elsif oaep
