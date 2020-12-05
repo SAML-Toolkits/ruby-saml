@@ -835,13 +835,8 @@ module OneLogin
           )
         end
 
-        if sig_elements.size != 1
-          if  sig_elements.size == 0
-             append_error("Signed element id ##{doc.signed_element_id} is not found")
-          else
-             append_error("Signed element id ##{doc.signed_element_id} is found more than once")
-          end
-          return append_error(error_msg)
+        if  sig_elements.size == 0
+          append_error("Signed element id ##{doc.signed_element_id} is not found")
         end
 
 
