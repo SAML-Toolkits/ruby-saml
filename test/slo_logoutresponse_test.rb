@@ -65,6 +65,16 @@ class SloLogoutresponseTest < Minitest::Test
       assert_match /<samlp:StatusMessage>Custom Logout Message<\/samlp:StatusMessage>/, inflated
     end
 
+    it "uses the response location when set" do
+      settings.idp_slo_response_service_url = "http://unauth.com/logout/return"
+
+      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, logout_request.id)
+      assert_match /^http:\/\/unauth\.com\/logout\/return\?SAMLResponse=/, unauth_url
+
+      inflated = decode_saml_response_payload(unauth_url)
+      assert_match /Destination='http:\/\/unauth.com\/logout\/return'/, inflated
+    end
+
     describe "when the settings indicate to sign (embedded) logout response" do
 
       before do

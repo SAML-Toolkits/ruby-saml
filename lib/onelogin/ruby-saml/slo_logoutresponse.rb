@@ -32,14 +32,15 @@ module OneLogin
       def create(settings, request_id = nil, logout_message = nil, params = {})
         params = create_params(settings, request_id, logout_message, params)
         params_prefix = (settings.idp_slo_target_url =~ /\?/) ? '&' : '?'
+        url = settings.idp_slo_response_service_url || settings.idp_slo_target_url
         saml_response = CGI.escape(params.delete("SAMLResponse"))
         response_params = "#{params_prefix}SAMLResponse=#{saml_response}"
         params.each_pair do |key, value|
           response_params << "&#{key.to_s}=#{CGI.escape(value.to_s)}"
         end
 
-        raise SettingError.new "Invalid settings, idp_slo_target_url is not set!" if settings.idp_slo_target_url.nil? or settings.idp_slo_target_url.empty?
-        @logout_url = settings.idp_slo_target_url + response_params
+        raise SettingError.new "Invalid settings, idp_slo_target_url is not set!" if url.nil? or url.empty?
+        @logout_url = url + response_params
       end
 
       # Creates the Get parameters for the logout response.
@@ -109,12 +110,14 @@ module OneLogin
         response_doc = XMLSecurity::Document.new
         response_doc.uuid = uuid
 
+        destination = settings.idp_slo_response_service_url || settings.idp_slo_target_url
+
         root = response_doc.add_element 'samlp:LogoutResponse', { 'xmlns:samlp' => 'urn:oasis:names:tc:SAML:2.0:protocol', "xmlns:saml" => "urn:oasis:names:tc:SAML:2.0:assertion" }
         root.attributes['ID'] = uuid
         root.attributes['IssueInstant'] = time
         root.attributes['Version'] = '2.0'
         root.attributes['InResponseTo'] = request_id unless request_id.nil?
-        root.attributes['Destination'] = settings.idp_slo_target_url unless settings.idp_slo_target_url.nil? or settings.idp_slo_target_url.empty?
+        root.attributes['Destination'] = destination unless destination.nil? or destination.empty?
 
         if settings.sp_entity_id != nil
           issuer = root.add_element "saml:Issuer"
