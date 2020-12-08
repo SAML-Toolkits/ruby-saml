@@ -200,6 +200,14 @@ class Minitest::Test
     @idp_metadata_different_sign_and_encrypt_cert ||= File.read(File.join(File.dirname(__FILE__), 'metadata', 'idp_metadata_different_sign_and_encrypt_cert.xml'))
   end
 
+  def idp_different_slo_response_location
+    @idp_different_slo_response_location ||= File.read(File.join(File.dirname(__FILE__), 'metadata', 'idp_different_slo_response_location.xml'))
+  end
+
+  def idp_without_slo_response_location
+    @idp_without_slo_response_location ||= File.read(File.join(File.dirname(__FILE__), 'metadata', 'idp_without_slo_response_location.xml'))
+  end
+
   def logout_request_document
     unless @logout_request_document
       xml = read_logout_request("slo_request.xml")
