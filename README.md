@@ -261,8 +261,8 @@ def saml_settings
   settings.assertion_consumer_service_url = "http://#{request.host}/saml/consume"
   settings.sp_entity_id                   = "http://#{request.host}/saml/metadata"
   settings.idp_entity_id                  = "https://app.onelogin.com/saml/metadata/#{OneLoginAppId}"
-  settings.idp_sso_target_url             = "https://app.onelogin.com/trust/saml2/http-post/sso/#{OneLoginAppId}"
-  settings.idp_slo_target_url             = "https://app.onelogin.com/trust/saml2/http-redirect/slo/#{OneLoginAppId}"
+  settings.idp_sso_service_url             = "https://app.onelogin.com/trust/saml2/http-post/sso/#{OneLoginAppId}"
+  settings.idp_slo_service_url             = "https://app.onelogin.com/trust/saml2/http-redirect/slo/#{OneLoginAppId}"
   settings.idp_cert_fingerprint           = OneLoginAppCertFingerPrint
   settings.idp_cert_fingerprint_algorithm = "http://www.w3.org/2000/09/xmldsig#sha1"
   settings.name_identifier_format         = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
@@ -327,7 +327,7 @@ class SamlController < ApplicationController
 
     settings.assertion_consumer_service_url = "http://#{request.host}/saml/consume"
     settings.sp_entity_id                   = "http://#{request.host}/saml/metadata"
-    settings.idp_sso_target_url             = "https://app.onelogin.com/saml/signon/#{OneLoginAppId}"
+    settings.idp_sso_service_url             = "https://app.onelogin.com/saml/signon/#{OneLoginAppId}"
     settings.idp_cert_fingerprint           = OneLoginAppCertFingerPrint
     settings.name_identifier_format         = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
 
@@ -400,8 +400,8 @@ end
 The following attributes are set:
   * idp_entity_id
   * name_identifier_format
-  * idp_sso_target_url
-  * idp_slo_target_url
+  * idp_sso_service_url
+  * idp_slo_service_url
   * idp_attribute_names
   * idp_cert
   * idp_cert_fingerprint
@@ -623,7 +623,7 @@ def sp_logout_request
   # LogoutRequest accepts plain browser requests w/o paramters
   settings = saml_settings
 
-  if settings.idp_slo_target_url.nil?
+  if settings.idp_slo_service_url.nil?
     logger.info "SLO IdP Endpoint not found in settings, executing then a normal logout'"
     delete_session
   else

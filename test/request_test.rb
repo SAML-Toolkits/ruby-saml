@@ -9,7 +9,7 @@ class RequestTest < Minitest::Test
     let(:settings) { OneLogin::RubySaml::Settings.new }
 
     before do
-      settings.idp_sso_target_url = "http://example.com"
+      settings.idp_sso_service_url = "http://example.com"
     end
 
     it "create the deflated SAMLRequest URL parameter" do
@@ -163,14 +163,14 @@ class RequestTest < Minitest::Test
 
     describe "when the target url is not set" do
       before do
-        settings.idp_sso_target_url = nil
+        settings.idp_sso_service_url = nil
       end
 
       it "raises an error with a descriptive message" do
         err = assert_raises OneLogin::RubySaml::SettingError do
           OneLogin::RubySaml::Authrequest.new.create(settings)
         end
-        assert_match /idp_sso_target_url is not set/, err.message
+        assert_match /idp_sso_service_url is not set/, err.message
       end
     end
 
@@ -184,7 +184,7 @@ class RequestTest < Minitest::Test
 
     describe "when the target url contains a query string" do
       it "create the SAMLRequest parameter correctly" do
-        settings.idp_sso_target_url = "http://example.com?field=value"
+        settings.idp_sso_service_url = "http://example.com?field=value"
 
         auth_url = OneLogin::RubySaml::Authrequest.new.create(settings)
         assert_match /^http:\/\/example.com\?field=value&SAMLRequest/, auth_url
@@ -228,7 +228,7 @@ class RequestTest < Minitest::Test
     describe "#create_params when the settings indicate to sign (embebed) the request" do
       before do
         settings.compress_request = false
-        settings.idp_sso_target_url = "http://example.com?field=value"
+        settings.idp_sso_service_url = "http://example.com?field=value"
         settings.security[:authn_requests_signed] = true
         settings.security[:embed_sign] = true
         settings.certificate = ruby_saml_cert_text
@@ -260,7 +260,7 @@ class RequestTest < Minitest::Test
 
       before do
         settings.compress_request = false
-        settings.idp_sso_target_url = "http://example.com?field=value"
+        settings.idp_sso_service_url = "http://example.com?field=value"
         settings.assertion_consumer_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST-SimpleSign"
         settings.security[:authn_requests_signed] = true
         settings.security[:embed_sign] = false

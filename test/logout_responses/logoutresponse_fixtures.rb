@@ -77,8 +77,8 @@ def settings
           :single_logout_service_url => "http://app.muda.no/sso/consume_logout",
           :issuer => "http://app.muda.no",
           :sp_name_qualifier => "http://sso.muda.no",
-          :idp_sso_target_url => "http://sso.muda.no/sso",
-          :idp_slo_target_url => "http://sso.muda.no/slo",
+          :idp_sso_service_url => "http://sso.muda.no/sso",
+          :idp_slo_service_url => "http://sso.muda.no/slo",
           :idp_cert_fingerprint => "00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00",
           :name_identifier_format => "urn:oasis:names:tc:SAML:2.0:nameid-format:transient",
       }
