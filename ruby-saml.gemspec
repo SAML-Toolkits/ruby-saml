@@ -39,12 +39,13 @@ Gem::Specification.new do |s|
     s.add_runtime_dependency('nokogiri', '<= 1.5.11')
   elsif RUBY_VERSION < '2.1'
     s.add_runtime_dependency('nokogiri', '>= 1.5.10', '<= 1.6.8.1')
+    s.add_runtime_dependency('json', '< 2.2.0')
   elsif RUBY_VERSION < '2.3'
     s.add_runtime_dependency('nokogiri', '>= 1.9.1', '<= 1.10.0')
   else
     s.add_runtime_dependency('nokogiri', '>= 1.10.5')
+    s.add_runtime_dependency('rexml')
   end
-  s.add_runtime_dependency('rexml')
 
   s.add_development_dependency('coveralls')
   s.add_development_dependency('minitest', '~> 5.5')
