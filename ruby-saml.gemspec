@@ -44,6 +44,7 @@ Gem::Specification.new do |s|
   else
     s.add_runtime_dependency('nokogiri', '>= 1.10.5')
   end
+  s.add_runtime_dependency('rexml')
 
   s.add_development_dependency('coveralls')
   s.add_development_dependency('minitest', '~> 5.5')
