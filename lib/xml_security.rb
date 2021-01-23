@@ -241,7 +241,7 @@ module XMLSecurity
       validate_signature(base64_cert, soft)
     end
 
-    def validate_document_with_cert(idp_cert)
+    def validate_document_with_cert(idp_cert, soft = true)
       # get cert from response
       cert_element = REXML::XPath.first(
         self,
