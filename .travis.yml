@@ -1,6 +1,5 @@
 language: ruby
 rvm:
-  - 1.8.7
   - 1.9.3
   - 2.0.0
   - 2.1.10
@@ -11,7 +10,6 @@ rvm:
   - 2.6.6
   - 2.7.2
   - 3.0.0
-  - ree
   - jruby-1.7.27
   - jruby-9.1.17.0
   - jruby-9.2.13.0
@@ -22,10 +20,6 @@ before_install:
   - gem update bundler
 matrix:
   exclude:
-    - rvm: 1.8.7
-      gemfile: Gemfile
-    - rvm: ree
-      gemfile: Gemfile
     - rvm: jruby-1.7.27
       gemfile: gemfiles/nokogiri-1.5.gemfile
     - rvm: jruby-9.1.17.0
@@ -33,6 +27,8 @@ matrix:
     - rvm: jruby-9.2.13.0
       gemfile: gemfiles/nokogiri-1.5.gemfile
     - rvm: 2.1.5
+      gemfile: gemfiles/nokogiri-1.5.gemfile
+    - rvm: 2.1.10
       gemfile: gemfiles/nokogiri-1.5.gemfile
     - rvm: 2.2.10
       gemfile: gemfiles/nokogiri-1.5.gemfile

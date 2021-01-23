@@ -31,6 +31,7 @@ Gem::Specification.new do |s|
     if JRUBY_VERSION < '9.2.0.0'
       s.add_runtime_dependency('nokogiri', '>= 1.8.2', '<= 1.8.5')
       s.add_runtime_dependency('jruby-openssl', '>= 0.9.8')
+      s.add_runtime_dependency('json', '< 2.3.0')
     else
       s.add_runtime_dependency('nokogiri', '>= 1.8.2')
     end
@@ -39,7 +40,7 @@ Gem::Specification.new do |s|
     s.add_runtime_dependency('nokogiri', '<= 1.5.11')
   elsif RUBY_VERSION < '2.1'
     s.add_runtime_dependency('nokogiri', '>= 1.5.10', '<= 1.6.8.1')
-    s.add_runtime_dependency('json', '< 2.2.0')
+    s.add_runtime_dependency('json', '< 2.3.0')
   elsif RUBY_VERSION < '2.3'
     s.add_runtime_dependency('nokogiri', '>= 1.9.1', '<= 1.10.0')
   else
