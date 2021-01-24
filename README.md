@@ -467,6 +467,9 @@ Imagine this `saml:AttributeStatement`
       <saml:AttributeValue xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
       <saml:AttributeValue xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="1"/>
     </saml:Attribute>
+    <saml:Attribute Name="http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname">
+      <saml:AttributeValue>usersName</saml:AttributeValue>
+    </saml:Attribute>
   </saml:AttributeStatement>
 ```
 
@@ -477,7 +480,8 @@ pp(response.attributes)   # is an OneLogin::RubySaml::Attributes object
    "another_value"=>["value1", "value2"],
    "role"=>["role1", "role2", "role3"],
    "attribute_with_nil_value"=>[nil],
-   "attribute_with_nils_and_empty_strings"=>["", "valuePresent", nil, nil]}>
+   "attribute_with_nils_and_empty_strings"=>["", "valuePresent", nil, nil]
+   "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname"=>["usersName"]}>
 
 # Active single_value_compatibility
 OneLogin::RubySaml::Attributes.single_value_compatibility = true
@@ -494,6 +498,9 @@ pp(response.attributes.single(:role))
 pp(response.attributes.multi(:role))
 # => ["role1", "role2", "role3"]
 
+pp(response.attributes.fetch(:role))
+# => "role1"
+
 pp(response.attributes[:attribute_with_nil_value])
 # => nil
 
@@ -508,6 +515,9 @@ pp(response.attributes.single(:not_exists))
 
 pp(response.attributes.multi(:not_exists))
 # => nil
+
+pp(response.attributes.fetch(/givenname/))
+# => "usersName"
 
 # Deactive single_value_compatibility
 OneLogin::RubySaml::Attributes.single_value_compatibility = false
@@ -524,6 +534,9 @@ pp(response.attributes.single(:role))
 pp(response.attributes.multi(:role))
 # => ["role1", "role2", "role3"]
 
+pp(response.attributes.fetch(:role))
+# => ["role1", "role2", "role3"]
+
 pp(response.attributes[:attribute_with_nil_value])
 # => [nil]
 
@@ -538,6 +551,9 @@ pp(response.attributes.single(:not_exists))
 
 pp(response.attributes.multi(:not_exists))
 # => nil
+
+pp(response.attributes.fetch(/givenname/))
+# => ["usersName"]
 ```
 
 The `saml:AuthnContextClassRef` of the AuthNRequest can be provided by `settings.authn_context`; possible values are described at [SAMLAuthnCxt]. The comparison method can be set using `settings.authn_context_comparison` parameter. Possible values include: 'exact', 'better', 'maximum' and 'minimum' (default value is 'exact').
