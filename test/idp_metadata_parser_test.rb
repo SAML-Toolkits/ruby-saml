@@ -591,4 +591,25 @@ WQO0LPxPqRiUqUzyhDhLo/xXNrHCu4VbMw=="]
       assert_nil @settings.idp_slo_service_url
     end
   end
+  describe "metadata with different singlelogout response location" do
+    it "should return the responselocation if it exists" do
+      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+
+      settings = idp_metadata_parser.parse(idp_different_slo_response_location)
+
+
+      assert_equal "https://hello.example.com/access/saml/logout", settings.idp_slo_service_url
+      assert_equal "https://hello.example.com/access/saml/logout/return", settings.idp_slo_response_service_url
+    end
+
+    it "should set the responselocation to nil if it doesnt exist" do
+      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+
+      settings = idp_metadata_parser.parse(idp_without_slo_response_location)
+
+
+      assert_equal "https://hello.example.com/access/saml/logout", settings.idp_slo_service_url
+      assert_nil settings.idp_slo_response_service_url
+    end
+  end
 end
