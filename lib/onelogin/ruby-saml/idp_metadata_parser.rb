@@ -212,6 +212,7 @@ module OneLogin
             :name_identifier_format => idp_name_id_format,
             :idp_sso_service_url => single_signon_service_url(options),
             :idp_slo_service_url => single_logout_service_url(options),
+            :idp_slo_response_service_url => single_logout_response_service_url(options),
             :idp_attribute_names => attribute_names,
             :idp_cert => nil,
             :idp_cert_fingerprint => nil,
@@ -299,6 +300,21 @@ module OneLogin
           node = REXML::XPath.first(
             @idpsso_descriptor,
             "md:SingleLogoutService[@Binding=\"#{binding}\"]/@Location",
+            SamlMetadata::NAMESPACE
+          )
+          return node.value if node
+        end
+
+        # @param options [Hash]
+        # @return [String|nil] SingleLogoutService response url if exists
+        #
+        def single_logout_response_service_url(options = {})
+          binding = single_logout_service_binding(options[:slo_binding])
+          return if binding.nil?
+
+          node = REXML::XPath.first(
+            @idpsso_descriptor,
+            "md:SingleLogoutService[@Binding=\"#{binding}\"]/@ResponseLocation",
             SamlMetadata::NAMESPACE
           )
           return node.value if node

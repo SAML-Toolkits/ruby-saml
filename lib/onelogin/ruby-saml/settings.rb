@@ -31,8 +31,10 @@ module OneLogin
 
       # IdP Data
       attr_accessor :idp_entity_id
+
       attr_accessor :idp_sso_service_url
       attr_accessor :idp_slo_service_url
+      attr_accessor :idp_slo_response_service_url
       attr_accessor :idp_cert
       attr_accessor :idp_cert_fingerprint
       attr_accessor :idp_cert_fingerprint_algorithm
