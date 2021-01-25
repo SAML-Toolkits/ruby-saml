@@ -15,14 +15,14 @@ Gem::Specification.new do |s|
     "LICENSE",
     "README.md"
   ]
-  s.files = `git ls-files`.split("\n")
+  s.files = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
   s.homepage = %q{https://github.com/onelogin/ruby-saml}
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.3.7}
   s.required_ruby_version = '>= 1.8.7'
   s.summary = %q{SAML Ruby Tookit}
-  s.test_files = `git ls-files test/*`.split("\n")
+  s.test_files = `git ls-files test/*`.split("\x0")
 
   # Because runtime dependencies are determined at build time, we cannot make
   # Nokogiri's version dependent on the Ruby version, even though we would
