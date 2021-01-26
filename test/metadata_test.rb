@@ -75,6 +75,18 @@ class MetadataTest < Minitest::Test
       assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
     end
 
+    it "generates Service Provider Metadata with ValidUntil and CacheDuration" do
+      valid_until = Time.now + 172800
+      cache_duration = 604800
+      xml_metadata = OneLogin::RubySaml::Metadata.new.generate(settings, false, valid_until, cache_duration)
+      start = "<?xml version='1.0' encoding='UTF-8'?><md:EntityDescriptor"
+      assert_equal xml_metadata[0..start.length-1],start
+
+      doc_metadata = REXML::Document.new(xml_metadata)
+      assert_equal valid_until.strftime('%Y-%m-%dT%H:%M:%S%z'), REXML::XPath.first(doc_metadata, "//md:EntityDescriptor").attribute("validUntil").value
+      assert_equal "PT604800S", REXML::XPath.first(doc_metadata, "//md:EntityDescriptor").attribute("cacheDuration").value
+    end
+
     describe "WantAssertionsSigned" do
       it "generates Service Provider Metadata with WantAssertionsSigned = false" do
         settings.security[:want_assertions_signed] = false

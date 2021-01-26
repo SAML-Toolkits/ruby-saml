@@ -15,9 +15,11 @@ module OneLogin
       # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
       # @param pretty_print [Boolean] Pretty print or not the response
       #                               (No pretty print if you gonna validate the signature)
+      # @param valid_until [DateTime] Metadata's valid time
+      # @param cache_duration [Integer] Duration of the cache in seconds
       # @return [String] XML Metadata of the Service Provider
       #
-      def generate(settings, pretty_print=false)
+      def generate(settings, pretty_print=false, valid_until=nil, cache_duration=nil)
         meta_doc = XMLSecurity::Document.new
         namespaces = {
             "xmlns:md" => "urn:oasis:names:tc:SAML:2.0:metadata"
@@ -59,6 +61,12 @@ module OneLogin
         root.attributes["ID"] = OneLogin::RubySaml::Utils.uuid
         if settings.sp_entity_id
           root.attributes["entityID"] = settings.sp_entity_id
+        end
+        if valid_until
+          root.attributes["validUntil"] = valid_until.strftime('%Y-%m-%dT%H:%M:%S%z')
+        end
+        if cache_duration
+          root.attributes["cacheDuration"] = "PT" + cache_duration.to_s + "S"
         end
         if settings.single_logout_service_url
           sp_sso.add_element "md:SingleLogoutService", {

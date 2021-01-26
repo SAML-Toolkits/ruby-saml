@@ -765,6 +765,14 @@ class SamlController < ApplicationController
 end
 ```
 
+You can add ValidUntil and CacheDuration to the XML Metadata using instead
+```ruby
+  # Valid until => 2 days from now
+  # Cache duration = 604800s = 1 week
+  valid_until = Time.now + 172800
+  cache_duration = 604800
+  meta.generate(settings, false, valid_until, cache_duration)
+```
 
 ## Clock Drift
 
