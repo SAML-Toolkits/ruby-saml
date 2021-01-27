@@ -28,6 +28,48 @@ module OneLogin
         return cert.not_after < Time.now
       end
 
+      # Interprets a ISO8601 duration value relative to a given timestamp.
+      #
+      # @param duration [String] The duration, as a string.
+      # @param timestamp [Integer] The unix timestamp we should apply the
+      #                            duration to. Optional, default to the
+      #                            current time.
+      #
+      # @return [Integer] The new timestamp, after the duration is applied.
+      # 
+      def self.parse_duration(duration, timestamp=Time.now)
+        matches = duration.match(/^(-?)P(?:(?:(?:(\d+)Y)?(?:(\d+)M)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?)|(?:(\d+)W))$/)
+      
+        if matches.nil?
+          raise Exception.new("Invalid ISO 8601 duration")
+        end
+
+        durYears = matches[2].to_i
+        durMonths = matches[3].to_i
+        durDays = matches[4].to_i
+        durHours = matches[5].to_i
+        durMinutes = matches[6].to_i
+        durSeconds = matches[7].to_f
+        durWeeks = matches[8].to_i
+
+        if matches[1] == "-"
+          durYears = -durYears
+          durMonths = -durMonths
+          durDays = -durDays
+          durHours = -durHours
+          durMinutes = -durMinutes
+          durSeconds = -durSeconds
+          durWeeks = -durWeeks
+        end
+
+        initial_datetime = Time.at(timestamp).to_datetime
+        final_datetime = initial_datetime.next_year(durYears)
+        final_datetime = final_datetime.next_month(durMonths)
+        final_datetime = final_datetime.next_day((7*durWeeks) + durDays)
+        final_timestamp = final_datetime.to_time.to_i + (durHours * 3600) + (durMinutes * 60) + durSeconds
+        return final_timestamp
+      end
+
       # Return a properly formatted x509 certificate
       #
       # @param cert [String] The original certificate

@@ -113,6 +113,16 @@ module OneLogin
       def parse(idp_metadata, options = {})
         parsed_metadata = parse_to_hash(idp_metadata, options)
 
+        unless parsed_metadata[:cache_duration].nil?
+          cache_valid_until_timestamp = OneLogin::RubySaml::Utils.parse_duration(parsed_metadata[:cache_duration])
+          if parsed_metadata[:valid_until].nil? || cache_valid_until_timestamp < Time.parse(parsed_metadata[:valid_until]).to_i
+            parsed_metadata[:valid_until] = Time.at(cache_valid_until_timestamp).strftime("%Y-%m-%dT%H:%M:%SZ")
+          end
+        end
+        # Remove the cache_duration because on the settings
+        # we only gonna suppot valid_until 
+        parsed_metadata.delete(:cache_duration)
+
         settings = options[:settings]
 
         if settings.nil?
@@ -217,7 +227,8 @@ module OneLogin
             :idp_cert => nil,
             :idp_cert_fingerprint => nil,
             :idp_cert_multi => nil,
-            :valid_until => valid_until
+            :valid_until => valid_until,
+            :cache_duration => cache_duration,
           }.tap do |response_hash|
             merge_certificates_into(response_hash) unless certificates.nil?
           end
@@ -239,6 +250,13 @@ module OneLogin
         def valid_until
           root = @idpsso_descriptor.root
           root.attributes['validUntil'] if root && root.attributes
+        end
+
+        # @return [String|nil] 'cacheDuration' attribute of metadata
+        #
+        def cache_duration
+          root = @idpsso_descriptor.root
+          root.attributes['cacheDuration'] if root && root.attributes
         end
 
         # @param binding_priority [Array]
