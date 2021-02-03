@@ -65,6 +65,14 @@ class SloLogoutresponseTest < Minitest::Test
       assert_match /<samlp:StatusMessage>Custom Logout Message<\/samlp:StatusMessage>/, inflated
     end
 
+    it "set a custom logout message and an status on the response" do
+      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, nil, "Custom Logout Message", {}, "urn:oasis:names:tc:SAML:2.0:status:PartialLogout")
+
+      inflated = decode_saml_response_payload(unauth_url)
+      assert_match /<samlp:StatusMessage>Custom Logout Message<\/samlp:StatusMessage>/, inflated
+      assert_match /<samlp:StatusCode Value='urn:oasis:names:tc:SAML:2.0:status:PartialLogout/, inflated
+    end
+
     it "uses the response location when set" do
       settings.idp_slo_response_service_url = "http://unauth.com/logout/return"
 
