@@ -33,6 +33,7 @@ module OneLogin
       attr_accessor :assertion_consumer_service_url
       attr_accessor :authn_context
       attr_accessor :sp_name_qualifier
+      attr_accessor :idp_name_qualifier
       attr_accessor :name_identifier_format
       attr_accessor :name_identifier_value
       attr_accessor :name_identifier_value_requested

@@ -114,7 +114,8 @@ module OneLogin
 
         if settings.name_identifier_value
           name_id = root.add_element "saml:NameID", { "xmlns:saml" => "urn:oasis:names:tc:SAML:2.0:assertion" }
-          name_id.attributes['NameQualifier'] = settings.sp_name_qualifier if settings.sp_name_qualifier
+          nameid.attributes['NameQualifier'] = settings.idp_name_qualifier if settings.idp_name_qualifier
+          nameid.attributes['SPNameQualifier'] = settings.sp_name_qualifier if settings.sp_name_qualifier
           name_id.attributes['Format'] = settings.name_identifier_format if settings.name_identifier_format
           name_id.text = settings.name_identifier_value
         end
