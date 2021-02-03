@@ -35,15 +35,47 @@ module OneLogin
         validate(false)
       end
 
-      # The value of the user identifier as designated by the initialization request response
-      def name_id
+      def name_id_node
         @name_id ||= begin
-          node = xpath_first_from_signed_assertion('/a:Subject/a:NameID')
-          Utils.element_text(node)
+          xpath_first_from_signed_assertion('/a:Subject/a:NameID')
         end
       end
 
+      # The value of the user identifier as designated by the initialization request response
+      def name_id
+        @name_id ||= Utils.element_text(name_id_node)
+      end
+
       alias nameid name_id
+
+      # @return [String] the NameID Format provided by the SAML response from the IdP.
+      #
+      def name_id_format
+        @name_id_format ||=
+          if name_id_node && name_id_node.attribute("Format")
+            name_id_node.attribute("Format").value
+          end
+      end
+
+      alias_method :nameid_format, :name_id_format
+
+      # @return [String] the NameID SPNameQualifier provided by the SAML response from the IdP.
+      #
+      def name_id_spnamequalifier
+        @name_id_spnamequalifier ||=
+          if name_id_node && name_id_node.attribute("SPNameQualifier")
+            name_id_node.attribute("SPNameQualifier").value
+          end
+      end
+
+      # @return [String] the NameID NameQualifier provided by the SAML response from the IdP.
+      #
+      def name_id_namequalifier
+        @name_id_namequalifier ||=
+          if name_id_node && name_id_node.attribute("NameQualifier")
+            name_id_node.attribute("NameQualifier").value
+          end
+      end
 
       def sessionindex
         @sessionindex ||= begin

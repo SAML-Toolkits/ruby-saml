@@ -368,6 +368,23 @@ class ResponseTest <  Minitest::Test
       end
     end
 
+    describe "#name_id_format" do
+      it "extract the value of the name id element" do
+        response = OneLogin::RubySaml::Response.new(response_document)
+        response_signed = OneLogin::RubySaml::Response.new(response_document_valid_signed)
+        assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress", response.name_id_format
+        assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress", response_signed.name_id_format
+      end
+    end
+
+    describe "#sessionindex" do
+      it "extract the value of the sessionindex element" do
+        response = OneLogin::RubySaml::Response.new(fixture(:simple_saml_php))
+        assert_equal "_51be37965feb5579d803141076936dc2e9d1d98ebf", response.sessionindex
+      end
+    end
+
+
     describe "#check_conditions" do
       it "check time conditions" do
         response = OneLogin::RubySaml::Response.new(response_document)
