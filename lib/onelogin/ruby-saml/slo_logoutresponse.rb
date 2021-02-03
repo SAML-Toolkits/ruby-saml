@@ -26,10 +26,11 @@ module OneLogin
       # @param request_id [String] The ID of the LogoutRequest sent by this SP to the IdP. That ID will be placed as the InResponseTo in the logout response
       # @param logout_message [String] The Message to be placed as StatusMessage in the logout response
       # @param params [Hash] Some extra parameters to be added in the GET for example the RelayState
+      # @param logout_status_code [String] The StatusCode to be placed as StatusMessage in the logout response
       # @return [String] Logout Request string that includes the SAMLRequest
       #
-      def create(settings, request_id = nil, logout_message = nil, params = {})
-        params = create_params(settings, request_id, logout_message, params)
+      def create(settings, request_id = nil, logout_message = nil, params = {}, logout_status_code = nil)
+        params = create_params(settings, request_id, logout_message, params, logout_status_code)
         params_prefix = (settings.idp_slo_target_url =~ /\?/) ? '&' : '?'
         saml_response = CGI.escape(params.delete("SAMLResponse"))
         response_params = "#{params_prefix}SAMLResponse=#{saml_response}"
@@ -45,9 +46,10 @@ module OneLogin
       # @param request_id [String] The ID of the LogoutRequest sent by this SP to the IdP. That ID will be placed as the InResponseTo in the logout response
       # @param logout_message [String] The Message to be placed as StatusMessage in the logout response
       # @param params [Hash] Some extra parameters to be added in the GET for example the RelayState
+      # @param logout_status_code [String] The StatusCode to be placed as StatusMessage in the logout response
       # @return [Hash] Parameters
       #
-      def create_params(settings, request_id = nil, logout_message = nil, params = {})
+      def create_params(settings, request_id = nil, logout_message = nil, params = {}, logout_status_code = nil)
         # The method expects :RelayState but sometimes we get 'RelayState' instead.
         # Based on the HashWithIndifferentAccess value in Rails we could experience
         # conflicts so this line will solve them.
@@ -58,7 +60,7 @@ module OneLogin
           params.delete('RelayState')
         end
 
-        response_doc = create_logout_response_xml_doc(settings, request_id, logout_message)
+        response_doc = create_logout_response_xml_doc(settings, request_id, logout_message, logout_status_code)
         response_doc.context[:attribute_quote] = :quote if settings.double_quote_xml_attribute_values
 
         response = ""
@@ -104,12 +106,12 @@ module OneLogin
       # @param logout_message [String] The Message to be placed as StatusMessage in the logout response
       # @return [String] The SAMLResponse String.
       #
-      def create_logout_response_xml_doc(settings, request_id = nil, logout_message = nil)
-        document = create_xml_document(settings, request_id, logout_message)
+      def create_logout_response_xml_doc(settings, request_id = nil, logout_message = nil, logout_status_code = nil)
+        document = create_xml_document(settings, request_id, logout_message, logout_status_code)
         sign_document(document, settings)
       end
 
-      def create_xml_document(settings, request_id = nil, logout_message = nil)
+      def create_xml_document(settings, request_id = nil, logout_message = nil, status_code = nil)
         time = Time.now.utc.strftime('%Y-%m-%dT%H:%M:%SZ')
 
         response_doc = XMLSecurity::Document.new
@@ -131,8 +133,9 @@ module OneLogin
         status = root.add_element 'samlp:Status'
 
         # success status code
-        status_code = status.add_element 'samlp:StatusCode'
-        status_code.attributes['Value'] = 'urn:oasis:names:tc:SAML:2.0:status:Success'
+        status_code ||= 'urn:oasis:names:tc:SAML:2.0:status:Success'
+        status_code_elem = status.add_element 'samlp:StatusCode'
+        status_code_elem.attributes['Value'] = status_code
 
         # success status message
         logout_message ||= 'Successfully Signed Out'
