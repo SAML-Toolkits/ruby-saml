@@ -104,6 +104,7 @@ module OneLogin
       # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
       # @param request_id [String] The ID of the LogoutRequest sent by this SP to the IdP. That ID will be placed as the InResponseTo in the logout response
       # @param logout_message [String] The Message to be placed as StatusMessage in the logout response
+      # @param logout_status_code [String] The StatusCode to be placed as StatusMessage in the logout response
       # @return [String] The SAMLResponse String.
       #
       def create_logout_response_xml_doc(settings, request_id = nil, logout_message = nil, logout_status_code = nil)
@@ -129,15 +130,15 @@ module OneLogin
           issuer.text = settings.sp_entity_id
         end
 
-        # add success message
+        # add status
         status = root.add_element 'samlp:Status'
 
-        # success status code
+        # status code
         status_code ||= 'urn:oasis:names:tc:SAML:2.0:status:Success'
         status_code_elem = status.add_element 'samlp:StatusCode'
         status_code_elem.attributes['Value'] = status_code
 
-        # success status message
+        # status message
         logout_message ||= 'Successfully Signed Out'
         status_message = status.add_element 'samlp:StatusMessage'
         status_message.text = logout_message
