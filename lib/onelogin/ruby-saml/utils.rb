@@ -15,6 +15,7 @@ module OneLogin
 
       DSIG      = "http://www.w3.org/2000/09/xmldsig#"
       XENC      = "http://www.w3.org/2001/04/xmlenc#"
+      DURATION_FORMAT = %r(^(-?)P(?:(?:(?:(\d+)Y)?(?:(\d+)M)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?)|(?:(\d+)W))$)
 
       # Checks if the x509 cert provided is expired
       #
@@ -38,7 +39,7 @@ module OneLogin
       # @return [Integer] The new timestamp, after the duration is applied.
       # 
       def self.parse_duration(duration, timestamp=Time.now)
-        matches = duration.match(/^(-?)P(?:(?:(?:(\d+)Y)?(?:(\d+)M)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?)|(?:(\d+)W))$/)
+        matches = duration.match(DURATION_FORMAT)
       
         if matches.nil?
           raise Exception.new("Invalid ISO 8601 duration")
