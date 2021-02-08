@@ -22,6 +22,8 @@ class AttributesTest < Minitest::Test
 
     it 'fetches regexp attribute' do
       assert_equal('Tom', attributes.fetch(/givenname/))
+      assert_equal('Tom', attributes.fetch(/gi(.*)/))
+      assert_nil(attributes.fetch(/^z.*/))
       assert_equal('Hanks', attributes.fetch(/surname/))
     end
   end
