@@ -1594,6 +1594,7 @@ class RubySamlTest < Minitest::Test
         end
 
         it "EncryptionMethod AES-128-GCM && Key Encryption Algorithm RSA-OAEP-MGF1P" do
+          return unless OpenSSL::Cipher.ciphers.include? 'AES-128-GCM'
           unsigned_message_aes128gcm_encrypted_signed_assertion = read_response('unsigned_message_aes128gcm_encrypted_signed_assertion.xml.base64')
           response = OneLogin::RubySaml::Response.new(unsigned_message_aes128gcm_encrypted_signed_assertion, :settings => settings)
           assert_equal "test", response.attributes[:uid]
@@ -1601,6 +1602,7 @@ class RubySamlTest < Minitest::Test
         end
 
         it "EncryptionMethod AES-192-GCM && Key Encryption Algorithm RSA-OAEP-MGF1P" do
+          return unless OpenSSL::Cipher.ciphers.include? 'AES-192-GCM'
           unsigned_message_aes192gcm_encrypted_signed_assertion = read_response('unsigned_message_aes192gcm_encrypted_signed_assertion.xml.base64')
           response = OneLogin::RubySaml::Response.new(unsigned_message_aes192gcm_encrypted_signed_assertion, :settings => settings)
           assert_equal "test", response.attributes[:uid]
@@ -1608,6 +1610,7 @@ class RubySamlTest < Minitest::Test
         end
 
         it "EncryptionMethod AES-256-GCM && Key Encryption Algorithm RSA-OAEP-MGF1P" do
+          return unless OpenSSL::Cipher.ciphers.include? 'AES-256-GCM'
           unsigned_message_aes256gcm_encrypted_signed_assertion = read_response('unsigned_message_aes256gcm_encrypted_signed_assertion.xml.base64')
           response = OneLogin::RubySaml::Response.new(unsigned_message_aes256gcm_encrypted_signed_assertion, :settings => settings)
           assert_equal "test", response.attributes[:uid]
