@@ -22,6 +22,10 @@ module OneLogin
         @uuid = OneLogin::RubySaml::Utils.uuid
       end
 
+      def response_id
+        @uuid
+      end
+
       # Creates the Logout Response string.
       # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
       # @param request_id [String] The ID of the LogoutRequest sent by this SP to the IdP. That ID will be placed as the InResponseTo in the logout response

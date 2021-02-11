@@ -47,6 +47,10 @@ module OneLogin
         @document = XMLSecurity::SignedDocument.new(@response)
       end
 
+      def response_id
+        id(document)
+      end
+
       # Checks if the Status has the "Success" code
       # @return [Boolean] True if the StatusCode is Sucess
       # @raise [ValidationError] if soft == false and validation fails

@@ -354,6 +354,17 @@ module OneLogin
         ).nil?
       end
 
+      def response_id
+        id(document)
+      end
+
+      def assertion_id
+        @assertion_id ||= begin
+          node = xpath_first_from_signed_assertion("")
+          node.nil? ? nil : node.attributes['ID']
+        end
+      end
+
       private
 
       # Validates the SAML Response (calls several validation methods)
@@ -448,7 +459,7 @@ module OneLogin
       # @return [Boolean] True if the SAML Response contains an ID, otherwise returns False
       #
       def validate_id
-        unless id(document)
+        unless response_id
           return append_error("Missing ID attribute on SAML Response")
         end
 

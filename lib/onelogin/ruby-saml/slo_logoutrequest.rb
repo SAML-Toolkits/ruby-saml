@@ -47,6 +47,10 @@ module OneLogin
         @document = REXML::Document.new(@request)
       end
 
+      def request_id
+        id(document)
+      end
+
       # Validates the Logout Request with the default values (soft = true)
       # @param collect_errors [Boolean] Stop validation when first error appears or keep validating.
       # @return [Boolean] TRUE if the Logout Request is valid
