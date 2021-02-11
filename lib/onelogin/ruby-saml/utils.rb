@@ -38,7 +38,7 @@ module OneLogin
       #
       # @return [Integer] The new timestamp, after the duration is applied.
       # 
-      def self.parse_duration(duration, timestamp=Time.now)
+      def self.parse_duration(duration, timestamp=Time.now.utc)
         matches = duration.match(DURATION_FORMAT)
       
         if matches.nil?
