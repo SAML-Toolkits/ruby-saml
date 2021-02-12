@@ -63,11 +63,11 @@ module OneLogin
           durWeeks = -durWeeks
         end
 
-        initial_datetime = Time.at(timestamp).to_datetime
+        initial_datetime = Time.at(timestamp).utc.to_datetime
         final_datetime = initial_datetime.next_year(durYears)
         final_datetime = final_datetime.next_month(durMonths)
         final_datetime = final_datetime.next_day((7*durWeeks) + durDays)
-        final_timestamp = final_datetime.to_time.to_i + (durHours * 3600) + (durMinutes * 60) + durSeconds
+        final_timestamp = final_datetime.to_time.utc.to_i + (durHours * 3600) + (durMinutes * 60) + durSeconds
         return final_timestamp
       end
 
