@@ -116,7 +116,7 @@ module OneLogin
         unless parsed_metadata[:cache_duration].nil?
           cache_valid_until_timestamp = OneLogin::RubySaml::Utils.parse_duration(parsed_metadata[:cache_duration])
           if parsed_metadata[:valid_until].nil? || cache_valid_until_timestamp < Time.parse(parsed_metadata[:valid_until], Time.now.utc).to_i
-            parsed_metadata[:valid_until] = Time.at(cache_valid_until_timestamp).strftime("%Y-%m-%dT%H:%M:%SZ")
+            parsed_metadata[:valid_until] = Time.at(cache_valid_until_timestamp).utc.strftime("%Y-%m-%dT%H:%M:%SZ")
           end
         end
         # Remove the cache_duration because on the settings

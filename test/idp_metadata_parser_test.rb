@@ -338,19 +338,19 @@ class IdpMetadataParserTest < Minitest::Test
     it "if no ValidUntil but CacheDuration return CacheDuration converted in ValidUntil" do
       Timecop.freeze(Time.parse("2020-01-02T10:02:33Z", Time.now.utc)) do
         settings = @idp_metadata_parser.parse(idp_metadata_descriptor5)
-        assert_equal '2020-01-03T11:02:33Z', settings.valid_until
+        assert_equal '2020-01-03T10:02:33Z', settings.valid_until
       end
     end
 
     it "if ValidUntil and CacheDuration return the sooner timestamp" do
       Timecop.freeze(Time.parse("2020-01-01T10:12:55Z", Time.now.utc)) do
         settings = @idp_metadata_parser.parse(idp_metadata_descriptor6)
-        assert_equal '2020-01-03T11:12:55Z', settings.valid_until
+        assert_equal '2020-01-03T10:12:55Z', settings.valid_until
       end
 
       Timecop.freeze(Time.parse("2020-01-01T10:12:55Z", Time.now.utc)) do
         settings = @idp_metadata_parser.parse(idp_metadata_descriptor6)
-        assert_equal '2020-01-03T11:12:55Z', settings.valid_until
+        assert_equal '2020-01-03T10:12:55Z', settings.valid_until
       end
 
       Timecop.freeze(Time.parse("2020-01-03T10:12:55Z", Time.now.utc)) do
