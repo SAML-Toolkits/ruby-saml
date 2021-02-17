@@ -897,6 +897,7 @@ class RubySamlTest < Minitest::Test
         settings.idp_cert_fingerprint = signature_fingerprint_1
         response.settings = settings
         assert !response.send(:validate_signature)
+        assert_includes response.errors, "Fingerprint mismatch"
         assert_includes response.errors, "Invalid Signature on SAML Response"
       end
 
@@ -917,15 +918,29 @@ class RubySamlTest < Minitest::Test
         assert_includes response_valid_signed.errors, "IdP x509 certificate expired"
       end
 
-      it "return false when no X509Certificate and the cert provided at settings mismatches" do
+      it "return false when X509Certificate and the cert provided at settings mismatches" do
         settings.idp_cert_fingerprint = nil
         settings.idp_cert = signature_1
         response_valid_signed_without_x509certificate.settings = settings
         assert !response_valid_signed_without_x509certificate.send(:validate_signature)
+        assert_includes response_valid_signed_without_x509certificate.errors, "Key validation error"
         assert_includes response_valid_signed_without_x509certificate.errors, "Invalid Signature on SAML Response"
       end
 
-      it "return true when no X509Certificate and the cert provided at settings matches" do
+      it "return false when X509Certificate has invalid content" do
+        settings.idp_cert_fingerprint = nil
+        settings.idp_cert = ruby_saml_cert_text
+        content = read_response('response_with_signed_message_and_assertion.xml')
+        content = content.sub(/<ds:X509Certificate>.*<\/ds:X509Certificate>/,
+                       "<ds:X509Certificate>an-invalid-certificate</ds:X509Certificate>")
+        response_invalid_x509certificate = OneLogin::RubySaml::Response.new(content)
+        response_invalid_x509certificate.settings = settings
+        assert !response_invalid_x509certificate.send(:validate_signature)
+        assert_includes response_invalid_x509certificate.errors, "Document Certificate Error"
+        assert_includes response_invalid_x509certificate.errors, "Invalid Signature on SAML Response"
+      end
+
+      it "return true when X509Certificate and the cert provided at settings matches" do
         settings.idp_cert_fingerprint = nil
         settings.idp_cert = ruby_saml_cert_text
         response_valid_signed_without_x509certificate.settings = settings
@@ -953,7 +968,7 @@ class RubySamlTest < Minitest::Test
           :encryption => []
         }
         response_valid_signed.settings = settings
-        assert response_valid_signed.send(:validate_signature)
+        res = response_valid_signed.send(:validate_signature)
         assert_empty response_valid_signed.errors
       end
 
@@ -965,6 +980,7 @@ class RubySamlTest < Minitest::Test
         }
         response_valid_signed.settings = settings
         assert !response_valid_signed.send(:validate_signature)
+        assert_includes response_valid_signed.errors, "Certificate of the Signature element does not match provided certificate"
         assert_includes response_valid_signed.errors, "Invalid Signature on SAML Response"
       end
     end

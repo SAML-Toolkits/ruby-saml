@@ -212,7 +212,7 @@ module XMLSecurity
         begin
           cert = OpenSSL::X509::Certificate.new(cert_text)
         rescue OpenSSL::X509::CertificateError => _e
-          return append_error("Certificate Error", soft)
+          return append_error("Document Certificate Error", soft)
         end
 
         if options[:fingerprint_alg]
@@ -224,7 +224,6 @@ module XMLSecurity
 
         # check cert matches registered idp cert
         if fingerprint != idp_cert_fingerprint.gsub(/[^a-zA-Z0-9]/,"").downcase
-          @errors << "Fingerprint mismatch"
           return append_error("Fingerprint mismatch", soft)
         end
       else
@@ -255,12 +254,12 @@ module XMLSecurity
         begin
           cert = OpenSSL::X509::Certificate.new(cert_text)
         rescue OpenSSL::X509::CertificateError => _e
-          return append_error("Certificate Error", soft)
+          return append_error("Document Certificate Error", soft)
         end
 
         # check saml response cert matches provided idp cert
         if idp_cert.to_pem != cert.to_pem
-          return false
+          return append_error("Certificate of the Signature element does not match provided certificate", soft)
         end
       else
         base64_cert = Base64.encode64(idp_cert.to_pem)
@@ -345,7 +344,6 @@ module XMLSecurity
       digest_value = Base64.decode64(OneLogin::RubySaml::Utils.element_text(encoded_digest_value))
 
       unless digests_match?(hash, digest_value)
-        @errors << "Digest mismatch"
         return append_error("Digest mismatch", soft)
       end
 

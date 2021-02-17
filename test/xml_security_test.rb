@@ -395,6 +395,11 @@ class XmlSecurityTest < Minitest::Test
     end
 
     describe '#validate_document_with_cert' do
+      let(:document_data) { read_response('response_with_signed_message_and_assertion.xml') }
+      let(:document) { OneLogin::RubySaml::Response.new(document_data).document }
+      let(:idp_cert) { OpenSSL::X509::Certificate.new(ruby_saml_cert_text) }
+      let(:fingerprint) { '4b68c453c7d994aad9025c99d5efcf566287fe8d' }
+
       describe 'with invalid document ' do
         describe 'when certificate is invalid' do
           let(:document_data) { read_response('response_with_signed_message_and_assertion.xml')
@@ -408,13 +413,8 @@ class XmlSecurityTest < Minitest::Test
         end
       end
 
-      describe 'with valid document ' do
+      describe 'with valid document' do
         describe 'when response has cert' do
-          let(:document_data) { read_response('response_with_signed_message_and_assertion.xml') }
-          let(:document) { OneLogin::RubySaml::Response.new(document_data).document }
-          let(:idp_cert) { OpenSSL::X509::Certificate.new(ruby_saml_cert_text) }
-          let(:fingerprint) { '4b68c453c7d994aad9025c99d5efcf566287fe8d' }
-
           it 'is valid' do
             assert document.validate_document_with_cert(idp_cert), 'Document should be valid'
           end
@@ -427,6 +427,43 @@ class XmlSecurityTest < Minitest::Test
           it 'is valid' do
             assert document.validate_document_with_cert(idp_cert), 'Document should be valid'
           end
+        end
+      end
+
+      describe 'when response has no cert but you have local cert' do
+        let(:document_data) { response_document_valid_signed_without_x509certificate }
+
+        it 'is valid' do
+          assert document.validate_document_with_cert(idp_cert), 'Document should be valid'
+        end
+      end
+
+      describe 'when response cert is invalid' do
+        let(:document_data) do
+          contents = read_response('response_with_signed_message_and_assertion.xml')
+          contents.sub(/<ds:X509Certificate>.*<\/ds:X509Certificate>/,
+                       "<ds:X509Certificate>an-invalid-certificate</ds:X509Certificate>")
+        end
+
+        it 'is not valid' do
+          assert !document.validate_document_with_cert(idp_cert), 'Document should be valid'
+          assert_equal(["Document Certificate Error"], document.errors)
+        end
+      end
+
+      describe 'when response cert is different from idp cert' do
+        let(:idp_cert) { OpenSSL::X509::Certificate.new(ruby_saml_cert_text2) }
+
+        it 'is not valid' do
+          exception = assert_raises(OneLogin::RubySaml::ValidationError) do
+            document.validate_document_with_cert(idp_cert, false)
+          end
+          assert_equal("Certificate of the Signature element does not match provided certificate", exception.message)
+        end
+
+        it 'is not valid (soft = true)' do
+          document.validate_document_with_cert(idp_cert)
+          assert_equal(["Certificate of the Signature element does not match provided certificate"], document.errors)
         end
       end
     end

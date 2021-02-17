@@ -847,7 +847,7 @@ module OneLogin
         end
 
         if sig_elements.size != 1
-          if  sig_elements.size == 0
+          if sig_elements.size == 0
              append_error("Signed element id ##{doc.signed_element_id} is not found")
           else
              append_error("Signed element id ##{doc.signed_element_id} is found more than once")
@@ -855,6 +855,7 @@ module OneLogin
           return append_error(error_msg)
         end
 
+        old_errors = @errors.clone
 
         idp_certs = settings.get_idp_cert_multi
         if idp_certs.nil? || idp_certs[:signing].empty?
@@ -878,21 +879,27 @@ module OneLogin
           valid = false
           expired = false
           idp_certs[:signing].each do |idp_cert|
-            valid = doc.validate_document_with_cert(idp_cert)
+            valid = doc.validate_document_with_cert(idp_cert, true)
             if valid
               if settings.security[:check_idp_cert_expiration]
                 if OneLogin::RubySaml::Utils.is_cert_expired(idp_cert)
                   expired = true
                 end
               end
+
+              # At least one certificate is valid, restore the old accumulated errors
+              @errors = old_errors
               break
             end
+
           end
           if expired
             error_msg = "IdP x509 certificate expired"
             return append_error(error_msg)
           end
           unless valid
+            # Remove duplicated errors
+            @errors = @errors.uniq
             return append_error(error_msg)
           end
         end
