@@ -35,7 +35,7 @@ module OneLogin
         saml_request = CGI.escape(params.delete("SAMLRequest"))
         request_params = "#{params_prefix}SAMLRequest=#{saml_request}"
         params.each_pair do |key, value|
-          request_params << "&#{key.to_s}=#{CGI.escape(value.to_s)}"
+          request_params << "&#{key}=#{CGI.escape(value.to_s)}"
         end
         raise SettingError.new "Invalid settings, idp_sso_target_url is not set!" if settings.idp_sso_target_url.nil? or settings.idp_sso_target_url.empty?
         @login_url = settings.idp_sso_target_url + request_params

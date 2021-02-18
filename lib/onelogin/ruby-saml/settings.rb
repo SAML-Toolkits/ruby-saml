@@ -20,7 +20,7 @@ module OneLogin
         end
 
         config.each do |k,v|
-          acc = "#{k.to_s}=".to_sym
+          acc = "#{k}=".to_sym
           if respond_to? acc
             value = v.is_a?(Hash) ? v.dup : v
             send(acc, value)
