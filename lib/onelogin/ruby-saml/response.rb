@@ -727,7 +727,7 @@ module OneLogin
       # @return [Boolean] True if the SessionNotOnOrAfter of the AuthnStatement is valid, otherwise (when expired) False if soft=True
       # @raise [ValidationError] if soft == false and validation fails
       #
-      def validate_session_expiration(soft = true)
+      def validate_session_expiration(_soft = true)
         return true if session_expires_at.nil?
 
         now = Time.now.utc
