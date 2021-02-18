@@ -1,5 +1,23 @@
 # RubySaml Changelog
 
+### 1.12.0 (Feb 18, 2021)
+* Support AES-128-GCM, AES-192-GCM, and AES-256-GCM encryptions
+* Parse & return SLO ResponseLocation in IDPMetadataParser & Settings 
+* Adding idp_sso_service_url and idp_slo_service_url settings
+* [#536](https://github.com/onelogin/ruby-saml/pull/536) Adding feth method to be able retrieve attributes based on regex
+* Reduce size of built gem by excluding the test folder
+* Improve protection on Zlib deflate decompression bomb attack.
+* Add ValidUntil and cacheDuration support on Metadata generator
+* Add support for cacheDuration at the IdpMetadataParser
+* Support customizable statusCode on generated LogoutResponse
+* [#545](https://github.com/onelogin/ruby-saml/pull/545) More specific error messages for signature validation
+* Support Process Transform
+* Raise SettingError if invoking an action with no endpoint defined on the settings
+* Made IdpMetadataParser more extensible for subclasses
+*[#548](https://github.com/onelogin/ruby-saml/pull/548) Add :skip_audience option
+* [#555](https://github.com/onelogin/ruby-saml/pull/555) Define 'soft' variable to prevent exception when doc cert is invalid
+* Improve documentation
+
 ### 1.11.0 (Jul 24, 2019)
 
 * Deprecate settings.issuer in favor of settings.sp_entity_id

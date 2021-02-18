@@ -1,5 +1,9 @@
 # Ruby SAML [![Build Status](https://secure.travis-ci.org/onelogin/ruby-saml.svg)](http://travis-ci.org/onelogin/ruby-saml) [![Coverage Status](https://coveralls.io/repos/onelogin/ruby-saml/badge.svg?branch=master)](https://coveralls.io/r/onelogin/ruby-saml?branch=master) [![Gem Version](https://badge.fury.io/rb/ruby-saml.svg)](http://badge.fury.io/rb/ruby-saml)
 
+## Updating from 1.11.x to 1.12.0
+Version `1.12.0` adds support for gcm algorithm and
+change/adds specific error messages for signature validations
+
 ## Updating from 1.10.x to 1.11.0
 Version `1.11.0` deprecates the use of `settings.issuer` in favour of `settings.sp_entity_id`.
 There are two new security settings: `settings.security[:check_idp_cert_expiration]` and `settings.security[:check_sp_cert_expiration]` (both false by default) that check if the IdP or SP X.509 certificate has expired, respectively.
