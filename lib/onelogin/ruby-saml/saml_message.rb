@@ -4,7 +4,6 @@ require 'base64'
 require 'nokogiri'
 require 'rexml/document'
 require 'rexml/xpath'
-require 'thread'
 require "onelogin/ruby-saml/error_handling"
 
 # Only supports SAML 2.0
