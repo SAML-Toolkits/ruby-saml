@@ -218,7 +218,6 @@ module OneLogin
         OpenSSL::PKey::RSA.new(formatted_private_key)
       end
 
-      private
 
       DEFAULTS = {
         :assertion_consumer_service_binding        => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST".freeze,
