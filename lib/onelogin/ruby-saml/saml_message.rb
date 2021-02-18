@@ -69,7 +69,7 @@ module OneLogin
           xml = Nokogiri::XML(document.to_s) do |config|
             config.options = XMLSecurity::BaseDocument::NOKOGIRI_OPTIONS
           end
-        rescue Exception => error
+        rescue StandardError => error
           return false if soft
           raise ValidationError.new("XML load failed: #{error.message}")
         end
