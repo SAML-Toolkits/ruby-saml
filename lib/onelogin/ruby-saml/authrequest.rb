@@ -24,6 +24,10 @@ module OneLogin
         @uuid = OneLogin::RubySaml::Utils.uuid
       end
 
+      def request_id
+        @uuid
+      end
+
       # Creates the AuthNRequest string.
       # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
       # @param params [Hash] Some extra parameters to be added in the GET for example the RelayState
@@ -31,14 +35,14 @@ module OneLogin
       #
       def create(settings, params = {})
         params = create_params(settings, params)
-        params_prefix = (settings.idp_sso_target_url =~ /\?/) ? '&' : '?'
+        params_prefix = (settings.idp_sso_service_url =~ /\?/) ? '&' : '?'
         saml_request = CGI.escape(params.delete("SAMLRequest"))
         request_params = "#{params_prefix}SAMLRequest=#{saml_request}"
         params.each_pair do |key, value|
           request_params << "&#{key.to_s}=#{CGI.escape(value.to_s)}"
         end
-        raise SettingError.new "Invalid settings, idp_sso_target_url is not set!" if settings.idp_sso_target_url.nil? or settings.idp_sso_target_url.empty?
-        @login_url = settings.idp_sso_target_url + request_params
+        raise SettingError.new "Invalid settings, idp_sso_service_url is not set!" if settings.idp_sso_service_url.nil? or settings.idp_sso_service_url.empty?
+        @login_url = settings.idp_sso_service_url + request_params
       end
 
       # Creates the Get parameters for the request.
@@ -108,7 +112,7 @@ module OneLogin
         root.attributes['ID'] = uuid
         root.attributes['IssueInstant'] = time
         root.attributes['Version'] = "2.0"
-        root.attributes['Destination'] = settings.idp_sso_target_url unless settings.idp_sso_target_url.nil? or settings.idp_sso_target_url.empty?
+        root.attributes['Destination'] = settings.idp_sso_service_url unless settings.idp_sso_service_url.nil? or settings.idp_sso_service_url.empty?
         root.attributes['IsPassive'] = settings.passive unless settings.passive.nil?
         root.attributes['ProtocolBinding'] = settings.protocol_binding unless settings.protocol_binding.nil?
         root.attributes["AttributeConsumingServiceIndex"] = settings.attributes_index unless settings.attributes_index.nil?

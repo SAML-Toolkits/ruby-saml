@@ -15,14 +15,14 @@ Gem::Specification.new do |s|
     "LICENSE",
     "README.md"
   ]
-  s.files = `git ls-files`.split("\n")
+  s.files = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
   s.homepage = %q{https://github.com/onelogin/ruby-saml}
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.3.7}
   s.required_ruby_version = '>= 1.8.7'
   s.summary = %q{SAML Ruby Tookit}
-  s.test_files = `git ls-files test/*`.split("\n")
+  s.test_files = `git ls-files test/*`.split("\x0")
 
   # Because runtime dependencies are determined at build time, we cannot make
   # Nokogiri's version dependent on the Ruby version, even though we would
@@ -31,6 +31,7 @@ Gem::Specification.new do |s|
     if JRUBY_VERSION < '9.2.0.0'
       s.add_runtime_dependency('nokogiri', '>= 1.8.2', '<= 1.8.5')
       s.add_runtime_dependency('jruby-openssl', '>= 0.9.8')
+      s.add_runtime_dependency('json', '< 2.3.0')
     else
       s.add_runtime_dependency('nokogiri', '>= 1.8.2')
     end
@@ -39,10 +40,12 @@ Gem::Specification.new do |s|
     s.add_runtime_dependency('nokogiri', '<= 1.5.11')
   elsif RUBY_VERSION < '2.1'
     s.add_runtime_dependency('nokogiri', '>= 1.5.10', '<= 1.6.8.1')
+    s.add_runtime_dependency('json', '< 2.3.0')
   elsif RUBY_VERSION < '2.3'
     s.add_runtime_dependency('nokogiri', '>= 1.9.1', '<= 1.10.0')
   else
     s.add_runtime_dependency('nokogiri', '>= 1.10.5')
+    s.add_runtime_dependency('rexml')
   end
 
   s.add_development_dependency('coveralls')

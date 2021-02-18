@@ -212,6 +212,26 @@ class RubySamlTest < Minitest::Test
           assert !response_wrapped.is_valid?
         end
 
+        it "raise when no signature" do
+            settings.idp_cert_fingerprint = signature_fingerprint_1
+            response_no_signed_elements.settings = settings
+            response_no_signed_elements.soft = false
+            error_msg = "Found an unexpected number of Signature Element. SAML Response rejected"
+            assert_raises(OneLogin::RubySaml::ValidationError, error_msg) do
+                response_no_signed_elements.is_valid?
+            end
+        end
+
+        it "raise when multiple signatures" do
+            settings.idp_cert_fingerprint = signature_fingerprint_1
+            response_multiple_signed.settings = settings
+            response_multiple_signed.soft = false
+            error_msg = "Duplicated ID. SAML Response rejected"
+            assert_raises(OneLogin::RubySaml::ValidationError, error_msg) do
+                response_multiple_signed.is_valid?
+            end
+        end
+
         it "validate SAML 2.0 XML structure" do
           resp_xml = Base64.decode64(response_document_unsigned).gsub(/emailAddress/,'test')
           response_unsigned_mod = OneLogin::RubySaml::Response.new(Base64.encode64(resp_xml))
@@ -877,6 +897,7 @@ class RubySamlTest < Minitest::Test
         settings.idp_cert_fingerprint = signature_fingerprint_1
         response.settings = settings
         assert !response.send(:validate_signature)
+        assert_includes response.errors, "Fingerprint mismatch"
         assert_includes response.errors, "Invalid Signature on SAML Response"
       end
 
@@ -897,15 +918,29 @@ class RubySamlTest < Minitest::Test
         assert_includes response_valid_signed.errors, "IdP x509 certificate expired"
       end
 
-      it "return false when no X509Certificate and the cert provided at settings mismatches" do
+      it "return false when X509Certificate and the cert provided at settings mismatches" do
         settings.idp_cert_fingerprint = nil
         settings.idp_cert = signature_1
         response_valid_signed_without_x509certificate.settings = settings
         assert !response_valid_signed_without_x509certificate.send(:validate_signature)
+        assert_includes response_valid_signed_without_x509certificate.errors, "Key validation error"
         assert_includes response_valid_signed_without_x509certificate.errors, "Invalid Signature on SAML Response"
       end
 
-      it "return true when no X509Certificate and the cert provided at settings matches" do
+      it "return false when X509Certificate has invalid content" do
+        settings.idp_cert_fingerprint = nil
+        settings.idp_cert = ruby_saml_cert_text
+        content = read_response('response_with_signed_message_and_assertion.xml')
+        content = content.sub(/<ds:X509Certificate>.*<\/ds:X509Certificate>/,
+                       "<ds:X509Certificate>an-invalid-certificate</ds:X509Certificate>")
+        response_invalid_x509certificate = OneLogin::RubySaml::Response.new(content)
+        response_invalid_x509certificate.settings = settings
+        assert !response_invalid_x509certificate.send(:validate_signature)
+        assert_includes response_invalid_x509certificate.errors, "Document Certificate Error"
+        assert_includes response_invalid_x509certificate.errors, "Invalid Signature on SAML Response"
+      end
+
+      it "return true when X509Certificate and the cert provided at settings matches" do
         settings.idp_cert_fingerprint = nil
         settings.idp_cert = ruby_saml_cert_text
         response_valid_signed_without_x509certificate.settings = settings
@@ -933,7 +968,7 @@ class RubySamlTest < Minitest::Test
           :encryption => []
         }
         response_valid_signed.settings = settings
-        assert response_valid_signed.send(:validate_signature)
+        res = response_valid_signed.send(:validate_signature)
         assert_empty response_valid_signed.errors
       end
 
@@ -945,6 +980,7 @@ class RubySamlTest < Minitest::Test
         }
         response_valid_signed.settings = settings
         assert !response_valid_signed.send(:validate_signature)
+        assert_includes response_valid_signed.errors, "Certificate of the Signature element does not match provided certificate"
         assert_includes response_valid_signed.errors, "Invalid Signature on SAML Response"
       end
     end
@@ -1569,6 +1605,30 @@ class RubySamlTest < Minitest::Test
         it "EncryptionMethod AES-256 && Key Encryption Algorithm RSA-OAEP-MGF1P" do
           unsigned_message_aes256_encrypted_signed_assertion = read_response('unsigned_message_aes256_encrypted_signed_assertion.xml.base64')
           response = OneLogin::RubySaml::Response.new(unsigned_message_aes256_encrypted_signed_assertion, :settings => settings)
+          assert_equal "test", response.attributes[:uid]
+          assert_equal "_ce3d2948b4cf20146dee0a0b3dd6f69b6cf86f62d7", response.nameid
+        end
+
+        it "EncryptionMethod AES-128-GCM && Key Encryption Algorithm RSA-OAEP-MGF1P" do
+          return unless OpenSSL::Cipher.ciphers.include? 'AES-128-GCM'
+          unsigned_message_aes128gcm_encrypted_signed_assertion = read_response('unsigned_message_aes128gcm_encrypted_signed_assertion.xml.base64')
+          response = OneLogin::RubySaml::Response.new(unsigned_message_aes128gcm_encrypted_signed_assertion, :settings => settings)
+          assert_equal "test", response.attributes[:uid]
+          assert_equal "_ce3d2948b4cf20146dee0a0b3dd6f69b6cf86f62d7", response.nameid
+        end
+
+        it "EncryptionMethod AES-192-GCM && Key Encryption Algorithm RSA-OAEP-MGF1P" do
+          return unless OpenSSL::Cipher.ciphers.include? 'AES-192-GCM'
+          unsigned_message_aes192gcm_encrypted_signed_assertion = read_response('unsigned_message_aes192gcm_encrypted_signed_assertion.xml.base64')
+          response = OneLogin::RubySaml::Response.new(unsigned_message_aes192gcm_encrypted_signed_assertion, :settings => settings)
+          assert_equal "test", response.attributes[:uid]
+          assert_equal "_ce3d2948b4cf20146dee0a0b3dd6f69b6cf86f62d7", response.nameid
+        end
+
+        it "EncryptionMethod AES-256-GCM && Key Encryption Algorithm RSA-OAEP-MGF1P" do
+          return unless OpenSSL::Cipher.ciphers.include? 'AES-256-GCM'
+          unsigned_message_aes256gcm_encrypted_signed_assertion = read_response('unsigned_message_aes256gcm_encrypted_signed_assertion.xml.base64')
+          response = OneLogin::RubySaml::Response.new(unsigned_message_aes256gcm_encrypted_signed_assertion, :settings => settings)
           assert_equal "test", response.attributes[:uid]
           assert_equal "_ce3d2948b4cf20146dee0a0b3dd6f69b6cf86f62d7", response.nameid
         end

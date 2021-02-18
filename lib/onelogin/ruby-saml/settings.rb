@@ -31,8 +31,10 @@ module OneLogin
 
       # IdP Data
       attr_accessor :idp_entity_id
-      attr_accessor :idp_sso_target_url
-      attr_accessor :idp_slo_target_url
+
+      attr_accessor :idp_sso_service_url
+      attr_accessor :idp_slo_service_url
+      attr_accessor :idp_slo_response_service_url
       attr_accessor :idp_cert
       attr_accessor :idp_cert_fingerprint
       attr_accessor :idp_cert_fingerprint_algorithm
@@ -69,6 +71,36 @@ module OneLogin
       attr_accessor :assertion_consumer_logout_service_url
       attr_accessor :assertion_consumer_logout_service_binding
       attr_accessor :issuer
+      attr_accessor :idp_sso_target_url
+      attr_accessor :idp_slo_target_url
+
+      # @return [String] IdP Single Sign On Service URL
+      #
+      def idp_sso_service_url
+        val = nil
+        if @idp_sso_service_url.nil?
+          if @idp_sso_target_url
+            val = @idp_sso_target_url
+          end
+        else
+          val = @idp_sso_service_url
+        end
+        val
+      end
+
+      # @return [String] IdP Single Logout Service URL
+      #
+      def idp_slo_service_url
+        val = nil
+        if @idp_slo_service_url.nil?
+          if @idp_slo_target_url
+            val = @idp_slo_target_url
+          end
+        else
+          val = @idp_slo_service_url
+        end
+        val
+      end
 
       # @return [String] SP Entity ID
       #

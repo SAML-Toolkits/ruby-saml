@@ -113,6 +113,16 @@ module OneLogin
       def parse(idp_metadata, options = {})
         parsed_metadata = parse_to_hash(idp_metadata, options)
 
+        unless parsed_metadata[:cache_duration].nil?
+          cache_valid_until_timestamp = OneLogin::RubySaml::Utils.parse_duration(parsed_metadata[:cache_duration])
+          if parsed_metadata[:valid_until].nil? || cache_valid_until_timestamp < Time.parse(parsed_metadata[:valid_until], Time.now.utc).to_i
+            parsed_metadata[:valid_until] = Time.at(cache_valid_until_timestamp).utc.strftime("%Y-%m-%dT%H:%M:%SZ")
+          end
+        end
+        # Remove the cache_duration because on the settings
+        # we only gonna suppot valid_until 
+        parsed_metadata.delete(:cache_duration)
+
         settings = options[:settings]
 
         if settings.nil?
@@ -210,13 +220,15 @@ module OneLogin
           {
             :idp_entity_id => @entity_id,
             :name_identifier_format => idp_name_id_format,
-            :idp_sso_target_url => single_signon_service_url(options),
-            :idp_slo_target_url => single_logout_service_url(options),
+            :idp_sso_service_url => single_signon_service_url(options),
+            :idp_slo_service_url => single_logout_service_url(options),
+            :idp_slo_response_service_url => single_logout_response_service_url(options),
             :idp_attribute_names => attribute_names,
             :idp_cert => nil,
             :idp_cert_fingerprint => nil,
             :idp_cert_multi => nil,
-            :valid_until => valid_until
+            :valid_until => valid_until,
+            :cache_duration => cache_duration,
           }.tap do |response_hash|
             merge_certificates_into(response_hash) unless certificates.nil?
           end
@@ -238,6 +250,13 @@ module OneLogin
         def valid_until
           root = @idpsso_descriptor.root
           root.attributes['validUntil'] if root && root.attributes
+        end
+
+        # @return [String|nil] 'cacheDuration' attribute of metadata
+        #
+        def cache_duration
+          root = @idpsso_descriptor.root
+          root.attributes['cacheDuration'] if root && root.attributes
         end
 
         # @param binding_priority [Array]
@@ -299,6 +318,21 @@ module OneLogin
           node = REXML::XPath.first(
             @idpsso_descriptor,
             "md:SingleLogoutService[@Binding=\"#{binding}\"]/@Location",
+            SamlMetadata::NAMESPACE
+          )
+          return node.value if node
+        end
+
+        # @param options [Hash]
+        # @return [String|nil] SingleLogoutService response url if exists
+        #
+        def single_logout_response_service_url(options = {})
+          binding = single_logout_service_binding(options[:slo_binding])
+          return if binding.nil?
+
+          node = REXML::XPath.first(
+            @idpsso_descriptor,
+            "md:SingleLogoutService[@Binding=\"#{binding}\"]/@ResponseLocation",
             SamlMetadata::NAMESPACE
           )
           return node.value if node

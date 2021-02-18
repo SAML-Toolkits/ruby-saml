@@ -21,6 +21,10 @@ module OneLogin
         @uuid = OneLogin::RubySaml::Utils.uuid
       end
 
+      def request_id
+        @uuid
+      end
+
       # Creates the Logout Request string.
       # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
       # @param params [Hash] Some extra parameters to be added in the GET for example the RelayState
