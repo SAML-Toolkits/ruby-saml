@@ -22,7 +22,6 @@ Gem::Specification.new do |s|
   s.rubygems_version = %q{1.3.7}
   s.required_ruby_version = '>= 1.8.7'
   s.summary = %q{SAML Ruby Tookit}
-  s.test_files = `git ls-files test/*`.split("\x0")
 
   # Because runtime dependencies are determined at build time, we cannot make
   # Nokogiri's version dependent on the Ruby version, even though we would
