@@ -120,9 +120,11 @@ We created a demo project for Rails4 that uses the latest version of this librar
 * 2.5.x
 * 2.6.x
 * 2.7.x
-* JRuby 1.7.19
-* JRuby 9.0.0.0
-* JRuby 9.2.0.0
+* 3.0.x
+* JRuby 1.7.x
+* JRuby 9.0.x
+* JRuby 9.1.x
+* JRuby 9.2.x
 
 ## Adding Features, Pull Requests
 * Fork the repository
