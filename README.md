@@ -4,9 +4,9 @@
 Version `1.12.0` adds support for gcm algorithm and
 change/adds specific error messages for signature validations
 
-idp_sso_target_url and idp_slo_target_url attributes of the Settings class deprecated by idp_sso_service_url and idp_slo_service_url.
-At IDPMetadataParser, parse,parse_to_hash/parse_to_array methods now retrieve SSO URL and SLO URL endpoints as
-idp_sso_service_url and idp_slo_service_url instead idp_sso_target_url and idp_slo_target_url
+`idp_sso_target_url` and `idp_slo_target_url` attributes of the Settings class deprecated in favor of `idp_sso_service_url` and `idp_slo_service_url`.
+In IDPMetadataParser, `parse`, `parse_to_hash` and `parse_to_array` methods now retrieve SSO URL and SLO URL endpoints with
+`idp_sso_service_url` and `idp_slo_service_url` (previously `idp_sso_target_url` and `idp_slo_target_url` respectively).
 
 ## Updating from 1.10.x to 1.11.0
 Version `1.11.0` deprecates the use of `settings.issuer` in favour of `settings.sp_entity_id`.
