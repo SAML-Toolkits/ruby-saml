@@ -10,7 +10,7 @@ class SloLogoutresponseTest < Minitest::Test
 
     before do
       settings.idp_entity_id = 'https://app.onelogin.com/saml/metadata/SOMEACCOUNT'
-      settings.idp_slo_target_url = "http://unauth.com/logout"
+      settings.idp_slo_service_url = "http://unauth.com/logout"
       settings.name_identifier_value = "f00f00"
       settings.compress_request = true
       settings.certificate = ruby_saml_cert_text
