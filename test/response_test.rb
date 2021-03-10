@@ -972,6 +972,16 @@ class RubySamlTest < Minitest::Test
         assert_empty response_valid_signed.errors
       end
 
+      it "return true when at least a cert on idp_cert_multi is valid and keys are strings" do
+        settings.idp_cert_multi = {
+          "signing" => [ruby_saml_cert_text2, ruby_saml_cert_text],
+          "encryption" => []
+        }
+        response_valid_signed.settings = settings
+        res = response_valid_signed.send(:validate_signature)
+        assert_empty response_valid_signed.errors
+      end
+
       it "return false when none cert on idp_cert_multi is valid" do
         settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
         settings.idp_cert_multi = {
