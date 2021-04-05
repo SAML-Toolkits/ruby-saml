@@ -124,7 +124,7 @@ module OneLogin
       def fetch(name)
         attributes.each_key do |attribute_key|
           if name.is_a?(Regexp)
-            if name.method_exists? :match?
+            if name.respond_to? :match?
               return self[attribute_key] if name.match?(attribute_key)
             else 
               return self[attribute_key] if name.match(attribute_key)
