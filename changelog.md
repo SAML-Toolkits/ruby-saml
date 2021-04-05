@@ -1,5 +1,9 @@
 # RubySaml Changelog
 
+### 1.12.1 (Apr 05, 2022)
+* Fix XPath typo incompatible with Rexml 3.2.5
+* Refactor GCM support
+
 ### 1.12.0 (Feb 18, 2021)
 * Support AES-128-GCM, AES-192-GCM, and AES-256-GCM encryptions
 * Parse & return SLO ResponseLocation in IDPMetadataParser & Settings 
