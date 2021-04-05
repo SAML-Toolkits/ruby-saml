@@ -828,7 +828,7 @@ module OneLogin
         # otherwise, review if the decrypted assertion contains a signature
         sig_elements = REXML::XPath.match(
           document,
-          "/p:Response[@ID=$id]/ds:Signature]",
+          "/p:Response[@ID=$id]/ds:Signature",
           { "p" => PROTOCOL, "ds" => DSIG },
           { 'id' => document.signed_element_id }
         )
