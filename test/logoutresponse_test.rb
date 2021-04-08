@@ -225,7 +225,7 @@ class RubySamlTest < Minitest::Test
 
         before do
           settings.soft = true
-          settings.idp_slo_target_url = "http://example.com?field=value"
+          settings.idp_slo_service_url = "http://example.com?field=value"
           settings.security[:logout_responses_signed] = true
           settings.security[:embed_sign] = false
           settings.certificate = ruby_saml_cert_text
@@ -373,7 +373,7 @@ class RubySamlTest < Minitest::Test
 
         before do
           settings.soft = true
-          settings.idp_slo_target_url = "http://example.com?field=value"
+          settings.idp_slo_service_url = "http://example.com?field=value"
           settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
           settings.security[:logout_responses_signed] = true
           settings.security[:embed_sign] = false
