@@ -13,6 +13,7 @@ rvm:
   - jruby-1.7.27
   - jruby-9.1.17.0
   - jruby-9.2.13.0
+  - truffleruby-head
 gemfile:
   - Gemfile
   - gemfiles/nokogiri-1.5.gemfile
@@ -43,6 +44,8 @@ matrix:
     - rvm: 2.7.2
       gemfile: gemfiles/nokogiri-1.5.gemfile
     - rvm: 3.0.0
+      gemfile: gemfiles/nokogiri-1.5.gemfile
+    - rvm: truffleruby-head
       gemfile: gemfiles/nokogiri-1.5.gemfile
 env:
   - JRUBY_OPTS="--debug"
