@@ -37,10 +37,10 @@ module OneLogin
       #                            current time.
       #
       # @return [Integer] The new timestamp, after the duration is applied.
-      # 
+      #
       def self.parse_duration(duration, timestamp=Time.now.utc)
         matches = duration.match(DURATION_FORMAT)
-      
+
         if matches.nil?
           raise Exception.new("Invalid ISO 8601 duration")
         end
@@ -291,7 +291,7 @@ module OneLogin
       # @param algorithm [String]     The encrypted algorithm
       # @return [String] The deciphered text
       def self.retrieve_plaintext(cipher_text, symmetric_key, algorithm)
-        case algorithm
+        case algorithm.downcase
           when 'http://www.w3.org/2001/04/xmlenc#tripledes-cbc' then cipher = OpenSSL::Cipher.new('DES-EDE3-CBC').decrypt
           when 'http://www.w3.org/2001/04/xmlenc#aes128-cbc' then cipher = OpenSSL::Cipher.new('AES-128-CBC').decrypt
           when 'http://www.w3.org/2001/04/xmlenc#aes192-cbc' then cipher = OpenSSL::Cipher.new('AES-192-CBC').decrypt

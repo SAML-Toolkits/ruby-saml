@@ -47,7 +47,6 @@ class UtilsTest < Minitest::Test
       invalid_chained_certificate1 = read_certificate("invalid_chained_certificate1")
       assert_equal formatted_chained_certificate, OneLogin::RubySaml::Utils.format_cert(invalid_chained_certificate1)
     end
-
   end
 
   describe ".format_private_key" do
@@ -157,6 +156,36 @@ class UtilsTest < Minitest::Test
     end
   end
 
+  describe "#retrieve_plaintext" do
+    it "uses the correct cipher with algorithm" do
+      cipher_text = ''
+      symmetric_key = ''
+      algorithm = 'http://www.w3.org/2001/04/xmlenc#aes128-cbc'
+
+      cipher = stub(decrypt: nil)
+
+      OpenSSL::Cipher.expects(:new).with('AES-128-CBC').returns(cipher)
+
+      retrieve_plaintext = OneLogin::RubySaml::Utils.retrieve_plaintext(cipher_text, symmetric_key, algorithm)
+
+      assert_equal '', retrieve_plaintext
+    end
+
+    it "uses the correct cipher with upcase algorithm" do
+      cipher_text = ''
+      symmetric_key = ''
+      algorithm = 'HTTP://WWW.W3.ORG/2009/XMLENC11#AES256-GCM'
+
+      cipher = stub(decrypt: nil)
+
+      OpenSSL::Cipher.expects(:new).with('AES-256-GCM').returns(cipher)
+
+      retrieve_plaintext = OneLogin::RubySaml::Utils.retrieve_plaintext(cipher_text, symmetric_key, algorithm)
+
+      assert_equal '', retrieve_plaintext
+    end
+  end
+
   describe "Utils" do
 
     describe ".uuid" do
@@ -253,7 +282,6 @@ class UtilsTest < Minitest::Test
         element = REXML::Document.new('<element></element>').elements.first
         assert_equal '', OneLogin::RubySaml::Utils.element_text(element)
       end
-
     end
   end
 end
