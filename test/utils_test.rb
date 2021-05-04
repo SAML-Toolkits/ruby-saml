@@ -174,11 +174,11 @@ class UtilsTest < Minitest::Test
     it "uses the correct cipher with upcase algorithm" do
       cipher_text = ''
       symmetric_key = ''
-      algorithm = 'HTTP://WWW.W3.ORG/2009/XMLENC11#AES256-GCM'
+      algorithm = 'http://www.w3.org/2009/xmlenc11#aes256-gcm'
 
       cipher = stub(decrypt: nil)
 
-      OpenSSL::Cipher.expects(:new).with('AES-256-GCM').returns(cipher)
+      OpenSSL::Cipher.expects(:new).with('aes-256-gcm').returns(cipher)
 
       retrieve_plaintext = OneLogin::RubySaml::Utils.retrieve_plaintext(cipher_text, symmetric_key, algorithm)
 
