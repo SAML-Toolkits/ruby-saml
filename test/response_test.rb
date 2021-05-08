@@ -1635,6 +1635,16 @@ class RubySamlTest < Minitest::Test
       end
 
     end
+
+    describe "#status_code" do
+      it 'urn:oasis:names:tc:SAML:2.0:status:Responder' do
+        assert_equal response_statuscode_responder.status_code, 'urn:oasis:names:tc:SAML:2.0:status:Responder'
+      end
+
+      it 'urn:oasis:names:tc:SAML:2.0:status:Requester and urn:oasis:names:tc:SAML:2.0:status:UnsupportedBinding' do
+        assert_equal response_double_statuscode.status_code, 'urn:oasis:names:tc:SAML:2.0:status:Requester | urn:oasis:names:tc:SAML:2.0:status:UnsupportedBinding'
+      end
+    end
     describe "test qualified name id in attributes" do
 
       it "parsed the nameid" do
