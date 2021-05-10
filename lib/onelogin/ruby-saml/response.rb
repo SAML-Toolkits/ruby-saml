@@ -227,11 +227,10 @@ module OneLogin
               statuses = nodes.collect do |inner_node|
                 inner_node.attributes["Value"]
               end
-              extra_code = statuses.join(" | ")
-              if extra_code
-                code = "#{code} | #{extra_code}"
-              end
+
+              code = [code, statuses].flatten.join(" | ")
             end
+
             code
           end
         end
