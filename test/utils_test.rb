@@ -15,6 +15,10 @@ class UtilsTest < Minitest::Test
       # Nominal wraparounds
       "P13M" => "1971-02-01T00:00:00.000Z",
       "P31D" => "1970-02-01T00:00:00.000Z",
+
+      # Decimal seconds
+      "PT0.5S" => "1970-01-01T00:00:00.500Z",
+      "PT0,5S" => "1970-01-01T00:00:00.500Z"
     }
 
     def result(duration, reference = 0)

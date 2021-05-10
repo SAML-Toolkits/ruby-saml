@@ -16,18 +16,18 @@ module OneLogin
       DSIG      = "http://www.w3.org/2000/09/xmldsig#"
       XENC      = "http://www.w3.org/2001/04/xmlenc#"
       DURATION_FORMAT = %r(^
-        (-?)P                         # 1: Duration sign
+        (-?)P                       # 1: Duration sign
         (?:
-          (?:(\d+)Y)?                 # 2: Years
-          (?:(\d+)M)?                 # 3: Months
-          (?:(\d+)D)?                 # 4: Days
+          (?:(\d+)Y)?               # 2: Years
+          (?:(\d+)M)?               # 3: Months
+          (?:(\d+)D)?               # 4: Days
           (?:T
-            (?:(\d+)H)?               # 5: Hours
-            (?:(\d+)M)?               # 6: Minutes
-            (?:(\d+)S)?   # 7: Seconds and optional milliseconds
+            (?:(\d+)H)?             # 5: Hours
+            (?:(\d+)M)?             # 6: Minutes
+            (?:(\d+(?:[.,]\d+)?)S)? # 7: Seconds
           )?
           |
-          (\d+)W                      # 8: Weeks
+          (\d+)W                    # 8: Weeks
         )
       $)x
 
@@ -59,13 +59,8 @@ module OneLogin
           raise Exception.new("Invalid ISO 8601 duration")
         end
 
-        durYears = matches[2].to_i
-        durMonths = matches[3].to_i
-        durDays = matches[4].to_i
-        durHours = matches[5].to_i
-        durMinutes = matches[6].to_i
-        durSeconds = matches[7].to_f
-        durWeeks = matches[8].to_i
+        durYears, durMonths, durDays, durHours, durMinutes, durSeconds, durWeeks =
+          matches[2..8].map { |match| match ? match.tr(',', '.').to_f : 0.0 }
 
         if matches[1] == "-"
           durYears = -durYears
