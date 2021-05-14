@@ -254,6 +254,12 @@ class UtilsTest < Minitest::Test
         assert_equal '', OneLogin::RubySaml::Utils.element_text(element)
       end
 
+      describe 'duration_parse' do
+        it 'matches duration with fractional seconds' do
+          duration = "P0Y0M30DT0H0M0.000S"
+          assert OneLogin::RubySaml::Utils.parse_duration(duration)
+        end
+      end
     end
   end
 end
