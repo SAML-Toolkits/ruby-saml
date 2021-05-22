@@ -1,9 +1,9 @@
 # RubySaml Changelog
 
-### 1.12.2 (Apr 08, 2022)
+### 1.12.2 (Apr 08, 2021)
 * [575](https://github.com/onelogin/ruby-saml/pull/575) Fix SloLogoutresponse bug on LogoutRequest
 
-### 1.12.1 (Apr 05, 2022)
+### 1.12.1 (Apr 05, 2021)
 * Fix XPath typo incompatible with Rexml 3.2.5
 * Refactor GCM support
 
