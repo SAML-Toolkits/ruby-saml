@@ -11,6 +11,10 @@ module OneLogin
 
     # Auxiliary class to retrieve and parse the Identity Provider Metadata
     #
+    # This class does not validate in any way the URL that is introduced,
+    # make sure to validate it properly before use it in a parse_remote method.
+    # Read the `Security warning` section of the README.md file to get more info
+    #
     class IdpMetadataParser
 
       module SamlMetadata

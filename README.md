@@ -152,6 +152,10 @@ can create an XML External Entity (XXE) vulnerability if the XML data is not tru
 However, ruby-saml never enables this dangerous Nokogiri configuration;
 ruby-saml never enables DTDLOAD, and it never disables NONET.
 
+The OneLogin::RubySaml::IdpMetadataParser class does not validate in any way the URL that is introduced in order to be parsed. Usually is the same administrator that handles the Service Provider the ones that set the URL that should belong to a trusted third-party IdPs.
+But there are other scenarios, like a SAAS app where the administrator of the app delegates on other administrators. In such case, extra protection should be taken in order to validate such URL inputs and avoid attacks like SSRF, that could be prevented with the use of the [ssrf_filter](https://rubygems.org/gems/ssrf_filter) gem.
+
+
 
 ## Getting Started
 In order to use the toolkit you will need to install the gem (either manually or using Bundler), and require the library in your Ruby application:
