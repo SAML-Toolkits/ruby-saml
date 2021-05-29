@@ -376,7 +376,6 @@ module OneLogin
         return false unless validate_response_state
 
         validations = [
-          :validate_response_state,
           :validate_version,
           :validate_id,
           :validate_success_status,
