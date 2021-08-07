@@ -821,3 +821,27 @@ end
 ```
 
 The `attribute_value` option additionally accepts an array of possible values.
+
+## Custom Metadata Fields
+
+Some IdPs may require to add SPs to add additional fields (Organization, ContactPerson, etc.)
+into the SP metadata. This can be acheived by extending the `OneLogin::RubySaml::Metadata`
+class and overriding the `#add_extras` method as per the following example:
+
+```ruby
+class MyMetadata < OneLogin::RubySaml::Metadata
+  def add_extras(root, _settings)
+    org = root.add_element("md:Organization")
+    org.add_element("md:OrganizationName", 'xml:lang' => "en-US").text = 'ACME Inc.'
+    org.add_element("md:OrganizationDisplayName", 'xml:lang' => "en-US").text = 'ACME'
+    org.add_element("md:OrganizationURL", 'xml:lang' => "en-US").text = 'https://www.acme.com'
+
+    cp = root.add_element("md:ContactPerson", 'contactType' => 'technical')
+    cp.add_element("md:GivenName").text = 'ACME SAML Team'
+    cp.add_element("md:EmailAddress").text = 'saml@acme.com'
+  end
+end
+
+# Output XML with custom metadata
+MyMetadata.new.generate(settings)
+```
