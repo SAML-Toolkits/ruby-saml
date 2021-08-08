@@ -693,12 +693,12 @@ module OneLogin
         now = Time.now.utc
 
         if not_before && now < (not_before - allowed_clock_drift)
-          error_msg = "Current time is earlier than NotBefore condition (#{now} < #{not_before}#{" - #{allowed_clock_drift.ceil}s" if allowed_clock_drift > 0})")
+          error_msg = "Current time is earlier than NotBefore condition (#{now} < #{not_before}#{" - #{allowed_clock_drift.ceil}s" if allowed_clock_drift > 0})"
           return append_error(error_msg)
         end
 
         if not_on_or_after && now >= (not_on_or_after + allowed_clock_drift)
-          error_msg = "Current time is on or after NotOnOrAfter condition (#{now} >= #{not_on_or_after}#{" + #{allowed_clock_drift.ceil}s" if allowed_clock_drift > 0})")
+          error_msg = "Current time is on or after NotOnOrAfter condition (#{now} >= #{not_on_or_after}#{" + #{allowed_clock_drift.ceil}s" if allowed_clock_drift > 0})"
           return append_error(error_msg)
         end
 
