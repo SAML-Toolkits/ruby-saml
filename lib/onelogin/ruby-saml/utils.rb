@@ -59,18 +59,10 @@ module OneLogin
           raise Exception.new("Invalid ISO 8601 duration")
         end
 
-        durYears, durMonths, durDays, durHours, durMinutes, durSeconds, durWeeks =
-          matches[2..8].map { |match| match ? match.tr(',', '.').to_f : 0.0 }
+        sign = matches[1] == '-' ? -1 : 1
 
-        if matches[1] == "-"
-          durYears = -durYears
-          durMonths = -durMonths
-          durDays = -durDays
-          durHours = -durHours
-          durMinutes = -durMinutes
-          durSeconds = -durSeconds
-          durWeeks = -durWeeks
-        end
+        durYears, durMonths, durDays, durHours, durMinutes, durSeconds, durWeeks =
+          matches[2..8].map { |match| match ? sign * match.tr(',', '.').to_f : 0.0 }
 
         initial_datetime = Time.at(timestamp).utc.to_datetime
         final_datetime = initial_datetime.next_year(durYears)
