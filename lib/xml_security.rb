@@ -161,10 +161,10 @@ module XMLSecurity
       # add the signature
       issuer_element = self.elements["//saml:Issuer"]
       if issuer_element
-        self.root.insert_after issuer_element, signature_element
+        self.root.insert_after(issuer_element, signature_element)
       else
-        if sp_sso_descriptor = self.elements["/md:EntityDescriptor"]
-          self.root.insert_before sp_sso_descriptor, signature_element
+        if sp_sso_descriptor = self.elements["/md:EntityDescriptor/md:SPSSODescriptor"]
+          self.root.insert_before(sp_sso_descriptor, signature_element)
         else
           self.root.add_element(signature_element)
         end
