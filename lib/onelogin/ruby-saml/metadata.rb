@@ -154,6 +154,7 @@ module OneLogin
         return unless settings.security[:metadata_signed] && settings.private_key && settings.certificate
 
         private_key = settings.get_sp_key
+        cert = settings.get_sp_cert
         meta_doc.sign_document(private_key, cert, settings.security[:signature_method], settings.security[:digest_method])
       end
 
