@@ -151,10 +151,12 @@ module OneLogin
       end
 
       def embed_signature(meta_doc, settings)
-        return unless settings.security[:metadata_signed] && settings.private_key && settings.certificate
+        return unless settings.security[:metadata_signed]
 
         private_key = settings.get_sp_key
         cert = settings.get_sp_cert
+        return unless private_key && cert
+
         meta_doc.sign_document(private_key, cert, settings.security[:signature_method], settings.security[:digest_method])
       end
 
