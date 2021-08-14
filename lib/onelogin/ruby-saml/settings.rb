@@ -31,9 +31,8 @@ module OneLogin
 
       # IdP Data
       attr_accessor :idp_entity_id
-
-      attr_accessor :idp_sso_service_url
-      attr_accessor :idp_slo_service_url
+      attr_writer   :idp_sso_service_url
+      attr_writer   :idp_slo_service_url
       attr_accessor :idp_slo_response_service_url
       attr_accessor :idp_cert
       attr_accessor :idp_cert_fingerprint
@@ -43,8 +42,10 @@ module OneLogin
       attr_accessor :idp_name_qualifier
       attr_accessor :valid_until
       # SP Data
+      attr_writer   :sp_entity_id
       attr_accessor :assertion_consumer_service_url
-      attr_accessor :assertion_consumer_service_binding
+      attr_reader   :assertion_consumer_service_binding
+      attr_writer   :single_logout_service_url
       attr_accessor :sp_name_qualifier
       attr_accessor :name_identifier_format
       attr_accessor :name_identifier_value
@@ -54,7 +55,7 @@ module OneLogin
       attr_accessor :compress_response
       attr_accessor :double_quote_xml_attribute_values
       attr_accessor :passive
-      attr_accessor :protocol_binding
+      attr_reader   :protocol_binding
       attr_accessor :attributes_index
       attr_accessor :force_authn
       attr_accessor :certificate
@@ -67,9 +68,9 @@ module OneLogin
       # Work-flow
       attr_accessor :security
       attr_accessor :soft
-      # Compability
+      # Deprecated
       attr_accessor :assertion_consumer_logout_service_url
-      attr_accessor :assertion_consumer_logout_service_binding
+      attr_reader   :assertion_consumer_logout_service_binding
       attr_accessor :issuer
       attr_accessor :idp_sso_target_url
       attr_accessor :idp_slo_target_url
@@ -77,94 +78,89 @@ module OneLogin
       # @return [String] IdP Single Sign On Service URL
       #
       def idp_sso_service_url
-        val = nil
-        if @idp_sso_service_url.nil?
-          if @idp_sso_target_url
-            val = @idp_sso_target_url
-          end
-        else
-          val = @idp_sso_service_url
-        end
-        val
+        @idp_sso_service_url || @idp_sso_target_url
       end
 
       # @return [String] IdP Single Logout Service URL
       #
       def idp_slo_service_url
-        val = nil
-        if @idp_slo_service_url.nil?
-          if @idp_slo_target_url
-            val = @idp_slo_target_url
-          end
-        else
-          val = @idp_slo_service_url
-        end
-        val
+        @idp_slo_service_url || @idp_slo_target_url
+      end
+
+      # @return [String] IdP Single Sign On Service Binding
+      #
+      def idp_sso_service_binding
+        @idp_sso_service_binding || idp_binding_from_embed_sign
+      end
+
+      # Setter for IdP Single Sign On Service Binding
+      # @param value [String, Symbol].
+      #
+      def idp_sso_service_binding=(value)
+        @idp_sso_service_binding = get_binding(value)
+      end
+
+      # @return [String] IdP Single Logout Service Binding
+      #
+      def idp_slo_service_binding
+        @idp_slo_service_binding || idp_binding_from_embed_sign
+      end
+
+      # Setter for IdP Single Logout Service Binding
+      # @param value [String, Symbol].
+      #
+      def idp_slo_service_binding=(value)
+        @idp_slo_service_binding = get_binding(value)
       end
 
       # @return [String] SP Entity ID
       #
       def sp_entity_id
-        val = nil
-        if @sp_entity_id.nil?
-          if @issuer
-            val = @issuer
-          end
-        else
-          val = @sp_entity_id
-        end
-        val
+        @sp_entity_id || @issuer
       end
 
-      # Setter for SP Entity ID.
-      # @param val [String].
+      # Setter for SP Protocol Binding
+      # @param value [String, Symbol].
       #
-      def sp_entity_id=(val)
-        @sp_entity_id = val
+      def protocol_binding=(value)
+        @protocol_binding = get_binding(value)
+      end
+
+      # Setter for SP Assertion Consumer Service Binding
+      # @param value [String, Symbol].
+      #
+      def assertion_consumer_service_binding=(value)
+        @assertion_consumer_service_binding = get_binding(value)
       end
 
       # @return [String] Single Logout Service URL.
       #
       def single_logout_service_url
-        val = nil
-        if @single_logout_service_url.nil?
-          if @assertion_consumer_logout_service_url
-            val = @assertion_consumer_logout_service_url
-          end
-        else
-          val = @single_logout_service_url
-        end
-        val
-      end
-
-      # Setter for the Single Logout Service URL.
-      # @param url [String].
-      #
-      def single_logout_service_url=(url)
-        @single_logout_service_url = url
+        @single_logout_service_url || @assertion_consumer_logout_service_url
       end
 
       # @return [String] Single Logout Service Binding.
       #
       def single_logout_service_binding
-        val = nil
-        if @single_logout_service_binding.nil?
-          if @assertion_consumer_logout_service_binding
-            val = @assertion_consumer_logout_service_binding
-          end
-        else
-          val = @single_logout_service_binding
-        end
-        val
+        @single_logout_service_binding || @assertion_consumer_logout_service_binding
       end
 
       # Setter for Single Logout Service Binding.
       #
       # (Currently we only support "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect")
-      # @param url [String]
+      # @param value [String, Symbol]
       #
-      def single_logout_service_binding=(url)
-        @single_logout_service_binding = url
+      def single_logout_service_binding=(value)
+        @single_logout_service_binding = get_binding(value)
+      end
+
+      # @deprecated Setter for legacy Single Logout Service Binding parameter.
+      #
+      # (Currently we only support "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect")
+      # @param value [String, Symbol]
+      #
+      def assertion_consumer_logout_service_binding=(value)
+        @assertion_consumer_logout_service_binding = get_binding(value)
       end
 
       # Calculates the fingerprint of the IdP x509 certificate.
@@ -252,9 +248,19 @@ module OneLogin
 
       private
 
+      def idp_binding_from_embed_sign
+        security[:embed_sign] ? Utils::BINDINGS[:post] : Utils::BINDINGS[:redirect]
+      end
+
+      def get_binding(value)
+        return unless value
+
+        Utils::BINDINGS[value.to_sym] || value
+      end
+
       DEFAULTS = {
-        :assertion_consumer_service_binding        => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST".freeze,
-        :single_logout_service_binding             => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect".freeze,
+        :assertion_consumer_service_binding        => Utils::BINDINGS[:post],
+        :single_logout_service_binding             => Utils::BINDINGS[:redirect],
         :idp_cert_fingerprint_algorithm            => XMLSecurity::Document::SHA1,
         :compress_request                          => true,
         :compress_response                         => true,
@@ -268,7 +274,7 @@ module OneLogin
           :want_assertions_encrypted  => false,
           :want_name_id               => false,
           :metadata_signed            => false,
-          :embed_sign                 => false,
+          :embed_sign                 => false, # Deprecated
           :digest_method              => XMLSecurity::Document::SHA1,
           :signature_method           => XMLSecurity::Document::RSA_SHA1,
           :check_idp_cert_expiration  => false,

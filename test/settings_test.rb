@@ -14,23 +14,66 @@ class SettingsTest < Minitest::Test
       accessors = [
         :idp_entity_id, :idp_sso_target_url, :idp_sso_service_url, :idp_slo_target_url, :idp_slo_service_url, :valid_until,
         :idp_cert, :idp_cert_fingerprint, :idp_cert_fingerprint_algorithm, :idp_cert_multi,
-        :idp_attribute_names, :issuer, :assertion_consumer_service_url, :assertion_consumer_service_binding,
-        :single_logout_service_url, :single_logout_service_binding,
+        :idp_attribute_names, :issuer, :assertion_consumer_service_url, :single_logout_service_url,
         :sp_name_qualifier, :name_identifier_format, :name_identifier_value, :name_identifier_value_requested,
         :sessionindex, :attributes_index, :passive, :force_authn,
-        :compress_request, :double_quote_xml_attribute_values, :protocol_binding,
+        :compress_request, :double_quote_xml_attribute_values,
         :security, :certificate, :private_key,
         :authn_context, :authn_context_comparison, :authn_context_decl_ref,
-        :assertion_consumer_logout_service_url,
-        :assertion_consumer_logout_service_binding
+        :assertion_consumer_logout_service_url
       ]
 
       accessors.each do |accessor|
         value = Kernel.rand
         @settings.send("#{accessor}=".to_sym, value)
         assert_equal value, @settings.send(accessor)
-      end
 
+        @settings.send("#{accessor}=".to_sym, nil)
+        assert_nil @settings.send(accessor)
+      end
+    end
+
+    it "should provide getters and settings for binding parameters" do
+      accessors = [
+        :protocol_binding, :assertion_consumer_service_binding,
+        :single_logout_service_binding, :assertion_consumer_logout_service_binding
+      ]
+
+      accessors.each do |accessor|
+        value = Kernel.rand.to_s
+        @settings.send("#{accessor}=".to_sym, value)
+        assert_equal value, @settings.send(accessor)
+
+        @settings.send("#{accessor}=".to_sym, :redirect)
+        assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", @settings.send(accessor)
+
+        @settings.send("#{accessor}=".to_sym, :post)
+        assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST", @settings.send(accessor)
+      end
+    end
+
+    it "idp_sso/slo_service_binding should fallback to :embed_sign inferred value" do
+      accessors = [:idp_sso_service_binding, :idp_slo_service_binding]
+
+      accessors.each do |accessor|
+        @settings.security[:embed_sign] = true
+
+        value = Kernel.rand.to_s
+        @settings.send("#{accessor}=".to_sym, value)
+        assert_equal value, @settings.send(accessor)
+
+        @settings.send("#{accessor}=".to_sym, :redirect)
+        assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", @settings.send(accessor)
+
+        @settings.send("#{accessor}=".to_sym, :post)
+        assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST", @settings.send(accessor)
+
+        @settings.send("#{accessor}=".to_sym, nil)
+        assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST", @settings.send(accessor)
+
+        @settings.security[:embed_sign] = false
+        assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", @settings.send(accessor)
+      end
     end
 
     it "create settings from hash" do
@@ -39,7 +82,9 @@ class SettingsTest < Minitest::Test
           :issuer => "http://muda.no",
           :sp_name_qualifier => "http://sso.muda.no",
           :idp_sso_service_url => "http://sso.muda.no/sso",
+          :idp_sso_service_binding => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
           :idp_slo_service_url => "http://sso.muda.no/slo",
+          :idp_slo_service_binding => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
           :idp_cert_fingerprint => "00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00",
           :valid_until => '2029-04-16T03:35:08.277Z',
           :name_identifier_format => "urn:oasis:names:tc:SAML:2.0:nameid-format:transient",
@@ -257,17 +302,13 @@ class SettingsTest < Minitest::Test
       it "raises when the certificate is not valid" do
         # formatted but invalid cert
         @settings.certificate = read_certificate("formatted_certificate")
-        assert_raises(OpenSSL::X509::CertificateError) {
-          @settings.get_sp_cert
-        }
+        assert_raises(OpenSSL::X509::CertificateError) { @settings.get_sp_cert }
       end
 
       it "raises an error if SP certificate expired and check_sp_cert_expiration enabled" do
         @settings.certificate = ruby_saml_cert_text
         @settings.security[:check_sp_cert_expiration] = true
-        assert_raises(OneLogin::RubySaml::ValidationError) {
-          settings.get_sp_cert
-        }
+        assert_raises(OneLogin::RubySaml::ValidationError) { @settings.get_sp_cert }
       end
     end
 
