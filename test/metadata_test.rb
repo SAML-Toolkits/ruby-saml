@@ -314,6 +314,7 @@ class MetadataTest < Minitest::Test
         assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>]m, xml_text
         assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], xml_text
         assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2000/09/xmldsig#sha1'/>], xml_text
+
         signed_metadata = XMLSecurity::SignedDocument.new(xml_text)
         assert signed_metadata.validate_document(ruby_saml_cert_fingerprint, false)
 
@@ -331,9 +332,51 @@ class MetadataTest < Minitest::Test
           assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], xml_text
           assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmlenc#sha512'/>], xml_text
 
-          signed_metadata_2 = XMLSecurity::SignedDocument.new(xml_text)
+          signed_metadata = XMLSecurity::SignedDocument.new(xml_text)
+          assert signed_metadata.validate_document(ruby_saml_cert_fingerprint, false)
 
-          assert signed_metadata_2.validate_document(ruby_saml_cert_fingerprint, false)
+          assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
+        end
+      end
+
+      describe "when custom metadata elements have been inserted" do
+        let(:xml_text) { subclass.new.generate(settings, false) }
+        let(:subclass) do
+          Class.new(OneLogin::RubySaml::Metadata) do
+            def add_extras(root, _settings)
+              idp = REXML::Element.new("md:IDPSSODescriptor")
+              idp.attributes['protocolSupportEnumeration'] = 'urn:oasis:names:tc:SAML:2.0:protocol'
+
+              nid = REXML::Element.new("md:NameIDFormat")
+              nid.text = 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress'
+              idp.add_element(nid)
+
+              sso = REXML::Element.new("md:SingleSignOnService")
+              sso.attributes['Binding'] = 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'
+              sso.attributes['Location'] = 'https://foobar.com/sso'
+              idp.add_element(sso)
+              root.insert_before(root.children[0], idp)
+
+              org = REXML::Element.new("md:Organization")
+              org.add_element("md:OrganizationName", 'xml:lang' => "en-US").text = 'ACME Inc.'
+              org.add_element("md:OrganizationDisplayName", 'xml:lang' => "en-US").text = 'ACME'
+              org.add_element("md:OrganizationURL", 'xml:lang' => "en-US").text = 'https://www.acme.com'
+              root.insert_after(root.children[3], org)
+            end
+          end
+        end
+
+        it "inserts signature as the first child of root element" do
+          first_child = xml_doc.root.children[0]
+          assert_equal first_child.prefix, 'ds'
+          assert_equal first_child.name, 'Signature'
+
+          assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>]m, xml_text
+          assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], xml_text
+          assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2000/09/xmldsig#sha1'/>], xml_text
+
+          signed_metadata = XMLSecurity::SignedDocument.new(xml_text)
+          assert signed_metadata.validate_document(ruby_saml_cert_fingerprint, false)
 
           assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
         end
