@@ -94,7 +94,7 @@ class RequestTest < Minitest::Test
       end
     end
 
-    describe "when the settings indicate logout request with HTTP-POST binding" do
+    describe "signing with HTTP-POST binding" do
 
       before do
         settings.security[:logout_requests_signed] = true
@@ -177,7 +177,7 @@ class RequestTest < Minitest::Test
       end
     end
 
-    describe "when the settings indicate logout request with HTTP-Redirect binding" do
+    describe "signing with HTTP-Redirect binding" do
 
       let(:cert) { OpenSSL::X509::Certificate.new(ruby_saml_cert_text) }
 
@@ -256,8 +256,7 @@ class RequestTest < Minitest::Test
       end
     end
 
-
-    describe "DEPRECATED: when the settings indicate logout request with HTTP-POST binding using security[:embed_sign]" do
+    describe "DEPRECATED: signing with HTTP-POST binding via :embed_sign" do
 
       before do
         # sign the logout request
@@ -280,7 +279,7 @@ class RequestTest < Minitest::Test
       end
     end
 
-    describe "DEPRECATED: when the settings indicate logout request with HTTP-Redirect binding using security[:embed_sign]" do
+    describe "DEPRECATED: signing with HTTP-Redirect binding via :embed_sign" do
 
       let(:cert) { OpenSSL::X509::Certificate.new(ruby_saml_cert_text) }
 

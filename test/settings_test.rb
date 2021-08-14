@@ -49,6 +49,9 @@ class SettingsTest < Minitest::Test
 
         @settings.send("#{accessor}=".to_sym, :post)
         assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST", @settings.send(accessor)
+
+        @settings.send("#{accessor}=".to_sym, nil)
+        assert_nil @settings.send(accessor)
       end
     end
 
