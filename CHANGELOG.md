@@ -1,4 +1,4 @@
-# RubySaml Changelog
+# Ruby SAML Changelog
 
 ### 1.12.2 (Apr 08, 2021)
 * [575](https://github.com/onelogin/ruby-saml/pull/575) Fix SloLogoutresponse bug on LogoutRequest
