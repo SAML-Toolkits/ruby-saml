@@ -421,10 +421,10 @@ module OneLogin
                 parsed_metadata[:idp_cert_fingerprint_algorithm]
               )
             end
-          else
-            # symbolize keys of certificates and pass it on
-            parsed_metadata[:idp_cert_multi] = Hash[certificates.map { |k, v| [k.to_sym, v] }]
           end
+
+          # symbolize keys of certificates and pass it on
+          parsed_metadata[:idp_cert_multi] = Hash[certificates.map { |k, v| [k.to_sym, v] }]
         end
 
         def certificates_has_one(key)
