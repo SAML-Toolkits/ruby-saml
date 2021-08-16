@@ -354,6 +354,7 @@ class IdpMetadataParserTest < Minitest::Test
     end
 
     it "if no ValidUntil but CacheDuration return CacheDuration converted in ValidUntil" do
+      return if RUBY_VERSION < '1.9'
       Timecop.freeze(Time.parse("2020-01-02T10:02:33Z", Time.now.utc)) do
         settings = @idp_metadata_parser.parse(idp_metadata_descriptor5)
         assert_equal '2020-01-03T10:02:33Z', settings.valid_until
@@ -361,6 +362,8 @@ class IdpMetadataParserTest < Minitest::Test
     end
 
     it "if ValidUntil and CacheDuration return the sooner timestamp" do
+      return if RUBY_VERSION < '1.9'
+
       Timecop.freeze(Time.parse("2020-01-01T10:12:55Z", Time.now.utc)) do
         settings = @idp_metadata_parser.parse(idp_metadata_descriptor6)
         assert_equal '2020-01-03T10:12:55Z', settings.valid_until
@@ -585,7 +588,7 @@ QOPR6cEwFZzP0tHTYbI839WgxX6hfhIUTUz6mLqq4+3P4BG3+1OXeVDg63y8Uh78
     it "should return idp_cert and idp_cert_fingerprint and no idp_cert_multi" do
       assert_equal(expected_cert, @settings.idp_cert)
       assert_equal("2D:A9:40:88:28:EE:67:BB:4A:5B:E0:58:A7:CC:71:95:2D:1B:C9:D3", @settings.idp_cert_fingerprint)
-      assert_equal({ signing: [expected_cert], encryption: [expected_cert] }, @settings.idp_cert_multi)
+      assert_equal({ :signing => [expected_cert], :encryption => [expected_cert] }, @settings.idp_cert_multi)
       assert_equal("https://app.onelogin.com/saml/metadata/383123", @settings.idp_entity_id)
       assert_equal("urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress", @settings.name_identifier_format)
       assert_equal("https://app.onelogin.com/trust/saml2/http-post/sso/383123", @settings.idp_sso_service_url)
