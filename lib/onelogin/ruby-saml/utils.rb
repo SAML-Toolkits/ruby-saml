@@ -13,8 +13,8 @@ module OneLogin
     class Utils
       @@uuid_generator = UUID.new if RUBY_VERSION < '1.9'
 
-      BINDINGS = { post: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST".freeze,
-                   redirect: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect".freeze }.freeze
+      BINDINGS = { :post => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST".freeze,
+                   :redirect => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect".freeze }.freeze
       DSIG = "http://www.w3.org/2000/09/xmldsig#".freeze
       XENC = "http://www.w3.org/2001/04/xmlenc#".freeze
       DURATION_FORMAT = %r(^
@@ -55,6 +55,8 @@ module OneLogin
       # @return [Integer] The new timestamp, after the duration is applied.
       #
       def self.parse_duration(duration, timestamp=Time.now.utc)
+        return nil if RUBY_VERSION < '1.9'  # 1.8.7 not supported
+
         matches = duration.match(DURATION_FORMAT)
 
         if matches.nil?
