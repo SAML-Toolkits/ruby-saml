@@ -532,8 +532,8 @@ WQO0LPxPqRiUqUzyhDhLo/xXNrHCu4VbMw==", "MIICZDCCAc2gAwIBAgIBADANBgkqhkiG9w0BAQ0F
       @settings = @idp_metadata_parser.parse(@idp_metadata)
     end
 
-    it "should return idp_cert and idp_cert_fingerprint and no idp_cert_multi" do
-      assert_equal "MIIEHjCCAwagAwIBAgIBATANBgkqhkiG9w0BAQUFADBnMQswCQYDVQQGEwJVUzET
+    let(:expected_cert) do
+      "MIIEHjCCAwagAwIBAgIBATANBgkqhkiG9w0BAQUFADBnMQswCQYDVQQGEwJVUzET
 MBEGA1UECAwKQ2FsaWZvcm5pYTEVMBMGA1UEBwwMU2FudGEgTW9uaWNhMREwDwYD
 VQQKDAhPbmVMb2dpbjEZMBcGA1UEAwwQYXBwLm9uZWxvZ2luLmNvbTAeFw0xMzA2
 MDUxNzE2MjBaFw0xODA2MDUxNzE2MjBaMGcxCzAJBgNVBAYTAlVTMRMwEQYDVQQI
@@ -555,13 +555,17 @@ gG/4oKLJ5UwRFxInqpZPnOAudVNnd0PYOODn9FWs6u+OTIQIaIcPUv3MhB9lwHIJ
 sTk/bs9xcru5TPyLIxLLd6ib/pRceKH2mTkzUd0DYk9CQNXXeoGx/du5B9nh3ClP
 TbVakRzl3oswgI5MQIphYxkW70SopEh4kOFSRE1ND31NNIq1YrXlgtkguQBFsZWu
 QOPR6cEwFZzP0tHTYbI839WgxX6hfhIUTUz6mLqq4+3P4BG3+1OXeVDg63y8Uh78
-1sE=", @settings.idp_cert
-      assert_equal "2D:A9:40:88:28:EE:67:BB:4A:5B:E0:58:A7:CC:71:95:2D:1B:C9:D3", @settings.idp_cert_fingerprint
-      assert_nil @settings.idp_cert_multi
-      assert_equal "https://app.onelogin.com/saml/metadata/383123", @settings.idp_entity_id
-      assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress", @settings.name_identifier_format
-      assert_equal "https://app.onelogin.com/trust/saml2/http-post/sso/383123", @settings.idp_sso_service_url
-      assert_nil @settings.idp_slo_service_url
+1sE="
+    end
+
+    it "should return idp_cert and idp_cert_fingerprint and no idp_cert_multi" do
+      assert_equal(expected_cert, @settings.idp_cert)
+      assert_equal("2D:A9:40:88:28:EE:67:BB:4A:5B:E0:58:A7:CC:71:95:2D:1B:C9:D3", @settings.idp_cert_fingerprint)
+      assert_equal({ signing: [expected_cert], encryption: [expected_cert] }, @settings.idp_cert_multi)
+      assert_equal("https://app.onelogin.com/saml/metadata/383123", @settings.idp_entity_id)
+      assert_equal("urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress", @settings.name_identifier_format)
+      assert_equal("https://app.onelogin.com/trust/saml2/http-post/sso/383123", @settings.idp_sso_service_url)
+      assert_nil(@settings.idp_slo_service_url)
     end
   end
 
@@ -638,7 +642,6 @@ WQO0LPxPqRiUqUzyhDhLo/xXNrHCu4VbMw=="]
 
       settings = idp_metadata_parser.parse(idp_different_slo_response_location)
 
-
       assert_equal "https://hello.example.com/access/saml/logout", settings.idp_slo_service_url
       assert_equal "https://hello.example.com/access/saml/logout/return", settings.idp_slo_response_service_url
     end
@@ -647,7 +650,6 @@ WQO0LPxPqRiUqUzyhDhLo/xXNrHCu4VbMw=="]
       idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
 
       settings = idp_metadata_parser.parse(idp_without_slo_response_location)
-
 
       assert_equal "https://hello.example.com/access/saml/logout", settings.idp_slo_service_url
       assert_nil settings.idp_slo_response_service_url
