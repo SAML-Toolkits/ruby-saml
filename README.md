@@ -2,8 +2,6 @@
 [![Build Status](https://github.com/onelogin/ruby-saml/actions/workflows/test.yml/badge.svg?query=branch%3Amaster)](https://github.com/onelogin/ruby-saml/actions/workflows/test.yml?query=branch%3Amaster)
 [![Coverage Status](https://coveralls.io/repos/onelogin/ruby-saml/badge.svg?branch=master)](https://coveralls.io/r/onelogin/ruby-saml?branch=master)
 
-## Breaking Changes
-
 Ruby SAML minor and tiny versions may introduce breaking changes. Please read
 [UPGRADING.md](UPGRADING.md) for guidance on upgrading to new Ruby SAML versions.
 
@@ -208,8 +206,10 @@ def saml_settings
   settings.assertion_consumer_service_url = "http://#{request.host}/saml/consume"
   settings.sp_entity_id                   = "http://#{request.host}/saml/metadata"
   settings.idp_entity_id                  = "https://app.onelogin.com/saml/metadata/#{OneLoginAppId}"
-  settings.idp_sso_service_url             = "https://app.onelogin.com/trust/saml2/http-post/sso/#{OneLoginAppId}"
-  settings.idp_slo_service_url             = "https://app.onelogin.com/trust/saml2/http-redirect/slo/#{OneLoginAppId}"
+  settings.idp_sso_service_url            = "https://app.onelogin.com/trust/saml2/http-post/sso/#{OneLoginAppId}"
+  settings.idp_sso_service_binding        = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" # or :post, :redirect
+  settings.idp_slo_service_url            = "https://app.onelogin.com/trust/saml2/http-redirect/slo/#{OneLoginAppId}"
+  settings.idp_slo_service_binding        = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" # or :post, :redirect
   settings.idp_cert_fingerprint           = OneLoginAppCertFingerPrint
   settings.idp_cert_fingerprint_algorithm = "http://www.w3.org/2000/09/xmldsig#sha1"
   settings.name_identifier_format         = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
@@ -222,9 +222,9 @@ def saml_settings
     "urn:oasis:names:tc:SAML:2.0:ac:classes:Password"
   ]
 
-  # Optional bindings (defaults to Redirect for logout POST for acs)
-  settings.single_logout_service_binding      = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
-  settings.assertion_consumer_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+  # Optional bindings (defaults to Redirect for logout POST for ACS)
+  settings.single_logout_service_binding      = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" # or :post, :redirect
+  settings.assertion_consumer_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" # or :post, :redirect
 
   settings
 end
@@ -546,14 +546,12 @@ The settings related to sign are stored in the `security` attribute of the setti
   settings.security[:digest_method]    = XMLSecurity::Document::SHA1
   settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
 
-  # Embeded signature or HTTP GET parameter signature
-  # Note that metadata signature is always embedded regardless of this value.
-  settings.security[:embed_sign] = false
   settings.security[:check_idp_cert_expiration] = false   # Enable or not IdP x509 cert expiration check
   settings.security[:check_sp_cert_expiration] = false   # Enable or not SP x509 cert expiration check
 ```
 
-Notice that the RelayState parameter is used when creating the Signature on the HTTP-Redirect Binding.
+Signatures will be handled for both `HTTP-Redirect` and `HTTP-Redirect` Bindings.
+Note that the RelayState parameter is used when creating the Signature on the `HTTP-Redirect` Binding.
 Remember to provide it to the Signature builder if you are sending a `GET RelayState` parameter or the
 signature validation process will fail at the Identity Provider.
 
@@ -604,7 +602,7 @@ def sp_logout_request
     delete_session
   else
 
-    logout_request = OneLogin::RubySaml::Logoutrequest.new()
+    logout_request = OneLogin::RubySaml::Logoutrequest.new
     logger.info "New SP SLO for userid '#{session[:userid]}' transactionid '#{logout_request.uuid}'"
 
     if settings.name_identifier_value.nil?
@@ -620,7 +618,7 @@ def sp_logout_request
     session[:transaction_id] = logout_request.uuid
     session[:logged_out_user] = logged_user
 
-    relayState =  url_for controller: 'saml', action: 'index'
+    relayState = url_for(controller: 'saml', action: 'index')
     redirect_to(logout_request.create(settings, :RelayState => relayState))
   end
 end

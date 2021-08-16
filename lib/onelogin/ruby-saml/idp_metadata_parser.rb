@@ -225,7 +225,9 @@ module OneLogin
             :idp_entity_id => @entity_id,
             :name_identifier_format => idp_name_id_format,
             :idp_sso_service_url => single_signon_service_url(options),
+            :idp_sso_service_binding => single_signon_service_binding(options[:sso_binding]),
             :idp_slo_service_url => single_logout_service_url(options),
+            :idp_slo_service_binding => single_logout_service_binding(options[:slo_binding]),
             :idp_slo_response_service_url => single_logout_response_service_url(options),
             :idp_attribute_names => attribute_names,
             :idp_cert => nil,
@@ -275,8 +277,8 @@ module OneLogin
           if binding_priority
             values = nodes.map(&:value)
             binding_priority.detect{ |binding| values.include? binding }
-          else
-            nodes.first.value if nodes.any?
+          elsif nodes.any?
+            nodes.first.value
           end
         end
 
@@ -307,8 +309,8 @@ module OneLogin
           if binding_priority
             values = nodes.map(&:value)
             binding_priority.detect{ |binding| values.include? binding }
-          else
-            nodes.first.value if nodes.any?
+          elsif nodes.any?
+            nodes.first.value
           end
         end
 

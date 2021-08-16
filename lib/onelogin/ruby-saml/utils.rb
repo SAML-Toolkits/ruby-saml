@@ -13,8 +13,10 @@ module OneLogin
     class Utils
       @@uuid_generator = UUID.new if RUBY_VERSION < '1.9'
 
-      DSIG      = "http://www.w3.org/2000/09/xmldsig#"
-      XENC      = "http://www.w3.org/2001/04/xmlenc#"
+      BINDINGS = { post: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST".freeze,
+                   redirect: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect".freeze }.freeze
+      DSIG = "http://www.w3.org/2000/09/xmldsig#".freeze
+      XENC = "http://www.w3.org/2001/04/xmlenc#".freeze
       DURATION_FORMAT = %r(^
         (-?)P                       # 1: Duration sign
         (?:
@@ -29,7 +31,7 @@ module OneLogin
           |
           (\d+)W                    # 8: Weeks
         )
-      $)x
+      $)x.freeze
 
       # Checks if the x509 cert provided is expired
       #

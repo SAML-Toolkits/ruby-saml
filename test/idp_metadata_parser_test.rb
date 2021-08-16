@@ -25,8 +25,10 @@ class IdpMetadataParserTest < Minitest::Test
 
       assert_equal "https://hello.example.com/access/saml/idp.xml", settings.idp_entity_id
       assert_equal "https://hello.example.com/access/saml/login", settings.idp_sso_service_url
+      assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", settings.idp_sso_service_binding
       assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", settings.idp_cert_fingerprint
       assert_equal "https://hello.example.com/access/saml/logout", settings.idp_slo_service_url
+      assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", settings.idp_slo_service_binding
       assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified", settings.name_identifier_format
       assert_equal ["AuthToken", "SSOStartPage"], settings.idp_attribute_names
       assert_equal '2014-04-17T18:02:33.910Z', settings.valid_until
@@ -61,6 +63,7 @@ class IdpMetadataParserTest < Minitest::Test
       idp_metadata = idp_metadata_descriptor3
       settings = idp_metadata_parser.parse(idp_metadata)
       assert_equal "https://idp.example.com/idp/profile/Shibboleth/SSO", settings.idp_sso_service_url
+      assert_equal "urn:mace:shibboleth:1.0:profiles:AuthnRequest", settings.idp_sso_service_binding
     end
 
     it "extract SSO endpoint with specific binding" do
@@ -70,14 +73,17 @@ class IdpMetadataParserTest < Minitest::Test
       options[:sso_binding] = ['urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST']
       settings = idp_metadata_parser.parse(idp_metadata, options)
       assert_equal "https://idp.example.com/idp/profile/SAML2/POST/SSO", settings.idp_sso_service_url
+      assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST", settings.idp_sso_service_binding
 
       options[:sso_binding] = ['urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect']
       settings = idp_metadata_parser.parse(idp_metadata, options)
       assert_equal "https://idp.example.com/idp/profile/SAML2/Redirect/SSO", settings.idp_sso_service_url
+      assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", settings.idp_sso_service_binding
 
       options[:sso_binding] = ['invalid_binding', 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect']
       settings = idp_metadata_parser.parse(idp_metadata, options)
       assert_equal "https://idp.example.com/idp/profile/SAML2/Redirect/SSO", settings.idp_sso_service_url
+      assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", settings.idp_sso_service_binding
     end
 
     it "uses settings options as hash for overrides" do
@@ -118,8 +124,10 @@ class IdpMetadataParserTest < Minitest::Test
 
       assert_equal "https://hello.example.com/access/saml/idp.xml", metadata[:idp_entity_id]
       assert_equal "https://hello.example.com/access/saml/login", metadata[:idp_sso_service_url]
+      assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", metadata[:idp_sso_service_binding]
       assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", metadata[:idp_cert_fingerprint]
       assert_equal "https://hello.example.com/access/saml/logout", metadata[:idp_slo_service_url]
+      assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", metadata[:idp_slo_service_binding]
       assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified", metadata[:name_identifier_format]
       assert_equal ["AuthToken", "SSOStartPage"], metadata[:idp_attribute_names]
       assert_equal '2014-04-17T18:02:33.910Z', metadata[:valid_until]
@@ -154,6 +162,7 @@ class IdpMetadataParserTest < Minitest::Test
       idp_metadata = idp_metadata_descriptor3
       metadata = idp_metadata_parser.parse_to_hash(idp_metadata)
       assert_equal "https://idp.example.com/idp/profile/Shibboleth/SSO", metadata[:idp_sso_service_url]
+      assert_equal "urn:mace:shibboleth:1.0:profiles:AuthnRequest", metadata[:idp_sso_service_binding]
     end
 
     it "extract SSO endpoint with specific binding" do
@@ -163,14 +172,17 @@ class IdpMetadataParserTest < Minitest::Test
       options[:sso_binding] = ['urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST']
       parsed_metadata = idp_metadata_parser.parse_to_hash(idp_metadata, options)
       assert_equal "https://idp.example.com/idp/profile/SAML2/POST/SSO", parsed_metadata[:idp_sso_service_url]
+      assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST", parsed_metadata[:idp_sso_service_binding]
 
       options[:sso_binding] = ['urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect']
       parsed_metadata = idp_metadata_parser.parse_to_hash(idp_metadata, options)
       assert_equal "https://idp.example.com/idp/profile/SAML2/Redirect/SSO", parsed_metadata[:idp_sso_service_url]
+      assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", parsed_metadata[:idp_sso_service_binding]
 
       options[:sso_binding] = ['invalid_binding', 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect']
       parsed_metadata = idp_metadata_parser.parse_to_hash(idp_metadata, options)
       assert_equal "https://idp.example.com/idp/profile/SAML2/Redirect/SSO", parsed_metadata[:idp_sso_service_url]
+      assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", parsed_metadata[:idp_sso_service_binding]
     end
 
     it "ignores a given :settings hash" do
@@ -208,7 +220,9 @@ class IdpMetadataParserTest < Minitest::Test
 
       assert_equal "https://hello.example.com/access/saml/idp.xml", settings.idp_entity_id
       assert_equal "https://hello.example.com/access/saml/login", settings.idp_sso_service_url
+      assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", settings.idp_sso_service_binding
       assert_equal "https://hello.example.com/access/saml/logout", settings.idp_slo_service_url
+      assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", settings.idp_slo_service_binding
       assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified", settings.name_identifier_format
       assert_equal ["AuthToken", "SSOStartPage"], settings.idp_attribute_names
 
@@ -240,8 +254,10 @@ class IdpMetadataParserTest < Minitest::Test
 
       assert_equal "https://hello.example.com/access/saml/idp.xml", settings.idp_entity_id
       assert_equal "https://hello.example.com/access/saml/login", settings.idp_sso_service_url
+      assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", settings.idp_sso_service_binding
       assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", settings.idp_cert_fingerprint
       assert_equal "https://hello.example.com/access/saml/logout", settings.idp_slo_service_url
+      assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", settings.idp_slo_service_binding
       assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified", settings.name_identifier_format
       assert_equal ["AuthToken", "SSOStartPage"], settings.idp_attribute_names
       assert_equal '2014-04-17T18:02:33.910Z', settings.valid_until
@@ -274,8 +290,10 @@ class IdpMetadataParserTest < Minitest::Test
 
       assert_equal "https://hello.example.com/access/saml/idp.xml", parsed_metadata[:idp_entity_id]
       assert_equal "https://hello.example.com/access/saml/login", parsed_metadata[:idp_sso_service_url]
+      assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", parsed_metadata[:idp_sso_service_binding]
       assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", parsed_metadata[:idp_cert_fingerprint]
       assert_equal "https://hello.example.com/access/saml/logout", parsed_metadata[:idp_slo_service_url]
+      assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", parsed_metadata[:idp_slo_service_binding]
       assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified", parsed_metadata[:name_identifier_format]
       assert_equal ["AuthToken", "SSOStartPage"], parsed_metadata[:idp_attribute_names]
       assert_equal '2014-04-17T18:02:33.910Z', parsed_metadata[:valid_until]
@@ -383,8 +401,10 @@ class IdpMetadataParserTest < Minitest::Test
     it "should retreive data" do
       assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified", @settings.name_identifier_format
       assert_equal "https://hello.example.com/access/saml/login", @settings.idp_sso_service_url
+      assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", @settings.idp_sso_service_binding
       assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", @settings.idp_cert_fingerprint
       assert_equal "https://hello.example.com/access/saml/logout", @settings.idp_slo_service_url
+      assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", @settings.idp_slo_service_binding
       assert_equal ["AuthToken", "SSOStartPage"], @settings.idp_attribute_names
       assert_equal '2014-04-17T18:02:33.910Z', @settings.valid_until
     end
@@ -476,7 +496,9 @@ WQO0LPxPqRiUqUzyhDhLo/xXNrHCu4VbMw=="]
       assert_equal "https://idp.examle.com/saml/metadata", @settings.idp_entity_id
       assert_equal "urn:oasis:names:tc:SAML:2.0:nameid-format:transient", @settings.name_identifier_format
       assert_equal "https://idp.examle.com/saml/sso", @settings.idp_sso_service_url
+      assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", @settings.idp_sso_service_binding
       assert_equal "https://idp.examle.com/saml/slo", @settings.idp_slo_service_url
+      assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", @settings.idp_slo_service_binding
     end
   end
 
@@ -521,7 +543,9 @@ WQO0LPxPqRiUqUzyhDhLo/xXNrHCu4VbMw==", "MIICZDCCAc2gAwIBAgIBADANBgkqhkiG9w0BAQ0F
       assert_equal "https://idp.examle.com/saml/metadata", @settings.idp_entity_id
       assert_equal "urn:oasis:names:tc:SAML:2.0:nameid-format:transient", @settings.name_identifier_format
       assert_equal "https://idp.examle.com/saml/sso", @settings.idp_sso_service_url
+      assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", @settings.idp_sso_service_binding
       assert_equal "https://idp.examle.com/saml/slo", @settings.idp_slo_service_url
+      assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", @settings.idp_slo_service_binding
     end
   end
 
@@ -566,6 +590,8 @@ QOPR6cEwFZzP0tHTYbI839WgxX6hfhIUTUz6mLqq4+3P4BG3+1OXeVDg63y8Uh78
       assert_equal("urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress", @settings.name_identifier_format)
       assert_equal("https://app.onelogin.com/trust/saml2/http-post/sso/383123", @settings.idp_sso_service_url)
       assert_nil(@settings.idp_slo_service_url)
+      # TODO: next line can be changed to `assert_nil @settings.idp_slo_service_binding` after :embed_sign is removed.
+      assert_nil(@settings.instance_variable_get('@idp_slo_service_binding'))
     end
   end
 
@@ -633,9 +659,13 @@ WQO0LPxPqRiUqUzyhDhLo/xXNrHCu4VbMw=="]
       assert_equal "https://app.onelogin.com/saml/metadata/383123", @settings.idp_entity_id
       assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress", @settings.name_identifier_format
       assert_equal "https://app.onelogin.com/trust/saml2/http-post/sso/383123", @settings.idp_sso_service_url
+      assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", @settings.idp_sso_service_binding
       assert_nil @settings.idp_slo_service_url
+      # TODO: next line can be changed to `assert_nil @settings.idp_slo_service_binding` after :embed_sign is removed.
+      assert_nil @settings.instance_variable_get('@idp_slo_service_binding')
     end
   end
+
   describe "metadata with different singlelogout response location" do
     it "should return the responselocation if it exists" do
       idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
@@ -643,6 +673,7 @@ WQO0LPxPqRiUqUzyhDhLo/xXNrHCu4VbMw=="]
       settings = idp_metadata_parser.parse(idp_different_slo_response_location)
 
       assert_equal "https://hello.example.com/access/saml/logout", settings.idp_slo_service_url
+      assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", settings.idp_slo_service_binding
       assert_equal "https://hello.example.com/access/saml/logout/return", settings.idp_slo_response_service_url
     end
 
@@ -652,6 +683,7 @@ WQO0LPxPqRiUqUzyhDhLo/xXNrHCu4VbMw=="]
       settings = idp_metadata_parser.parse(idp_without_slo_response_location)
 
       assert_equal "https://hello.example.com/access/saml/logout", settings.idp_slo_service_url
+      assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", settings.idp_slo_service_binding
       assert_nil settings.idp_slo_response_service_url
     end
   end

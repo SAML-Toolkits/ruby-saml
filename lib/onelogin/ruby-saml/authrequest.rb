@@ -73,7 +73,7 @@ module OneLogin
         base64_request = encode(request)
         request_params = {"SAMLRequest" => base64_request}
 
-        if settings.security[:authn_requests_signed] && !settings.security[:embed_sign] && settings.private_key
+        if settings.idp_sso_service_binding == Utils::BINDINGS[:redirect] && settings.security[:authn_requests_signed] && settings.private_key
           params['SigAlg']    = settings.security[:signature_method]
           url_string = OneLogin::RubySaml::Utils.build_query(
             :type => 'SAMLRequest',
@@ -179,8 +179,7 @@ module OneLogin
       end
 
       def sign_document(document, settings)
-        # embed signature
-        if settings.security[:authn_requests_signed] && settings.private_key && settings.certificate && settings.security[:embed_sign]
+        if settings.idp_sso_service_binding == Utils::BINDINGS[:post] && settings.security[:authn_requests_signed] && settings.private_key && settings.certificate
           private_key = settings.get_sp_key
           cert = settings.get_sp_cert
           document.sign_document(private_key, cert, settings.security[:signature_method], settings.security[:digest_method])
