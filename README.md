@@ -77,7 +77,7 @@ be taken in order to validate such URL inputs and avoid attacks like SSRF.
 
 ## Getting Started
 
-In order to use the toolkit you will need to install the gem (either manually or using Bundler),
+In order to use Ruby SAML you will need to install the gem (either manually or using Bundler),
 and require the library in your Ruby application:
 
 Using `Gemfile`
@@ -96,7 +96,8 @@ Using RubyGems
 gem install ruby-saml
 ```
 
-When requiring the gem, you can add the whole toolkit
+You may require the entire Ruby SAML gem:
+
 ```ruby
 require 'onelogin/ruby-saml'
 ```
@@ -240,7 +241,7 @@ validations by initializing the response with different options:
 response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], {skip_authnstatement: true}) # skips AuthnStatement
 response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], {skip_conditions: true}) # skips conditions
 response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], {skip_subject_confirmation: true}) # skips subject confirmation
-response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], {skip_recipient_check: true}) # doens't skip subject confirmation, but skips the recipient check which is a sub check of the subject_confirmation check
+response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], {skip_recipient_check: true}) # doesn't skip subject confirmation, but skips the recipient check which is a sub check of the subject_confirmation check
 response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], {skip_audience: true}) # skips audience check
 ```
 
@@ -298,16 +299,16 @@ class SamlController < ApplicationController
 end
 ```
 
+## Signature Validation
 
-## Signature validation
-
-On the ruby-saml toolkit there are different ways to validate the signature of the SAMLResponse:
-- You can provide the IdP x509 public certificate at the 'idp_cert' setting.
-- You can provide the IdP x509 public certificate in fingerprint format using the 'idp_cert_fingerprint' setting parameter and additionally the 'idp_cert_fingerprint_algorithm' parameter.
+Ruby SAML allows different ways to validate the signature of the SAMLResponse:
+- You can provide the IdP X.509 public certificate at the `idp_cert` setting.
+- You can provide the IdP X.509 public certificate in fingerprint format using the
+ `idp_cert_fingerprint` setting parameter and additionally the `idp_cert_fingerprint_algorithm` parameter.
 
 When validating the signature of redirect binding, the fingerprint is useless and the certificate
 of the IdP is required in order to execute the validation. You can pass the option
-`:relax_signature_validation` to SloLogoutrequest and Logoutresponse if want to avoid signature
+`:relax_signature_validation` to `SloLogoutrequest` and `Logoutresponse` if want to avoid signature
 validation if no certificate of the IdP is provided.
 
 In production also we highly recommend to register on the settings the IdP certificate instead
@@ -318,34 +319,35 @@ we maintain it for compatibility and also to be used on test environment.
 In some scenarios the IdP uses different certificates for signing/encryption, or is under key
 rollover phase and more than one certificate is published on IdP metadata.
 
-In order to handle that the toolkit offers the 'idp_cert_multi' parameter.
-When used, 'idp_cert' and 'idp_cert_fingerprint' values are ignored.
+In order to handle that Ruby SAML offers the `idp_cert_multi` parameter.
+When used, `idp_cert` and `idp_cert_fingerprint` values are ignored.
 
 The `idp_cert_multi` must be a Hash as follows:
 
+```ruby
 {
   :signing => [],
   :encryption => []
 }
+```
 
-And on `:signing` and `:encryption` arrays, add the different IdP x509 public certificates
+And on `:signing` and `:encryption` arrays, add the different IdP X.509 public certificates
 published on the IdP metadata.
 
 ## Metadata Based Configuration
 
-The method above requires a little extra work to manually specify attributes about the IdP.
-(And your SP application)  There's an easier method -- use a metadata exchange.
-Metadata is just an XML file that defines the capabilities of both the IdP and the SP application.
-It also contains the X.509 public key certificates which add to the trusted relationship.
+The method above requires a little extra work to manually specify attributes about both the IdP and your SP application.
+There's an easier method: use a metadata exchange. Metadata is an XML file that defines the capabilities of both the IdP
+and the SP application. It also contains the X.509 public key certificates which add to the trusted relationship.
 The IdP administrator can also configure custom settings for an SP based on the metadata.
 
-Using ```idp_metadata_parser.parse_remote``` IdP metadata will be added to the settings without further ado.
+Using `IdpMetadataParser#parse_remote`, the IdP metadata will be added to the settings.
 
 ```ruby
 def saml_settings
 
   idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
-  # Returns OneLogin::RubySaml::Settings prepopulated with idp metadata
+  # Returns OneLogin::RubySaml::Settings pre-populated with IdP metadata
   settings = idp_metadata_parser.parse_remote("https://example.com/auth/saml2/idp/metadata")
 
   settings.assertion_consumer_service_url = "http://#{request.host}/saml/consume"
@@ -357,6 +359,7 @@ def saml_settings
   settings
 end
 ```
+
 The following attributes are set:
   * idp_entity_id
   * name_identifier_format
@@ -375,11 +378,11 @@ IdpMetadataParser by its Entity Id value:
 
 ```ruby
   validate_cert = true
-  settings =  idp_metadata_parser.parse_remote(
-                "https://example.com/auth/saml2/idp/metadata",
-                validate_cert,
-                entity_id: "http//example.com/target/entity"
-              )
+  settings = idp_metadata_parser.parse_remote(
+               "https://example.com/auth/saml2/idp/metadata",
+               validate_cert,
+               entity_id: "http//example.com/target/entity"
+             )
 ```
 
 ### Parsing Metadata into an Hash
@@ -394,7 +397,7 @@ If you are using `saml:AttributeStatement` to transfer data like the username, y
 `single_value_compatibility` (when activated, only the first value is returned)
 
 ```ruby
-response          = OneLogin::RubySaml::Response.new(params[:SAMLResponse])
+response = OneLogin::RubySaml::Response.new(params[:SAMLResponse])
 response.settings = saml_settings
 
 response.attributes[:username]
@@ -479,7 +482,7 @@ pp(response.attributes.multi(:not_exists))
 pp(response.attributes.fetch(/givenname/))
 # => "usersName"
 
-# Deactive single_value_compatibility
+# Deprecated single_value_compatibility
 OneLogin::RubySaml::Attributes.single_value_compatibility = false
 
 pp(response.attributes[:uid])
@@ -522,72 +525,169 @@ To add a `saml:AuthnContextDeclRef`, define `settings.authn_context_decl_ref`.
 In a SP-initiated flow, the SP can indicate to the IdP the subject that should be authenticated. This is done by defining the `settings.name_identifier_value_requested` before
 building the authrequest object.
 
+## Service Provider Metadata
 
-## Signing
+To form a trusted pair relationship with the IdP, the SP (you) need to provide metadata XML
+to the IdP for various good reasons. (Caching, certificate lookups, relaying party permissions, etc)
 
-The Ruby Toolkit supports 2 different kinds of signature: Embeded and `GET` parameters
+The class `OneLogin::RubySaml::Metadata` takes care of this by reading the Settings and returning XML.  All you have to do is add a controller to return the data, then give this URL to the IdP administrator.
 
-In order to be able to sign, define the private key and the public cert of the service provider:
+The metadata will be polled by the IdP every few minutes, so updating your settings should propagate
+to the IdP settings.
 
 ```ruby
-  settings.certificate = "CERTIFICATE TEXT WITH HEAD AND FOOT"
-  settings.private_key = "PRIVATE KEY TEXT WITH HEAD AND FOOT"
+class SamlController < ApplicationController
+  # ... the rest of your controller definitions ...
+  def metadata
+    settings = Account.get_saml_settings
+    meta = OneLogin::RubySaml::Metadata.new
+    render :xml => meta.generate(settings), :content_type => "application/samlmetadata+xml"
+  end
+end
 ```
 
-The settings related to sign are stored in the `security` attribute of the settings:
+You can add `ValidUntil` and `CacheDuration` to the SP Metadata XML using instead:
 
 ```ruby
-  settings.security[:authn_requests_signed]   = true     # Enable or not signature on AuthNRequest
-  settings.security[:logout_requests_signed]  = true     # Enable or not signature on Logout Request
-  settings.security[:logout_responses_signed] = true     # Enable or not signature on Logout Response
-  settings.security[:want_assertions_signed]  = true     # Enable or not the requirement of signed assertion
-  settings.security[:metadata_signed]         = true     # Enable or not signature on Metadata
+  # Valid until => 2 days from now
+  # Cache duration = 604800s = 1 week
+  valid_until = Time.now + 172800
+  cache_duration = 604800
+  meta.generate(settings, false, valid_until, cache_duration)
+```
 
+## Signing and Encryption
+
+Ruby SAML supports supports the signing and encryption functionality:
+
+1. Signing your SP Metadata XML
+2. Signing your SP SAML messages
+3. Encrypting IdP Assertion messages, and decrypting them upon receipt (EncryptedAssertion)
+4. Verifying signatures on IdP Assertion messages
+
+In order to use functions 1-3 above, you must first define your SP public certificate and private key:
+
+```ruby
+  settings.certificate = "CERTIFICATE TEXT WITH BEGIN/END HEADER AND FOOTER"
+  settings.private_key = "PRIVATE KEY TEXT WITH BEGIN/END HEADER AND FOOTER"
+```
+
+Note that the same certificate and private key are used for all SP encryption and signing-related functions.
+Ruby SAML does not currently allow to specify different certificates for each function.
+
+You may also globally set the SP signature and digest method, to be used in SP signing (functions 1 and 2 above):
+
+```ruby
   settings.security[:digest_method]    = XMLSecurity::Document::SHA1
   settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
-
-  settings.security[:check_idp_cert_expiration] = false   # Enable or not IdP x509 cert expiration check
-  settings.security[:check_sp_cert_expiration] = false   # Enable or not SP x509 cert expiration check
 ```
 
-Signatures will be handled for both `HTTP-Redirect` and `HTTP-Redirect` Bindings.
+#### Signing SP Metadata
+
+You may add a `<ds:Signature>` digital signature element to your SP Metadata XML using the following setting:
+
+```ruby
+  settings.certificate = "CERTIFICATE TEXT WITH BEGIN/END HEADER AND FOOTER"
+  settings.private_key = "PRIVATE KEY TEXT WITH BEGIN/END HEADER AND FOOTER"
+
+  settings.security[:metadata_signed] = true # Enable signature on Metadata
+```
+
+#### Signing SP SAML Messages
+
+Ruby SAML supports SAML request signing. The Service Provider will sign the
+request/responses with its private key. The Identity Provider will then validate the signature
+of the received request/responses with the public X.509 cert of the Service Provider.
+
+To enable, please first set your certificate and private key. This will add `<md:KeyDescriptor use="signing">`
+to your SP Metadata XML, to be read by the IdP.
+
+```ruby
+  settings.certificate = "CERTIFICATE TEXT WITH BEGIN/END HEADER AND FOOTER"
+  settings.private_key = "PRIVATE KEY TEXT WITH BEGIN/END HEADER AND FOOTER"
+```
+
+Next, you may specify the specific SP SAML messages you would like to sign:
+
+```ruby
+  settings.security[:authn_requests_signed]   = true  # Enable signature on AuthNRequest
+  settings.security[:logout_requests_signed]  = true  # Enable signature on Logout Request
+  settings.security[:logout_responses_signed] = true  # Enable signature on Logout Response
+```
+
+Signatures will be handled automatically for both `HTTP-Redirect` and `HTTP-Redirect` Binding.
 Note that the RelayState parameter is used when creating the Signature on the `HTTP-Redirect` Binding.
 Remember to provide it to the Signature builder if you are sending a `GET RelayState` parameter or the
 signature validation process will fail at the Identity Provider.
 
-The Service Provider will sign the request/responses with its private key.
-The Identity Provider will validate the sign of the received request/responses with the public x509 cert of the
-Service Provider.
+#### Encrypting SAML Assertions
 
-Notice that this toolkit uses 'settings.certificate' and 'settings.private_key' for the sign and decrypt processes.
+Ruby SAML supports EncryptedAssertion. The Identity Provider will encrypt the Assertion with the
+public cert of the Service Provider. The Service Provider will decrypt the EncryptedAssertion with its private key.
 
-Enable/disable the soft mode with the `settings.soft` parameter. When set to `false`, saml validations errors will raise an exception.
-
-## Decrypting
-
-The Ruby Toolkit supports EncryptedAssertion.
-
-In order to be able to decrypt a SAML Response that contains a EncryptedAssertion you need define the private key and the public cert of the service provider, then share this with the Identity Provider.
+You may enable EncryptedAssertion as follows. This will add `<md:KeyDescriptor use="encrytion">` to your
+SP Metadata XML, to be read by the IdP.
 
 ```ruby
-  settings.certificate = "CERTIFICATE TEXT WITH HEAD AND FOOT"
-  settings.private_key = "PRIVATE KEY TEXT WITH HEAD AND FOOT"
+  settings.certificate = "CERTIFICATE TEXT WITH BEGIN/END HEADER AND FOOTER"
+  settings.private_key = "PRIVATE KEY TEXT WITH BEGIN/END HEADER AND FOOTER"
+
+  settings.security[:want_assertions_encrypted] = true # Enable EncryptedAssertion
 ```
 
-The Identity Provider will encrypt the Assertion with the public cert of the Service Provider.
-The Service Provider will decrypt the EncryptedAssertion with its private key.
+#### Verifying Signature on IdP Assertions
 
-Notice that this toolkit uses 'settings.certificate' and 'settings.private_key' for the sign and decrypt processes.
+You may require the IdP to sign its SAML Assertions using the following setting.
+With will add `<md:SPSSODescriptor WantAssertionsSigned="true">` to your SP Metadata XML.
+The signature will be checked against the `<md:KeyDescriptor use="signing">` element
+present in the IdP's metadata.
 
+```ruby
+  settings.security[:want_assertions_signed]  = true  # Require the IdP to sign its SAML Assertions
+```
 
-## Key rollover
+#### Certificate and Signature Validation
 
-If you plan to update the SP x509cert and privateKey you can define the parameter 'certificate_new' at the settings and that new SP public certificate will be published on the SP metadata so Identity Providers can read them and get ready for rollover.
+You may require SP and IdP certificates to be non-expired using the following settings:
 
+```ruby
+  settings.security[:check_idp_cert_expiration] = true  # Raise error if IdP X.509 cert is expired
+  settings.security[:check_sp_cert_expiration] = true   # Raise error SP X.509 cert is expired
+```
+
+By default, Ruby SAML will raise a `OneLogin::RubySaml::ValidationError` if a signature or certificate
+validation fails. You may disable such exceptions using the `settings.security[:soft]` parameter.
+
+```ruby
+  settings.security[:soft] = true  # Do not raise error on failed signature/certificate validations
+```
+
+#### Key Rollover
+
+To update the SP X.509 certificate and private key without disruption of service, you may define the parameter
+`settings.certificate_new`. This will publish the new SP certificate in your metadata so that your IdP counterparties
+may cache it in preparation for rollover.
+
+For example, if you to rollover from `CERT A` to `CERT B`. Before rollover, your settings should look as follows.
+Both `CERT A` and `CERT B` will now appear in your SP metadata, however `CERT A` will still be used for signing
+and encryption at this time.
+
+```ruby
+  settings.certificate = "CERT A"
+  settings.private_key = "PRIVATE KEY FOR CERT A"
+  settings.certificate_new = "CERT B"
+```
+
+After the IdP has cached `CERT B`, you may then change your settings as follows:
+
+```ruby
+  settings.certificate = "CERT B"
+  settings.private_key = "PRIVATE KEY FOR CERT B"
+```
 
 ## Single Log Out
 
-The Ruby Toolkit supports SP-initiated Single Logout and IdP-Initiated Single Logout.
+Ruby SAML supports SP-initiated Single Logout and IdP-Initiated Single Logout.
 
 Here is an example that we could add to our previous controller to generate and send a SAML Logout Request to the IdP:
 
@@ -700,38 +800,6 @@ def logout
 end
 ```
 
-
-
-## Service Provider Metadata
-
-To form a trusted pair relationship with the IdP, the SP (you) need to provide metadata XML
-to the IdP for various good reasons.  (Caching, certificate lookups, relaying party permissions, etc)
-
-The class `OneLogin::RubySaml::Metadata` takes care of this by reading the Settings and returning XML.  All you have to do is add a controller to return the data, then give this URL to the IdP administrator.
-
-The metadata will be polled by the IdP every few minutes, so updating your settings should propagate
-to the IdP settings.
-
-```ruby
-class SamlController < ApplicationController
-  # ... the rest of your controller definitions ...
-  def metadata
-    settings = Account.get_saml_settings
-    meta = OneLogin::RubySaml::Metadata.new
-    render :xml => meta.generate(settings), :content_type => "application/samlmetadata+xml"
-  end
-end
-```
-
-You can add ValidUntil and CacheDuration to the XML Metadata using instead
-```ruby
-  # Valid until => 2 days from now
-  # Cache duration = 604800s = 1 week
-  valid_until = Time.now + 172800
-  cache_duration = 604800
-  meta.generate(settings, false, valid_until, cache_duration)
-```
-
 ## Clock Drift
 
 Server clocks tend to drift naturally. If during validation of the response you get the error "Current time is earlier than NotBefore condition", this may be due to clock differences between your system and that of the Identity Provider.
@@ -766,7 +834,7 @@ The `attribute_value` option additionally accepts an array of possible values.
 ## Custom Metadata Fields
 
 Some IdPs may require to add SPs to add additional fields (Organization, ContactPerson, etc.)
-into the SP metadata. This can be acheived by extending the `OneLogin::RubySaml::Metadata`
+into the SP metadata. This can be achieved by extending the `OneLogin::RubySaml::Metadata`
 class and overriding the `#add_extras` method as per the following example:
 
 ```ruby
