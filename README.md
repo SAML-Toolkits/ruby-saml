@@ -1,122 +1,27 @@
-# Ruby SAML [![Build Status](https://secure.travis-ci.org/onelogin/ruby-saml.svg)](http://travis-ci.org/onelogin/ruby-saml) [![Coverage Status](https://coveralls.io/repos/onelogin/ruby-saml/badge.svg?branch=master)](https://coveralls.io/r/onelogin/ruby-saml?branch=master)
+# Ruby SAML
+[![Build Status](https://github.com/onelogin/ruby-saml/actions/workflows/test.yml/badge.svg?query=branch%3Amaster)](https://github.com/onelogin/ruby-saml/actions/workflows/test.yml?query=branch%3Amaster)
+[![Coverage Status](https://coveralls.io/repos/onelogin/ruby-saml/badge.svg?branch=master)](https://coveralls.io/r/onelogin/ruby-saml?branch=master)
 
-## Updating from 1.11.x to 1.12.0
-Version `1.12.0` adds support for gcm algorithm and
-change/adds specific error messages for signature validations
+## Breaking Changes
 
-`idp_sso_target_url` and `idp_slo_target_url` attributes of the Settings class deprecated in favor of `idp_sso_service_url` and `idp_slo_service_url`.
-In IDPMetadataParser, `parse`, `parse_to_hash` and `parse_to_array` methods now retrieve SSO URL and SLO URL endpoints with
-`idp_sso_service_url` and `idp_slo_service_url` (previously `idp_sso_target_url` and `idp_slo_target_url` respectively).
-
-## Updating from 1.10.x to 1.11.0
-Version `1.11.0` deprecates the use of `settings.issuer` in favour of `settings.sp_entity_id`.
-There are two new security settings: `settings.security[:check_idp_cert_expiration]` and `settings.security[:check_sp_cert_expiration]` (both false by default) that check if the IdP or SP X.509 certificate has expired, respectively.
-
-Version `1.10.2` includes the `valid_until` attribute in parsed IdP metadata.
-
-Version `1.10.1` improves Ruby 1.8.7 support.
-
-## Updating from 1.9.0 to 1.10.0
-Version `1.10.0` improves IdpMetadataParser to allow parse multiple IDPSSODescriptor, Add Subject support on AuthNRequest to allow SPs provide info to the IdP about the user to be authenticated and updates the format_cert method to accept certs with /\x0d/
-
-## Updating from 1.8.0 to 1.9.0
-Version `1.9.0` better supports Ruby 2.4+ and JRuby 9.2.0.0. `Settings` initialization now has a second parameter, `keep_security_settings` (default: false), which saves security settings attributes that are not explicitly overridden, if set to true.
-
-## Updating from 1.7.X to 1.8.0
-On Version `1.8.0`, creating AuthRequests/LogoutRequests/LogoutResponses with nil RelayState param will not generate a URL with an empty RelayState parameter anymore. It also changes the invalid audience error message.
-
-## Updating from 1.6.0 to 1.7.0
-
-Version `1.7.0` is a recommended update for all Ruby SAML users as it includes a fix for the [CVE-2017-11428](https://www.cvedetails.com/cve/CVE-2017-11428/) vulnerability.
-
-## Updating from 1.5.0 to 1.6.0
-
-Version `1.6.0` changes the preferred way to construct instances of `Logoutresponse` and `SloLogoutrequest`. Previously the _SAMLResponse_, _RelayState_, and _SigAlg_ parameters of these message types were provided via the constructor's `options[:get_params]` parameter. Unfortunately this can result in incompatibility with other SAML implementations; signatures are specified to be computed based on the _sender's_ URI-encoding of the message, which can differ from that of Ruby SAML. In particular, Ruby SAML's URI-encoding does not match that of Microsoft ADFS, so messages from ADFS can fail signature validation.
-
-The new preferred way to provide _SAMLResponse_, _RelayState_, and _SigAlg_ is via the `options[:raw_get_params]` parameter. For example:
-
-```ruby
-# In this example `query_params` is assumed to contain decoded query parameters,
-# and `raw_query_params` is assumed to contain encoded query parameters as sent by the IDP.
-settings = {
-  settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
-  settings.soft = false
-}
-options = {
-  get_params: {
-    "Signature" => query_params["Signature"],
-  },
-  raw_get_params: {
-    "SAMLRequest" => raw_query_params["SAMLRequest"],
-    "SigAlg" => raw_query_params["SigAlg"],
-    "RelayState" => raw_query_params["RelayState"],
-  },
-}
-slo_logout_request = OneLogin::RubySaml::SloLogoutrequest.new(query_params["SAMLRequest"], settings, options)
-raise "Invalid Logout Request" unless slo_logout_request.is_valid?
-```
-
-The old form is still supported for backward compatibility, but all Ruby SAML users should prefer `options[:raw_get_params]` where possible to ensure compatibility with other SAML implementations.
-
-## Updating from 1.4.2 to 1.4.3
-
-Version `1.4.3` introduces Recipient validation of SubjectConfirmation elements.
-The 'Recipient' value is compared with the settings.assertion_consumer_service_url
-value.
-If you want to skip that validation, add the :skip_recipient_check option to the
-initialize method of the Response object.
-
-Parsing metadata that contains more than one certificate will propagate the
-idp_cert_multi property rather than idp_cert. See [signature validation
-section](#signature-validation) for details.
-
-## Updating from 1.3.x to 1.4.X
-
-Version `1.4.0` is a recommended update for all Ruby SAML users as it includes security improvements.
-
-## Updating from 1.2.x to 1.3.X
-
-Version `1.3.0` is a recommended update for all Ruby SAML users as it includes security fixes. It  adds security improvements in order to prevent Signature wrapping attacks. [CVE-2016-5697](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2016-5697)
-
-## Updating from 1.1.x to 1.2.X
-
-Version `1.2` adds IDP metadata parsing improvements, uuid deprecation in favour of SecureRandom, refactor error handling and some minor improvements
-
-There is no compatibility issue detected.
-
-For more details, please review [the changelog](changelog.md).
-
-## Updating from 1.0.x to 1.1.X
-
-Version `1.1` adds some improvements on signature validation and solves some namespace conflicts.
-
-## Updating from 0.9.x to 1.0.X
-
-Version `1.0` is a recommended update for all Ruby SAML users as it includes security fixes.
-
-Version `1.0` adds security improvements like entity expansion limitation, more SAML message validations, and other important improvements like decrypt support.
-
-### Important Changes
-Please note the `get_idp_metadata` method raises an exception when it is not able to fetch the idp metadata, so review your integration if you are using this functionality.
-
-## Updating from 0.8.x to 0.9.x
-Version `0.9` adds many new features and improvements.
-
-## Updating from 0.7.x to 0.8.x
-Version `0.8.x` changes the namespace of the gem from `OneLogin::Saml` to `OneLogin::RubySaml`.  Please update your implementations of the gem accordingly.
+Ruby SAML minor and tiny versions may introduce breaking changes. Please read
+[UPGRADING.md](UPGRADING.md) for guidance on upgrading to new Ruby SAML versions.
 
 ## Overview
 
-The Ruby SAML library is for implementing the client side of a SAML authorization, i.e. it provides a means for managing authorization initialization and confirmation requests from identity providers.
+The Ruby SAML library is for implementing the client side of a SAML authorization,
+i.e. it provides a means for managing authorization initialization and confirmation
+requests from identity providers.
 
 SAML authorization is a two step process and you are expected to implement support for both.
 
-We created a demo project for Rails4 that uses the latest version of this library: [ruby-saml-example](https://github.com/onelogin/ruby-saml-example)
+We created a demo project for Rails 4 that uses the latest version of this library:
+[ruby-saml-example](https://github.com/onelogin/ruby-saml-example)
 
-### Supported versions of Ruby
-* 1.8.7
-* 1.9.x
-* 2.0.x
+### Supported Ruby Versions
+
+The following Ruby versions are covered by CI testing:
+
 * 2.1.x
 * 2.2.x
 * 2.3.x
@@ -125,12 +30,20 @@ We created a demo project for Rails4 that uses the latest version of this librar
 * 2.6.x
 * 2.7.x
 * 3.0.x
-* JRuby 1.7.x
-* JRuby 9.0.x
 * JRuby 9.1.x
 * JRuby 9.2.x
+* TruffleRuby (latest)
+
+In addition, the following may work but are untested:
+
+* 1.8.7
+* 1.9.x
+* 2.0.x
+* JRuby 1.7.x
+* JRuby 9.0.x
 
 ## Adding Features, Pull Requests
+
 * Fork the repository
 * Make your feature addition or bug fix
 * Add tests for your new features. This is important so we don't break any features in a future version unintentionally.
@@ -140,9 +53,11 @@ We created a demo project for Rails4 that uses the latest version of this librar
 
 ## Security Guidelines
 
-If you believe you have discovered a security vulnerability in this gem, please report it at https://www.onelogin.com/security with a description. We follow responsible disclosure guidelines, and will work with you to quickly find a resolution.
+If you believe you have discovered a security vulnerability in this gem, please report it
+at https://www.onelogin.com/security with a description. We follow responsible disclosure
+guidelines, and will work with you to quickly find a resolution.
 
-### Security warning
+### Security Warning
 
 Some tools may incorrectly report ruby-saml is a potential security vulnerability.
 ruby-saml depends on Nokogiri, and it's possible to use Nokogiri in a dangerous way
@@ -152,15 +67,20 @@ can create an XML External Entity (XXE) vulnerability if the XML data is not tru
 However, ruby-saml never enables this dangerous Nokogiri configuration;
 ruby-saml never enables DTDLOAD, and it never disables NONET.
 
+The OneLogin::RubySaml::IdpMetadataParser class does not validate in any way the URL
+that is introduced in order to be parsed. 
 
-The OneLogin::RubySaml::IdpMetadataParser class does not validate in any way the URL that is introduced in order to be parsed. 
+Usually the same administrator that handles the Service Provider also sets the URL to
+the IdP, which should be a trusted resource.
 
-Usually the same administrator that handles the Service Provider also sets the URL to the IdP, which should be a trusted resource.
-
-But there are other scenarios, like a SAAS app where the administrator of the app delegates this functionality to other users. In this case, extra precaution should be taken in order to validate such URL inputs and avoid attacks like SSRF.
+But there are other scenarios, like a SAAS app where the administrator of the app
+delegates this functionality to other users. In this case, extra precaution should
+be taken in order to validate such URL inputs and avoid attacks like SSRF.
 
 ## Getting Started
-In order to use the toolkit you will need to install the gem (either manually or using Bundler), and require the library in your Ruby application:
+
+In order to use the toolkit you will need to install the gem (either manually or using Bundler),
+and require the library in your Ruby application:
 
 Using `Gemfile`
 
@@ -191,7 +111,9 @@ require 'onelogin/ruby-saml/authrequest'
 
 ### Installation on Ruby 1.8.7
 
-This gem uses Nokogiri as a dependency, which dropped support for Ruby 1.8.x in Nokogiri 1.6. When installing this gem on Ruby 1.8.7, you will need to make sure a version of Nokogiri prior to 1.6 is installed or specified if it hasn't been already.
+This gem uses Nokogiri as a dependency, which dropped support for Ruby 1.8.x in Nokogiri 1.6.
+When installing this gem on Ruby 1.8.7, you will need to make sure a version of Nokogiri
+prior to 1.6 is installed or specified if it hasn't been already.
 
 Using `Gemfile`
 
@@ -220,7 +142,10 @@ OneLogin::RubySaml::Logging.logger = Logger.new('/var/log/ruby-saml.log')
 
 ## The Initialization Phase
 
-This is the first request you will get from the identity provider. It will hit your application at a specific URL that you've announced as your SAML initialization point. The response to this initialization is a redirect back to the identity provider, which can look something like this (ignore the saml_settings method call for now):
+This is the first request you will get from the identity provider. It will hit your application
+at a specific URL that you've announced as your SAML initialization point. The response to
+this initialization is a redirect back to the identity provider, which can look something
+like this (ignore the saml_settings method call for now):
 
 ```ruby
 def init
@@ -240,7 +165,10 @@ def init
 end
 ```
 
-Once you've redirected back to the identity provider, it will ensure that the user has been authorized and redirect back to your application for final consumption. This can look something like this (the `authorize_success` and `authorize_failure` methods are specific to your application):
+Once you've redirected back to the identity provider, it will ensure that the user has been
+authorized and redirect back to your application for final consumption.
+This can look something like this (the `authorize_success` and `authorize_failure`
+methods are specific to your application):
 
 ```ruby
 def consume
@@ -258,16 +186,19 @@ def consume
 end
 ```
 
-In the above there are a few assumptions, one being that `response.nameid` is an email address. This is all handled with how you specify the settings that are in play via the `saml_settings` method. That could be implemented along the lines of this:
+In the above there are a few assumptions, one being that `response.nameid` is an email address.
+This is all handled with how you specify the settings that are in play via the `saml_settings` method.
+That could be implemented along the lines of this:
 
 ```
 response = OneLogin::RubySaml::Response.new(params[:SAMLResponse])
 response.settings = saml_settings
 ```
 
-If the assertion of the SAMLResponse is not encrypted, you can initialize the Response without the `:settings` parameter and set it later.
-If the SAMLResponse contains an encrypted assertion, you need to provide the settings in the
-initialize method in order to obtain the decrypted assertion, using the service provider private key in order to decrypt.
+If the assertion of the SAMLResponse is not encrypted, you can initialize the Response
+without the `:settings` parameter and set it later. If the SAMLResponse contains an encrypted
+assertion, you need to provide the settings in the initialize method in order to obtain the
+decrypted assertion, using the service provider private key in order to decrypt.
 If you don't know what expect, always use the former (set the settings on initialize).
 
 ```ruby
@@ -301,7 +232,9 @@ end
 
 The use of settings.issuer is deprecated in favour of settings.sp_entity_id since version 1.11.0
 
-Some assertion validations can be skipped by passing parameters to `OneLogin::RubySaml::Response.new()`.  For example, you can skip the `AuthnStatement`, `Conditions`, `Recipient`, or the `SubjectConfirmation` validations by initializing the response with different options:
+Some assertion validations can be skipped by passing parameters to `OneLogin::RubySaml::Response.new()`.
+For example, you can skip the `AuthnStatement`, `Conditions`, `Recipient`, or the `SubjectConfirmation`
+validations by initializing the response with different options:
 
 ```ruby
 response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], {skip_authnstatement: true}) # skips AuthnStatement
@@ -311,7 +244,8 @@ response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], {skip_recipie
 response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], {skip_audience: true}) # skips audience check
 ```
 
-All that's left is to wrap everything in a controller and reference it in the initialization and consumption URLs in OneLogin. A full controller example could look like this:
+All that's left is to wrap everything in a controller and reference it in the initialization and
+consumption URLs in OneLogin. A full controller example could look like this:
 
 ```ruby
 # This controller expects you to use the URLs /saml/init and /saml/consume in your OneLogin application.
@@ -371,29 +305,39 @@ On the ruby-saml toolkit there are different ways to validate the signature of t
 - You can provide the IdP x509 public certificate at the 'idp_cert' setting.
 - You can provide the IdP x509 public certificate in fingerprint format using the 'idp_cert_fingerprint' setting parameter and additionally the 'idp_cert_fingerprint_algorithm' parameter.
 
-When validating the signature of redirect binding, the fingerprint is useless and the certficate of the IdP is required in order to execute the validation.
-You can pass the option :relax_signature_validation to SloLogoutrequest and Logoutresponse if want to avoid signature validation if no certificate of the IdP is provided.
+When validating the signature of redirect binding, the fingerprint is useless and the certificate
+of the IdP is required in order to execute the validation. You can pass the option
+`:relax_signature_validation` to SloLogoutrequest and Logoutresponse if want to avoid signature
+validation if no certificate of the IdP is provided.
 
-In production also we highly recommend to register on the settings the IdP certificate instead of using the fingerprint method. The fingerprint, is a hash, so at the end is open to a collision attack that can end on a signature validation bypass. Other SAML toolkits deprecated that mechanism, we maintain it for compatibility and also to be used on test environment.
+In production also we highly recommend to register on the settings the IdP certificate instead
+of using the fingerprint method. The fingerprint, is a hash, so at the end is open to a collision
+attack that can end on a signature validation bypass. Other SAML toolkits deprecated that mechanism,
+we maintain it for compatibility and also to be used on test environment.
 
-In some scenarios the IdP uses different certificates for signing/encryption, or is under key rollover phase and more than one certificate is published on IdP metadata.
+In some scenarios the IdP uses different certificates for signing/encryption, or is under key
+rollover phase and more than one certificate is published on IdP metadata.
 
 In order to handle that the toolkit offers the 'idp_cert_multi' parameter.
 When used, 'idp_cert' and 'idp_cert_fingerprint' values are ignored.
 
-That 'idp_cert_multi' must be a Hash as follows:
+The `idp_cert_multi` must be a Hash as follows:
+
 {
   :signing => [],
   :encryption => []
 }
 
-And on 'signing' and 'encryption' arrays, add the different IdP x509 public certificates published on the IdP metadata.
-
+And on `:signing` and `:encryption` arrays, add the different IdP x509 public certificates
+published on the IdP metadata.
 
 ## Metadata Based Configuration
 
-The method above requires a little extra work to manually specify attributes about the IdP.  (And your SP application)  There's an easier method -- use a metadata exchange.  Metadata is just an XML file that defines the capabilities of both the IdP and the SP application.  It also contains the X.509 public
-key certificates which add to the trusted relationship.  The IdP administrator can also configure custom settings for an SP based on the metadata.
+The method above requires a little extra work to manually specify attributes about the IdP.
+(And your SP application)  There's an easier method -- use a metadata exchange.
+Metadata is just an XML file that defines the capabilities of both the IdP and the SP application.
+It also contains the X.509 public key certificates which add to the trusted relationship.
+The IdP administrator can also configure custom settings for an SP based on the metadata.
 
 Using ```idp_metadata_parser.parse_remote``` IdP metadata will be added to the settings without further ado.
 
@@ -810,7 +754,6 @@ To request attributes from the IdP the SP needs to provide an attribute service 
 
 ```ruby
 settings = OneLogin::RubySaml::Settings.new
-
 settings.attributes_index = 5
 settings.attribute_consuming_service.configure do
   service_name "Service"
