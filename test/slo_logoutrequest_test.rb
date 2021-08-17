@@ -109,7 +109,7 @@ class RubySamlTest < Minitest::Test
       end
     end
 
-   describe "#not_on_or_after" do
+    describe "#not_on_or_after" do
       it "extract the value of the NotOnOrAfter attribute" do
         time_value = '2014-07-17T01:01:48Z'
         assert_nil logout_request.not_on_or_after
@@ -158,25 +158,49 @@ class RubySamlTest < Minitest::Test
       it "return true when the logout request has a valid NotOnOrAfter or does not contain any" do
         assert logout_request.send(:validate_not_on_or_after)
         assert_empty logout_request.errors
-        Timecop.freeze Time.parse('2011-06-14T18:25:01.516Z') do
-          time_value = '2014-07-17T01:01:48Z'
-          logout_request.document.root.attributes['NotOnOrAfter'] = time_value
+
+        Timecop.freeze Time.parse('2014-07-17T01:01:47Z') do
+          logout_request.document.root.attributes['NotOnOrAfter'] = '2014-07-17T01:01:48Z'
           assert logout_request.send(:validate_not_on_or_after)
           assert_empty logout_request.errors
         end
       end
 
       it "return false when the logout request has an invalid NotOnOrAfter" do
-        logout_request.document.root.attributes['NotOnOrAfter'] = '2014-07-17T01:01:48Z'
-        assert !logout_request.send(:validate_not_on_or_after)
-        assert /Current time is on or after NotOnOrAfter/.match(logout_request.errors[0])
+        Timecop.freeze Time.parse('2014-07-17T01:01:49Z') do
+          logout_request.document.root.attributes['NotOnOrAfter'] = '2014-07-17T01:01:48Z'
+          assert !logout_request.send(:validate_not_on_or_after)
+          assert /Current time is on or after NotOnOrAfter/.match(logout_request.errors[0])
+        end
       end
 
       it "raise when the logout request has an invalid NotOnOrAfter" do
-        logout_request.document.root.attributes['NotOnOrAfter'] = '2014-07-17T01:01:48Z'
-        logout_request.soft = false
-        assert_raises(OneLogin::RubySaml::ValidationError, "Current time is on or after NotOnOrAfter") do
-          logout_request.send(:validate_not_on_or_after)
+        Timecop.freeze Time.parse('2014-07-17T01:01:49Z') do
+          logout_request.document.root.attributes['NotOnOrAfter'] = '2014-07-17T01:01:48Z'
+          logout_request.soft = false
+          assert_raises(OneLogin::RubySaml::ValidationError, "Current time is on or after NotOnOrAfter") do
+            logout_request.send(:validate_not_on_or_after)
+          end
+        end
+      end
+
+      it "optionally allows for clock drift" do
+        logout_request.soft = true
+        logout_request.document.root.attributes['NotOnOrAfter'] = '2011-06-14T18:31:01.516Z'
+
+        # The NotBefore condition in the document is 2011-06-1418:31:01.516Z
+        Timecop.freeze(Time.parse("2011-06-14T18:31:02Z")) do
+          logout_request.options[:allowed_clock_drift] = 0.483
+          assert !logout_request.send(:validate_not_on_or_after)
+
+          logout_request.options[:allowed_clock_drift] = 0.484
+          assert logout_request.send(:validate_not_on_or_after)
+
+          logout_request.options[:allowed_clock_drift] = '0.483'
+          assert !logout_request.send(:validate_not_on_or_after)
+
+          logout_request.options[:allowed_clock_drift] = '0.484'
+          assert logout_request.send(:validate_not_on_or_after)
         end
       end
     end

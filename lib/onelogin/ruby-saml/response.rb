@@ -339,7 +339,7 @@ module OneLogin
       # returns the allowed clock drift on timing validation
       # @return [Float]
       def allowed_clock_drift
-        options[:allowed_clock_drift].to_f.abs
+        options[:allowed_clock_drift].to_f.abs + Float::EPSILON
       end
 
       # Checks if the SAML Response contains or not an EncryptedAssertion element
