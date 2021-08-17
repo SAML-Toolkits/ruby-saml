@@ -66,24 +66,89 @@ class IdpMetadataParserTest < Minitest::Test
       assert_equal "urn:mace:shibboleth:1.0:profiles:AuthnRequest", settings.idp_sso_service_binding
     end
 
-    it "extract SSO endpoint with specific binding" do
+    it "extract SSO endpoint with specific binding as a String" do
+      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata = idp_metadata_descriptor3
+      options = {}
+      options[:sso_binding] = 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'
+      options[:slo_binding] = 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'
+      settings = idp_metadata_parser.parse(idp_metadata, options)
+      assert_equal "https://idp.example.com/idp/profile/SAML2/POST/SSO", settings.idp_sso_service_url
+      assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST", settings.idp_sso_service_binding
+      assert_nil settings.idp_slo_service_url
+
+      options[:sso_binding] = 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect'
+      options[:slo_binding] = 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect'
+      settings = idp_metadata_parser.parse(idp_metadata, options)
+      assert_equal "https://idp.example.com/idp/profile/SAML2/Redirect/SSO", settings.idp_sso_service_url
+      assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", settings.idp_sso_service_binding
+      assert_equal "https://idp.example.com/idp/profile/SAML2/Redirect/SLO", settings.idp_slo_service_url
+      assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", settings.idp_slo_service_binding
+    end
+
+    it "extract SSO endpoint with specific binding as an Array" do
       idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
       idp_metadata = idp_metadata_descriptor3
       options = {}
       options[:sso_binding] = ['urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST']
+      options[:slo_binding] = ['urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST']
       settings = idp_metadata_parser.parse(idp_metadata, options)
       assert_equal "https://idp.example.com/idp/profile/SAML2/POST/SSO", settings.idp_sso_service_url
       assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST", settings.idp_sso_service_binding
+      assert_nil settings.idp_slo_service_url
 
       options[:sso_binding] = ['urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect']
+      options[:slo_binding] = ['urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect']
       settings = idp_metadata_parser.parse(idp_metadata, options)
       assert_equal "https://idp.example.com/idp/profile/SAML2/Redirect/SSO", settings.idp_sso_service_url
       assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", settings.idp_sso_service_binding
+      assert_equal "https://idp.example.com/idp/profile/SAML2/Redirect/SLO", settings.idp_slo_service_url
+      assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", settings.idp_slo_service_binding
 
       options[:sso_binding] = ['invalid_binding', 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect']
+      options[:slo_binding] = ['invalid_binding', 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect']
       settings = idp_metadata_parser.parse(idp_metadata, options)
       assert_equal "https://idp.example.com/idp/profile/SAML2/Redirect/SSO", settings.idp_sso_service_url
       assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", settings.idp_sso_service_binding
+      assert_equal "https://idp.example.com/idp/profile/SAML2/Redirect/SLO", settings.idp_slo_service_url
+      assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", settings.idp_slo_service_binding
+    end
+
+    it "extract NameIDFormat no specific priority, it takes the first" do
+      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata = idp_metadata_descriptor3
+      settings = idp_metadata_parser.parse(idp_metadata)
+      assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified", settings.name_identifier_format
+    end
+
+    it "extract NameIDFormat specific priority as a String" do
+      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata = idp_metadata_descriptor3
+      options = {}
+      options[:name_id_format] = 'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified'
+      settings = idp_metadata_parser.parse(idp_metadata, options)
+      assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified", settings.name_identifier_format
+
+      options[:name_id_format] = 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress'
+      settings = idp_metadata_parser.parse(idp_metadata, options)
+      assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress", settings.name_identifier_format
+
+      options[:name_id_format] = 'urn:oasis:names:tc:SAML:2.0:nameid-format:persistent'
+      settings = idp_metadata_parser.parse(idp_metadata, options)
+      assert_equal "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent", settings.name_identifier_format
+    end
+
+    it "extract NameIDFormat specific priority as an Array" do
+      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata = idp_metadata_descriptor3
+      options = {}
+      options[:name_id_format] = ['urn:oasis:names:tc:SAML:2.0:nameid-format:persistent', 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress']
+      settings = idp_metadata_parser.parse(idp_metadata, options)
+      assert_equal "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent", settings.name_identifier_format
+
+      options[:name_id_format] = ['invalid', 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress']
+      settings = idp_metadata_parser.parse(idp_metadata, options)
+      assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress", settings.name_identifier_format
     end
 
     it "uses settings options as hash for overrides" do
