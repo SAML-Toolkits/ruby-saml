@@ -1,6 +1,47 @@
 require File.expand_path(File.join(File.dirname(__FILE__), "test_helper"))
 
 class UtilsTest < Minitest::Test
+  describe ".parse_duration" do
+    DURATIONS_FROM_EPOCH = {
+      # Basic formats
+      "P1Y1M1D"        => "1971-02-02T00:00:00.000Z",
+      "PT1H1M1S"       => "1970-01-01T01:01:01.000Z",
+      "P1W"            => "1970-01-08T00:00:00.000Z",
+      "P1Y1M1DT1H1M1S" => "1971-02-02T01:01:01.000Z",
+
+      # Negative duration
+      "-P1Y1M1DT1H1M1S" => "1968-11-29T22:58:59.000Z",
+
+      # Nominal wraparounds
+      "P13M" => "1971-02-01T00:00:00.000Z",
+      "P31D" => "1970-02-01T00:00:00.000Z",
+
+      # Decimal seconds
+      "PT0.5S" => "1970-01-01T00:00:00.500Z",
+      "PT0,5S" => "1970-01-01T00:00:00.500Z"
+    }
+
+    def result(duration, reference = 0)
+      return nil if RUBY_VERSION < '1.9'
+      Time.at(
+        OneLogin::RubySaml::Utils.parse_duration(duration, reference)
+      ).utc.iso8601(3)
+    end
+
+    DURATIONS_FROM_EPOCH.each do |duration, expected|
+      it "parses #{duration} to return #{expected} from the given timestamp" do
+        return if RUBY_VERSION < '1.9'
+        assert_equal expected, result(duration)
+      end
+    end
+
+    it "returns the last calendar day of the next month when advancing from a longer month to a shorter one" do
+      initial_timestamp = Time.iso8601("1970-01-31T00:00:00.000Z").to_i
+      return if RUBY_VERSION < '1.9'
+      assert_equal "1970-02-28T00:00:00.000Z", result("P1M", initial_timestamp)
+    end
+  end
+
   describe ".format_cert" do
     let(:formatted_certificate) {read_certificate("formatted_certificate")}
     let(:formatted_chained_certificate) {read_certificate("formatted_chained_certificate")}

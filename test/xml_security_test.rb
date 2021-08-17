@@ -402,13 +402,12 @@ class XmlSecurityTest < Minitest::Test
 
       describe 'with invalid document ' do
         describe 'when certificate is invalid' do
-          let(:document_data) { read_response('response_with_signed_message_and_assertion.xml')
-            .sub(/<ds:X509Certificate>.*<\/ds:X509Certificate>/, "<ds:X509Certificate>invalid<\/ds:X509Certificate>") }
           let(:document) { OneLogin::RubySaml::Response.new(document_data).document }
-          let(:idp_cert) { OpenSSL::X509::Certificate.new(ruby_saml_cert_text) }
 
           it 'is invalid' do
-            refute document.validate_document_with_cert(idp_cert), 'Document should be invalid'
+            wrong_document_data = document_data.sub(/<ds:X509Certificate>.*<\/ds:X509Certificate>/, "<ds:X509Certificate>invalid<\/ds:X509Certificate>")
+            wrong_document = OneLogin::RubySaml::Response.new(wrong_document_data).document
+            refute wrong_document.validate_document_with_cert(idp_cert), 'Document should be invalid'
           end
         end
       end

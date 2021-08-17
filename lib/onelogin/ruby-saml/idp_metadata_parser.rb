@@ -119,8 +119,10 @@ module OneLogin
 
         unless parsed_metadata[:cache_duration].nil?
           cache_valid_until_timestamp = OneLogin::RubySaml::Utils.parse_duration(parsed_metadata[:cache_duration])
-          if parsed_metadata[:valid_until].nil? || cache_valid_until_timestamp < Time.parse(parsed_metadata[:valid_until], Time.now.utc).to_i
-            parsed_metadata[:valid_until] = Time.at(cache_valid_until_timestamp).utc.strftime("%Y-%m-%dT%H:%M:%SZ")
+          unless cache_valid_until_timestamp.nil?
+            if parsed_metadata[:valid_until].nil? || cache_valid_until_timestamp < Time.parse(parsed_metadata[:valid_until], Time.now.utc).to_i
+              parsed_metadata[:valid_until] = Time.at(cache_valid_until_timestamp).utc.strftime("%Y-%m-%dT%H:%M:%SZ")
+            end
           end
         end
         # Remove the cache_duration because on the settings
@@ -225,7 +227,9 @@ module OneLogin
             :idp_entity_id => @entity_id,
             :name_identifier_format => idp_name_id_format,
             :idp_sso_service_url => single_signon_service_url(options),
+            :idp_sso_service_binding => single_signon_service_binding(options[:sso_binding]),
             :idp_slo_service_url => single_logout_service_url(options),
+            :idp_slo_service_binding => single_logout_service_binding(options[:slo_binding]),
             :idp_slo_response_service_url => single_logout_response_service_url(options),
             :idp_attribute_names => attribute_names,
             :idp_cert => nil,
@@ -275,8 +279,8 @@ module OneLogin
           if binding_priority
             values = nodes.map(&:value)
             binding_priority.detect{ |binding| values.include? binding }
-          else
-            nodes.first.value if nodes.any?
+          elsif nodes.any?
+            nodes.first.value
           end
         end
 
@@ -307,8 +311,8 @@ module OneLogin
           if binding_priority
             values = nodes.map(&:value)
             binding_priority.detect{ |binding| values.include? binding }
-          else
-            nodes.first.value if nodes.any?
+          elsif nodes.any?
+            nodes.first.value
           end
         end
 
@@ -421,10 +425,10 @@ module OneLogin
                 parsed_metadata[:idp_cert_fingerprint_algorithm]
               )
             end
-          else
-            # symbolize keys of certificates and pass it on
-            parsed_metadata[:idp_cert_multi] = Hash[certificates.map { |k, v| [k.to_sym, v] }]
           end
+
+          # symbolize keys of certificates and pass it on
+          parsed_metadata[:idp_cert_multi] = Hash[certificates.map { |k, v| [k.to_sym, v] }]
         end
 
         def certificates_has_one(key)

@@ -225,12 +225,12 @@ class RequestTest < Minitest::Test
       assert_match /<saml:AuthnContextDeclRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport<\/saml:AuthnContextDeclRef>/, auth_doc.to_s
     end
 
-    describe "#create_params when the settings indicate to sign (embebed) the request" do
+    describe "#create_params signing with HTTP-POST binding" do
       before do
         settings.compress_request = false
         settings.idp_sso_service_url = "http://example.com?field=value"
+        settings.idp_sso_service_binding = :post
         settings.security[:authn_requests_signed] = true
-        settings.security[:embed_sign] = true
         settings.certificate = ruby_saml_cert_text
         settings.private_key = ruby_saml_key_text
       end
@@ -255,15 +255,15 @@ class RequestTest < Minitest::Test
       end
     end
 
-    describe "#create_params when the settings indicate to sign the request" do
+    describe "#create_params signing with HTTP-Redirect binding" do
       let(:cert) { OpenSSL::X509::Certificate.new(ruby_saml_cert_text) }
 
       before do
         settings.compress_request = false
         settings.idp_sso_service_url = "http://example.com?field=value"
+        settings.idp_sso_service_binding = :redirect
         settings.assertion_consumer_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST-SimpleSign"
         settings.security[:authn_requests_signed] = true
-        settings.security[:embed_sign] = false
         settings.certificate = ruby_saml_cert_text
         settings.private_key = ruby_saml_key_text
       end
@@ -336,6 +336,57 @@ class RequestTest < Minitest::Test
       auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
       assert auth_doc.to_s =~ /<saml:AuthnContextDeclRef>name\/password\/uri<\/saml:AuthnContextDeclRef>/
       assert auth_doc.to_s =~ /<saml:AuthnContextDeclRef>example\/decl\/ref<\/saml:AuthnContextDeclRef>/
+    end
+
+    describe "DEPRECATED: #create_params signing with HTTP-POST binding via :embed_sign" do
+      before do
+        settings.compress_request = false
+        settings.idp_sso_service_url = "http://example.com?field=value"
+        settings.security[:authn_requests_signed] = true
+        settings.security[:embed_sign] = true
+        settings.certificate = ruby_saml_cert_text
+        settings.private_key = ruby_saml_key_text
+      end
+
+      it "create a signed request" do
+        params = OneLogin::RubySaml::Authrequest.new.create_params(settings)
+        request_xml = Base64.decode64(params["SAMLRequest"])
+        assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], request_xml
+        assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], request_xml
+      end
+    end
+
+    describe "DEPRECATED: #create_params signing with HTTP-Redirect binding via :embed_sign" do
+      let(:cert) { OpenSSL::X509::Certificate.new(ruby_saml_cert_text) }
+
+      before do
+        settings.compress_request = false
+        settings.idp_sso_service_url = "http://example.com?field=value"
+        settings.assertion_consumer_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST-SimpleSign"
+        settings.security[:authn_requests_signed] = true
+        settings.security[:embed_sign] = false
+        settings.certificate = ruby_saml_cert_text
+        settings.private_key = ruby_saml_key_text
+      end
+
+      it "create a signature parameter with RSA_SHA1 and validate it" do
+        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+
+        params = OneLogin::RubySaml::Authrequest.new.create_params(settings, :RelayState => 'http://example.com')
+        assert params['SAMLRequest']
+        assert params[:RelayState]
+        assert params['Signature']
+        assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA1
+
+        query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
+        query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
+        query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
+
+        signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
+        assert_equal signature_algorithm, OpenSSL::Digest::SHA1
+
+        assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
+      end
     end
   end
 end
