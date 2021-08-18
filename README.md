@@ -562,8 +562,8 @@ Ruby SAML supports supports the signing and encryption functionality:
 
 1. Signing your SP Metadata XML
 2. Signing your SP SAML messages
-3. Encrypting IdP Assertion messages, and decrypting them upon receipt (EncryptedAssertion)
-4. Verifying signatures on IdP Assertion messages
+3. Decrypting IdP Assertion messages upon receipt (EncryptedAssertion)
+4. Verifying signatures on SAML messages and IdP Assertions
 
 In order to use functions 1-3 above, you must first define your SP public certificate and private key:
 
@@ -572,8 +572,9 @@ In order to use functions 1-3 above, you must first define your SP public certif
   settings.private_key = "PRIVATE KEY TEXT WITH BEGIN/END HEADER AND FOOTER"
 ```
 
-Note that the same certificate and private key are used for all SP encryption and signing-related functions.
-Ruby SAML does not currently allow to specify different certificates for each function.
+Note that the same certificate (and its associated private key) are used to perform
+all decryption and signing-related functions (1-4) above. Ruby SAML does not currently allow
+to specify different certificates for each function.
 
 You may also globally set the SP signature and digest method, to be used in SP signing (functions 1 and 2 above):
 
@@ -620,7 +621,7 @@ Note that the RelayState parameter is used when creating the Signature on the `H
 Remember to provide it to the Signature builder if you are sending a `GET RelayState` parameter or the
 signature validation process will fail at the Identity Provider.
 
-#### Encrypting SAML Assertions
+#### Decrypting IdP SAML Assertions
 
 Ruby SAML supports EncryptedAssertion. The Identity Provider will encrypt the Assertion with the
 public cert of the Service Provider. The Service Provider will decrypt the EncryptedAssertion with its private key.
@@ -632,7 +633,7 @@ SP Metadata XML, to be read by the IdP.
   settings.certificate = "CERTIFICATE TEXT WITH BEGIN/END HEADER AND FOOTER"
   settings.private_key = "PRIVATE KEY TEXT WITH BEGIN/END HEADER AND FOOTER"
 
-  settings.security[:want_assertions_encrypted] = true # Enable EncryptedAssertion
+  settings.security[:want_assertions_encrypted] = true # Invalidate SAML messages without an EncryptedAssertion
 ```
 
 #### Verifying Signature on IdP Assertions
