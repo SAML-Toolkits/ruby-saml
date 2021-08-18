@@ -556,9 +556,9 @@ You can add `ValidUntil` and `CacheDuration` to the SP Metadata XML using instea
   meta.generate(settings, false, valid_until, cache_duration)
 ```
 
-## Signing and Encryption
+## Signing and Decryption
 
-Ruby SAML supports supports the signing and encryption functionality:
+Ruby SAML supports the following signing and decryption functionality:
 
 1. Signing your SP Metadata XML
 2. Signing your SP SAML messages
