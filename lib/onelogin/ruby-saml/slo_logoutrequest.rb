@@ -186,13 +186,15 @@ module OneLogin
         true
       end
 
-      # Validates the time. (If the logout request was initialized with the :allowed_clock_drift option, the timing validations are relaxed by the allowed_clock_drift value)
+      # Validates the time. (If the logout request was initialized with the :allowed_clock_drift
+      # option, the timing validations are relaxed by the allowed_clock_drift value)
       # If fails, the error is added to the errors array
       # @return [Boolean] True if satisfies the conditions, otherwise False if soft=True
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_not_on_or_after
         now = Time.now.utc
+
         if not_on_or_after && now >= (not_on_or_after + allowed_clock_drift)
           return append_error("Current time is on or after NotOnOrAfter (#{now} >= #{not_on_or_after}#{" + #{allowed_clock_drift.ceil}s" if allowed_clock_drift > 0})")
         end
