@@ -185,6 +185,9 @@ class RubySamlTest < Minitest::Test
       end
 
       it "optionally allows for clock drift" do
+        # Java Floats behave differently than MRI
+        java = %w[jruby truffleruby].include?(ENV['RUBY_ENGINE'])
+
         logout_request.soft = true
         logout_request.document.root.attributes['NotOnOrAfter'] = '2011-06-14T18:31:01.516Z'
 
@@ -193,13 +196,13 @@ class RubySamlTest < Minitest::Test
           logout_request.options[:allowed_clock_drift] = 0.483
           assert !logout_request.send(:validate_not_on_or_after)
 
-          logout_request.options[:allowed_clock_drift] = 0.484
+          logout_request.options[:allowed_clock_drift] = java ? 0.485 : 0.484
           assert logout_request.send(:validate_not_on_or_after)
 
           logout_request.options[:allowed_clock_drift] = '0.483'
           assert !logout_request.send(:validate_not_on_or_after)
 
-          logout_request.options[:allowed_clock_drift] = '0.484'
+          logout_request.options[:allowed_clock_drift] = java ? '0.485' : '0.484'
           assert logout_request.send(:validate_not_on_or_after)
         end
       end

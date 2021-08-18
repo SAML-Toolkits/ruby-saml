@@ -1141,6 +1141,9 @@ class RubySamlTest < Minitest::Test
       end
 
       it "optionally allows for clock drift on NotOnOrAfter" do
+        # Java Floats behave differently than MRI
+        java = %w[jruby truffleruby].include?(ENV['RUBY_ENGINE'])
+
         settings.soft = true
 
         # The NotBefore condition in the document is 2011-06-1418:31:01.516Z
@@ -1154,7 +1157,7 @@ class RubySamlTest < Minitest::Test
 
           special_response_with_saml2_namespace = OneLogin::RubySaml::Response.new(
               response_document_with_saml2_namespace,
-              :allowed_clock_drift => 0.484
+              :allowed_clock_drift => java ? 0.485 : 0.484
           )
           assert special_response_with_saml2_namespace.send(:validate_conditions)
 
@@ -1167,7 +1170,7 @@ class RubySamlTest < Minitest::Test
 
           special_response_with_saml2_namespace = OneLogin::RubySaml::Response.new(
               response_document_with_saml2_namespace,
-              :allowed_clock_drift => '0.484'
+              :allowed_clock_drift => java ? '0.485' : '0.484'
           )
           assert special_response_with_saml2_namespace.send(:validate_conditions)
         end
