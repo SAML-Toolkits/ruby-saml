@@ -1,15 +1,26 @@
 # Ruby SAML Migration Guide
 
+## Updating from 1.12.x to 1.13.0 (NOT YET RELEASED)
+
+Version `1.13.0` adds `settings.idp_sso_service_binding` and `settings.idp_slo_service_binding`, and
+deprecates `settings.security[:embed_sign]`. If specified, new binding parameters will be used in place of `:embed_sign`
+to determine how to handle SAML message signing (`HTTP-POST` embeds signature and `HTTP-Redirect` does not.)
+
+In addition, the `IdpMetadataParser#parse`, `#parse_to_hash` and `#parse_to_array` methods now retrieve
+`idp_sso_service_binding` and `idp_slo_service_binding`.
+
+Lastly, for convenience you may now use the Symbol aliases `:post` and `:redirect` for any `settings.*_binding` parameter.
+
 ## Upgrading from 1.11.x to 1.12.0
 
 Version `1.12.0` adds support for gcm algorithm and
 change/adds specific error messages for signature validations
 
 `idp_sso_target_url` and `idp_slo_target_url` attributes of the Settings class deprecated
-in favor of `idp_sso_service_url` and `idp_slo_service_url`. In IDPMetadataParser,
-`parse`, `parse_to_hash` and `parse_to_array` methods now retrieve
-SSO URL and SLO URL endpoints with `idp_sso_service_url` and `idp_slo_service_url`
-(previously `idp_sso_target_url` and `idp_slo_target_url` respectively).
+in favor of `idp_sso_service_url` and `idp_slo_service_url`. The `IdpMetadataParser#parse`,
+`#parse_to_hash` and `#parse_to_array` methods now retrieve SSO URL and SLO URL endpoints with
+`idp_sso_service_url` and `idp_slo_service_url` (previously `idp_sso_target_url` and
+`idp_slo_target_url` respectively).
 
 ## Upgrading from 1.10.x to 1.11.0
 
