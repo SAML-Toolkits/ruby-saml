@@ -316,11 +316,14 @@ of using the fingerprint method. The fingerprint, is a hash, so at the end is op
 attack that can end on a signature validation bypass. Other SAML toolkits deprecated that mechanism,
 we maintain it for compatibility and also to be used on test environment.
 
-In some scenarios the IdP uses different certificates for signing/encryption, or is under key
-rollover phase and more than one certificate is published on IdP metadata.
+## Handling Multiple IdP Certificates
 
-In order to handle that Ruby SAML offers the `idp_cert_multi` parameter.
-When used, `idp_cert` and `idp_cert_fingerprint` values are ignored.
+If IdP includes multiple certificates in their metadata XML, you may specify the `idp_cert_multi`
+parameter. When used, `idp_cert` and `idp_cert_fingerprint` values are ignored.
+This is useful in the following scenarios:
+
+* The IdP uses different certificates for signing versus encryption.
+* The IdP is undergoing a key rollover and is publishing the old and new certificates in parallel.
 
 The `idp_cert_multi` must be a Hash as follows:
 
@@ -558,7 +561,7 @@ You can add `ValidUntil` and `CacheDuration` to the SP Metadata XML using instea
 
 ## Signing and Decryption
 
-Ruby SAML supports the following signing and decryption functionality:
+Ruby SAML supports the following functionality:
 
 1. Signing your SP Metadata XML
 2. Signing your SP SAML messages
