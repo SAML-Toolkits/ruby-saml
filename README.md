@@ -319,14 +319,14 @@ we maintain it for compatibility and also to be used on test environment.
 ## Handling Multiple IdP Certificates
 
 If the IdP metadata XML includes multiple certificates, you may specify the `idp_cert_multi`
-parameter. When used, `idp_cert` and `idp_cert_fingerprint` are ignored. This is useful in the
-following scenarios:
+parameter. When used, the `idp_cert` and `idp_cert_fingerprint` parameters are ignored.
+This is useful in the following scenarios:
 
 * The IdP uses different certificates for signing versus encryption.
 * The IdP is undergoing a key rollover and is publishing the old and new certificates in parallel.
 
-The `idp_cert_multi` must be a Hash as follows. The `:signing` and `:encryption` arrays below,
-add the IdP X.509 public certificates published on the IdP metadata.
+The `idp_cert_multi` must be a `Hash` as follows. The `:signing` and `:encryption` arrays below,
+add the IdP X.509 public certificates which were published in the IdP metadata.
 
 ```ruby
 {
