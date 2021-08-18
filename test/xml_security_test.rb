@@ -302,7 +302,7 @@ class XmlSecurityTest < Minitest::Test
       let (:response) { OneLogin::RubySaml::Response.new(fixture(:starfield_response)) }
 
       before do
-        response.settings = OneLogin::RubySaml::Settings.new( :idp_cert_fingerprint => "8D:BA:53:8E:A3:B6:F9:F1:69:6C:BB:D9:D8:BD:41:B3:AC:4F:9D:4D")
+        response.settings = OneLogin::RubySaml::Settings.new(:idp_cert_fingerprint => "8D:BA:53:8E:A3:B6:F9:F1:69:6C:BB:D9:D8:BD:41:B3:AC:4F:9D:4D")
       end
 
       it "be able to validate a good response" do
@@ -320,10 +320,10 @@ class XmlSecurityTest < Minitest::Test
           time_2 = 'Tue Nov 20 17:55:00 UTC 2012 < Wed Nov 28 17:53:45 UTC 2012'
 
           errors = [time_1, time_2].map do |time|
-            "Current time is earlier than NotBefore condition (#{time})"
+            "Current time is earlier than NotBefore condition (#{time} - 1s)"
           end
 
-          assert_predicate response.errors & errors, :any?
+          assert_predicate(response.errors & errors, :any?)
         end
       end
 
@@ -331,8 +331,8 @@ class XmlSecurityTest < Minitest::Test
         Timecop.freeze Time.parse('2012-11-30 17:55:00 UTC') do
           assert !response.is_valid?
 
-          contains_expected_error = response.errors.include? "Current time is on or after NotOnOrAfter condition (2012-11-30 17:55:00 UTC >= 2012-11-28 18:33:45 UTC)"
-          contains_expected_error ||= response.errors.include? "Current time is on or after NotOnOrAfter condition (Fri Nov 30 17:55:00 UTC 2012 >= Wed Nov 28 18:33:45 UTC 2012)"
+          contains_expected_error = response.errors.include?("Current time is on or after NotOnOrAfter condition (2012-11-30 17:55:00 UTC >= 2012-11-28 18:33:45 UTC + 1s)")
+          contains_expected_error ||= response.errors.include?("Current time is on or after NotOnOrAfter condition (Fri Nov 30 17:55:00 UTC 2012 >= Wed Nov 28 18:33:45 UTC 2012 + 1s)")
           assert contains_expected_error
         end
       end
