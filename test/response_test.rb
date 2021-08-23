@@ -1107,40 +1107,70 @@ class RubySamlTest < Minitest::Test
         end
       end
 
-      it "optionally allows for clock drift" do
+      it "optionally allows for clock drift on NotBefore" do
+        settings.soft = true
+
         # The NotBefore condition in the document is 2011-06-14T18:21:01.516Z
         Timecop.freeze(Time.parse("2011-06-14T18:21:01Z")) do
-          settings.soft = true
           special_response_with_saml2_namespace = OneLogin::RubySaml::Response.new(
             response_document_with_saml2_namespace,
             :allowed_clock_drift => 0.515,
             :settings => settings
           )
           assert !special_response_with_saml2_namespace.send(:validate_conditions)
-        end
 
-        Timecop.freeze(Time.parse("2011-06-14T18:21:01Z")) do
           special_response_with_saml2_namespace = OneLogin::RubySaml::Response.new(
             response_document_with_saml2_namespace,
             :allowed_clock_drift => 0.516
           )
           assert special_response_with_saml2_namespace.send(:validate_conditions)
-        end
 
-        Timecop.freeze(Time.parse("2011-06-14T18:21:01Z")) do
-          settings.soft = true
           special_response_with_saml2_namespace = OneLogin::RubySaml::Response.new(
             response_document_with_saml2_namespace,
             :allowed_clock_drift => '0.515',
             :settings => settings
           )
           assert !special_response_with_saml2_namespace.send(:validate_conditions)
-        end
 
-        Timecop.freeze(Time.parse("2011-06-14T18:21:01Z")) do
           special_response_with_saml2_namespace = OneLogin::RubySaml::Response.new(
             response_document_with_saml2_namespace,
             :allowed_clock_drift => '0.516'
+          )
+          assert special_response_with_saml2_namespace.send(:validate_conditions)
+        end
+      end
+
+      it "optionally allows for clock drift on NotOnOrAfter" do
+        # Java Floats behave differently than MRI
+        java = defined?(RUBY_ENGINE) && %w[jruby truffleruby].include?(RUBY_ENGINE)
+
+        settings.soft = true
+
+        # The NotBefore condition in the document is 2011-06-1418:31:01.516Z
+        Timecop.freeze(Time.parse("2011-06-14T18:31:02Z")) do
+          special_response_with_saml2_namespace = OneLogin::RubySaml::Response.new(
+              response_document_with_saml2_namespace,
+              :allowed_clock_drift => 0.483,
+              :settings => settings
+          )
+          assert !special_response_with_saml2_namespace.send(:validate_conditions)
+
+          special_response_with_saml2_namespace = OneLogin::RubySaml::Response.new(
+              response_document_with_saml2_namespace,
+              :allowed_clock_drift => java ? 0.485 : 0.484
+          )
+          assert special_response_with_saml2_namespace.send(:validate_conditions)
+
+          special_response_with_saml2_namespace = OneLogin::RubySaml::Response.new(
+              response_document_with_saml2_namespace,
+              :allowed_clock_drift => '0.483',
+              :settings => settings
+          )
+          assert !special_response_with_saml2_namespace.send(:validate_conditions)
+
+          special_response_with_saml2_namespace = OneLogin::RubySaml::Response.new(
+              response_document_with_saml2_namespace,
+              :allowed_clock_drift => java ? '0.485' : '0.484'
           )
           assert special_response_with_saml2_namespace.send(:validate_conditions)
         end
