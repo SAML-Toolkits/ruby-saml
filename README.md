@@ -816,6 +816,27 @@ response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], :allowed_cloc
 
 Make sure to keep the value as comfortably small as possible to keep security risks to a minimum.
 
+## Deflation Limit
+
+To protect against decompression bombs (a form of DoS attack), SAML messages are limited to 250,000 bytes by default.
+Sometimes legitimate SAML messages will exceed this limit,
+for example due to custom claims like including groups a user is a member of.
+If you want to customize this limit, you need to provide a different setting when initializing the response object.
+Example:
+
+```ruby
+def consume
+  response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], { settings: saml_settings })
+  ...
+end
+
+private
+
+def saml_settings
+  OneLogin::RubySaml::Settings.new(message_max_bytesize: 500_000)
+end
+```
+
 ## Attribute Service
 
 To request attributes from the IdP the SP needs to provide an attribute service within it's metadata and reference the index in the assertion.

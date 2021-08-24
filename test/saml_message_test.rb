@@ -54,19 +54,31 @@ class RubySamlTest < Minitest::Test
     end
 
     describe "Prevent Zlib bomb attack" do
-      it "raises error when SAML Message exceed the allowed bytes" do
-        prefix= """<?xml version='1.0' encoding='UTF-8'?>
-                   <samlp:LogoutRequest xmlns:samlp='urn:oasis:names:tc:SAML:2.0:protocol' xmlns:saml='urn:oasis:names:tc:SAML:2.0:assertion' ID='ONELOGIN_21df91a89767879fc0f7df6a1490c6000c81644d' Version='2.0' IssueInstant='2014-07-18T01:13:06Z' Destination='http://idp.example.com/SingleLogoutService.php'>
-                   <saml:Issuer>"""
-        suffix= """</saml:Issuer>
-                   <saml:NameID SPNameQualifier='http://sp.example.com/demo1/metadata.php' Format='urn:oasis:names:tc:SAML:2.0:nameid-format:transient'>ONELOGIN_f92cc1834efc0f73e9c09f482fce80037a6251e7</saml:NameID>
-                </samlp:LogoutRequest>"""
+      let(:bomb) { Base64.encode64(Zlib::Deflate.deflate(bomb_data, 9)[2..-5]) }
+      let(:bomb_data) { bomb_prefix + "A" * (200000 * 1024) + bomb_suffix }
+      let(:bomb_prefix) { """<?xml version='1.0' encoding='UTF-8'?>
+        <samlp:LogoutRequest xmlns:samlp='urn:oasis:names:tc:SAML:2.0:protocol' xmlns:saml='urn:oasis:names:tc:SAML:2.0:assertion' ID='ONELOGIN_21df91a89767879fc0f7df6a1490c6000c81644d' Version='2.0' IssueInstant='2014-07-18T01:13:06Z' Destination='http://idp.example.com/SingleLogoutService.php'>
+        <saml:Issuer>""" }
+      let(:bomb_suffix) { """</saml:Issuer>
+        <saml:NameID SPNameQualifier='http://sp.example.com/demo1/metadata.php' Format='urn:oasis:names:tc:SAML:2.0:nameid-format:transient'>ONELOGIN_f92cc1834efc0f73e9c09f482fce80037a6251e7</saml:NameID>
+     </samlp:LogoutRequest>""" }
 
-        data = prefix + "A" * (200000 * 1024) + suffix
-        bomb = Base64.encode64(Zlib::Deflate.deflate(data, 9)[2..-5])
-        assert_raises(OneLogin::RubySaml::ValidationError, "Encoded SAML Message exceeds " + OneLogin::RubySaml::SamlMessage::MAX_BYTE_SIZE.to_s + " bytes, so was rejected") do
+      it "raises error when SAML Message exceed the allowed bytes" do
+        assert_raises(OneLogin::RubySaml::ValidationError, "Encoded SAML Message exceeds #{OneLogin::RubySaml::Settings::DEFAULTS[:message_max_bytesize]} bytes, so was rejected") do
             saml_message = OneLogin::RubySaml::SamlMessage.new
             saml_message.send(:decode_raw_saml, bomb)
+        end
+      end
+
+      describe 'with a custom setting for message_max_bytesize' do
+        let(:message_max_bytesize) { 100_00 }
+        let(:settings) { OneLogin::RubySaml::Settings.new(message_max_bytesize: message_max_bytesize) }
+
+        it 'uses the custom setting' do
+          assert_raises(OneLogin::RubySaml::ValidationError, "Encoded SAML Message exceeds #{message_max_bytesize} bytes, so was rejected") do
+            saml_message = OneLogin::RubySaml::SamlMessage.new
+            saml_message.send(:decode_raw_saml, bomb, settings)
+          end
         end
       end
     end
