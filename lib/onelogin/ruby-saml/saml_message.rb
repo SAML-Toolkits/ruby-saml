@@ -22,8 +22,6 @@ module OneLogin
       BASE64_FORMAT = %r(\A([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?\Z)
       @@mutex = Mutex.new
 
-      MAX_BYTE_SIZE = 250000
-
       # @return [Nokogiri::XML::Schema] Gets the schema object of the SAML 2.0 Protocol schema
       #
       def self.schema
@@ -88,11 +86,12 @@ module OneLogin
       # @param saml [String] The deflated and encoded SAML Message
       # @return [String] The plain SAML Message
       #
-      def decode_raw_saml(saml)
+      def decode_raw_saml(saml, settings = nil)
         return saml unless base64_encoded?(saml)
 
-        if saml.bytesize > MAX_BYTE_SIZE
-          raise ValidationError.new("Encoded SAML Message exceeds " + MAX_BYTE_SIZE.to_s + " bytes, so was rejected")
+        settings = OneLogin::RubySaml::Settings.new if settings.nil?
+        if saml.bytesize > settings.message_max_bytesize
+          raise ValidationError.new("Encoded SAML Message exceeds " + settings.message_max_bytesize.to_s + " bytes, so was rejected")
         end
 
         decoded = decode(saml)

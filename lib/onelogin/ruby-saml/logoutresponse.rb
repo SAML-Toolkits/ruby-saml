@@ -43,7 +43,7 @@ module OneLogin
         end
 
         @options = options
-        @response = decode_raw_saml(response)
+        @response = decode_raw_saml(response, settings)
         @document = XMLSecurity::SignedDocument.new(@response)
       end
 

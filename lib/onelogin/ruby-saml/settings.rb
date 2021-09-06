@@ -54,6 +54,7 @@ module OneLogin
       attr_accessor :compress_request
       attr_accessor :compress_response
       attr_accessor :double_quote_xml_attribute_values
+      attr_accessor :message_max_bytesize
       attr_accessor :passive
       attr_reader   :protocol_binding
       attr_accessor :attributes_index
@@ -264,6 +265,7 @@ module OneLogin
         :idp_cert_fingerprint_algorithm            => XMLSecurity::Document::SHA1,
         :compress_request                          => true,
         :compress_response                         => true,
+        :message_max_bytesize                      => 250000,
         :soft                                      => true,
         :double_quote_xml_attribute_values         => false,
         :security                                  => {

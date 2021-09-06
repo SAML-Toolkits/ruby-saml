@@ -17,7 +17,7 @@ class SettingsTest < Minitest::Test
         :idp_attribute_names, :issuer, :assertion_consumer_service_url, :single_logout_service_url,
         :sp_name_qualifier, :name_identifier_format, :name_identifier_value, :name_identifier_value_requested,
         :sessionindex, :attributes_index, :passive, :force_authn,
-        :compress_request, :double_quote_xml_attribute_values,
+        :compress_request, :double_quote_xml_attribute_values, :message_max_bytesize,
         :security, :certificate, :private_key,
         :authn_context, :authn_context_comparison, :authn_context_decl_ref,
         :assertion_consumer_logout_service_url
@@ -89,6 +89,7 @@ class SettingsTest < Minitest::Test
           :idp_slo_service_url => "http://sso.muda.no/slo",
           :idp_slo_service_binding => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
           :idp_cert_fingerprint => "00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00",
+          :message_max_bytesize => 750000,
           :valid_until => '2029-04-16T03:35:08.277Z',
           :name_identifier_format => "urn:oasis:names:tc:SAML:2.0:nameid-format:transient",
           :attributes_index => 30,

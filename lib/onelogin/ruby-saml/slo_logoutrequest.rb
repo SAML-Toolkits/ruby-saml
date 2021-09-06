@@ -43,7 +43,7 @@ module OneLogin
           end
         end
 
-        @request = decode_raw_saml(request)
+        @request = decode_raw_saml(request, settings)
         @document = REXML::Document.new(@request)
       end
 
