@@ -1,7 +1,20 @@
 # Ruby SAML Changelog
 
+### 1.13.0 (Sept 06, 2021)
+* [#611](https://github.com/onelogin/ruby-saml/pull/601) Replace MAX_BYTE_SIZE constant with setting: message_max_bytesize
+* [#605](https://github.com/onelogin/ruby-saml/pull/605) :allowed_clock_drift is now bidrectional
+* [#614](https://github.com/onelogin/ruby-saml/pull/614) Support :name_id_format option for IdpMetadataParser
+* [#611](https://github.com/onelogin/ruby-saml/pull/611) IdpMetadataParser should always set idp_cert_multi, even when there is only one cert
+* [#610](https://github.com/onelogin/ruby-saml/pull/610) New IDP sso/slo binding params which deprecate :embed_sign
+* [#602](https://github.com/onelogin/ruby-saml/pull/602) Refactor the OneLogin::RubySaml::Metadata class
+* [#586](https://github.com/onelogin/ruby-saml/pull/586) Support milliseconds in cacheDuration parsing
+* [#585](https://github.com/onelogin/ruby-saml/pull/585) Do not append " | " to StatusCode unnecessarily
+* [#607](https://github.com/onelogin/ruby-saml/pull/607) Clean up
+* Add warning about the use of IdpMetadataParser class and SSRF
+* CI: Migrate from Travis to Github Actions
+
 ### 1.12.2 (Apr 08, 2021)
-* [575](https://github.com/onelogin/ruby-saml/pull/575) Fix SloLogoutresponse bug on LogoutRequest
+* [#575](https://github.com/onelogin/ruby-saml/pull/575) Fix SloLogoutresponse bug on LogoutRequest
 
 ### 1.12.1 (Apr 05, 2021)
 * Fix XPath typo incompatible with Rexml 3.2.5
