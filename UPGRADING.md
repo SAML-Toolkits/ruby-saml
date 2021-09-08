@@ -1,6 +1,6 @@
 # Ruby SAML Migration Guide
 
-## Updating from 1.12.x to 1.13.0 (NOT YET RELEASED)
+## Updating from 1.12.x to 1.13.0
 
 Version `1.13.0` adds `settings.idp_sso_service_binding` and `settings.idp_slo_service_binding`, and
 deprecates `settings.security[:embed_sign]`. If specified, new binding parameters will be used in place of `:embed_sign`
