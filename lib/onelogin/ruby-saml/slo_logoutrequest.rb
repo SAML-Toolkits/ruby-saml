@@ -259,17 +259,40 @@ module OneLogin
         # <http://docs.oasis-open.org/security/saml/v2.0/saml-bindings-2.0-os.pdf>
         #
         # If we don't have the original parts (for backward compatibility) required to correctly verify the signature,
-        # then fabricate them by re-encoding the parsed URI parameters, and hope that we're lucky enough to use
-        # the exact same URI-encoding as the IDP. (This is not the case if the IDP is ADFS!)
+        # then try to retrieve them from the original ACS URL, and if that doesn't work then fabricate them by re-encoding
+        # the parsed URI parameters, and hope that we're lucky enough to use the exact same URI-encoding as the IDP.
+        acs_query_params = if (acs_url = options[:settings]&.assertion_consumer_service_url)
+                             URI.parse(acs_url).query.split(/[&;]/n).each_with_object({}) do |pairs, params|
+                               key, value = pairs.split('=', 2)
+                               params[key] = value
+                             end
+                           end
+
         options[:raw_get_params] ||= {}
-        if options[:raw_get_params]['SAMLRequest'].nil? && !options[:get_params]['SAMLRequest'].nil?
-          options[:raw_get_params]['SAMLRequest'] = CGI.escape(options[:get_params]['SAMLRequest'])
+
+        data = if (acs_query_params&.fetch('SAMLRequest') { nil })
+                 acs_query_params['SAMLRequest']
+               elsif options[:get_params]['SAMLRequest']
+                 CGI.escape(options[:get_params]['SAMLRequest'])
+               end
+        if options[:raw_get_params]['SAMLRequest'].nil? && data
+          options[:raw_get_params]['SAMLRequest'] = data
         end
-        if options[:raw_get_params]['RelayState'].nil? && !options[:get_params]['RelayState'].nil?
-          options[:raw_get_params]['RelayState'] = CGI.escape(options[:get_params]['RelayState'])
+        relay_state = if (acs_query_params&.fetch('RelayState') { nil })
+                        acs_query_params['RelayState']
+                      elsif options[:get_params]['RelayState']
+                        CGI.escape(options[:get_params]['RelayState'])
+                      end
+        if options[:raw_get_params]['RelayState'].nil? && relay_state
+          options[:raw_get_params]['RelayState'] = relay_state
         end
-        if options[:raw_get_params]['SigAlg'].nil? && !options[:get_params]['SigAlg'].nil?
-          options[:raw_get_params]['SigAlg'] = CGI.escape(options[:get_params]['SigAlg'])
+        sig_alg = if (acs_query_params&.fetch('SigAlg') { nil })
+                    acs_query_params['SigAlg']
+                  elsif options[:get_params]['SigAlg']
+                    CGI.escape(options[:get_params]['SigAlg'])
+                  end
+        if options[:raw_get_params]['SigAlg'].nil? && sig_alg
+          options[:raw_get_params]['SigAlg'] = sig_alg
         end
 
         # If we only received the raw version of SigAlg,

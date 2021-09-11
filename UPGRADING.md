@@ -9,6 +9,13 @@ to determine how to handle SAML message signing (`HTTP-POST` embeds signature an
 In addition, the `IdpMetadataParser#parse`, `#parse_to_hash` and `#parse_to_array` methods now retrieve
 `idp_sso_service_binding` and `idp_slo_service_binding`.
 
+Following on from the changes in version 1.6.0 to implement the `options[:raw_get_params]` parameter,
+when no raw params are specified, first attempt to build the querystring used for signature verification
+from the ACS URL, which holds the parameters in the way they were encoded by the IdP.  This is more in
+keeping with the SAML spec which indicates that the signature should be derived from a concatenation
+of URI-encoded values _as sent by the IDP_.  This allows for signatures created by Microsoft ADFS and
+Azure Active Directory to work properly as we calculate signature validation.
+
 Lastly, for convenience you may now use the Symbol aliases `:post` and `:redirect` for any `settings.*_binding` parameter.
 
 ## Upgrading from 1.11.x to 1.12.0
