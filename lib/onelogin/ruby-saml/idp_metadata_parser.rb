@@ -442,7 +442,7 @@ module OneLogin
           priority = Array(priority)
           if priority.any?
             values = nodes.map(&:text)
-            Array(priority).detect { |candidate| values.include?(candidate) }
+            priority.detect { |candidate| values.include?(candidate) }
           else
             nodes.first.text
           end
