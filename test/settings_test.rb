@@ -257,11 +257,54 @@ class SettingsTest < Minitest::Test
         assert_equal empty_multi, @settings.get_idp_cert_multi
       end
 
+      it "returns partial hash when contains some values with string keys" do
+        empty_multi = {
+          :signing => [],
+          :encryption => []
+        }
+
+        @settings.idp_cert_multi = {
+          "signing" => []
+        }
+        assert_equal empty_multi, @settings.get_idp_cert_multi
+
+        @settings.idp_cert_multi = {
+          "encryption" => []
+        }
+        assert_equal empty_multi, @settings.get_idp_cert_multi
+
+        @settings.idp_cert_multi = {
+          "signing" => [],
+          "encryption" => []
+        }
+        assert_equal empty_multi, @settings.get_idp_cert_multi
+
+        @settings.idp_cert_multi = {
+          "yyy" => [],
+          "zzz" => []
+        }
+        assert_equal empty_multi, @settings.get_idp_cert_multi
+      end
+
       it "returns the hash with certificates when values were valid" do
         certificates = ruby_saml_cert_text
         @settings.idp_cert_multi = {
           :signing => [ruby_saml_cert_text],
           :encryption => [ruby_saml_cert_text],
+        }
+
+        assert @settings.get_idp_cert_multi.kind_of? Hash
+        assert @settings.get_idp_cert_multi[:signing].kind_of? Array
+        assert @settings.get_idp_cert_multi[:encryption].kind_of? Array
+        assert @settings.get_idp_cert_multi[:signing][0].kind_of? OpenSSL::X509::Certificate
+        assert @settings.get_idp_cert_multi[:encryption][0].kind_of? OpenSSL::X509::Certificate
+      end
+
+      it "returns the hash with certificates when values were valid and with string keys" do
+        certificates = ruby_saml_cert_text
+        @settings.idp_cert_multi = {
+          "signing" => [ruby_saml_cert_text],
+          "encryption" => [ruby_saml_cert_text],
         }
 
         assert @settings.get_idp_cert_multi.kind_of? Hash
