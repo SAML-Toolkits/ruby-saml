@@ -12,7 +12,7 @@ module OneLogin
     class Logoutrequest < SamlMessage
 
       # Logout Request ID
-      attr_reader :uuid
+      attr_accessor :uuid
 
       # Initializes the Logout Request. A Logoutrequest Object that is an extension of the SamlMessage class.
       # Asigns an ID, a random uuid.

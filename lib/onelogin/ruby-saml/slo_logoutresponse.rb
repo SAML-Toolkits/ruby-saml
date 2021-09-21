@@ -13,7 +13,7 @@ module OneLogin
     class SloLogoutresponse < SamlMessage
 
       # Logout Response ID
-      attr_reader :uuid
+      attr_accessor :uuid
 
       # Initializes the Logout Response. A SloLogoutresponse Object that is an extension of the SamlMessage class.
       # Asigns an ID, a random uuid.
