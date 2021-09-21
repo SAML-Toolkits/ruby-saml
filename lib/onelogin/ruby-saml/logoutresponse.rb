@@ -32,6 +32,17 @@ module OneLogin
         @document = XMLSecurity::SignedDocument.new(@response)
       end
 
+      def response_id
+        @response_id ||= begin
+          node = REXML::XPath.first(
+            document,
+            "/p:LogoutResponse",
+            { "p" => PROTOCOL }
+          )
+          node.nil? ? nil : node.attributes['ID']
+        end
+      end
+
       def validate!
         validate(false)
       end

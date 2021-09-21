@@ -16,7 +16,7 @@ def valid_request(opts = {})
   "<samlp:LogoutRequest
         xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\"
         xmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\"
-        ID=\"#{random_id}\" Version=\"2.0\"
+        ID=\"#{opts[:uuid]}\" Version=\"2.0\"
         IssueInstant=\"#{opts[:issue_instant]}\"
         Destination=\"#{opts[:settings].idp_slo_target_url}\">
       <saml:Issuer>#{opts[:settings].idp_entity_id}</saml:Issuer>

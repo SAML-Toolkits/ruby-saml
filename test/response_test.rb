@@ -384,6 +384,13 @@ class ResponseTest <  Minitest::Test
       end
     end
 
+    describe "#response_id and assertion_id" do
+      it "extract the value of the Response and Assertion IDs" do
+        response = OneLogin::RubySaml::Response.new(response_document)
+        assert_equal "GOSAMLR12901174571794", response.response_id
+        assert_equal "pfxa46574df-b3b0-a06a-23c8-636413198772", response.assertion_id
+      end
+    end
 
     describe "#check_conditions" do
       it "check time conditions" do

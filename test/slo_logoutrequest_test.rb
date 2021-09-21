@@ -62,5 +62,12 @@ class SloLogoutrequestTest < Minitest::Test
       end
     end
 
+    describe "#request_id" do
+      it "extract the value of the Response ID" do
+        logoutrequest = OneLogin::RubySaml::SloLogoutrequest.new(valid_request, settings)
+        assert_equal "_28024690-000e-0130-b6d2-38f6b112be8b", logoutrequest.request_id
+      end
+    end
+
   end
 end

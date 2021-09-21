@@ -10,10 +10,14 @@ module OneLogin
 
     class Logoutrequest
 
-      attr_reader :uuid # Can be obtained if neccessary
+      attr_accessor :uuid
 
       def initialize
         @uuid = OneLogin::RubySaml::Utils.uuid
+      end
+
+      def request_id
+        @uuid
       end
 
       def create(settings, params={})

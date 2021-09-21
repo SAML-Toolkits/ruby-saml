@@ -9,13 +9,17 @@ module OneLogin
 
     class Authrequest
       # AuthNRequest ID
-      attr_reader :uuid
+      attr_accessor :uuid
 
       # Initializes the AuthNRequest. An Authrequest Object.
       # Asigns an ID, a random uuid.
       #
       def initialize
         @uuid = OneLogin::RubySaml::Utils.uuid
+      end
+
+      def request_id
+        @uuid
       end
 
       def create(settings, params = {})

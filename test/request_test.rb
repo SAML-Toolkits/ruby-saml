@@ -224,6 +224,16 @@ class RequestTest < Minitest::Test
       end
     end
 
+    describe "#manipulate request_id" do
+      it "be able to modify the request id" do
+        authnrequest = OneLogin::RubySaml::Authrequest.new
+        request_id = authnrequest.request_id
+        assert_equal request_id, authnrequest.uuid
+        authnrequest.uuid = "new_uuid"
+        assert_equal authnrequest.request_id, authnrequest.uuid
+        assert_equal "new_uuid", authnrequest.request_id
+      end
+    end
   end
 
 end

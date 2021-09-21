@@ -26,6 +26,17 @@ module OneLogin
         @document = XMLSecurity::SignedDocument.new(@request)
       end
 
+      def request_id
+        @request_id ||= begin
+          node = REXML::XPath.first(
+            document,
+            "/p:LogoutRequest",
+            { "p" => PROTOCOL }
+          )
+          node.nil? ? nil : node.attributes['ID']
+        end
+      end
+
       def validate!
         validate(false)
       end

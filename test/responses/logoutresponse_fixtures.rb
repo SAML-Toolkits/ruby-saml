@@ -3,6 +3,7 @@
 def default_response_opts
   {
       :uuid => "_28024690-000e-0130-b6d2-38f6b112be8b",
+      :uuid2 => "_48024690-100e-1130-e6d2-28f6b112be71",
       :issue_instant => Time.now.strftime('%Y-%m-%dT%H:%M:%SZ'),
       :settings => settings
   }
@@ -13,10 +14,10 @@ def valid_response(opts = {})
 
   "<samlp:LogoutResponse
         xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\"
-        ID=\"#{random_id}\" Version=\"2.0\"
+        ID=\"#{opts[:uuid]}\" Version=\"2.0\"
         IssueInstant=\"#{opts[:issue_instant]}\"
         Destination=\"#{opts[:settings].idp_slo_target_url}\"
-        InResponseTo=\"#{opts[:uuid]}\">
+        InResponseTo=\"#{opts[:uuid2]}\">
       <saml:Issuer xmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\">#{opts[:settings].idp_entity_id}</saml:Issuer>
       <samlp:Status xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\">
       <samlp:StatusCode xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\"

@@ -33,7 +33,7 @@ class LogoutResponseTest < Minitest::Test
       it "validate the response" do
         in_relation_to_request_id = random_id
         settings.idp_entity_id = "https://example.com/idp"
-        logoutresponse = OneLogin::RubySaml::Logoutresponse.new(valid_response({:uuid => in_relation_to_request_id}), settings)
+        logoutresponse = OneLogin::RubySaml::Logoutresponse.new(valid_response({:uuid2 => in_relation_to_request_id}), settings)
 
         assert logoutresponse.validate
 
@@ -91,6 +91,13 @@ class LogoutResponseTest < Minitest::Test
         logoutresponse = OneLogin::RubySaml::Logoutresponse.new(invalid_xml_response, settings)
 
         assert_raises(OneLogin::RubySaml::ValidationError) { logoutresponse.validate! }
+      end
+    end
+
+    describe "#response_id" do
+      it "extract the value of the Response ID" do
+        logoutresponse = OneLogin::RubySaml::Logoutresponse.new(valid_response, settings)
+        assert_equal "_28024690-000e-0130-b6d2-38f6b112be8b", logoutresponse.response_id
       end
     end
 

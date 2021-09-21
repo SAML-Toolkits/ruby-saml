@@ -240,5 +240,16 @@ class LogoutRequestTest < Minitest::Test
         assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
       end
     end
+
+    describe "#manipulate request_id" do
+      it "be able to modify the request id" do
+        logoutrequest = OneLogin::RubySaml::Logoutrequest.new
+        request_id = logoutrequest.request_id
+        assert_equal request_id, logoutrequest.uuid
+        logoutrequest.uuid = "new_uuid"
+        assert_equal logoutrequest.request_id, logoutrequest.uuid
+        assert_equal "new_uuid", logoutrequest.request_id
+      end
+    end
   end
 end
