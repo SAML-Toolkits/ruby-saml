@@ -280,7 +280,8 @@ module OneLogin
           :digest_method              => XMLSecurity::Document::SHA1,
           :signature_method           => XMLSecurity::Document::RSA_SHA1,
           :check_idp_cert_expiration  => false,
-          :check_sp_cert_expiration   => false
+          :check_sp_cert_expiration   => false,
+          :strict_audience_validation => false,
         }.freeze
       }.freeze
     end

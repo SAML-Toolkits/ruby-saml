@@ -490,14 +490,22 @@ class RubySamlTest < Minitest::Test
         assert_empty response.errors
       end
 
-      it "return true when the audience is self closing" do
+      it "return true when the audience is self closing and strict audience validation is not enabled" do
         response_audience_self_closed.settings = settings
         response_audience_self_closed.settings.sp_entity_id = '{audience}'
         assert response_audience_self_closed.send(:validate_audience)
         assert_empty response_audience_self_closed.errors
       end
 
-      it "return false when the audience is valid" do
+      it "return false when the audience is self closing and strict audience validation is enabled" do
+        response_audience_self_closed.settings = settings
+        response_audience_self_closed.settings.security[:strict_audience_validation] = true
+        response_audience_self_closed.settings.sp_entity_id = '{audience}'
+        refute response_audience_self_closed.send(:validate_audience)
+        assert_includes response_audience_self_closed.errors, "Invalid Audiences. The <AudienceRestriction> element contained only empty <Audience> elements. Expected audience {audience}."
+      end
+
+      it "return false when the audience is invalid" do
         response.settings = settings
         response.settings.sp_entity_id = 'invalid_audience'
         assert !response.send(:validate_audience)
