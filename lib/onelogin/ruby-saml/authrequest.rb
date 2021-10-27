@@ -133,9 +133,10 @@ module OneLogin
           nameid = subject.add_element "saml:NameID"
           nameid.attributes['Format'] = settings.name_identifier_format if settings.name_identifier_format
           nameid.text = settings.name_identifier_value_requested
-
-          subject_confirmation = subject.add_element "saml:SubjectConfirmation"
-          subject_confirmation.attributes['Method'] = "urn:oasis:names:tc:SAML:2.0:cm:bearer"
+          if settings.security[:subject_confirmation_disable] != nil
+            subject_confirmation = subject.add_element "saml:SubjectConfirmation"
+            subject_confirmation.attributes['Method'] = "urn:oasis:names:tc:SAML:2.0:cm:bearer"
+          end
         end
 
         if settings.name_identifier_format != nil

@@ -139,6 +139,24 @@ class RequestTest < Minitest::Test
       assert inflated.include?("<saml:SubjectConfirmation Method='urn:oasis:names:tc:SAML:2.0:cm:bearer'/>")
     end
 
+    it "create the SAMLRequest URL parameter with Subject and without SubjectConfirmation" do
+      settings.name_identifier_value_requested = "testuser@example.com"
+      settings.name_identifier_format = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+      settings.security[:subject_confirmation_disable] = true
+      auth_url = OneLogin::RubySaml::Authrequest.new.create(settings)
+      assert_match /^http:\/\/example\.com\?SAMLRequest=/, auth_url
+      payload = CGI.unescape(auth_url.split("=").last)
+      decoded = Base64.decode64(payload)
+      zstream = Zlib::Inflate.new(-Zlib::MAX_WBITS)
+      inflated = zstream.inflate(decoded)
+      zstream.finish
+      zstream.close
+
+      assert inflated.include?('<saml:Subject>')
+      assert inflated.include?("<saml:NameID Format='urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress'>testuser@example.com</saml:NameID>")
+      assert !inflated.include?("<saml:SubjectConfirmation Method='urn:oasis:names:tc:SAML:2.0:cm:bearer'/>")
+    end
+
     it "accept extra parameters" do
       auth_url = OneLogin::RubySaml::Authrequest.new.create(settings, { :hello => "there" })
       assert_match /&hello=there$/, auth_url

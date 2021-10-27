@@ -163,7 +163,10 @@ def init
   redirect_to(request.create(saml_settings))
 end
 ```
-
+You can disable SubjectConfirmation at auth request if add extra option:
+```ruby
+ saml_settings.security[:subject_confirmation_disable] = true
+```
 Once you've redirected back to the identity provider, it will ensure that the user has been
 authorized and redirect back to your application for final consumption.
 This can look something like this (the `authorize_success` and `authorize_failure`
