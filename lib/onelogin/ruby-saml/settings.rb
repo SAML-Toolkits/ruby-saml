@@ -281,6 +281,7 @@ module OneLogin
           :signature_method           => XMLSecurity::Document::RSA_SHA1,
           :check_idp_cert_expiration  => false,
           :check_sp_cert_expiration   => false,
+          :strict_audience_validation => false,
           :lowercase_url_encoding     => false
         }.freeze
       }.freeze

@@ -664,6 +664,29 @@ validation fails. You may disable such exceptions using the `settings.security[:
   settings.security[:soft] = true  # Do not raise error on failed signature/certificate validations
 ```
 
+#### Audience Validation
+
+A service provider should only consider a SAML response valid if the IdP includes an <AudienceRestriction>
+element containting an <Audience> element that uniquely identifies the service provider. Unless you specify
+the `skip_audience` option, Ruby SAML will validate that each SAML response includes an <Audience> element
+whose contents matches `settings.sp_entity_id`.
+
+By default, Ruby SAML considers an <AudienceRestriction> element containing only empty <Audience> elements
+to be valid. That means an otherwise valid SAML response with a condition like this would be valid:
+
+```xml
+<AudienceRestriction>
+  <Audience />
+</AudienceRestriction>
+```
+
+You may enforce that an <AudienceRestriction> element containing only empty <Audience> elements
+is invalid using the `settings.security[:strict_audience_validation]` parameter.
+
+```ruby
+settings.security[:strict_audience_validation] = true
+```
+
 #### Key Rollover
 
 To update the SP X.509 certificate and private key without disruption of service, you may define the parameter
