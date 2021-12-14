@@ -27,7 +27,6 @@ module OneLogin
       # @param options [Hash]  :settings to provide the OneLogin::RubySaml::Settings object
       #                        Or :allowed_clock_drift for the logout request validation process to allow a clock drift when checking dates with
       #                        Or :relax_signature_validation to accept signatures if no idp certificate registered on settings
-      #                        Or :force_escape_downcasing to accept signatures if no idp certificate registered on settings
       #
       # @raise [ArgumentError] If Request is nil
       #
@@ -339,7 +338,7 @@ module OneLogin
 
       def escape_request_param(param)
         CGI.escape(param).tap do |escaped|
-          next unless options[:force_escape_downcasing]
+          next unless settings.security[:lowercase_url_encoding]
 
           escaped.gsub!(/%[A-Fa-f0-9]{2}/) { |match| match.downcase }
         end

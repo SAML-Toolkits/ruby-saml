@@ -464,10 +464,10 @@ class RubySamlTest < Minitest::Test
         end
 
         # For this case, the parameters will be forced to be downcased after
-        # being escaped with :force_escape_downcasing option
+        # being escaped with :lowercase_url_encoding security option
+        settings.security[:lowercase_url_encoding] = true
         logout_request_force_downcasing_test = OneLogin::RubySaml::SloLogoutrequest.new(
-          params['SAMLRequest'], get_params: params, settings: settings,
-                                 force_escape_downcasing: true
+          params['SAMLRequest'], get_params: params, settings: settings
         )
         assert logout_request_force_downcasing_test.send(:validate_signature)
       end
