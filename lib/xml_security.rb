@@ -205,6 +205,8 @@ module XMLSecurity
       )
 
       if cert_element
+        options[:strict_cert_store] && append_error("Certificate element provided (ds:X509Certificate) when disallowed", soft)
+
         base64_cert = OneLogin::RubySaml::Utils.element_text(cert_element)
         cert_text = Base64.decode64(base64_cert)
         begin

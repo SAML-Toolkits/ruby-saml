@@ -77,6 +77,15 @@ class XmlSecurityTest < Minitest::Test
       assert_equal("Certificate element missing in response (ds:X509Certificate) and not cert provided at settings", exception.message)
     end
 
+    it "raise validation error when an X509 Certificate is provided and strict idp cert storage is set" do
+      cert = OpenSSL::X509::Certificate.new(ruby_saml_cert)
+      mod_document = XMLSecurity::SignedDocument.new(decoded_response)
+      exception = assert_raises(OneLogin::RubySaml::ValidationError) do
+        mod_document.validate_document("a fingerprint", false, { cert: cert, strict_cert_store: true }) # The fingerprint isn't relevant to this test
+      end
+      assert_equal("Certificate element provided (ds:X509Certificate) when disallowed", exception.message)
+    end
+
     it "invalidaties when the X509Certificate is missing and the cert is provided but mismatches" do
       decoded_response.sub!(/<ds:X509Certificate>.*<\/ds:X509Certificate>/, "")
       mod_document = XMLSecurity::SignedDocument.new(decoded_response)
