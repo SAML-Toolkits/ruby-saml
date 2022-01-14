@@ -20,8 +20,8 @@ module OneLogin
       # Initializes the AuthNRequest. An Authrequest Object that is an extension of the SamlMessage class.
       # Asigns an ID, a random uuid.
       #
-      def initialize
-        @uuid = OneLogin::RubySaml::Utils.uuid
+      def initialize(**options)
+        @uuid = "#{options[:id_prefix]}#{OneLogin::RubySaml::Utils.uuid}#{options[:id_suffix]}"
       end
 
       def request_id
