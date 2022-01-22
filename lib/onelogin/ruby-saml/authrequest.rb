@@ -21,7 +21,7 @@ module OneLogin
       # Asigns an ID, a random uuid.
       #
       def initialize(**options)
-        @uuid = "#{options[:id_prefix]}#{OneLogin::RubySaml::Utils.uuid}#{options[:id_suffix]}"
+        @uuid = OneLogin::RubySaml::Utils.uuid(options[:id_prefix])
       end
 
       def request_id

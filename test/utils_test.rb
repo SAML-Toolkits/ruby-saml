@@ -205,6 +205,11 @@ class UtilsTest < Minitest::Test
         assert_match /^_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/, OneLogin::RubySaml::Utils.uuid
       end
 
+      it "returns a uuid starting with an prefix, when passed" do
+        prefix = 'test'
+        assert_match /^#{prefix}[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/, OneLogin::RubySaml::Utils.uuid(prefix)
+      end
+
       it "doesn't return the same value twice" do
         refute_equal OneLogin::RubySaml::Utils.uuid, OneLogin::RubySaml::Utils.uuid
       end

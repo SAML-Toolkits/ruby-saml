@@ -32,6 +32,7 @@ module OneLogin
           (\d+)W                    # 8: Weeks
         )
       $)x.freeze
+      UUID_PREFIX = '_'.freeze
 
       # Checks if the x509 cert provided is expired
       #
@@ -333,8 +334,12 @@ module OneLogin
         end
       end
 
-      def self.uuid
-        RUBY_VERSION < '1.9' ? "_#{@@uuid_generator.generate}" : "_#{SecureRandom.uuid}"
+      def self.uuid(prefix = nil)
+        "#{prefix || UUID_PREFIX}#{generate_uuid}"
+      end
+
+      def self.generate_uuid
+        RUBY_VERSION < '1.9' ? @@uuid_generator.generate : SecureRandom.uuid
       end
 
       # Given two strings, attempt to match them as URIs using Rails' parse method.  If they can be parsed,
