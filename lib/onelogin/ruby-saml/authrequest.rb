@@ -15,7 +15,7 @@ module OneLogin
     class Authrequest < SamlMessage
 
       # AuthNRequest ID
-      attr_reader :uuid
+      attr_accessor :uuid
 
       # Initializes the AuthNRequest. An Authrequest Object that is an extension of the SamlMessage class.
       # Asigns an ID, a random uuid.

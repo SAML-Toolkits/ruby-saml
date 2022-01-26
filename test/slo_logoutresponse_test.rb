@@ -309,5 +309,16 @@ class SloLogoutresponseTest < Minitest::Test
         assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
       end
     end
+
+    describe "#manipulate response_id" do
+      it "be able to modify the response id" do
+        logoutresponse = OneLogin::RubySaml::SloLogoutresponse.new
+        response_id = logoutresponse.response_id
+        assert_equal response_id, logoutresponse.uuid
+        logoutresponse.uuid = "new_uuid"
+        assert_equal logoutresponse.response_id, logoutresponse.uuid
+        assert_equal "new_uuid", logoutresponse.response_id
+      end
+    end
   end
 end
