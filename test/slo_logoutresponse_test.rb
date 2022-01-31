@@ -83,6 +83,21 @@ class SloLogoutresponseTest < Minitest::Test
       assert_match /Destination='http:\/\/unauth.com\/logout\/return'/, inflated
     end
 
+    describe "playgin with preix" do
+      it "creates request with ID prefixed with default '_'" do
+        request = OneLogin::RubySaml::SloLogoutresponse.new
+
+        assert_match /^_/, request.uuid
+      end
+
+      it "creates request with ID is prefixed, when :id_prefix is passed" do
+        OneLogin::RubySaml::Utils::set_prefix("test")
+        request = OneLogin::RubySaml::SloLogoutresponse.new
+        assert_match /^test/, request.uuid
+        OneLogin::RubySaml::Utils::set_prefix("_")
+      end
+    end
+
     describe "signing with HTTP-POST binding" do
 
       before do
