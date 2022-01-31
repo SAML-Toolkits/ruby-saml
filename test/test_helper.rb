@@ -346,4 +346,9 @@ class Minitest::Test
       end
     end
   end
+
+  # Allows to emulate Azure AD request behavior
+  def downcased_escape(str)
+    CGI.escape(str).gsub(/%[A-Fa-f0-9]{2}/) { |match| match.downcase }
+  end
 end

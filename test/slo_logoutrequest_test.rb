@@ -425,6 +425,52 @@ class RubySamlTest < Minitest::Test
         logout_request_sign_test = OneLogin::RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
         assert logout_request_sign_test.send(:validate_signature)
       end
+
+      it "handles Azure AD downcased request encoding" do
+        # Use Logoutrequest only to build the SAMLRequest parameter.
+        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
+        settings.soft = false
+
+        # Creating the query manually to tweak it later instead of using
+        # OneLogin::RubySaml::Utils.build_query
+        request_doc = OneLogin::RubySaml::Logoutrequest.new.create_logout_request_xml_doc(settings)
+        request = Zlib::Deflate.deflate(request_doc.to_s, 9)[2..-5]
+        base64_request = Base64.encode64(request).gsub(/\n/, "")
+        # The original request received from Azure AD comes with downcased
+        # encoded characters, like %2f instead of %2F, and the signature they
+        # send is based on this base64 request.
+        params = {
+          'SAMLRequest' => downcased_escape(base64_request),
+          'SigAlg' => downcased_escape(settings.security[:signature_method]),
+        }
+        # Assemble query string.
+        query = "SAMLRequest=#{params['SAMLRequest']}&SigAlg=#{params['SigAlg']}"
+        # Make normalised signature based on our modified params.
+        sign_algorithm = XMLSecurity::BaseDocument.new.algorithm(
+          settings.security[:signature_method]
+        )
+        signature = settings.get_sp_key.sign(sign_algorithm.new, query)
+        params['Signature'] = downcased_escape(Base64.encode64(signature).gsub(/\n/, ""))
+
+        # Then parameters are usually unescaped, like we manage them in rails
+        params = params.map { |k, v| [k, CGI.unescape(v)] }.to_h
+        # Construct SloLogoutrequest and ask it to validate the signature.
+        # It will fail because the signature is based on the downcased request
+        logout_request_downcased_test = OneLogin::RubySaml::SloLogoutrequest.new(
+          params['SAMLRequest'], get_params: params, settings: settings,
+        )
+        assert_raises(OneLogin::RubySaml::ValidationError, "Invalid Signature on Logout Request") do
+          logout_request_downcased_test.send(:validate_signature)
+        end
+
+        # For this case, the parameters will be forced to be downcased after
+        # being escaped with :lowercase_url_encoding security option
+        settings.security[:lowercase_url_encoding] = true
+        logout_request_force_downcasing_test = OneLogin::RubySaml::SloLogoutrequest.new(
+          params['SAMLRequest'], get_params: params, settings: settings
+        )
+        assert logout_request_force_downcasing_test.send(:validate_signature)
+      end
     end
 
     describe "#validate_signature with multiple idp certs" do

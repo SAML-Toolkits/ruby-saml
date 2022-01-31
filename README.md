@@ -66,7 +66,7 @@ However, ruby-saml never enables this dangerous Nokogiri configuration;
 ruby-saml never enables DTDLOAD, and it never disables NONET.
 
 The OneLogin::RubySaml::IdpMetadataParser class does not validate in any way the URL
-that is introduced in order to be parsed. 
+that is introduced in order to be parsed.
 
 Usually the same administrator that handles the Service Provider also sets the URL to
 the IdP, which should be a trusted resource.
@@ -790,7 +790,13 @@ Here is an example that we could add to our previous controller to process a SAM
 # Method to handle IdP initiated logouts
 def idp_logout_request
   settings = Account.get_saml_settings
-  logout_request = OneLogin::RubySaml::SloLogoutrequest.new(params[:SAMLRequest])
+  # ADFS URL-Encodes SAML data as lowercase, and the toolkit by default uses
+  # uppercase. Turn it True for ADFS compatibility on signature verification
+  settings.security[:lowercase_url_encoding] = true
+
+  logout_request = OneLogin::RubySaml::SloLogoutrequest.new(
+    params[:SAMLRequest], settings: settings
+  )
   if !logout_request.is_valid?
     logger.error "IdP initiated LogoutRequest was not valid!"
     return render :inline => logger.error

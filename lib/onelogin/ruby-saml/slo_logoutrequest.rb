@@ -263,13 +263,13 @@ module OneLogin
         # the exact same URI-encoding as the IDP. (This is not the case if the IDP is ADFS!)
         options[:raw_get_params] ||= {}
         if options[:raw_get_params]['SAMLRequest'].nil? && !options[:get_params]['SAMLRequest'].nil?
-          options[:raw_get_params]['SAMLRequest'] = CGI.escape(options[:get_params]['SAMLRequest'])
+          options[:raw_get_params]['SAMLRequest'] = escape_request_param(options[:get_params]['SAMLRequest'])
         end
         if options[:raw_get_params]['RelayState'].nil? && !options[:get_params]['RelayState'].nil?
-          options[:raw_get_params]['RelayState'] = CGI.escape(options[:get_params]['RelayState'])
+          options[:raw_get_params]['RelayState'] = escape_request_param(options[:get_params]['RelayState'])
         end
         if options[:raw_get_params]['SigAlg'].nil? && !options[:get_params]['SigAlg'].nil?
-          options[:raw_get_params]['SigAlg'] = CGI.escape(options[:get_params]['SigAlg'])
+          options[:raw_get_params]['SigAlg'] = escape_request_param(options[:get_params]['SigAlg'])
         end
 
         # If we only received the raw version of SigAlg,
@@ -336,6 +336,13 @@ module OneLogin
         true
       end
 
+      def escape_request_param(param)
+        CGI.escape(param).tap do |escaped|
+          next unless settings.security[:lowercase_url_encoding]
+
+          escaped.gsub!(/%[A-Fa-f0-9]{2}/) { |match| match.downcase }
+        end
+      end
     end
   end
 end
