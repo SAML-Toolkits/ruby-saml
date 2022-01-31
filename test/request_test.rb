@@ -161,6 +161,19 @@ class RequestTest < Minitest::Test
       assert auth_url.include?('&RelayState=http%3A%2F%2Fexample.com')
     end
 
+    it "creates request with ID prefixed with default '_'" do
+      request = OneLogin::RubySaml::Authrequest.new
+
+      assert_match /^_/, request.uuid
+    end
+
+    it "creates request with ID is prefixed, when :id_prefix is passed" do
+      OneLogin::RubySaml::Utils::set_prefix("test")
+      request = OneLogin::RubySaml::Authrequest.new
+      assert_match /^test/, request.uuid
+      OneLogin::RubySaml::Utils::set_prefix("_")
+    end
+
     describe "when the target url is not set" do
       before do
         settings.idp_sso_service_url = nil
