@@ -212,7 +212,7 @@ module OneLogin
         return true unless options.has_key? :get_params
         return true unless options[:get_params].has_key? 'Signature'
 
-        options[:raw_get_params] = OneLogin::RubySaml::Utils.prepare_raw_get_params(options[:raw_get_params], options[:get_params])
+        options[:raw_get_params] = OneLogin::RubySaml::Utils.prepare_raw_get_params(options[:raw_get_params], options[:get_params], settings.security[:lowercase_url_encoding])
 
         if options[:get_params]['SigAlg'].nil? && !options[:raw_get_params]['SigAlg'].nil?
           options[:get_params]['SigAlg'] = CGI.unescape(options[:raw_get_params]['SigAlg'])
