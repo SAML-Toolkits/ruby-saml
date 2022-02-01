@@ -167,25 +167,34 @@ module OneLogin
       #
       # @param rawparams [Hash] Raw GET Parameters
       # @param params [Hash] GET Parameters
+      # @param lowercase_url_encoding [bool] Lowercase URL Encoding  (For ADFS urlencode compatiblity)
       # @return [Hash] New raw parameters
       #
-      def self.prepare_raw_get_params(rawparams, params)
+      def self.prepare_raw_get_params(rawparams, params, lowercase_url_encoding=false)
         rawparams ||= {}
 
         if rawparams['SAMLRequest'].nil? && !params['SAMLRequest'].nil?
-          rawparams['SAMLRequest'] = CGI.escape(params['SAMLRequest'])
+          rawparams['SAMLRequest'] = escape_request_param(params['SAMLRequest'], lowercase_url_encoding)
         end
         if rawparams['SAMLResponse'].nil? && !params['SAMLResponse'].nil?
-          rawparams['SAMLResponse'] = CGI.escape(params['SAMLResponse'])
+          rawparams['SAMLResponse'] = escape_request_param(params['SAMLResponse'], lowercase_url_encoding)
         end
         if rawparams['RelayState'].nil? && !params['RelayState'].nil?
-          rawparams['RelayState'] = CGI.escape(params['RelayState'])
+          rawparams['RelayState'] = escape_request_param(params['RelayState'], lowercase_url_encoding)
         end
         if rawparams['SigAlg'].nil? && !params['SigAlg'].nil?
-          rawparams['SigAlg'] = CGI.escape(params['SigAlg'])
+          rawparams['SigAlg'] = escape_request_param(params['SigAlg'], lowercase_url_encoding)
         end
 
         rawparams
+      end
+
+      def self.escape_request_param(param, lowercase_url_encoding)
+        CGI.escape(param).tap do |escaped|
+          next unless lowercase_url_encoding
+
+          escaped.gsub!(/%[A-Fa-f0-9]{2}/) { |match| match.downcase }
+        end
       end
 
       # Validate the Signature parameter sent on the HTTP-Redirect binding

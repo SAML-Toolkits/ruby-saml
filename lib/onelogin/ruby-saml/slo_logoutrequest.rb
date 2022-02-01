@@ -248,32 +248,8 @@ module OneLogin
         return true unless options.has_key? :get_params
         return true unless options[:get_params].has_key? 'Signature'
 
-        # SAML specifies that the signature should be derived from a concatenation
-        # of URI-encoded values _as sent by the IDP_:
-        #
-        # > Further, note that URL-encoding is not canonical; that is, there are multiple legal encodings for a given
-        # > value. The relying party MUST therefore perform the verification step using the original URL-encoded
-        # > values it received on the query string. It is not sufficient to re-encode the parameters after they have been
-        # > processed by software because the resulting encoding may not match the signer's encoding.
-        #
-        # <http://docs.oasis-open.org/security/saml/v2.0/saml-bindings-2.0-os.pdf>
-        #
-        # If we don't have the original parts (for backward compatibility) required to correctly verify the signature,
-        # then fabricate them by re-encoding the parsed URI parameters, and hope that we're lucky enough to use
-        # the exact same URI-encoding as the IDP. (This is not the case if the IDP is ADFS!)
-        options[:raw_get_params] ||= {}
-        if options[:raw_get_params]['SAMLRequest'].nil? && !options[:get_params]['SAMLRequest'].nil?
-          options[:raw_get_params]['SAMLRequest'] = escape_request_param(options[:get_params]['SAMLRequest'])
-        end
-        if options[:raw_get_params]['RelayState'].nil? && !options[:get_params]['RelayState'].nil?
-          options[:raw_get_params]['RelayState'] = escape_request_param(options[:get_params]['RelayState'])
-        end
-        if options[:raw_get_params]['SigAlg'].nil? && !options[:get_params]['SigAlg'].nil?
-          options[:raw_get_params]['SigAlg'] = escape_request_param(options[:get_params]['SigAlg'])
-        end
+        options[:raw_get_params] = OneLogin::RubySaml::Utils.prepare_raw_get_params(options[:raw_get_params], options[:get_params], settings.security[:lowercase_url_encoding])
 
-        # If we only received the raw version of SigAlg,
-        # then parse it back into the decoded params hash for convenience.
         if options[:get_params]['SigAlg'].nil? && !options[:raw_get_params]['SigAlg'].nil?
           options[:get_params]['SigAlg'] = CGI.unescape(options[:raw_get_params]['SigAlg'])
         end
@@ -334,14 +310,6 @@ module OneLogin
         end
 
         true
-      end
-
-      def escape_request_param(param)
-        CGI.escape(param).tap do |escaped|
-          next unless settings.security[:lowercase_url_encoding]
-
-          escaped.gsub!(/%[A-Fa-f0-9]{2}/) { |match| match.downcase }
-        end
       end
     end
   end
