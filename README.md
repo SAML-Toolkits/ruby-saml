@@ -2,6 +2,8 @@
 [![Build Status](https://github.com/onelogin/ruby-saml/actions/workflows/test.yml/badge.svg?query=branch%3Amaster)](https://github.com/onelogin/ruby-saml/actions/workflows/test.yml?query=branch%3Amaster)
 [![Coverage Status](https://coveralls.io/repos/onelogin/ruby-saml/badge.svg?branch=master)](https://coveralls.io/r/onelogin/ruby-saml?branch=master)
 
+## **Notice:** This project is currently not under active development, please see [#640](https://github.com/onelogin/ruby-saml/issues/640) for more information.
+
 Ruby SAML minor and tiny versions may introduce breaking changes. Please read
 [UPGRADING.md](UPGRADING.md) for guidance on upgrading to new Ruby SAML versions.
 
