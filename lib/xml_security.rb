@@ -177,7 +177,7 @@ module XMLSecurity
 
     def compute_digest(document, digest_algorithm)
       digest = digest_algorithm.digest(document)
-      Base64.encode64(digest).strip!
+      Base64.encode64(digest).strip
     end
 
   end
