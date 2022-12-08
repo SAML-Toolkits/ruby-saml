@@ -6,17 +6,16 @@ Gem::Specification.new do |s|
   s.version = OneLogin::RubySaml::VERSION
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["OneLogin LLC"]
+  s.authors = ["SAML Toolkit"]
   s.date = Time.now.strftime("%Y-%m-%d")
   s.description = %q{SAML toolkit for Ruby on Rails}
-  s.email = %q{support@onelogin.com}
   s.license = 'MIT'
   s.extra_rdoc_files = [
     "LICENSE",
     "README.md"
   ]
   s.files = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
-  s.homepage = %q{https://github.com/onelogin/ruby-saml}
+  s.homepage = %q{https://github.com/saml-toolkit/ruby-saml}
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.3.7}
