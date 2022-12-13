@@ -2,8 +2,6 @@
 [![Build Status](https://github.com/onelogin/ruby-saml/actions/workflows/test.yml/badge.svg?query=branch%3Amaster)](https://github.com/onelogin/ruby-saml/actions/workflows/test.yml?query=branch%3Amaster)
 [![Coverage Status](https://coveralls.io/repos/onelogin/ruby-saml/badge.svg?branch=master)](https://coveralls.io/r/onelogin/ruby-saml?branch=master)
 
-## **Notice:** This project is currently not under active development, please see [#640](https://github.com/onelogin/ruby-saml/issues/640) for more information.
-
 Ruby SAML minor and tiny versions may introduce breaking changes. Please read
 [UPGRADING.md](UPGRADING.md) for guidance on upgrading to new Ruby SAML versions.
 
@@ -16,7 +14,7 @@ requests from identity providers.
 SAML authorization is a two step process and you are expected to implement support for both.
 
 We created a demo project for Rails 4 that uses the latest version of this library:
-[ruby-saml-example](https://github.com/onelogin/ruby-saml-example)
+[ruby-saml-example](https://github.com/saml-toolkit/ruby-saml-example)
 
 ### Supported Ruby Versions
 
@@ -54,8 +52,7 @@ In addition, the following may work but are untested:
 ## Security Guidelines
 
 If you believe you have discovered a security vulnerability in this gem, please report it
-at https://www.onelogin.com/security with a description. We follow responsible disclosure
-guidelines, and will work with you to quickly find a resolution.
+as an issue
 
 ### Security Warning
 
@@ -89,7 +86,7 @@ Using `Gemfile`
 gem 'ruby-saml', '~> 1.11.0'
 
 # or track master for bleeding-edge
-gem 'ruby-saml', :github => 'onelogin/ruby-saml'
+gem 'ruby-saml', :github => 'saml-toolkit/ruby-saml'
 ```
 
 Using RubyGems
@@ -101,13 +98,13 @@ gem install ruby-saml
 You may require the entire Ruby SAML gem:
 
 ```ruby
-require 'onelogin/ruby-saml'
+require 'saml-toolkit/ruby-saml'
 ```
 
 or just the required components individually:
 
 ```ruby
-require 'onelogin/ruby-saml/authrequest'
+require 'saml-toolkit/ruby-saml/authrequest'
 ```
 
 ### Installation on Ruby 1.8.7
