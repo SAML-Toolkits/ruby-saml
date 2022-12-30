@@ -24,12 +24,12 @@ jobs:
       - name: Run tests
         run: bundle exec rake
 
-finish:
-  needs: test
-  runs-on: ubuntu-latest
-  steps:
-  - name: Coveralls Finished
-    uses: coverallsapp/github-action@master
-    with:
-      github-token: ${{ secrets.GITHUB_TOKEN }}
-      parallel-finished: true
+  finish:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Coveralls Finished
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          parallel-finished: true
