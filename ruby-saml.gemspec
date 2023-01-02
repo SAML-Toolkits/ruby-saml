@@ -46,12 +46,23 @@ Gem::Specification.new do |s|
     s.add_runtime_dependency('rexml')
   end
 
-  s.add_development_dependency('coveralls')
+  s.add_development_dependency('simplecov', '<0.22.0')
+  if RUBY_VERSION < '2.4.1'
+    s.add_development_dependency('simplecov-lcov', '<0.8.0')
+  else
+    s.add_development_dependency('simplecov-lcov', '>0.7.0')
+  end
+
   s.add_development_dependency('minitest', '~> 5.5')
   s.add_development_dependency('mocha',    '~> 0.14')
-  s.add_development_dependency('rake',     '~> 10')
+
+  if RUBY_VERSION < '3.2'
+    s.add_development_dependency('rake',     '~> 10')
+  else
+    s.add_development_dependency('rake',     '~> 12')
+  end
+
   s.add_development_dependency('shoulda',  '~> 2.11')
-  s.add_development_dependency('simplecov')
   s.add_development_dependency('systemu',  '~> 2')
 
   if RUBY_VERSION < '2.1'

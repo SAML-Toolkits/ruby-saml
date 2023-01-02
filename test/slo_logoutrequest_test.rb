@@ -170,7 +170,7 @@ class RubySamlTest < Minitest::Test
         Timecop.freeze Time.parse('2014-07-17T01:01:49Z') do
           logout_request.document.root.attributes['NotOnOrAfter'] = '2014-07-17T01:01:48Z'
           assert !logout_request.send(:validate_not_on_or_after)
-          assert /Current time is on or after NotOnOrAfter/.match(logout_request.errors[0])
+          assert_match(/Current time is on or after NotOnOrAfter/, logout_request.errors[0])
         end
       end
 
