@@ -183,18 +183,25 @@ class UtilsTest < Minitest::Test
   end
 
   describe "#status_error_msg" do
-    it "returns a error msg with a status message" do
+    it "returns a error msg with status_code and status message" do
       error_msg = "The status code of the Logout Response was not Success"
       status_code = "urn:oasis:names:tc:SAML:2.0:status:Requester"
       status_message = "The request could not be performed due to an error on the part of the requester."
       status_error_msg = OneLogin::RubySaml::Utils.status_error_msg(error_msg, status_code, status_message)
-      assert_equal = "The status code of the Logout Response was not Success, was Requester -> The request could not be performed due to an error on the part of the requester.", status_error_msg
+      assert_equal "The status code of the Logout Response was not Success, was Requester -> The request could not be performed due to an error on the part of the requester.", status_error_msg
+    end
 
-      status_error_msg2 = OneLogin::RubySaml::Utils.status_error_msg(error_msg, status_code)
-      assert_equal = "The status code of the Logout Response was not Success, was Requester", status_error_msg2
+    it "returns a error msg with status_code" do
+      error_msg = "The status code of the Logout Response was not Success"
+      status_code = "urn:oasis:names:tc:SAML:2.0:status:Requester"
+      status_error_msg = OneLogin::RubySaml::Utils.status_error_msg(error_msg, status_code)
+      assert_equal "The status code of the Logout Response was not Success, was Requester", status_error_msg
+    end
 
-      status_error_msg3 = OneLogin::RubySaml::Utils.status_error_msg(error_msg)
-      assert_equal = "The status code of the Logout Response was not Success", status_error_msg3
+    it "returns a error msg" do
+      error_msg = "The status code of the Logout Response was not Success"
+      status_error_msg = OneLogin::RubySaml::Utils.status_error_msg(error_msg)
+      assert_equal "The status code of the Logout Response was not Success", status_error_msg
     end
   end
 
@@ -202,7 +209,7 @@ class UtilsTest < Minitest::Test
 
     describe ".uuid" do
       it "returns a uuid starting with an underscore" do
-        assert_match /^_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/, OneLogin::RubySaml::Utils.uuid
+        assert_match(/^_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/, OneLogin::RubySaml::Utils.uuid)
       end
 
       it "doesn't return the same value twice" do

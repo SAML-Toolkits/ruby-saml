@@ -411,7 +411,7 @@ class RubySamlTest < Minitest::Test
           response.settings = settings
           error_msg = "Current time is on or after NotOnOrAfter condition"
           assert !response.is_valid?
-          assert_includes response.errors[0], "Current time is on or after NotOnOrAfter condition"
+          assert_includes response.errors[0], error_msg
         end
 
         it "return false when encountering a SAML Response with bad formatted" do
@@ -457,7 +457,7 @@ class RubySamlTest < Minitest::Test
           response_no_version.soft = true
           error_msg = "Unsupported SAML version"
           response_no_version.is_valid?
-          assert_includes response_no_version.errors, "Unsupported SAML version"
+          assert_includes response_no_version.errors, error_msg
         end
 
         it "return true when a nil URI is given in the ds:Reference" do
@@ -976,7 +976,7 @@ class RubySamlTest < Minitest::Test
           :encryption => []
         }
         response_valid_signed.settings = settings
-        res = response_valid_signed.send(:validate_signature)
+        response_valid_signed.send(:validate_signature)
         assert_empty response_valid_signed.errors
       end
 
@@ -1217,7 +1217,7 @@ class RubySamlTest < Minitest::Test
           settings.private_key = nil
           response_encrypted_attrs.settings = settings
           assert_raises(OneLogin::RubySaml::ValidationError, "An EncryptedAttribute found and no SP private key found on the settings to decrypt it") do
-            attrs = response_encrypted_attrs.attributes
+            response_encrypted_attrs.attributes
           end
         end
 
@@ -1438,11 +1438,11 @@ class RubySamlTest < Minitest::Test
         error_msg = "An EncryptedAssertion found and no SP private key found on the settings to decrypt it. Be sure you provided the :settings parameter at the initialize method"
 
         assert_raises(OneLogin::RubySaml::ValidationError, error_msg) do
-          response = OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion)
+          OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion)
         end
 
         assert_raises(OneLogin::RubySaml::ValidationError, error_msg) do
-          response2 = OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)
+          OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)
         end
 
         settings.certificate = ruby_saml_cert_text
@@ -1460,7 +1460,7 @@ class RubySamlTest < Minitest::Test
 
         error_msg = "Neither PUB key nor PRIV key: nested asn1 error"
         assert_raises(OpenSSL::PKey::RSAError, error_msg) do
-          response = OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)
+          OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)
         end
       end
 
@@ -1554,7 +1554,7 @@ class RubySamlTest < Minitest::Test
 
           error_msg = "An EncryptedAssertion found and no SP private key found on the settings to decrypt it"
           assert_raises(OneLogin::RubySaml::ValidationError, error_msg) do
-            decrypted = response.send(:decrypt_assertion, encrypted_assertion_node)
+            response.send(:decrypt_assertion, encrypted_assertion_node)
           end
         end
 

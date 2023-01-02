@@ -14,18 +14,18 @@ class RequestTest < Minitest::Test
 
     it "create the deflated SAMLRequest URL parameter" do
       unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings)
-      assert_match /^http:\/\/unauth\.com\/logout\?SAMLRequest=/, unauth_url
+      assert_match(/^http:\/\/unauth\.com\/logout\?SAMLRequest=/, unauth_url)
 
       inflated = decode_saml_request_payload(unauth_url)
-      assert_match /^<samlp:LogoutRequest/, inflated
+      assert_match(/^<samlp:LogoutRequest/, inflated)
     end
 
     it "support additional params" do
       unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings, { :hello => nil })
-      assert_match /&hello=$/, unauth_url
+      assert_match(/&hello=$/, unauth_url)
 
       unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings, { :foo => "bar" })
-      assert_match /&foo=bar$/, unauth_url
+      assert_match(/&foo=bar$/, unauth_url)
     end
 
     it "RelayState cases" do
@@ -50,7 +50,7 @@ class RequestTest < Minitest::Test
       unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings, { :nameid => "there" })
       inflated = decode_saml_request_payload(unauth_url)
 
-      assert_match /<samlp:SessionIndex/, inflated
+      assert_match(/<samlp:SessionIndex/, inflated)
       assert_match %r(#{sessionidx}</samlp:SessionIndex>), inflated
     end
 
@@ -62,14 +62,14 @@ class RequestTest < Minitest::Test
       unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings, { :nameid => "there" })
       inflated = decode_saml_request_payload(unauth_url)
 
-      assert_match /<saml:NameID/, inflated
+      assert_match(/<saml:NameID/, inflated)
       assert_match %r(#{name_identifier_value}</saml:NameID>), inflated
     end
 
     describe "when the target url doesn't contain a query string" do
       it "create the SAMLRequest parameter correctly" do
         unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings)
-        assert_match /^http:\/\/unauth.com\/logout\?SAMLRequest/, unauth_url
+        assert_match(/^http:\/\/unauth.com\/logout\?SAMLRequest/, unauth_url)
       end
     end
 
@@ -78,7 +78,7 @@ class RequestTest < Minitest::Test
         settings.idp_slo_service_url = "http://example.com?field=value"
 
         unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings)
-        assert_match /^http:\/\/example.com\?field=value&SAMLRequest/, unauth_url
+        assert_match(/^http:\/\/example.com\?field=value&SAMLRequest/, unauth_url)
       end
     end
 
@@ -98,13 +98,13 @@ class RequestTest < Minitest::Test
       it "creates request with ID prefixed with default '_'" do
         request = OneLogin::RubySaml::Logoutrequest.new
 
-        assert_match /^_/, request.uuid
+        assert_match(/^_/, request.uuid)
       end
 
       it "creates request with ID is prefixed, when :id_prefix is passed" do
         OneLogin::RubySaml::Utils::set_prefix("test")
         request = OneLogin::RubySaml::Logoutrequest.new
-        assert_match /^test/, request.uuid
+        assert_match(/^test/, request.uuid)
         OneLogin::RubySaml::Utils::set_prefix("_")
       end
     end
