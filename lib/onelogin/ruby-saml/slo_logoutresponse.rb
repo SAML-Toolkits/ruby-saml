@@ -41,7 +41,7 @@ module OneLogin
         saml_response = CGI.escape(params.delete("SAMLResponse"))
         response_params = "#{params_prefix}SAMLResponse=#{saml_response}"
         params.each_pair do |key, value|
-          response_params << "&#{key.to_s}=#{CGI.escape(value.to_s)}"
+          response_params << "&#{key}=#{CGI.escape(value.to_s)}"
         end
 
         raise SettingError.new "Invalid settings, idp_slo_service_url is not set!" if url.nil? or url.empty?

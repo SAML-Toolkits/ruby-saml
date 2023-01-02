@@ -20,7 +20,7 @@ module OneLogin
         end
 
         config.each do |k,v|
-          acc = "#{k.to_s}=".to_sym
+          acc = "#{k}=".to_sym
           if respond_to? acc
             value = v.is_a?(Hash) ? v.dup : v
             send(acc, value)
@@ -243,7 +243,6 @@ module OneLogin
         OpenSSL::PKey::RSA.new(formatted_private_key)
       end
 
-      private
 
       def idp_binding_from_embed_sign
         security[:embed_sign] ? Utils::BINDINGS[:post] : Utils::BINDINGS[:redirect]

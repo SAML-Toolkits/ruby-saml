@@ -4,7 +4,6 @@ require 'base64'
 require 'nokogiri'
 require 'rexml/document'
 require 'rexml/xpath'
-require 'thread'
 require "onelogin/ruby-saml/error_handling"
 
 # Only supports SAML 2.0
@@ -69,14 +68,14 @@ module OneLogin
           xml = Nokogiri::XML(document.to_s) do |config|
             config.options = XMLSecurity::BaseDocument::NOKOGIRI_OPTIONS
           end
-        rescue Exception => error
+        rescue StandardError => error
           return false if soft
           raise ValidationError.new("XML load failed: #{error.message}")
         end
 
         SamlMessage.schema.validate(xml).map do |schema_error|
           return false if soft
-          raise ValidationError.new("#{schema_error.message}\n\n#{xml.to_s}")
+          raise ValidationError.new("#{schema_error.message}\n\n#{xml}")
         end
       end
 
