@@ -52,7 +52,7 @@ In addition, the following may work but are untested:
 ## Security Guidelines
 
 If you believe you have discovered a security vulnerability in this gem, please report it
-as an issue
+as an issue to sixto.martin.garcia@gmail.com
 
 ### Security Warning
 
