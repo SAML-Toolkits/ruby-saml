@@ -1355,6 +1355,7 @@ class RubySamlTest < Minitest::Test
 
     describe '#xpath_first_from_signed_assertion' do
       it 'not allow arbitrary code execution' do
+        $evalled = nil
         malicious_response_document = fixture('response_eval', false)
         malicious_response = OneLogin::RubySaml::Response.new(malicious_response_document)
         malicious_response.send(:xpath_first_from_signed_assertion)
