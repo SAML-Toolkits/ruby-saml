@@ -1,7 +1,8 @@
 require 'simplecov'
-require 'coveralls'
+require 'simplecov-lcov'
 
-SimpleCov.formatter = Coveralls::SimpleCov::Formatter
+#SimpleCov::Formatter::LcovFormatter.config.report_with_single_file = true
+SimpleCov.formatter = SimpleCov::Formatter::LcovFormatter
 SimpleCov.start do
   add_filter "test/"
   add_filter "vendor/"
