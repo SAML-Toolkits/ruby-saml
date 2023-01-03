@@ -45,6 +45,9 @@ Gem::Specification.new do |s|
   elsif RUBY_VERSION < '2.5'
     s.add_runtime_dependency('nokogiri', '>= 1.10.10', '< 1.11.0')
     s.add_runtime_dependency('rexml')
+  elsif RUBY_VERSION < '2.6'
+    s.add_runtime_dependency('nokogiri', '>= 1.11.4')
+    s.add_runtime_dependency('rexml')
   else
     s.add_runtime_dependency('nokogiri', '>= 1.13.10')
     s.add_runtime_dependency('rexml')
