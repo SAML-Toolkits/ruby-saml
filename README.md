@@ -52,7 +52,7 @@ In addition, the following may work but are untested:
 ## Security Guidelines
 
 If you believe you have discovered a security vulnerability in this gem, please report it
-as an issue to sixto.martin.garcia@gmail.com
+by mail to the maintainer: sixto.martin.garcia+security@gmail.com
 
 ### Security Warning
 
@@ -390,6 +390,51 @@ IdpMetadataParser by its Entity Id value:
 The `OneLogin::RubySaml::IdpMetadataParser` also provides the methods `#parse_to_hash` and `#parse_remote_to_hash`.
 Those return an Hash instead of a `Settings` object, which may be useful for configuring
 [omniauth-saml](https://github.com/omniauth/omniauth-saml), for instance.
+
+
+### Validating Signature of Metadata and retrieve settings
+
+Right now there is no method at ruby_saml to validate the signature of the metadata that gonna be parsed,
+but it can be done as follows:
+* Download the XML.
+* Validate the Signature, providing the cert.
+* Provide the XML to the parse method if the signature was validated
+
+```
+require "xml_security"
+require "onelogin/ruby-saml/utils"
+require "onelogin/ruby-saml/idp_metadata_parser"
+
+url = "<url_to_the_metadata>"
+idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+
+uri = URI.parse(url)
+raise ArgumentError.new("url must begin with http or https") unless /^https?/ =~ uri.scheme
+http = Net::HTTP.new(uri.host, uri.port)
+if uri.scheme == "https"
+    http.use_ssl = true
+    http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+end
+
+get = Net::HTTP::Get.new(uri.request_uri)
+get.basic_auth uri.user, uri.password if uri.user
+response = http.request(get)
+xml = response.body
+errors = []
+doc = XMLSecurity::SignedDocument.new(xml, errors)
+cert_str = "<include_cert_here>"
+cert = OneLogin::RubySaml::Utils.format_cert("cert_str")
+metadata_sign_cert = OpenSSL::X509::Certificate.new(cert)
+valid = doc.validate_document_with_cert(metadata_sign_cert, true)
+if valid
+  settings = idp_metadata_parser.parse(
+    xml,
+    entity_id: "<entity_id_of_the_entity_to_be_retrieved>"
+  )
+else
+  print "Metadata Signarture failed to be verified with the cert provided"
+end
+
 
 ## Retrieving Attributes
 
