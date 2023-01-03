@@ -986,7 +986,7 @@ class RubySamlTest < Minitest::Test
           "encryption" => []
         }
         response_valid_signed.settings = settings
-        res = response_valid_signed.send(:validate_signature)
+        assert response_valid_signed.send(:validate_signature)
         assert_empty response_valid_signed.errors
       end
 
