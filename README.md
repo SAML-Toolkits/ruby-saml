@@ -98,13 +98,13 @@ gem install ruby-saml
 You may require the entire Ruby SAML gem:
 
 ```ruby
-require 'saml-toolkit/ruby-saml'
+require 'onelogin/ruby-saml'
 ```
 
 or just the required components individually:
 
 ```ruby
-require 'saml-toolkit/ruby-saml/authrequest'
+require 'onelogin/ruby-saml/authrequest'
 ```
 
 ### Installation on Ruby 1.8.7
