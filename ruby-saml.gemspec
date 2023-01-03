@@ -32,7 +32,7 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency('jruby-openssl', '>= 0.9.8')
       s.add_runtime_dependency('json', '< 2.3.0')
     else
-      s.add_runtime_dependency('nokogiri', '>= 1.8.2')
+      s.add_runtime_dependency('nokogiri', '>= 1.13.10')
     end
   elsif RUBY_VERSION < '1.9'
     s.add_runtime_dependency('uuid')
@@ -42,8 +42,11 @@ Gem::Specification.new do |s|
     s.add_runtime_dependency('json', '< 2.3.0')
   elsif RUBY_VERSION < '2.3'
     s.add_runtime_dependency('nokogiri', '>= 1.9.1', '< 1.10.0')
+  elsif RUBY_VERSION < '2.5'
+    s.add_runtime_dependency('nokogiri', '>= 1.10.10', '< 1.11.0')
+    s.add_runtime_dependency('rexml')
   else
-    s.add_runtime_dependency('nokogiri', '>= 1.10.5')
+    s.add_runtime_dependency('nokogiri', '>= 1.13.10')
     s.add_runtime_dependency('rexml')
   end
 
@@ -57,10 +60,10 @@ Gem::Specification.new do |s|
   s.add_development_dependency('minitest', '~> 5.5')
   s.add_development_dependency('mocha',    '~> 0.14')
 
-  if RUBY_VERSION < '3.2'
+  if RUBY_VERSION < '2.0'
     s.add_development_dependency('rake',     '~> 10')
   else
-    s.add_development_dependency('rake',     '~> 12')
+    s.add_development_dependency('rake',     '>= 12.3.3')
   end
 
   s.add_development_dependency('shoulda',  '~> 2.11')
