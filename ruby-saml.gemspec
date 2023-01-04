@@ -27,10 +27,14 @@ Gem::Specification.new do |s|
   # Nokogiri's version dependent on the Ruby version, even though we would
   # have liked to constrain Ruby 1.8.7 to install only the 1.5.x versions.
   if defined?(JRUBY_VERSION)
-    if JRUBY_VERSION < '9.2.0.0'
+    if JRUBY_VERSION < '9.1.7.0'
       s.add_runtime_dependency('nokogiri', '>= 1.8.2', '<= 1.8.5')
       s.add_runtime_dependency('jruby-openssl', '>= 0.9.8')
       s.add_runtime_dependency('json', '< 2.3.0')
+    elsif JRUBY_VERSION < '9.2.0.0'
+      s.add_runtime_dependency('nokogiri', '>= 1.9.1', '< 1.10.0')
+    elsif JRUBY_VERSION < '9.3.2.0'
+      s.add_runtime_dependency('nokogiri', '>= 1.11.4')
     else
       s.add_runtime_dependency('nokogiri', '>= 1.13.10')
     end
