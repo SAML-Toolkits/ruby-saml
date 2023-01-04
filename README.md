@@ -16,7 +16,7 @@ requests from identity providers.
 SAML authorization is a two step process and you are expected to implement support for both.
 
 We created a demo project for Rails 4 that uses the latest version of this library:
-[ruby-saml-example](https://github.com/saml-toolkit/ruby-saml-example)
+[ruby-saml-example](https://github.com/saml-toolkits/ruby-saml-example)
 
 ### Supported Ruby Versions
 
