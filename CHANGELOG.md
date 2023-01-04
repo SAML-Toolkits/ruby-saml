@@ -1,11 +1,11 @@
 # Ruby SAML Changelog
-### 1.15.0 (Jan 03, 2023)
-* [#650](https://github.com/SAML-Toolkits/ruby-saml/pull/650) Replace strip! by strip on compute_digest method
+### 1.15.0 (Jan 04, 2023)
+* [#650](https://github.com/SAML-Toolkits/ruby-saml/ . pull/650) Replace strip! by strip on compute_digest method
 * [#638](https://github.com/SAML-Toolkits/ruby-saml/pull/638) Fix dateTime format for the validUntil attribute of the generated metadata 
 * [#576](https://github.com/SAML-Toolkits/ruby-saml/pull/576) Support idp cert multi with string keys
 * [#567](https://github.com/SAML-Toolkits/ruby-saml/pull/567) Improve Code quality
 * Add info about new repo, new maintainer, new security contact
-* Fix tests, Fix dependencies, Add ruby 3.2 test to the CI. Add coveralls support
+* Fix tests, Adjust dependencies, Add ruby 3.2 and new jruby versions tests to the CI. Add coveralls support
 
 ### 1.14.0 (Feb 01, 2022)
 * [#627](https://github.com/onelogin/ruby-saml/pull/627) Support escape downcasing for validating SLO Signatures of ADFS/Azure
