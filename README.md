@@ -1,6 +1,6 @@
 # Ruby SAML
-[![Build Status](https://github.com/onelogin/ruby-saml/actions/workflows/test.yml/badge.svg?query=branch%3Amaster)](https://github.com/onelogin/ruby-saml/actions/workflows/test.yml?query=branch%3Amaster)
-[![Coverage Status](https://coveralls.io/repos/onelogin/ruby-saml/badge.svg?branch=master)](https://coveralls.io/r/onelogin/ruby-saml?branch=master)
+[![ruby-saml CI](https://github.com/SAML-Toolkits/ruby-saml/actions/workflows/test.yml/badge.svg)](https://github.com/SAML-Toolkits/ruby-saml/actions/workflows/test.yml)
+[![Coverage Status](https://coveralls.io/repos/github/SAML-Toolkits/ruby-saml/badge.svg?branch=master)](https://coveralls.io/github/SAML-Toolkits/ruby-saml?branch=master)
 
 Ruby SAML minor and tiny versions may introduce breaking changes. Please read
 [UPGRADING.md](UPGRADING.md) for guidance on upgrading to new Ruby SAML versions.
@@ -28,8 +28,12 @@ The following Ruby versions are covered by CI testing:
 * 2.6.x
 * 2.7.x
 * 3.0.x
+* 3.1
+* 3.2
 * JRuby 9.1.x
 * JRuby 9.2.x
+* JRuby 9.3.X
+* JRuby 9.4.0
 * TruffleRuby (latest)
 
 In addition, the following may work but are untested:
