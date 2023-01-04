@@ -1,6 +1,8 @@
 # Ruby SAML
 [![ruby-saml CI](https://github.com/SAML-Toolkits/ruby-saml/actions/workflows/test.yml/badge.svg)](https://github.com/SAML-Toolkits/ruby-saml/actions/workflows/test.yml)
 [![Coverage Status](https://coveralls.io/repos/github/SAML-Toolkits/ruby-saml/badge.svg?branch=master)](https://coveralls.io/github/SAML-Toolkits/ruby-saml?branch=master)
+[![Rubygem Version](https://badge.fury.io/rb/ruby-saml.svg)](https://badge.fury.io/rb/ruby-saml)
+[![GitHub version](https://badge.fury.io/gh/SAML-Toolkits%2Fruby-saml.svg)](https://badge.fury.io/gh/SAML-Toolkits%2Fruby-saml)
 
 Ruby SAML minor and tiny versions may introduce breaking changes. Please read
 [UPGRADING.md](UPGRADING.md) for guidance on upgrading to new Ruby SAML versions.
