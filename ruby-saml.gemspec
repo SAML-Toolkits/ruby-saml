@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
     "README.md"
   ]
   s.files = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
-  s.homepage = %q{https://github.com/saml-toolkit/ruby-saml}
+  s.homepage = %q{https://github.com/saml-toolkits/ruby-saml}
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.3.7}
