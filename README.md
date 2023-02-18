@@ -406,7 +406,7 @@ but it can be done as follows:
 * Validate the Signature, providing the cert.
 * Provide the XML to the parse method if the signature was validated
 
-```
+```ruby
 require "xml_security"
 require "onelogin/ruby-saml/utils"
 require "onelogin/ruby-saml/idp_metadata_parser"
@@ -440,7 +440,7 @@ if valid
 else
   print "Metadata Signarture failed to be verified with the cert provided"
 end
-
+```
 
 ## Retrieving Attributes
 
