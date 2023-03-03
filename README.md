@@ -391,6 +391,27 @@ IdpMetadataParser by its Entity Id value:
              )
 ```
 
+### Retrieve one Entity Descriptor with an specific binding and nameid format when several are available
+
+If the Metadata contains several bindings and nameids, the relevant ones
+also can be specified when retrieving the settings from the IdpMetadataParser
+by the values of binding and nameid:
+
+```ruby
+  validate_cert = true
+  options = {
+    entity_id: "http//example.com/target/entity",
+    name_id_format: "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress",
+    sso_binding: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
+    slo_binding: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+  }
+  settings = idp_metadata_parser.parse_remote(
+               "https://example.com/auth/saml2/idp/metadata",
+               validate_cert,
+               options
+             )
+```
+
 ### Parsing Metadata into an Hash
 
 The `OneLogin::RubySaml::IdpMetadataParser` also provides the methods `#parse_to_hash` and `#parse_remote_to_hash`.
@@ -406,7 +427,7 @@ but it can be done as follows:
 * Validate the Signature, providing the cert.
 * Provide the XML to the parse method if the signature was validated
 
-```
+```ruby
 require "xml_security"
 require "onelogin/ruby-saml/utils"
 require "onelogin/ruby-saml/idp_metadata_parser"
@@ -440,7 +461,7 @@ if valid
 else
   print "Metadata Signarture failed to be verified with the cert provided"
 end
-
+```
 
 ## Retrieving Attributes
 
