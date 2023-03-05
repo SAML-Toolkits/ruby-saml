@@ -1,8 +1,4 @@
-if RUBY_VERSION < '1.9'
-  require 'uuid'
-else
-  require 'securerandom'
-end
+require 'securerandom'
 require "openssl"
 
 module OneLogin
@@ -11,8 +7,6 @@ module OneLogin
     # SAML2 Auxiliary class
     #
     class Utils
-      @@uuid_generator = UUID.new if RUBY_VERSION < '1.9'
-
       BINDINGS = { :post => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST".freeze,
                    :redirect => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect".freeze }.freeze
       DSIG = "http://www.w3.org/2000/09/xmldsig#".freeze
@@ -56,8 +50,6 @@ module OneLogin
       # @return [Integer] The new timestamp, after the duration is applied.
       #
       def self.parse_duration(duration, timestamp=Time.now.utc)
-        return nil if RUBY_VERSION < '1.9'  # 1.8.7 not supported
-
         matches = duration.match(DURATION_FORMAT)
 
         if matches.nil?
@@ -348,7 +340,7 @@ module OneLogin
       end
 
       def self.uuid
-        "#{UUID_PREFIX}" + (RUBY_VERSION < '1.9' ? "#{@@uuid_generator.generate}" : "#{SecureRandom.uuid}")
+        "#{UUID_PREFIX}#{SecureRandom.uuid}"
       end
 
       # Given two strings, attempt to match them as URIs using Rails' parse method.  If they can be parsed,
