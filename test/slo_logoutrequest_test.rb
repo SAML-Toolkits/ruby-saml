@@ -1,4 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__), "test_helper"))
+require_relative 'test_helper'
 require 'logout_responses/logoutresponse_fixtures'
 
 require 'onelogin/ruby-saml/slo_logoutrequest'

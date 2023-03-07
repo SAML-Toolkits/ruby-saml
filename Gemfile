@@ -1,15 +1,13 @@
-#
 # Please keep this file alphabetized and organized
 #
 source 'https://rubygems.org'
 
 gemspec
 
-gem 'minitest', '~> 5.5'
-gem 'mocha', '~> 0.14'
-gem 'rake', '>= 12.3.3'
-gem 'shoulda', '~> 2.11'
-gem 'simplecov', '< 0.22.0'
-gem 'simplecov-lcov', '> 0.7.0'
-gem 'systemu', '~> 2'
-gem 'timecop', '~> 0.9'
+gem 'minitest', '~> 5.18', require: false
+gem 'mocha', '~> 2.0', require: false
+gem 'rake', '~> 13.0'
+gem 'simplecov', '~> 0.22', require: false
+gem 'simplecov-lcov', '~> 0.8', require: false
+gem 'systemu', '~> 2.6', require: false
+gem 'timecop', '~> 0.9', require: false

@@ -15,7 +15,7 @@ require 'stringio'
 require 'rubygems'
 require 'bundler'
 require 'minitest/autorun'
-require 'mocha/setup'
+require 'mocha/minitest'
 require 'timecop'
 
 Bundler.require :default, :test
