@@ -1,3 +1,4 @@
+# 2023/03/07 - Simplecov is not working on TruffleRuby.
 unless defined?(TruffleRuby)
   require 'simplecov'
   require 'simplecov-lcov'
