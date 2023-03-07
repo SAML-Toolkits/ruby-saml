@@ -1,14 +1,15 @@
-require 'simplecov'
-require 'simplecov-lcov'
-
-SimpleCov::Formatter::LcovFormatter.config.report_with_single_file = true
-SimpleCov::Formatter::LcovFormatter.config.output_directory = 'coverage'
-SimpleCov::Formatter::LcovFormatter.config.lcov_file_name = 'lcov.info'
-SimpleCov.formatter = SimpleCov::Formatter::LcovFormatter
-SimpleCov.start do
-  add_filter "test/"
-  add_filter "vendor/"
-  add_filter "lib/onelogin/ruby-saml/logging.rb"
+unless defined?(TruffleRuby)
+  require 'simplecov'
+  require 'simplecov-lcov'
+  SimpleCov::Formatter::LcovFormatter.config.report_with_single_file = true
+  SimpleCov::Formatter::LcovFormatter.config.output_directory = 'coverage'
+  SimpleCov::Formatter::LcovFormatter.config.lcov_file_name = 'lcov.info'
+  SimpleCov.formatter = SimpleCov::Formatter::LcovFormatter
+  SimpleCov.start do
+    add_filter "test/"
+    add_filter "vendor/"
+    add_filter "lib/onelogin/ruby-saml/logging.rb"
+  end
 end
 
 require 'stringio'
