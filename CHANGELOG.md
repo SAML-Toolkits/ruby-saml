@@ -1,4 +1,5 @@
 # Ruby SAML Changelog
+
 ### 1.15.0 (Jan 04, 2023)
 * [#650](https://github.com/SAML-Toolkits/ruby-saml/pull/650) Replace strip! by strip on compute_digest method
 * [#638](https://github.com/SAML-Toolkits/ruby-saml/pull/638) Fix dateTime format for the validUntil attribute of the generated metadata 

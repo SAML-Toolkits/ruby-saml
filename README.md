@@ -20,31 +20,16 @@ We created a demo project for Rails 4 that uses the latest version of this libra
 
 ### Supported Ruby Versions
 
-The following Ruby versions are covered by CI testing:
-
-* 2.1.x
-* 2.2.x
-* 2.3.x
-* 2.4.x
-* 2.5.x
-* 2.6.x
-* 2.7.x
-* 3.0.x
+* 2.6
+* 2.7
+* 3.0
 * 3.1
 * 3.2
-* JRuby 9.1.x
-* JRuby 9.2.x
-* JRuby 9.3.X
-* JRuby 9.4.0
+* JRuby 9.3
+* JRuby 9.4
 * TruffleRuby (latest)
 
-In addition, the following may work but are untested:
-
-* 1.8.7
-* 1.9.x
-* 2.0.x
-* JRuby 1.7.x
-* JRuby 9.0.x
+For older Ruby support, please refer to older major versions of Ruby SAML.
 
 ## Adding Features, Pull Requests
 

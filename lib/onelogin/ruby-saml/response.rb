@@ -973,12 +973,7 @@ module OneLogin
           raise ValidationError.new('An EncryptedAssertion found and no SP private key found on the settings to decrypt it. Be sure you provided the :settings parameter at the initialize method')
         end
 
-        # Marshal at Ruby 1.8.7 throw an Exception
-        if RUBY_VERSION < "1.9"
-          document_copy = XMLSecurity::SignedDocument.new(response, errors)
-        else
-          document_copy = Marshal.load(Marshal.dump(document))
-        end
+        document_copy = Marshal.load(Marshal.dump(document))
 
         decrypt_assertion_from_document(document_copy)
       end

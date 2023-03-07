@@ -1,4 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__), "test_helper"))
+require_relative 'test_helper'
 
 class UtilsTest < Minitest::Test
   describe ".parse_duration" do
@@ -22,7 +22,6 @@ class UtilsTest < Minitest::Test
     }
 
     def result(duration, reference = 0)
-      return nil if RUBY_VERSION < '1.9'
       Time.at(
         OneLogin::RubySaml::Utils.parse_duration(duration, reference)
       ).utc.iso8601(3)
@@ -30,14 +29,12 @@ class UtilsTest < Minitest::Test
 
     DURATIONS_FROM_EPOCH.each do |duration, expected|
       it "parses #{duration} to return #{expected} from the given timestamp" do
-        return if RUBY_VERSION < '1.9'
         assert_equal expected, result(duration)
       end
     end
 
     it "returns the last calendar day of the next month when advancing from a longer month to a shorter one" do
       initial_timestamp = Time.iso8601("1970-01-31T00:00:00.000Z").to_i
-      return if RUBY_VERSION < '1.9'
       assert_equal "1970-02-28T00:00:00.000Z", result("P1M", initial_timestamp)
     end
   end
