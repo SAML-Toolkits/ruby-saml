@@ -9,5 +9,4 @@ gem 'mocha', '~> 2.0', require: false
 gem 'rake', '~> 13.0'
 gem 'simplecov', '~> 0.22', require: false
 gem 'simplecov-lcov', '~> 0.8', require: false
-gem 'systemu', '~> 2.6', require: false
 gem 'timecop', '~> 0.9', require: false
