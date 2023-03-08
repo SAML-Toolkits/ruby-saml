@@ -42,7 +42,7 @@ module OneLogin
 
       # fetch IdP descriptors from a metadata document
       def self.get_idps(metadata_document, only_entity_id=nil)
-        path = "//md:EntityDescriptor#{('[@entityID="' + only_entity_id + '"]') if only_entity_id}/md:IDPSSODescriptor"
+        path = "//md:EntityDescriptor#{"[@entityID=\"#{only_entity_id}\"]" if only_entity_id}/md:IDPSSODescriptor"
         REXML::XPath.match(
           metadata_document,
           path,
@@ -238,7 +238,7 @@ module OneLogin
             idp_cert_fingerprint: nil,
             idp_cert_multi: nil,
             valid_until: valid_until,
-            cache_duration: cache_duration,
+            cache_duration: cache_duration
           }.tap do |response_hash|
             merge_certificates_into(response_hash) unless certificates.nil?
           end

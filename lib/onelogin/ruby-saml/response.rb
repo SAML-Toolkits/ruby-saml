@@ -35,9 +35,9 @@ module OneLogin
       # Response available options
       # This is not a whitelist to allow people extending OneLogin::RubySaml:Response
       # and pass custom options
-      AVAILABLE_OPTIONS = [
-        :allowed_clock_drift, :check_duplicated_attributes, :matches_request_id, :settings, :skip_audience, :skip_authnstatement, :skip_conditions,
-        :skip_destination, :skip_recipient_check, :skip_subject_confirmation
+      AVAILABLE_OPTIONS = %i[
+        allowed_clock_drift check_duplicated_attributes matches_request_id settings skip_audience skip_authnstatement skip_conditions
+        skip_destination skip_recipient_check skip_subject_confirmation
       ].freeze
       # TODO: Update the comment on initialize to describe every option
 
@@ -168,7 +168,7 @@ module OneLogin
               end
 
               values = node.elements.collect  do |e|
-                if e.elements.nil? || e.elements.size == 0
+                if e.elements.nil? || e.elements.empty?
                   # SAMLCore requires that nil AttributeValues MUST contain xsi:nil XML attribute set to "true" or "1"
                   # otherwise the value is to be regarded as empty.
                   %w[true 1].include?(e.attributes['xsi:nil']) ? nil : Utils.element_text(e)
@@ -249,9 +249,8 @@ module OneLogin
             "/p:Response/p:Status/p:StatusMessage",
             { "p" => PROTOCOL }
           )
-          if nodes.size == 1
-            Utils.element_text(nodes.first)
-          end
+
+          Utils.element_text(nodes.first) if nodes.size == 1
         end
       end
 
@@ -379,25 +378,25 @@ module OneLogin
         reset_errors!
         return false unless validate_response_state
 
-        validations = [
-          :validate_version,
-          :validate_id,
-          :validate_success_status,
-          :validate_num_assertion,
-          :validate_no_duplicated_attributes,
-          :validate_signed_elements,
-          :validate_structure,
-          :validate_in_response_to,
-          :validate_one_conditions,
-          :validate_conditions,
-          :validate_one_authnstatement,
-          :validate_audience,
-          :validate_destination,
-          :validate_issuer,
-          :validate_session_expiration,
-          :validate_subject_confirmation,
-          :validate_name_id,
-          :validate_signature
+        validations = %i[
+          validate_version
+          validate_id
+          validate_success_status
+          validate_num_assertion
+          validate_no_duplicated_attributes
+          validate_signed_elements
+          validate_structure
+          validate_in_response_to
+          validate_one_conditions
+          validate_conditions
+          validate_one_authnstatement
+          validate_audience
+          validate_destination
+          validate_issuer
+          validate_session_expiration
+          validate_subject_confirmation
+          validate_name_id
+          validate_signature
         ]
 
         if collect_errors
@@ -431,7 +430,7 @@ module OneLogin
         end
 
         if !decrypted_document.nil? && !valid_saml?(decrypted_document, soft)
-            return append_error(structure_error_msg)
+          return append_error(structure_error_msg)
         end
 
         true
@@ -458,11 +457,8 @@ module OneLogin
       # @return [Boolean] True if the SAML Response contains an ID, otherwise returns False
       #
       def validate_id
-        unless response_id
-          return append_error("Missing ID attribute on SAML Response")
-        end
-
-        true
+        return true if response_id
+        append_error("Missing ID attribute on SAML Response")
       end
 
       # Validates the SAML version (2.0)
@@ -470,11 +466,8 @@ module OneLogin
       # @return [Boolean] True if the SAML Response is 2.0, otherwise returns False
       #
       def validate_version
-        unless version(document) == "2.0"
-          return append_error("Unsupported SAML version")
-        end
-
-        true
+        return true if version(document) == "2.0"
+        append_error("Unsupported SAML version")
       end
 
       # Validates that the SAML Response only contains a single Assertion (encrypted or not).
@@ -839,7 +832,7 @@ module OneLogin
         doc = use_original ? document : decrypted_document
 
         # Check signature nodes
-        if sig_elements.nil? || sig_elements.size == 0
+        if sig_elements.nil? || sig_elements.empty?
           sig_elements = REXML::XPath.match(
             doc,
             "/p:Response/a:Assertion[@ID=$id]/ds:Signature",
@@ -849,7 +842,7 @@ module OneLogin
         end
 
         if sig_elements.size != 1
-          if sig_elements.size == 0
+          if sig_elements.empty?
              append_error("Signed element id ##{doc.signed_element_id} is not found")
           else
              append_error("Signed element id ##{doc.signed_element_id} is found more than once")
@@ -1038,7 +1031,7 @@ module OneLogin
 
         # To avoid namespace errors if saml namespace is not defined
         # create a parent node first with the namespace defined
-        elem_plaintext = node_header + elem_plaintext + '</node>'
+        elem_plaintext = "#{node_header}#{elem_plaintext}</node>"
         doc = REXML::Document.new(elem_plaintext)
         doc.root[0]
       end
@@ -1049,9 +1042,8 @@ module OneLogin
       # @return [Time|nil] The parsed value
       #
       def parse_time(node, attribute)
-        if node && node.attributes[attribute]
-          Time.parse(node.attributes[attribute])
-        end
+        return unless node && node.attributes[attribute]
+        Time.parse(node.attributes[attribute])
       end
     end
   end

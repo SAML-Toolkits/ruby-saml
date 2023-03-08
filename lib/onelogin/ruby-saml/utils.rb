@@ -131,7 +131,7 @@ module OneLogin
       # @return [String] The Query String
       #
       def self.build_query(params)
-        type, data, relay_state, sig_alg = [:type, :data, :relay_state, :sig_alg].map { |k| params[k]}
+        type, data, relay_state, sig_alg = %i[type data relay_state sig_alg].map { |k| params[k]}
 
         url_string = +"#{type}=#{CGI.escape(data)}"
         url_string << "&RelayState=#{CGI.escape(relay_state)}" if relay_state
@@ -148,7 +148,7 @@ module OneLogin
       # @return [String] The Query String
       #
       def self.build_query_from_raw_parts(params)
-        type, raw_data, raw_relay_state, raw_sig_alg = [:type, :raw_data, :raw_relay_state, :raw_sig_alg].map { |k| params[k]}
+        type, raw_data, raw_relay_state, raw_sig_alg = %i[type raw_data raw_relay_state raw_sig_alg].map { |k| params[k]}
 
         url_string = +"#{type}=#{raw_data}"
         url_string << "&RelayState=#{raw_relay_state}" if raw_relay_state
@@ -199,7 +199,7 @@ module OneLogin
       # @return [Boolean] True if the Signature is valid, False otherwise
       #
       def self.verify_signature(params)
-        cert, sig_alg, signature, query_string = [:cert, :sig_alg, :signature, :query_string].map { |k| params[k]}
+        cert, sig_alg, signature, query_string = %i[cert sig_alg signature query_string].map { |k| params[k]}
         signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(sig_alg)
         cert.public_key.verify(signature_algorithm.new, Base64.decode64(signature), query_string)
       end
@@ -219,12 +219,10 @@ module OneLogin
           else
             printable_code = raw_status_code.split(':').last
           end
-          error_msg += ', was ' + printable_code
+          error_msg += ", was #{printable_code}"
         end
 
-        unless status_message.nil?
-          error_msg += ' -> ' + status_message
-        end
+        error_msg += " -> #{status_message}" unless status_message.nil?
 
         error_msg
       end
@@ -359,12 +357,12 @@ module OneLogin
 
         if dest_uri.scheme.nil? || acs_uri.scheme.nil? || dest_uri.host.nil? || acs_uri.host.nil?
           raise URI::InvalidURIError
-        else
-          dest_uri.scheme.casecmp(acs_uri.scheme) == 0 &&
-            dest_uri.host.casecmp(acs_uri.host) == 0 &&
-            dest_uri.path == acs_uri.path &&
-            dest_uri.query == acs_uri.query
         end
+
+        dest_uri.scheme.casecmp(acs_uri.scheme) == 0 &&
+          dest_uri.host.casecmp(acs_uri.host) == 0 &&
+          dest_uri.path == acs_uri.path &&
+          dest_uri.query == acs_uri.query
       rescue URI::InvalidURIError
         original_uri_match?(destination_url, settings_url)
       end

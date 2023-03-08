@@ -116,13 +116,13 @@ module OneLogin
       def validate(collect_errors = false)
         reset_errors!
 
-        validations = [
-          :valid_state?,
-          :validate_success_status,
-          :validate_structure,
-          :valid_in_response_to?,
-          :valid_issuer?,
-          :validate_signature
+        validations = %i[
+          valid_state?
+          validate_success_status
+          validate_structure
+          valid_in_response_to?
+          valid_issuer?
+          validate_signature
         ]
 
         if collect_errors

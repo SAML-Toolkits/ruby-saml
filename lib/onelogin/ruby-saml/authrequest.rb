@@ -38,7 +38,7 @@ module OneLogin
       #
       def create(settings, params = {})
         params = create_params(settings, params)
-        params_prefix = (settings.idp_sso_service_url =~ /\?/) ? '&' : '?'
+        params_prefix = /\?/.match?(settings.idp_sso_service_url) ? '&' : '?'
         saml_request = CGI.escape(params.delete("SAMLRequest"))
         request_params = +"#{params_prefix}SAMLRequest=#{saml_request}"
         params.each_pair do |key, value|
@@ -152,14 +152,14 @@ module OneLogin
 
         if settings.authn_context || settings.authn_context_decl_ref
 
-          if !settings.authn_context_comparison.nil?
-            comparison = settings.authn_context_comparison
-          else
+          if settings.authn_context_comparison.nil?
             comparison = 'exact'
+          else
+            comparison = settings.authn_context_comparison
           end
 
           requested_context = root.add_element "samlp:RequestedAuthnContext", {
-            "Comparison" => comparison,
+            "Comparison" => comparison
           }
 
           unless settings.authn_context.nil?

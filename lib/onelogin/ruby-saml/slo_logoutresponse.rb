@@ -39,7 +39,7 @@ module OneLogin
       #
       def create(settings, request_id = nil, logout_message = nil, params = {}, logout_status_code = nil)
         params = create_params(settings, request_id, logout_message, params, logout_status_code)
-        params_prefix = (settings.idp_slo_service_url =~ /\?/) ? '&' : '?'
+        params_prefix = /\?/.match?(settings.idp_slo_service_url) ? '&' : '?'
         url = settings.idp_slo_response_service_url || settings.idp_slo_service_url
         saml_response = CGI.escape(params.delete("SAMLResponse"))
         response_params = +"#{params_prefix}SAMLResponse=#{saml_response}"

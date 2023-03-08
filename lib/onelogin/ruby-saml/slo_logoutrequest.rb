@@ -40,9 +40,7 @@ module OneLogin
         @soft = true
         unless options[:settings].nil?
           @settings = options[:settings]
-          unless @settings.soft.nil?
-            @soft = @settings.soft
-          end
+          @soft = @settings.soft unless @settings.soft.nil?
         end
 
         @request = decode_raw_saml(request, settings)
@@ -147,14 +145,14 @@ module OneLogin
       def validate(collect_errors = false)
         reset_errors!
 
-        validations = [
-          :validate_request_state,
-          :validate_id,
-          :validate_version,
-          :validate_structure,
-          :validate_not_on_or_after,
-          :validate_issuer,
-          :validate_signature
+        validations = %i[
+          validate_request_state
+          validate_id
+          validate_version
+          validate_structure
+          validate_not_on_or_after
+          validate_issuer
+          validate_signature
         ]
 
         if collect_errors
@@ -170,11 +168,8 @@ module OneLogin
       # @return [Boolean] True if the Logout Request contains an ID, otherwise returns False
       #
       def validate_id
-        unless id
-          return append_error("Missing ID attribute on Logout Request")
-        end
-
-        true
+        return true if id
+        append_error("Missing ID attribute on Logout Request")
       end
 
       # Validates the SAML version (2.0)
@@ -182,11 +177,8 @@ module OneLogin
       # @return [Boolean] True if the Logout Request is 2.0, otherwise returns False
       #
       def validate_version
-        unless version(document) == "2.0"
-          return append_error("Unsupported SAML version")
-        end
-
-        true
+        return true if version(document) == "2.0"
+        append_error("Unsupported SAML version")
       end
 
       # Validates the time. (If the logout request was initialized with the :allowed_clock_drift

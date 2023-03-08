@@ -197,7 +197,7 @@ module OneLogin
 
         certs = {signing: [], encryption: [] }
 
-        [:signing, :encryption].each do |type|
+        %i[signing encryption].each do |type|
           certs_for_type = idp_cert_multi[type] || idp_cert_multi[type.to_s]
           next if !certs_for_type || certs_for_type.empty?
 

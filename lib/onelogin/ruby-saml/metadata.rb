@@ -52,7 +52,7 @@ module OneLogin
         root.attributes["ID"] = OneLogin::RubySaml::Utils.uuid
         root.attributes["entityID"] = settings.sp_entity_id if settings.sp_entity_id
         root.attributes["validUntil"] = valid_until.utc.strftime('%Y-%m-%dT%H:%M:%SZ') if valid_until
-        root.attributes["cacheDuration"] = "PT" + cache_duration.to_s + "S" if cache_duration
+        root.attributes["cacheDuration"] = "PT#{cache_duration}S" if cache_duration
         root
       end
 
@@ -60,7 +60,7 @@ module OneLogin
         root.add_element "md:SPSSODescriptor", {
             "protocolSupportEnumeration" => "urn:oasis:names:tc:SAML:2.0:protocol",
             "AuthnRequestsSigned" => settings.security[:authn_requests_signed],
-            "WantAssertionsSigned" => settings.security[:want_assertions_signed],
+            "WantAssertionsSigned" => settings.security[:want_assertions_signed]
         }
       end
 
