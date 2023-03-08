@@ -40,8 +40,8 @@ module OneLogin
 
       # Iterate over all attributes
       #
-      def each
-        attributes.each{|name, values| yield name, values}
+      def each(&block)
+        attributes.each(&block)
       end
 
       # Test attribute presence by name

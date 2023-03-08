@@ -24,6 +24,7 @@ module OneLogin
       #
       def initialize
         @uuid = OneLogin::RubySaml::Utils.uuid
+        super()
       end
 
       def request_id

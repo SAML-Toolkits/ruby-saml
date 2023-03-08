@@ -37,7 +37,7 @@ require "onelogin/ruby-saml/error_handling"
 module XMLSecurity
 
   class BaseDocument < REXML::Document
-    REXML::Document::entity_expansion_limit = 0
+    REXML::Document.entity_expansion_limit = 0
 
     C14N            = "http://www.w3.org/2001/10/xml-exc-c14n#"
     DSIG            = "http://www.w3.org/2000/09/xmldsig#"
@@ -51,14 +51,14 @@ module XMLSecurity
       end
 
       case algorithm
-        when "http://www.w3.org/TR/2001/REC-xml-c14n-20010315",
+      when "http://www.w3.org/TR/2001/REC-xml-c14n-20010315",
              "http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments"
-          Nokogiri::XML::XML_C14N_1_0
-        when "http://www.w3.org/2006/12/xml-c14n11",
+        Nokogiri::XML::XML_C14N_1_0
+      when "http://www.w3.org/2006/12/xml-c14n11",
              "http://www.w3.org/2006/12/xml-c14n11#WithComments"
-          Nokogiri::XML::XML_C14N_1_1
-        else
-          Nokogiri::XML::XML_C14N_EXCLUSIVE_1_0
+        Nokogiri::XML::XML_C14N_1_1
+      else
+        Nokogiri::XML::XML_C14N_EXCLUSIVE_1_0
       end
     end
 
@@ -68,7 +68,7 @@ module XMLSecurity
         algorithm = element.attribute("Algorithm").value
       end
 
-      algorithm = algorithm && algorithm =~ /(rsa-)?sha(.*?)$/i && $2.to_i
+      algorithm = algorithm && algorithm =~ /(rsa-)?sha(.*?)$/i && ::Regexp.last_match(2).to_i
 
       case algorithm
       when 256 then OpenSSL::Digest::SHA256
@@ -96,9 +96,7 @@ module XMLSecurity
     attr_writer :uuid
 
     def uuid
-      @uuid ||= begin
-        document.root.nil? ? nil : document.root.attributes['ID']
-      end
+      @uuid ||= document.root&.attributes&.[]('ID')
     end
 
     # <Signature>
@@ -136,7 +134,7 @@ module XMLSecurity
       c14element.add_element("ec:InclusiveNamespaces", {"xmlns:ec" => C14N, "PrefixList" => INC_PREFIX_LIST})
 
       digest_method_element = reference_element.add_element("ds:DigestMethod", {"Algorithm" => digest_method})
-      inclusive_namespaces = INC_PREFIX_LIST.split(" ")
+      inclusive_namespaces = INC_PREFIX_LIST.split
       canon_doc = noko.canonicalize(canon_algorithm(C14N), inclusive_namespaces)
       reference_element.add_element("ds:DigestValue").text = compute_digest(canon_doc, algorithm(digest_method_element))
 
@@ -164,7 +162,7 @@ module XMLSecurity
       issuer_element = elements["//saml:Issuer"]
       if issuer_element
         root.insert_after(issuer_element, signature_element)
-      elsif first_child = root.children[0]
+      elsif (first_child = root.children[0])
         root.insert_before(first_child, signature_element)
       else
         root.add_element(signature_element)
@@ -264,7 +262,6 @@ module XMLSecurity
     end
 
     def validate_signature(base64_cert, soft = true)
-
       document = Nokogiri::XML(self.to_s) do |config|
         config.options = XMLSecurity::BaseDocument::NOKOGIRI_OPTIONS
       end
@@ -277,7 +274,7 @@ module XMLSecurity
           @working_copy,
           "//ds:Signature",
           {"ds"=>DSIG}
-      )
+        )
 
       # signature method
       sig_alg_value = REXML::XPath.first(
@@ -368,15 +365,15 @@ module XMLSecurity
         if transform_element.attributes && transform_element.attributes["Algorithm"]
           algorithm = transform_element.attributes["Algorithm"]
           case algorithm
-            when "http://www.w3.org/TR/2001/REC-xml-c14n-20010315",
+          when "http://www.w3.org/TR/2001/REC-xml-c14n-20010315",
                  "http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments"
-              canon_algorithm = Nokogiri::XML::XML_C14N_1_0
-            when "http://www.w3.org/2006/12/xml-c14n11",
+            canon_algorithm = Nokogiri::XML::XML_C14N_1_0
+          when "http://www.w3.org/2006/12/xml-c14n11",
                  "http://www.w3.org/2006/12/xml-c14n11#WithComments"
-              canon_algorithm = Nokogiri::XML::XML_C14N_1_1
-            when "http://www.w3.org/2001/10/xml-exc-c14n#",
+            canon_algorithm = Nokogiri::XML::XML_C14N_1_1
+          when "http://www.w3.org/2001/10/xml-exc-c14n#",
                  "http://www.w3.org/2001/10/xml-exc-c14n#WithComments"
-              canon_algorithm = Nokogiri::XML::XML_C14N_EXCLUSIVE_1_0
+            canon_algorithm = Nokogiri::XML::XML_C14N_EXCLUSIVE_1_0
           end
         end
       end
@@ -407,12 +404,10 @@ module XMLSecurity
         "//ec:InclusiveNamespaces",
         { "ec" => C14N }
       )
-      if element
-        prefix_list = element.attributes.get_attribute("PrefixList").value
-        prefix_list.split(" ")
-      else
-        nil
-      end
+      return unless element
+
+      prefix_list = element.attributes.get_attribute("PrefixList").value
+      prefix_list.split
     end
 
   end

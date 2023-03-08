@@ -20,14 +20,14 @@ module OneLogin
       ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion"
       PROTOCOL  = "urn:oasis:names:tc:SAML:2.0:protocol"
 
-      BASE64_FORMAT = %r(\A([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?\Z)
+      BASE64_FORMAT = %r(\A([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?\Z).freeze
       @@mutex = Mutex.new
 
       # @return [Nokogiri::XML::Schema] Gets the schema object of the SAML 2.0 Protocol schema
       #
       def self.schema
         @@mutex.synchronize do
-          Dir.chdir(File.expand_path("../../../schemas", __FILE__)) do
+          Dir.chdir(File.expand_path('../../schemas', __dir__)) do
             ::Nokogiri::XML::Schema(File.read("saml-schema-protocol-2.0.xsd"))
           end
         end
@@ -98,7 +98,7 @@ module OneLogin
         decoded = decode(saml)
         begin
           inflate(decoded)
-        rescue
+        rescue StandardError
           decoded
         end
       end
@@ -127,7 +127,7 @@ module OneLogin
       # @return [String] The encoded string
       #
       def encode(string)
-        if Base64.respond_to?('strict_encode64')
+        if Base64.respond_to?(:strict_encode64)
           Base64.strict_encode64(string)
         else
           Base64.encode64(string).gsub(/\n/, "")
