@@ -12,3 +12,4 @@ AllCops:
     - 'lib/**/*'
   Exclude:
     - '**/*.xsd'
+    - 'vendor/**/*.rb'
