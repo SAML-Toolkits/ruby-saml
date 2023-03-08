@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # The contents of this file are subject to the terms
 # of the Common Development and Distribution License
 # (the License). You may not use this file except in
@@ -99,21 +101,21 @@ module XMLSecurity
       end
     end
 
-    #<Signature>
-      #<SignedInfo>
-        #<CanonicalizationMethod />
-        #<SignatureMethod />
-        #<Reference>
-           #<Transforms>
-           #<DigestMethod>
-           #<DigestValue>
-        #</Reference>
-        #<Reference /> etc.
-      #</SignedInfo>
-      #<SignatureValue />
-      #<KeyInfo />
-      #<Object />
-    #</Signature>
+    # <Signature>
+    #   <SignedInfo>
+    #     <CanonicalizationMethod />
+    #     <SignatureMethod />
+    #     <Reference>
+    #        <Transforms>
+    #        <DigestMethod>
+    #        <DigestValue>
+    #     </Reference>
+    #     <Reference /> etc.
+    #   </SignedInfo>
+    #   <SignatureValue />
+    #   <KeyInfo />
+    #   <Object />
+    # </Signature>
     def sign_document(private_key, certificate, signature_method = RSA_SHA1, digest_method = SHA1)
       noko = Nokogiri::XML(self.to_s) do |config|
         config.options = XMLSecurity::BaseDocument::NOKOGIRI_OPTIONS

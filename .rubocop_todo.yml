@@ -163,13 +163,6 @@ Layout/IndentationWidth:
     - 'lib/onelogin/ruby-saml/authrequest.rb'
     - 'lib/onelogin/ruby-saml/response.rb'
 
-# Offense count: 15
-# This cop supports safe autocorrection (--autocorrect).
-# Configuration parameters: AllowDoxygenCommentStyle, AllowGemfileRubyComment.
-Layout/LeadingCommentSpace:
-  Exclude:
-    - 'lib/xml_security.rb'
-
 # Offense count: 1
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: EnforcedStyle, IndentationWidth.
@@ -541,13 +534,6 @@ Style/ExplicitBlockArgument:
 Style/For:
   Exclude:
     - 'lib/onelogin/ruby-saml/metadata.rb'
-
-# Offense count: 22
-# This cop supports unsafe autocorrection (--autocorrect-all).
-# Configuration parameters: EnforcedStyle.
-# SupportedStyles: always, always_true, never
-Style/FrozenStringLiteralComment:
-  Enabled: false
 
 # Offense count: 1
 # This cop supports unsafe autocorrection (--autocorrect-all).

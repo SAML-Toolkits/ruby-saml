@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "base64"
 require "net/http"
 require "net/https"
@@ -19,10 +21,10 @@ module OneLogin
 
       module SamlMetadata
         module Vocabulary
-          METADATA       = "urn:oasis:names:tc:SAML:2.0:metadata".freeze
-          DSIG           = "http://www.w3.org/2000/09/xmldsig#".freeze
-          NAME_FORMAT    = "urn:oasis:names:tc:SAML:2.0:attrname-format:*".freeze
-          SAML_ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion".freeze
+          METADATA       = "urn:oasis:names:tc:SAML:2.0:metadata"
+          DSIG           = "http://www.w3.org/2000/09/xmldsig#"
+          NAME_FORMAT    = "urn:oasis:names:tc:SAML:2.0:attrname-format:*"
+          SAML_ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion"
         end
 
         NAMESPACE = {
