@@ -248,8 +248,8 @@ module OneLogin
       #
       def validate_signature
         return true if options.nil?
-        return true unless options.has_key? :get_params
-        return true unless options[:get_params].has_key? 'Signature'
+        return true unless options.key? :get_params
+        return true unless options[:get_params].key? 'Signature'
 
         options[:raw_get_params] = OneLogin::RubySaml::Utils.prepare_raw_get_params(options[:raw_get_params], options[:get_params], settings.security[:lowercase_url_encoding])
 
@@ -261,7 +261,7 @@ module OneLogin
         idp_certs = settings.get_idp_cert_multi
 
         if idp_cert.nil? && (idp_certs.nil? || idp_certs[:signing].empty?)
-          return options.has_key? :relax_signature_validation
+          return options.key? :relax_signature_validation
         end
 
         query_string = OneLogin::RubySaml::Utils.build_query_from_raw_parts(
@@ -279,10 +279,8 @@ module OneLogin
             signature: options[:get_params]['Signature'],
             query_string: query_string
           )
-          if valid && settings.security[:check_idp_cert_expiration]
-            if OneLogin::RubySaml::Utils.is_cert_expired(idp_cert)
-              expired = true
-            end
+          if valid && settings.security[:check_idp_cert_expiration] && OneLogin::RubySaml::Utils.is_cert_expired(idp_cert)
+            expired = true
           end
         else
           valid = false
@@ -293,14 +291,12 @@ module OneLogin
               signature: options[:get_params]['Signature'],
               query_string: query_string
             )
-            if valid
-              if settings.security[:check_idp_cert_expiration]
-                if OneLogin::RubySaml::Utils.is_cert_expired(signing_idp_cert)
-                  expired = true
-                end
-              end
-              break
+            next unless valid
+
+            if settings.security[:check_idp_cert_expiration] && OneLogin::RubySaml::Utils.is_cert_expired(signing_idp_cert)
+              expired = true
             end
+            break
           end
         end
 

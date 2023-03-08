@@ -13,7 +13,7 @@ module OneLogin
                    redirect: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" }.freeze
       DSIG = "http://www.w3.org/2000/09/xmldsig#"
       XENC = "http://www.w3.org/2001/04/xmlenc#"
-      DURATION_FORMAT = %r{^
+      DURATION_FORMAT = /^
         (-?)P                       # 1: Duration sign
         (?:
           (?:(\d+)Y)?               # 2: Years
@@ -27,7 +27,7 @@ module OneLogin
           |
           (\d+)W                    # 8: Weeks
         )
-      $}x.freeze
+      $/x.freeze
       UUID_PREFIX = +'_'
 
       # Checks if the x509 cert provided is expired
@@ -39,7 +39,7 @@ module OneLogin
           cert = OpenSSL::X509::Certificate.new(cert)
         end
 
-        return cert.not_after < Time.now
+        cert.not_after < Time.now
       end
 
       # Interprets a ISO8601 duration value relative to a given timestamp.
@@ -67,8 +67,7 @@ module OneLogin
         final_datetime = initial_datetime.next_year(durYears)
         final_datetime = final_datetime.next_month(durMonths)
         final_datetime = final_datetime.next_day((7*durWeeks) + durDays)
-        final_timestamp = final_datetime.to_time.utc.to_i + (durHours * 3600) + (durMinutes * 60) + durSeconds
-        return final_timestamp
+        final_datetime.to_time.utc.to_i + (durHours * 3600) + (durMinutes * 60) + durSeconds
       end
 
       # Return a properly formatted x509 certificate
@@ -91,7 +90,7 @@ module OneLogin
           end
           formatted_cert.join("\n")
         else
-          cert = cert.gsub(/\-{5}\s?(BEGIN|END) CERTIFICATE\s?\-{5}/, "")
+          cert = cert.gsub(/-{5}\s?(BEGIN|END) CERTIFICATE\s?-{5}/, "")
           cert = cert.gsub(/\r/, "")
           cert = cert.gsub(/\n/, "")
           cert = cert.gsub(/\s/, "")
@@ -112,7 +111,7 @@ module OneLogin
 
         # is this an rsa key?
         rsa_key = key.match("RSA PRIVATE KEY")
-        key = key.gsub(/\-{5}\s?(BEGIN|END)( RSA)? PRIVATE KEY\s?\-{5}/, "")
+        key = key.gsub(/-{5}\s?(BEGIN|END)( RSA)? PRIVATE KEY\s?-{5}/, "")
         key = key.gsub(/\n/, "")
         key = key.gsub(/\r/, "")
         key = key.gsub(/\s/, "")
@@ -202,7 +201,7 @@ module OneLogin
       def self.verify_signature(params)
         cert, sig_alg, signature, query_string = [:cert, :sig_alg, :signature, :query_string].map { |k| params[k]}
         signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(sig_alg)
-        return cert.public_key.verify(signature_algorithm.new, Base64.decode64(signature), query_string)
+        cert.public_key.verify(signature_algorithm.new, Base64.decode64(signature), query_string)
       end
 
       # Build the status error message
@@ -265,7 +264,7 @@ module OneLogin
           encrypt_data,
           "./ds:KeyInfo/xenc:EncryptedKey | ./KeyInfo/xenc:EncryptedKey | //xenc:EncryptedKey[@Id=$id]",
           { "ds" => DSIG, "xenc" => XENC },
-          { "id" => self.retrieve_symetric_key_reference(encrypt_data) }
+          { "id" => retrieve_symetric_key_reference(encrypt_data) }
         )
 
         encrypted_symmetric_key_element = REXML::XPath.first(
@@ -314,7 +313,7 @@ module OneLogin
 
         if cipher
           iv_len = cipher.iv_len
-          data = cipher_text[iv_len..-1]
+          data = cipher_text[iv_len..]
           cipher.padding = 0
           cipher.key = symmetric_key
           cipher.iv = cipher_text[0..iv_len-1]
@@ -329,7 +328,7 @@ module OneLogin
           auth_cipher.key = symmetric_key
           auth_cipher.iv = cipher_text[0..iv_len-1]
           auth_cipher.auth_data = ''
-          auth_cipher.auth_tag = cipher_text[text_len-tag_len..-1]
+          auth_cipher.auth_tag = cipher_text[text_len-tag_len..]
           assertion_plaintext = auth_cipher.update(data)
           assertion_plaintext << auth_cipher.final
         elsif rsa
@@ -361,8 +360,8 @@ module OneLogin
         if dest_uri.scheme.nil? || acs_uri.scheme.nil? || dest_uri.host.nil? || acs_uri.host.nil?
           raise URI::InvalidURIError
         else
-          dest_uri.scheme.casecmp(acs_uri.scheme).zero? &&
-            dest_uri.host.casecmp(acs_uri.host).zero? &&
+          dest_uri.scheme.casecmp(acs_uri.scheme) == 0 &&
+            dest_uri.host.casecmp(acs_uri.host) == 0 &&
             dest_uri.path == acs_uri.path &&
             dest_uri.query == acs_uri.query
         end

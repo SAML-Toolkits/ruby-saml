@@ -115,7 +115,7 @@ module XMLSecurity
     #   <Object />
     # </Signature>
     def sign_document(private_key, certificate, signature_method = RSA_SHA1, digest_method = SHA1)
-      noko = Nokogiri::XML(self.to_s) do |config|
+      noko = Nokogiri::XML(to_s) do |config|
         config.options = XMLSecurity::BaseDocument::NOKOGIRI_OPTIONS
       end
 
@@ -262,12 +262,12 @@ module XMLSecurity
     end
 
     def validate_signature(base64_cert, soft = true)
-      document = Nokogiri::XML(self.to_s) do |config|
+      document = Nokogiri::XML(to_s) do |config|
         config.options = XMLSecurity::BaseDocument::NOKOGIRI_OPTIONS
       end
 
       # create a rexml document
-      @working_copy ||= REXML::Document.new(self.to_s).root
+      @working_copy ||= REXML::Document.new(to_s).root
 
       # get signature node
       sig_element = REXML::XPath.first(
@@ -349,7 +349,7 @@ module XMLSecurity
         return append_error("Key validation error", soft)
       end
 
-      return true
+      true
     end
 
     private
@@ -362,19 +362,19 @@ module XMLSecurity
       )
 
       transforms.each do |transform_element|
-        if transform_element.attributes && transform_element.attributes["Algorithm"]
-          algorithm = transform_element.attributes["Algorithm"]
-          case algorithm
-          when "http://www.w3.org/TR/2001/REC-xml-c14n-20010315",
-                 "http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments"
-            canon_algorithm = Nokogiri::XML::XML_C14N_1_0
-          when "http://www.w3.org/2006/12/xml-c14n11",
-                 "http://www.w3.org/2006/12/xml-c14n11#WithComments"
-            canon_algorithm = Nokogiri::XML::XML_C14N_1_1
-          when "http://www.w3.org/2001/10/xml-exc-c14n#",
-                 "http://www.w3.org/2001/10/xml-exc-c14n#WithComments"
-            canon_algorithm = Nokogiri::XML::XML_C14N_EXCLUSIVE_1_0
-          end
+        next unless transform_element.attributes && transform_element.attributes["Algorithm"]
+
+        algorithm = transform_element.attributes["Algorithm"]
+        case algorithm
+        when "http://www.w3.org/TR/2001/REC-xml-c14n-20010315",
+               "http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments"
+          canon_algorithm = Nokogiri::XML::XML_C14N_1_0
+        when "http://www.w3.org/2006/12/xml-c14n11",
+               "http://www.w3.org/2006/12/xml-c14n11#WithComments"
+          canon_algorithm = Nokogiri::XML::XML_C14N_1_1
+        when "http://www.w3.org/2001/10/xml-exc-c14n#",
+               "http://www.w3.org/2001/10/xml-exc-c14n#WithComments"
+          canon_algorithm = Nokogiri::XML::XML_C14N_EXCLUSIVE_1_0
         end
       end
 
@@ -394,7 +394,7 @@ module XMLSecurity
 
       return nil if reference_element.nil?
 
-      sei = reference_element.attribute("URI").value[1..-1]
+      sei = reference_element.attribute("URI").value[1..]
       sei.nil? ? reference_element.parent.parent.parent.attribute("ID").value : sei
     end
 

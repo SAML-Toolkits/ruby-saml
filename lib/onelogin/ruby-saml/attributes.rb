@@ -48,7 +48,7 @@ module OneLogin
       # @param name [String] The attribute name to be checked
       #
       def include?(name)
-        attributes.has_key?(canonize_name(name))
+        attributes.key?(canonize_name(name))
       end
       
       # Return first value for an attribute

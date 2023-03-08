@@ -430,10 +430,8 @@ module OneLogin
           return append_error(structure_error_msg)
         end
 
-        unless decrypted_document.nil?
-          unless valid_saml?(decrypted_document, soft)
+        if !decrypted_document.nil? && !valid_saml?(decrypted_document, soft)
             return append_error(structure_error_msg)
-          end
         end
 
         true
@@ -566,7 +564,7 @@ module OneLogin
           if ref
             uri = ref.attributes.get_attribute("URI")
             if uri && !uri.value.empty?
-              sei = uri.value[1..-1]
+              sei = uri.value[1..]
 
               unless sei == id
                 return append_error("Found an invalid Signed Element. SAML Response rejected")
@@ -600,7 +598,7 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_in_response_to
-        return true unless options.has_key? :matches_request_id
+        return true unless options.key? :matches_request_id
         return true if options[:matches_request_id].nil?
         return true unless options[:matches_request_id] != in_response_to
 
@@ -813,10 +811,8 @@ module OneLogin
             return append_error("An empty NameID value found")
           end
 
-          unless settings.sp_entity_id.nil? || settings.sp_entity_id.empty? || name_id_spnamequalifier.nil? || name_id_spnamequalifier.empty?
-            if name_id_spnamequalifier != settings.sp_entity_id
+          if !(settings.sp_entity_id.nil? || settings.sp_entity_id.empty? || name_id_spnamequalifier.nil? || name_id_spnamequalifier.empty?) && (name_id_spnamequalifier != settings.sp_entity_id)
               return append_error("The SPNameQualifier value mistmatch the SP entityID value.")
-            end
           end
         end
 
@@ -872,11 +868,9 @@ module OneLogin
           opts[:cert] = idp_cert
 
           if fingerprint && doc.validate_document(fingerprint, @soft, opts)
-            if settings.security[:check_idp_cert_expiration]
-              if OneLogin::RubySaml::Utils.is_cert_expired(idp_cert)
+            if settings.security[:check_idp_cert_expiration] && OneLogin::RubySaml::Utils.is_cert_expired(idp_cert)
                 error_msg = "IdP x509 certificate expired"
                 return append_error(error_msg)
-              end
             end
           else
             return append_error(error_msg)
@@ -886,17 +880,14 @@ module OneLogin
           expired = false
           idp_certs[:signing].each do |idp_cert|
             valid = doc.validate_document_with_cert(idp_cert, true)
-            if valid
-              if settings.security[:check_idp_cert_expiration]
-                if OneLogin::RubySaml::Utils.is_cert_expired(idp_cert)
-                  expired = true
-                end
-              end
-
-              # At least one certificate is valid, restore the old accumulated errors
-              @errors = old_errors
-              break
+            next unless valid
+            if settings.security[:check_idp_cert_expiration] && OneLogin::RubySaml::Utils.is_cert_expired(idp_cert)
+                expired = true
             end
+
+            # At least one certificate is valid, restore the old accumulated errors
+            @errors = old_errors
+            break
           end
           if expired
             error_msg = "IdP x509 certificate expired"
@@ -1005,7 +996,7 @@ module OneLogin
       # @return [REXML::Document] The decrypted EncryptedAssertion element
       #
       def decrypt_assertion(encrypted_assertion_node)
-        decrypt_element(encrypted_assertion_node, /(.*<\/(\w+:)?Assertion>)/m)
+        decrypt_element(encrypted_assertion_node, %r{(.*</(\w+:)?Assertion>)}m)
       end
 
       # Decrypts an EncryptedID element
@@ -1013,7 +1004,7 @@ module OneLogin
       # @return [REXML::Document] The decrypted EncrypedtID element
       #
       def decrypt_nameid(encryptedid_node)
-        decrypt_element(encryptedid_node, /(.*<\/(\w+:)?NameID>)/m)
+        decrypt_element(encryptedid_node, %r{(.*</(\w+:)?NameID>)}m)
       end
 
       # Decrypts an EncryptedID element
@@ -1021,7 +1012,7 @@ module OneLogin
       # @return [REXML::Document] The decrypted EncrypedtID element
       #
       def decrypt_attribute(encryptedattribute_node)
-        decrypt_element(encryptedattribute_node, /(.*<\/(\w+:)?Attribute>)/m)
+        decrypt_element(encryptedattribute_node, %r{(.*</(\w+:)?Attribute>)}m)
       end
 
       # Decrypt an element
