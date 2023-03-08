@@ -121,7 +121,6 @@ module OneLogin
 
         destination = settings.idp_slo_response_service_url || settings.idp_slo_service_url
 
-
         root = response_doc.add_element 'samlp:LogoutResponse', { 'xmlns:samlp' => 'urn:oasis:names:tc:SAML:2.0:protocol', "xmlns:saml" => "urn:oasis:names:tc:SAML:2.0:assertion" }
         root.attributes['ID'] = uuid
         root.attributes['IssueInstant'] = time
@@ -160,7 +159,6 @@ module OneLogin
 
         document
       end
-
     end
   end
 end

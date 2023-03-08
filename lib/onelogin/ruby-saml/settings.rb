@@ -245,7 +245,6 @@ module OneLogin
         OpenSSL::PKey::RSA.new(formatted_private_key)
       end
 
-
       def idp_binding_from_embed_sign
         security[:embed_sign] ? Utils::BINDINGS[:post] : Utils::BINDINGS[:redirect]
       end

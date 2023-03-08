@@ -38,14 +38,12 @@ module OneLogin
         @attributes = attrs
       end
 
-
       # Iterate over all attributes
       #
       def each
         attributes.each{|name, values| yield name, values}
       end
 
-      
       # Test attribute presence by name
       # @param name [String] The attribute name to be checked
       #
@@ -147,7 +145,6 @@ module OneLogin
       def canonize_name(name)
         name.to_s
       end
-
     end
   end
 end
