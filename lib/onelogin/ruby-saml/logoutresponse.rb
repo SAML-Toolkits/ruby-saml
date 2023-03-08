@@ -47,6 +47,7 @@ module OneLogin
         @options = options
         @response = decode_raw_saml(response, settings)
         @document = XMLSecurity::SignedDocument.new(@response)
+        super()
       end
 
       def response_id
@@ -159,11 +160,11 @@ module OneLogin
         true
       end
 
-       # Validates that the Logout Response provided in the initialization is not empty,
-       # also check that the setting and the IdP cert were also provided
-       # @return [Boolean] True if the required info is found, otherwise False if soft=True
-       # @raise [ValidationError] if soft == false and validation fails
-       #
+      # Validates that the Logout Response provided in the initialization is not empty,
+      # also check that the setting and the IdP cert were also provided
+      # @return [Boolean] True if the required info is found, otherwise False if soft=True
+      # @raise [ValidationError] if soft == false and validation fails
+      #
       def valid_state?
         return append_error("Blank logout response") if response.empty?
 

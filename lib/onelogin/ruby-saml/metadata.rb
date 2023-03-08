@@ -70,7 +70,7 @@ module OneLogin
         cert = settings.get_sp_cert
         cert_new = settings.get_sp_cert_new
 
-        for sp_cert in [cert, cert_new]
+        [cert, cert_new].each do |sp_cert|
           if sp_cert
             cert_text = Base64.encode64(sp_cert.to_der).gsub("\n", '')
             kd = sp_sso.add_element "md:KeyDescriptor", { "use" => "signing" }

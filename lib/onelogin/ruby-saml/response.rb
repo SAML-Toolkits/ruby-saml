@@ -38,7 +38,7 @@ module OneLogin
       AVAILABLE_OPTIONS = [
         :allowed_clock_drift, :check_duplicated_attributes, :matches_request_id, :settings, :skip_audience, :skip_authnstatement, :skip_conditions,
         :skip_destination, :skip_recipient_check, :skip_subject_confirmation
-      ]
+      ].freeze
       # TODO: Update the comment on initialize to describe every option
 
       # Constructs the SAML Response. A Response Object that is an extension of the SamlMessage class.
@@ -71,6 +71,8 @@ module OneLogin
         if assertion_encrypted?
           @decrypted_document = generate_decrypted_document
         end
+
+        super()
       end
 
       # Validates the SAML Response with the default values (soft = true)
@@ -93,7 +95,7 @@ module OneLogin
       #
       def name_id_format
         @name_id_format ||=
-          if name_id_node && name_id_node.attribute("Format")
+          if name_id_node&.attribute("Format")
             name_id_node.attribute("Format").value
           end
       end
@@ -104,7 +106,7 @@ module OneLogin
       #
       def name_id_spnamequalifier
         @name_id_spnamequalifier ||=
-          if name_id_node && name_id_node.attribute("SPNameQualifier")
+          if name_id_node&.attribute("SPNameQualifier")
             name_id_node.attribute("SPNameQualifier").value
           end
       end
@@ -113,7 +115,7 @@ module OneLogin
       #
       def name_id_namequalifier
         @name_id_namequalifier ||=
-          if name_id_node && name_id_node.attribute("NameQualifier")
+          if name_id_node&.attribute("NameQualifier")
             name_id_node.attribute("NameQualifier").value
           end
       end
@@ -165,11 +167,11 @@ module OneLogin
                 raise ValidationError.new("Found an Attribute element with duplicated Name")
               end
 
-              values = node.elements.collect{|e|
-                if (e.elements.nil? || e.elements.size == 0)
+              values = node.elements.collect  do |e|
+                if e.elements.nil? || e.elements.size == 0
                   # SAMLCore requires that nil AttributeValues MUST contain xsi:nil XML attribute set to "true" or "1"
                   # otherwise the value is to be regarded as empty.
-                  ["true", "1"].include?(e.attributes['xsi:nil']) ? nil : Utils.element_text(e)
+                  %w[true 1].include?(e.attributes['xsi:nil']) ? nil : Utils.element_text(e)
                 # explicitly support saml2:NameID with saml2:NameQualifier if supplied in attributes
                 # this is useful for allowing eduPersonTargetedId to be passed as an opaque identifier to use to
                 # identify the subject in an SP rather than email or other less opaque attributes
@@ -180,7 +182,7 @@ module OneLogin
                     "#{base_path}#{Utils.element_text(n)}"
                   end
                 end
-              }
+              end
 
               attributes.add(name, values.flatten)
             end
@@ -218,7 +220,7 @@ module OneLogin
           )
           if nodes.size == 1
             node = nodes[0]
-            code = node.attributes["Value"] if node && node.attributes
+            code = node.attributes["Value"] if node&.attributes
 
             unless code == "urn:oasis:names:tc:SAML:2.0:status:Success"
               nodes = REXML::XPath.match(
@@ -348,7 +350,7 @@ module OneLogin
       # @return [Boolean] True if the SAML Response contains an EncryptedAssertion element
       #
       def assertion_encrypted?
-        ! REXML::XPath.first(
+        !REXML::XPath.first(
           document,
           "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
           { "p" => PROTOCOL, "a" => ASSERTION }
@@ -622,7 +624,7 @@ module OneLogin
         end
 
         unless audiences.include? settings.sp_entity_id
-          s = audiences.count > 1 ? 's' : '';
+          s = audiences.count > 1 ? 's' : ''
           error_msg = "Invalid Audience#{s}. The audience#{s} #{audiences.join(',')}, did not match the expected audience #{settings.sp_entity_id}"
           return append_error(error_msg)
         end
@@ -792,7 +794,7 @@ module OneLogin
           break
         end
 
-        if !valid_subject_confirmation
+        unless valid_subject_confirmation
           error_msg = "A valid SubjectConfirmation was not found on this Response"
           return append_error(error_msg)
         end
@@ -895,7 +897,6 @@ module OneLogin
               @errors = old_errors
               break
             end
-
           end
           if expired
             error_msg = "IdP x509 certificate expired"
@@ -935,13 +936,13 @@ module OneLogin
             "/p:Response/a:Assertion[@ID=$id]#{subelt}",
             { "p" => PROTOCOL, "a" => ASSERTION },
             { 'id' => doc.signed_element_id }
-        )
+          )
         node ||= REXML::XPath.first(
             doc,
             "/p:Response[@ID=$id]/a:Assertion#{subelt}",
             { "p" => PROTOCOL, "a" => ASSERTION },
             { 'id' => doc.signed_element_id }
-        )
+          )
         node
       end
 
@@ -957,13 +958,13 @@ module OneLogin
             "/p:Response/a:Assertion[@ID=$id]#{subelt}",
             { "p" => PROTOCOL, "a" => ASSERTION },
             { 'id' => doc.signed_element_id }
-        )
-        node.concat( REXML::XPath.match(
+          )
+        node.concat(REXML::XPath.match(
             doc,
             "/p:Response[@ID=$id]/a:Assertion#{subelt}",
             { "p" => PROTOCOL, "a" => ASSERTION },
             { 'id' => doc.signed_element_id }
-        ))
+          ))
       end
 
       # Generates the decrypted_document
