@@ -128,9 +128,9 @@ module OneLogin
           if name.is_a?(Regexp)
             if name.respond_to? :match?
               return self[attribute_key] if name.match?(attribute_key)
-            else 
-              return self[attribute_key] if name.match(attribute_key)
-            end
+            elsif name.match(attribute_key)
+              return self[attribute_key]
+            end 
           elsif canonize_name(name) == canonize_name(attribute_key)
             return self[attribute_key]
           end

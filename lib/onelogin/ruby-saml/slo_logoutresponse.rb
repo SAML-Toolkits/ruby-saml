@@ -129,7 +129,7 @@ module OneLogin
         root.attributes['InResponseTo'] = request_id unless request_id.nil?
         root.attributes['Destination'] = destination unless destination.nil? or destination.empty?
 
-        if settings.sp_entity_id != nil
+        unless settings.sp_entity_id.nil?
           issuer = root.add_element "saml:Issuer"
           issuer.text = settings.sp_entity_id
         end

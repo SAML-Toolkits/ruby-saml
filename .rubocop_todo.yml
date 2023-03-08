@@ -550,27 +550,6 @@ Style/GuardClause:
     - 'lib/onelogin/ruby-saml/utils.rb'
     - 'lib/xml_security.rb'
 
-# Offense count: 1
-# This cop supports unsafe autocorrection (--autocorrect-all).
-Style/HashTransformKeys:
-  Exclude:
-    - 'lib/onelogin/ruby-saml/idp_metadata_parser.rb'
-
-# Offense count: 2
-# This cop supports unsafe autocorrection (--autocorrect-all).
-Style/IdenticalConditionalBranches:
-  Exclude:
-    - 'lib/onelogin/ruby-saml/idp_metadata_parser.rb'
-
-# Offense count: 4
-# This cop supports safe autocorrection (--autocorrect).
-# Configuration parameters: AllowIfModifier.
-Style/IfInsideElse:
-  Exclude:
-    - 'lib/onelogin/ruby-saml/attributes.rb'
-    - 'lib/onelogin/ruby-saml/utils.rb'
-    - 'lib/xml_security.rb'
-
 # Offense count: 69
 # This cop supports safe autocorrection (--autocorrect).
 Style/IfUnlessModifier:
@@ -586,13 +565,6 @@ Style/IfUnlessModifier:
     - 'lib/onelogin/ruby-saml/slo_logoutrequest.rb'
     - 'lib/onelogin/ruby-saml/utils.rb'
     - 'lib/xml_security.rb'
-
-# Offense count: 1
-# This cop supports unsafe autocorrection (--autocorrect-all).
-# Configuration parameters: InverseMethods, InverseBlocks.
-Style/InverseMethods:
-  Exclude:
-    - 'lib/onelogin/ruby-saml/idp_metadata_parser.rb'
 
 # Offense count: 20
 # This cop supports unsafe autocorrection (--autocorrect-all).
@@ -616,14 +588,6 @@ Style/NegatedIf:
     - 'lib/onelogin/ruby-saml/response.rb'
     - 'lib/onelogin/ruby-saml/settings.rb'
 
-# Offense count: 1
-# This cop supports safe autocorrection (--autocorrect).
-# Configuration parameters: EnforcedStyle.
-# SupportedStyles: both, prefix, postfix
-Style/NegatedUnless:
-  Exclude:
-    - 'lib/onelogin/ruby-saml/logoutresponse.rb'
-
 # Offense count: 6
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: EnforcedStyle, MinBodyLength.
@@ -635,20 +599,6 @@ Style/Next:
     - 'lib/onelogin/ruby-saml/response.rb'
     - 'lib/onelogin/ruby-saml/slo_logoutrequest.rb'
     - 'lib/xml_security.rb'
-
-# Offense count: 8
-# This cop supports safe autocorrection (--autocorrect).
-# Configuration parameters: IncludeSemanticChanges.
-Style/NonNilCheck:
-  Exclude:
-    - 'lib/onelogin/ruby-saml/authrequest.rb'
-    - 'lib/onelogin/ruby-saml/slo_logoutresponse.rb'
-
-# Offense count: 1
-# This cop supports safe autocorrection (--autocorrect).
-Style/Not:
-  Exclude:
-    - 'lib/onelogin/ruby-saml/settings.rb'
 
 # Offense count: 1
 # This cop supports safe autocorrection (--autocorrect).

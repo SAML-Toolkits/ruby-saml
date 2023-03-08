@@ -5,6 +5,8 @@ AllCops:
   NewCops: disable
   Include:
     - 'lib/**/*'
+  Exclude:
+    - '**/*.xsd'
 
 #Bundler:
 #  Enabled: false

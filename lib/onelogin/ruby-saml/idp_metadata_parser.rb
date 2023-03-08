@@ -181,7 +181,7 @@ module OneLogin
         @options = options
 
         idpsso_descriptors = self.class.get_idps(@document, options[:entity_id])
-        if !idpsso_descriptors.any?
+        if idpsso_descriptors.none?
           raise ArgumentError.new("idp_metadata must contain an IDPSSODescriptor element")
         end
 
@@ -407,23 +407,19 @@ module OneLogin
               (certificates_has_one('signing') && certificates_has_one('encryption') &&
               certificates["signing"][0] == certificates["encryption"][0])
 
-            if certificates.key?("signing")
-              parsed_metadata[:idp_cert] = certificates["signing"][0]
-              parsed_metadata[:idp_cert_fingerprint] = fingerprint(
-                parsed_metadata[:idp_cert],
-                parsed_metadata[:idp_cert_fingerprint_algorithm]
-              )
-            else
-              parsed_metadata[:idp_cert] = certificates["encryption"][0]
-              parsed_metadata[:idp_cert_fingerprint] = fingerprint(
-                parsed_metadata[:idp_cert],
-                parsed_metadata[:idp_cert_fingerprint_algorithm]
-              )
-            end
+            parsed_metadata[:idp_cert] = if certificates.key?("signing")
+                                           certificates["signing"][0]
+                                         else
+                                           certificates["encryption"][0]
+                                         end
+            parsed_metadata[:idp_cert_fingerprint] = fingerprint(
+              parsed_metadata[:idp_cert],
+              parsed_metadata[:idp_cert_fingerprint_algorithm]
+            )
           end
 
           # symbolize keys of certificates and pass it on
-          parsed_metadata[:idp_cert_multi] = Hash[certificates.map { |k, v| [k.to_sym, v] }]
+          parsed_metadata[:idp_cert_multi] = certificates.transform_keys(&:to_sym)
         end
 
         def certificates_has_one(key)

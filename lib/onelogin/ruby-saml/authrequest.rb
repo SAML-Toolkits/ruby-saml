@@ -121,15 +121,16 @@ module OneLogin
         root.attributes['ForceAuthn'] = settings.force_authn unless settings.force_authn.nil?
 
         # Conditionally defined elements based on settings
-        if settings.assertion_consumer_service_url != nil
+        unless settings.assertion_consumer_service_url.nil?
           root.attributes["AssertionConsumerServiceURL"] = settings.assertion_consumer_service_url
         end
-        if settings.sp_entity_id != nil
+
+        unless settings.sp_entity_id.nil?
           issuer = root.add_element "saml:Issuer"
           issuer.text = settings.sp_entity_id
         end
 
-        if settings.name_identifier_value_requested != nil
+        unless settings.name_identifier_value_requested.nil?
           subject = root.add_element "saml:Subject"
 
           nameid = subject.add_element "saml:NameID"
@@ -140,7 +141,7 @@ module OneLogin
           subject_confirmation.attributes['Method'] = "urn:oasis:names:tc:SAML:2.0:cm:bearer"
         end
 
-        if settings.name_identifier_format != nil
+        unless settings.name_identifier_format.nil?
           root.add_element "samlp:NameIDPolicy", {
               # Might want to make AllowCreate a setting?
               "AllowCreate" => "true",
@@ -150,7 +151,7 @@ module OneLogin
 
         if settings.authn_context || settings.authn_context_decl_ref
 
-          if settings.authn_context_comparison != nil
+          if !settings.authn_context_comparison.nil?
             comparison = settings.authn_context_comparison
           else
             comparison = 'exact'
@@ -160,7 +161,7 @@ module OneLogin
             "Comparison" => comparison,
           }
 
-          if settings.authn_context != nil
+          unless settings.authn_context.nil?
             authn_contexts_class_ref = settings.authn_context.is_a?(Array) ? settings.authn_context : [settings.authn_context]
             authn_contexts_class_ref.each do |authn_context_class_ref|
               class_ref = requested_context.add_element "saml:AuthnContextClassRef"
@@ -168,7 +169,7 @@ module OneLogin
             end
           end
 
-          if settings.authn_context_decl_ref != nil
+          unless settings.authn_context_decl_ref.nil?
             authn_contexts_decl_refs = settings.authn_context_decl_ref.is_a?(Array) ? settings.authn_context_decl_ref : [settings.authn_context_decl_ref]
             authn_contexts_decl_refs.each do |authn_context_decl_ref|
               decl_ref = requested_context.add_element "saml:AuthnContextDeclRef"

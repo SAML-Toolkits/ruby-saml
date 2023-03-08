@@ -193,7 +193,7 @@ module OneLogin
       def get_idp_cert_multi
         return nil if idp_cert_multi.nil? || idp_cert_multi.empty?
 
-        raise ArgumentError.new("Invalid value for idp_cert_multi") if not idp_cert_multi.is_a?(Hash)
+        raise ArgumentError.new("Invalid value for idp_cert_multi") if !idp_cert_multi.is_a?(Hash)
 
         certs = {signing: [], encryption: [] }
 

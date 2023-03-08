@@ -210,7 +210,7 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_signature
-        return true unless !options.nil?
+        return true if options.nil?
         return true unless options.has_key? :get_params
         return true unless options[:get_params].has_key? 'Signature'
 
