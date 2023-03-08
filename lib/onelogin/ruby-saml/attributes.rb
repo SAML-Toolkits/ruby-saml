@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module OneLogin
   module RubySaml
 
@@ -36,14 +38,12 @@ module OneLogin
         @attributes = attrs
       end
 
-
       # Iterate over all attributes
       #
       def each
         attributes.each{|name, values| yield name, values}
       end
 
-      
       # Test attribute presence by name
       # @param name [String] The attribute name to be checked
       #
@@ -126,9 +126,9 @@ module OneLogin
           if name.is_a?(Regexp)
             if name.respond_to? :match?
               return self[attribute_key] if name.match?(attribute_key)
-            else 
-              return self[attribute_key] if name.match(attribute_key)
-            end
+            elsif name.match(attribute_key)
+              return self[attribute_key]
+            end 
           elsif canonize_name(name) == canonize_name(attribute_key)
             return self[attribute_key]
           end
@@ -145,7 +145,6 @@ module OneLogin
       def canonize_name(name)
         name.to_s
       end
-
     end
   end
 end

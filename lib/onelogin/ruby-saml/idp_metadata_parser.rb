@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "base64"
 require "net/http"
 require "net/https"
@@ -19,10 +21,10 @@ module OneLogin
 
       module SamlMetadata
         module Vocabulary
-          METADATA       = "urn:oasis:names:tc:SAML:2.0:metadata".freeze
-          DSIG           = "http://www.w3.org/2000/09/xmldsig#".freeze
-          NAME_FORMAT    = "urn:oasis:names:tc:SAML:2.0:attrname-format:*".freeze
-          SAML_ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion".freeze
+          METADATA       = "urn:oasis:names:tc:SAML:2.0:metadata"
+          DSIG           = "http://www.w3.org/2000/09/xmldsig#"
+          NAME_FORMAT    = "urn:oasis:names:tc:SAML:2.0:attrname-format:*"
+          SAML_ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion"
         end
 
         NAMESPACE = {
@@ -179,7 +181,7 @@ module OneLogin
         @options = options
 
         idpsso_descriptors = self.class.get_idps(@document, options[:entity_id])
-        if !idpsso_descriptors.any?
+        if idpsso_descriptors.none?
           raise ArgumentError.new("idp_metadata must contain an IDPSSODescriptor element")
         end
 
@@ -226,19 +228,19 @@ module OneLogin
           sso_binding = options[:sso_binding]
           slo_binding = options[:slo_binding]
           {
-            :idp_entity_id => @entity_id,
-            :name_identifier_format => idp_name_id_format(options[:name_id_format]),
-            :idp_sso_service_url => single_signon_service_url(sso_binding),
-            :idp_sso_service_binding => single_signon_service_binding(sso_binding),
-            :idp_slo_service_url => single_logout_service_url(slo_binding),
-            :idp_slo_service_binding => single_logout_service_binding(slo_binding),
-            :idp_slo_response_service_url => single_logout_response_service_url(slo_binding),
-            :idp_attribute_names => attribute_names,
-            :idp_cert => nil,
-            :idp_cert_fingerprint => nil,
-            :idp_cert_multi => nil,
-            :valid_until => valid_until,
-            :cache_duration => cache_duration,
+            idp_entity_id: @entity_id,
+            name_identifier_format: idp_name_id_format(options[:name_id_format]),
+            idp_sso_service_url: single_signon_service_url(sso_binding),
+            idp_sso_service_binding: single_signon_service_binding(sso_binding),
+            idp_slo_service_url: single_logout_service_url(slo_binding),
+            idp_slo_service_binding: single_logout_service_binding(slo_binding),
+            idp_slo_response_service_url: single_logout_response_service_url(slo_binding),
+            idp_attribute_names: attribute_names,
+            idp_cert: nil,
+            idp_cert_fingerprint: nil,
+            idp_cert_multi: nil,
+            valid_until: valid_until,
+            cache_duration: cache_duration,
           }.tap do |response_hash|
             merge_certificates_into(response_hash) unless certificates.nil?
           end
@@ -405,23 +407,19 @@ module OneLogin
               (certificates_has_one('signing') && certificates_has_one('encryption') &&
               certificates["signing"][0] == certificates["encryption"][0])
 
-            if certificates.key?("signing")
-              parsed_metadata[:idp_cert] = certificates["signing"][0]
-              parsed_metadata[:idp_cert_fingerprint] = fingerprint(
-                parsed_metadata[:idp_cert],
-                parsed_metadata[:idp_cert_fingerprint_algorithm]
-              )
-            else
-              parsed_metadata[:idp_cert] = certificates["encryption"][0]
-              parsed_metadata[:idp_cert_fingerprint] = fingerprint(
-                parsed_metadata[:idp_cert],
-                parsed_metadata[:idp_cert_fingerprint_algorithm]
-              )
-            end
+            parsed_metadata[:idp_cert] = if certificates.key?("signing")
+                                           certificates["signing"][0]
+                                         else
+                                           certificates["encryption"][0]
+                                         end
+            parsed_metadata[:idp_cert_fingerprint] = fingerprint(
+              parsed_metadata[:idp_cert],
+              parsed_metadata[:idp_cert_fingerprint_algorithm]
+            )
           end
 
           # symbolize keys of certificates and pass it on
-          parsed_metadata[:idp_cert_multi] = Hash[certificates.map { |k, v| [k.to_sym, v] }]
+          parsed_metadata[:idp_cert_multi] = certificates.transform_keys(&:to_sym)
         end
 
         def certificates_has_one(key)

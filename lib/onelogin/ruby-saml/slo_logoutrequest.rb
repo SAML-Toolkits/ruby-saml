@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'zlib'
 require 'time'
 require 'nokogiri'
@@ -262,19 +264,19 @@ module OneLogin
         end
 
         query_string = OneLogin::RubySaml::Utils.build_query_from_raw_parts(
-          :type            => 'SAMLRequest',
-          :raw_data        => options[:raw_get_params]['SAMLRequest'],
-          :raw_relay_state => options[:raw_get_params]['RelayState'],
-          :raw_sig_alg     => options[:raw_get_params]['SigAlg']
+          type: 'SAMLRequest',
+          raw_data: options[:raw_get_params]['SAMLRequest'],
+          raw_relay_state: options[:raw_get_params]['RelayState'],
+          raw_sig_alg: options[:raw_get_params]['SigAlg']
         )
 
         expired = false
         if idp_certs.nil? || idp_certs[:signing].empty?
           valid = OneLogin::RubySaml::Utils.verify_signature(
-            :cert         => idp_cert,
-            :sig_alg      => options[:get_params]['SigAlg'],
-            :signature    => options[:get_params]['Signature'],
-            :query_string => query_string
+            cert: idp_cert,
+            sig_alg: options[:get_params]['SigAlg'],
+            signature: options[:get_params]['Signature'],
+            query_string: query_string
           )
           if valid && settings.security[:check_idp_cert_expiration]
             if OneLogin::RubySaml::Utils.is_cert_expired(idp_cert)
@@ -285,10 +287,10 @@ module OneLogin
           valid = false
           idp_certs[:signing].each do |signing_idp_cert|
             valid = OneLogin::RubySaml::Utils.verify_signature(
-              :cert         => signing_idp_cert,
-              :sig_alg      => options[:get_params]['SigAlg'],
-              :signature    => options[:get_params]['Signature'],
-              :query_string => query_string
+              cert: signing_idp_cert,
+              sig_alg: options[:get_params]['SigAlg'],
+              signature: options[:get_params]['Signature'],
+              query_string: query_string
             )
             if valid
               if settings.security[:check_idp_cert_expiration]

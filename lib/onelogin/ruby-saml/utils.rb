@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'securerandom'
 require "openssl"
 
@@ -7,10 +9,10 @@ module OneLogin
     # SAML2 Auxiliary class
     #
     class Utils
-      BINDINGS = { :post => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST".freeze,
-                   :redirect => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect".freeze }.freeze
-      DSIG = "http://www.w3.org/2000/09/xmldsig#".freeze
-      XENC = "http://www.w3.org/2001/04/xmlenc#".freeze
+      BINDINGS = { post: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
+                   redirect: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" }.freeze
+      DSIG = "http://www.w3.org/2000/09/xmldsig#"
+      XENC = "http://www.w3.org/2001/04/xmlenc#"
       DURATION_FORMAT = %r(^
         (-?)P                       # 1: Duration sign
         (?:
@@ -26,7 +28,7 @@ module OneLogin
           (\d+)W                    # 8: Weeks
         )
       $)x.freeze
-      UUID_PREFIX = '_'
+      UUID_PREFIX = +'_'
 
       # Checks if the x509 cert provided is expired
       #
@@ -78,8 +80,8 @@ module OneLogin
         # don't try to format an encoded certificate or if is empty or nil
         if cert.respond_to?(:ascii_only?)
           return cert if cert.nil? || cert.empty? || !cert.ascii_only?
-        else
-          return cert if cert.nil? || cert.empty? || cert.match(/\x0d/)
+        elsif cert.nil? || cert.empty? || cert.match(/\x0d/)
+          return cert
         end
 
         if cert.scan(/BEGIN CERTIFICATE/).length > 1
@@ -132,7 +134,7 @@ module OneLogin
       def self.build_query(params)
         type, data, relay_state, sig_alg = [:type, :data, :relay_state, :sig_alg].map { |k| params[k]}
 
-        url_string = "#{type}=#{CGI.escape(data)}"
+        url_string = +"#{type}=#{CGI.escape(data)}"
         url_string << "&RelayState=#{CGI.escape(relay_state)}" if relay_state
         url_string << "&SigAlg=#{CGI.escape(sig_alg)}"
       end
@@ -149,7 +151,7 @@ module OneLogin
       def self.build_query_from_raw_parts(params)
         type, raw_data, raw_relay_state, raw_sig_alg = [:type, :raw_data, :raw_relay_state, :raw_sig_alg].map { |k| params[k]}
 
-        url_string = "#{type}=#{raw_data}"
+        url_string = +"#{type}=#{raw_data}"
         url_string << "&RelayState=#{raw_relay_state}" if raw_relay_state
         url_string << "&SigAlg=#{raw_sig_alg}"
       end
@@ -209,7 +211,7 @@ module OneLogin
       # @return [String] The status error message
       def self.status_error_msg(error_msg, raw_status_code = nil, status_message = nil)
         unless raw_status_code.nil?
-          if raw_status_code.include? "|"
+          if raw_status_code.include?("|")
             status_codes = raw_status_code.split(' | ')
             values = status_codes.collect do |status_code|
               status_code.split(':').last
@@ -218,11 +220,11 @@ module OneLogin
           else
             printable_code = raw_status_code.split(':').last
           end
-          error_msg << ', was ' + printable_code
+          error_msg += ', was ' + printable_code
         end
 
         unless status_message.nil?
-          error_msg << ' -> ' + status_message
+          error_msg += ' -> ' + status_message
         end
 
         error_msg

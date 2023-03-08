@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # The contents of this file are subject to the terms
 # of the Common Development and Distribution License
 # (the License). You may not use this file except in
@@ -99,21 +101,21 @@ module XMLSecurity
       end
     end
 
-    #<Signature>
-      #<SignedInfo>
-        #<CanonicalizationMethod />
-        #<SignatureMethod />
-        #<Reference>
-           #<Transforms>
-           #<DigestMethod>
-           #<DigestValue>
-        #</Reference>
-        #<Reference /> etc.
-      #</SignedInfo>
-      #<SignatureValue />
-      #<KeyInfo />
-      #<Object />
-    #</Signature>
+    # <Signature>
+    #   <SignedInfo>
+    #     <CanonicalizationMethod />
+    #     <SignatureMethod />
+    #     <Reference>
+    #        <Transforms>
+    #        <DigestMethod>
+    #        <DigestValue>
+    #     </Reference>
+    #     <Reference /> etc.
+    #   </SignedInfo>
+    #   <SignatureValue />
+    #   <KeyInfo />
+    #   <Object />
+    # </Signature>
     def sign_document(private_key, certificate, signature_method = RSA_SHA1, digest_method = SHA1)
       noko = Nokogiri::XML(self.to_s) do |config|
         config.options = XMLSecurity::BaseDocument::NOKOGIRI_OPTIONS
@@ -224,16 +226,12 @@ module XMLSecurity
         if fingerprint != idp_cert_fingerprint.gsub(/[^a-zA-Z0-9]/,"").downcase
           return append_error("Fingerprint mismatch", soft)
         end
+      elsif options[:cert]
+        base64_cert = Base64.encode64(options[:cert].to_pem)
+      elsif soft
+        return false
       else
-        if options[:cert]
-          base64_cert = Base64.encode64(options[:cert].to_pem)
-        else
-          if soft
-            return false
-          else
-            return append_error("Certificate element missing in response (ds:X509Certificate) and not cert provided at settings", soft)
-          end
-        end
+        return append_error("Certificate element missing in response (ds:X509Certificate) and not cert provided at settings", soft)
       end
       validate_signature(base64_cert, soft)
     end

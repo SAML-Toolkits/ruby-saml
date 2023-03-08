@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'cgi'
 require 'zlib'
 require 'base64'
@@ -15,8 +17,8 @@ module OneLogin
     class SamlMessage
       include REXML
 
-      ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion".freeze
-      PROTOCOL  = "urn:oasis:names:tc:SAML:2.0:protocol".freeze
+      ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion"
+      PROTOCOL  = "urn:oasis:names:tc:SAML:2.0:protocol"
 
       BASE64_FORMAT = %r(\A([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?\Z)
       @@mutex = Mutex.new

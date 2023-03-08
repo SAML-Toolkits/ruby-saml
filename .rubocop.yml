@@ -1,0 +1,17 @@
+inherit_from: .rubocop_todo.yml
+
+require:
+  - rubocop-minitest
+  - rubocop-performance
+  - rubocop-rake
+
+AllCops:
+  TargetRubyVersion: 2.6
+  NewCops: enable
+  Include:
+    - 'lib/**/*'
+  Exclude:
+    - '**/*.xsd'
+    - '.git/**/*'
+    - 'tmp/**/*'
+    - 'vendor/**/*'

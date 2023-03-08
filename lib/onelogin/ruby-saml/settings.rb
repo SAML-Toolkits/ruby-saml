@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "xml_security"
 require "onelogin/ruby-saml/attribute_service"
 require "onelogin/ruby-saml/utils"
@@ -191,9 +193,9 @@ module OneLogin
       def get_idp_cert_multi
         return nil if idp_cert_multi.nil? || idp_cert_multi.empty?
 
-        raise ArgumentError.new("Invalid value for idp_cert_multi") if not idp_cert_multi.is_a?(Hash)
+        raise ArgumentError.new("Invalid value for idp_cert_multi") if !idp_cert_multi.is_a?(Hash)
 
-        certs = {:signing => [], :encryption => [] }
+        certs = {signing: [], encryption: [] }
 
         [:signing, :encryption].each do |type|
           certs_for_type = idp_cert_multi[type] || idp_cert_multi[type.to_s]
@@ -243,7 +245,6 @@ module OneLogin
         OpenSSL::PKey::RSA.new(formatted_private_key)
       end
 
-
       def idp_binding_from_embed_sign
         security[:embed_sign] ? Utils::BINDINGS[:post] : Utils::BINDINGS[:redirect]
       end
@@ -255,29 +256,29 @@ module OneLogin
       end
 
       DEFAULTS = {
-        :assertion_consumer_service_binding        => Utils::BINDINGS[:post],
-        :single_logout_service_binding             => Utils::BINDINGS[:redirect],
-        :idp_cert_fingerprint_algorithm            => XMLSecurity::Document::SHA1,
-        :compress_request                          => true,
-        :compress_response                         => true,
-        :message_max_bytesize                      => 250000,
-        :soft                                      => true,
-        :double_quote_xml_attribute_values         => false,
-        :security                                  => {
-          :authn_requests_signed      => false,
-          :logout_requests_signed     => false,
-          :logout_responses_signed    => false,
-          :want_assertions_signed     => false,
-          :want_assertions_encrypted  => false,
-          :want_name_id               => false,
-          :metadata_signed            => false,
-          :embed_sign                 => false, # Deprecated
-          :digest_method              => XMLSecurity::Document::SHA1,
-          :signature_method           => XMLSecurity::Document::RSA_SHA1,
-          :check_idp_cert_expiration  => false,
-          :check_sp_cert_expiration   => false,
-          :strict_audience_validation => false,
-          :lowercase_url_encoding     => false
+        assertion_consumer_service_binding: Utils::BINDINGS[:post],
+        single_logout_service_binding: Utils::BINDINGS[:redirect],
+        idp_cert_fingerprint_algorithm: XMLSecurity::Document::SHA1,
+        compress_request: true,
+        compress_response: true,
+        message_max_bytesize: 250000,
+        soft: true,
+        double_quote_xml_attribute_values: false,
+        security: {
+          authn_requests_signed: false,
+          logout_requests_signed: false,
+          logout_responses_signed: false,
+          want_assertions_signed: false,
+          want_assertions_encrypted: false,
+          want_name_id: false,
+          metadata_signed: false,
+          embed_sign: false, # Deprecated
+          digest_method: XMLSecurity::Document::SHA1,
+          signature_method: XMLSecurity::Document::RSA_SHA1,
+          check_idp_cert_expiration: false,
+          check_sp_cert_expiration: false,
+          strict_audience_validation: false,
+          lowercase_url_encoding: false
         }.freeze
       }.freeze
     end

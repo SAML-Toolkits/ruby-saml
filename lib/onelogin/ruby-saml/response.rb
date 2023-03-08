@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "xml_security"
 require "onelogin/ruby-saml/attributes"
 
@@ -403,7 +405,6 @@ module OneLogin
           validations.all? { |validation| send(validation) }
         end
       end
-
 
       # Validates the Status of the SAML Response
       # @return [Boolean] True if the SAML Response contains a Success code, otherwise False if soft == false
@@ -1031,7 +1032,6 @@ module OneLogin
         if settings.nil? || !settings.get_sp_key
           raise ValidationError.new('An ' + encrypt_node.name + ' found and no SP private key found on the settings to decrypt it')
         end
-
 
         if encrypt_node.name == 'EncryptedAttribute'
           node_header = '<node xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'

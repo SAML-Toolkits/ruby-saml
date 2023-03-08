@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "onelogin/ruby-saml/logging"
 
 require "onelogin/ruby-saml/saml_message"
@@ -39,7 +41,7 @@ module OneLogin
         params_prefix = (settings.idp_slo_service_url =~ /\?/) ? '&' : '?'
         url = settings.idp_slo_response_service_url || settings.idp_slo_service_url
         saml_response = CGI.escape(params.delete("SAMLResponse"))
-        response_params = "#{params_prefix}SAMLResponse=#{saml_response}"
+        response_params = +"#{params_prefix}SAMLResponse=#{saml_response}"
         params.each_pair do |key, value|
           response_params << "&#{key}=#{CGI.escape(value.to_s)}"
         end
@@ -70,7 +72,7 @@ module OneLogin
         response_doc = create_logout_response_xml_doc(settings, request_id, logout_message, logout_status_code)
         response_doc.context[:attribute_quote] = :quote if settings.double_quote_xml_attribute_values
 
-        response = ""
+        response = +""
         response_doc.write(response)
 
         Logging.debug "Created SLO Logout Response: #{response}"
@@ -82,10 +84,10 @@ module OneLogin
         if settings.idp_slo_service_binding == Utils::BINDINGS[:redirect] && settings.security[:logout_responses_signed] && settings.private_key
           params['SigAlg']    = settings.security[:signature_method]
           url_string = OneLogin::RubySaml::Utils.build_query(
-            :type => 'SAMLResponse',
-            :data => base64_response,
-            :relay_state => relay_state,
-            :sig_alg => params['SigAlg']
+            type: 'SAMLResponse',
+            data: base64_response,
+            relay_state: relay_state,
+            sig_alg: params['SigAlg']
           )
           sign_algorithm = XMLSecurity::BaseDocument.new.algorithm(settings.security[:signature_method])
           signature = settings.get_sp_key.sign(sign_algorithm.new, url_string)
@@ -119,7 +121,6 @@ module OneLogin
 
         destination = settings.idp_slo_response_service_url || settings.idp_slo_service_url
 
-
         root = response_doc.add_element 'samlp:LogoutResponse', { 'xmlns:samlp' => 'urn:oasis:names:tc:SAML:2.0:protocol', "xmlns:saml" => "urn:oasis:names:tc:SAML:2.0:assertion" }
         root.attributes['ID'] = uuid
         root.attributes['IssueInstant'] = time
@@ -127,7 +128,7 @@ module OneLogin
         root.attributes['InResponseTo'] = request_id unless request_id.nil?
         root.attributes['Destination'] = destination unless destination.nil? or destination.empty?
 
-        if settings.sp_entity_id != nil
+        unless settings.sp_entity_id.nil?
           issuer = root.add_element "saml:Issuer"
           issuer.text = settings.sp_entity_id
         end
@@ -158,7 +159,6 @@ module OneLogin
 
         document
       end
-
     end
   end
 end

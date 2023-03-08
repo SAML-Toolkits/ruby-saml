@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'onelogin/ruby-saml/logging'
 require 'onelogin/ruby-saml/saml_message'
 require 'onelogin/ruby-saml/authrequest'

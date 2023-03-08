@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "onelogin/ruby-saml/logging"
 require "onelogin/ruby-saml/saml_message"
 require "onelogin/ruby-saml/utils"
@@ -34,7 +36,7 @@ module OneLogin
         params = create_params(settings, params)
         params_prefix = (settings.idp_slo_service_url =~ /\?/) ? '&' : '?'
         saml_request = CGI.escape(params.delete("SAMLRequest"))
-        request_params = "#{params_prefix}SAMLRequest=#{saml_request}"
+        request_params = +"#{params_prefix}SAMLRequest=#{saml_request}"
         params.each_pair do |key, value|
           request_params << "&#{key}=#{CGI.escape(value.to_s)}"
         end
@@ -61,7 +63,7 @@ module OneLogin
         request_doc = create_logout_request_xml_doc(settings)
         request_doc.context[:attribute_quote] = :quote if settings.double_quote_xml_attribute_values
 
-        request = ""
+        request = +""
         request_doc.write(request)
 
         Logging.debug "Created SLO Logout Request: #{request}"
@@ -73,10 +75,10 @@ module OneLogin
         if settings.idp_slo_service_binding == Utils::BINDINGS[:redirect] && settings.security[:logout_requests_signed] && settings.private_key
           params['SigAlg'] = settings.security[:signature_method]
           url_string = OneLogin::RubySaml::Utils.build_query(
-            :type => 'SAMLRequest',
-            :data => base64_request,
-            :relay_state => relay_state,
-            :sig_alg => params['SigAlg']
+            type: 'SAMLRequest',
+            data: base64_request,
+            relay_state: relay_state,
+            sig_alg: params['SigAlg']
           )
           sign_algorithm = XMLSecurity::BaseDocument.new.algorithm(settings.security[:signature_method])
           signature = settings.get_sp_key.sign(sign_algorithm.new, url_string)
