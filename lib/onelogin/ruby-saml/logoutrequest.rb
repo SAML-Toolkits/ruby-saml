@@ -36,7 +36,7 @@ module OneLogin
         params = create_params(settings, params)
         params_prefix = (settings.idp_slo_service_url =~ /\?/) ? '&' : '?'
         saml_request = CGI.escape(params.delete("SAMLRequest"))
-        request_params = "#{params_prefix}SAMLRequest=#{saml_request}"
+        request_params = +"#{params_prefix}SAMLRequest=#{saml_request}"
         params.each_pair do |key, value|
           request_params << "&#{key}=#{CGI.escape(value.to_s)}"
         end
@@ -63,7 +63,7 @@ module OneLogin
         request_doc = create_logout_request_xml_doc(settings)
         request_doc.context[:attribute_quote] = :quote if settings.double_quote_xml_attribute_values
 
-        request = ""
+        request = +""
         request_doc.write(request)
 
         Logging.debug "Created SLO Logout Request: #{request}"

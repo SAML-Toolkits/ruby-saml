@@ -163,7 +163,7 @@ module OneLogin
       end
 
       def output_xml(meta_doc, pretty_print)
-        ret = ''
+        ret = +''
 
         # pretty print the XML so IdP administrators can easily see what the SP supports
         if pretty_print

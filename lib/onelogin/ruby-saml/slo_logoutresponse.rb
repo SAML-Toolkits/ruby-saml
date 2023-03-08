@@ -41,7 +41,7 @@ module OneLogin
         params_prefix = (settings.idp_slo_service_url =~ /\?/) ? '&' : '?'
         url = settings.idp_slo_response_service_url || settings.idp_slo_service_url
         saml_response = CGI.escape(params.delete("SAMLResponse"))
-        response_params = "#{params_prefix}SAMLResponse=#{saml_response}"
+        response_params = +"#{params_prefix}SAMLResponse=#{saml_response}"
         params.each_pair do |key, value|
           response_params << "&#{key}=#{CGI.escape(value.to_s)}"
         end
@@ -72,7 +72,7 @@ module OneLogin
         response_doc = create_logout_response_xml_doc(settings, request_id, logout_message, logout_status_code)
         response_doc.context[:attribute_quote] = :quote if settings.double_quote_xml_attribute_values
 
-        response = ""
+        response = +""
         response_doc.write(response)
 
         Logging.debug "Created SLO Logout Response: #{response}"
