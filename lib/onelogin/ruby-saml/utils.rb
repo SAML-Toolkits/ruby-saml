@@ -13,7 +13,7 @@ module OneLogin
                    redirect: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" }.freeze
       DSIG = "http://www.w3.org/2000/09/xmldsig#"
       XENC = "http://www.w3.org/2001/04/xmlenc#"
-      DURATION_FORMAT = %r(^
+      DURATION_FORMAT = /^
         (-?)P                       # 1: Duration sign
         (?:
           (?:(\d+)Y)?               # 2: Years
@@ -27,7 +27,7 @@ module OneLogin
           |
           (\d+)W                    # 8: Weeks
         )
-      $)x.freeze
+      $/x.freeze
       UUID_PREFIX = +'_'
 
       # Checks if the x509 cert provided is expired
@@ -39,7 +39,7 @@ module OneLogin
           cert = OpenSSL::X509::Certificate.new(cert)
         end
 
-        return cert.not_after < Time.now
+        cert.not_after < Time.now
       end
 
       # Interprets a ISO8601 duration value relative to a given timestamp.
@@ -55,7 +55,7 @@ module OneLogin
         matches = duration.match(DURATION_FORMAT)
 
         if matches.nil?
-          raise Exception.new("Invalid ISO 8601 duration")
+          raise StandardError.new("Invalid ISO 8601 duration")
         end
 
         sign = matches[1] == '-' ? -1 : 1
@@ -67,8 +67,7 @@ module OneLogin
         final_datetime = initial_datetime.next_year(durYears)
         final_datetime = final_datetime.next_month(durMonths)
         final_datetime = final_datetime.next_day((7*durWeeks) + durDays)
-        final_timestamp = final_datetime.to_time.utc.to_i + (durHours * 3600) + (durMinutes * 60) + durSeconds
-        return final_timestamp
+        final_datetime.to_time.utc.to_i + (durHours * 3600) + (durMinutes * 60) + durSeconds
       end
 
       # Return a properly formatted x509 certificate
@@ -86,12 +85,12 @@ module OneLogin
 
         if cert.scan(/BEGIN CERTIFICATE/).length > 1
           formatted_cert = []
-          cert.scan(/-{5}BEGIN CERTIFICATE-{5}[\n\r]?.*?-{5}END CERTIFICATE-{5}[\n\r]?/m) {|c|
+          cert.scan(/-{5}BEGIN CERTIFICATE-{5}[\n\r]?.*?-{5}END CERTIFICATE-{5}[\n\r]?/m) do |c|
             formatted_cert << format_cert(c)
-          }
+          end
           formatted_cert.join("\n")
         else
-          cert = cert.gsub(/\-{5}\s?(BEGIN|END) CERTIFICATE\s?\-{5}/, "")
+          cert = cert.gsub(/-{5}\s?(BEGIN|END) CERTIFICATE\s?-{5}/, "")
           cert = cert.gsub(/\r/, "")
           cert = cert.gsub(/\n/, "")
           cert = cert.gsub(/\s/, "")
@@ -112,7 +111,7 @@ module OneLogin
 
         # is this an rsa key?
         rsa_key = key.match("RSA PRIVATE KEY")
-        key = key.gsub(/\-{5}\s?(BEGIN|END)( RSA)? PRIVATE KEY\s?\-{5}/, "")
+        key = key.gsub(/-{5}\s?(BEGIN|END)( RSA)? PRIVATE KEY\s?-{5}/, "")
         key = key.gsub(/\n/, "")
         key = key.gsub(/\r/, "")
         key = key.gsub(/\s/, "")
@@ -132,7 +131,7 @@ module OneLogin
       # @return [String] The Query String
       #
       def self.build_query(params)
-        type, data, relay_state, sig_alg = [:type, :data, :relay_state, :sig_alg].map { |k| params[k]}
+        type, data, relay_state, sig_alg = %i[type data relay_state sig_alg].map { |k| params[k]}
 
         url_string = +"#{type}=#{CGI.escape(data)}"
         url_string << "&RelayState=#{CGI.escape(relay_state)}" if relay_state
@@ -149,7 +148,7 @@ module OneLogin
       # @return [String] The Query String
       #
       def self.build_query_from_raw_parts(params)
-        type, raw_data, raw_relay_state, raw_sig_alg = [:type, :raw_data, :raw_relay_state, :raw_sig_alg].map { |k| params[k]}
+        type, raw_data, raw_relay_state, raw_sig_alg = %i[type raw_data raw_relay_state raw_sig_alg].map { |k| params[k]}
 
         url_string = +"#{type}=#{raw_data}"
         url_string << "&RelayState=#{raw_relay_state}" if raw_relay_state
@@ -187,7 +186,7 @@ module OneLogin
         CGI.escape(param).tap do |escaped|
           next unless lowercase_url_encoding
 
-          escaped.gsub!(/%[A-Fa-f0-9]{2}/) { |match| match.downcase }
+          escaped.gsub!(/%[A-Fa-f0-9]{2}/, &:downcase)
         end
       end
 
@@ -200,9 +199,9 @@ module OneLogin
       # @return [Boolean] True if the Signature is valid, False otherwise
       #
       def self.verify_signature(params)
-        cert, sig_alg, signature, query_string = [:cert, :sig_alg, :signature, :query_string].map { |k| params[k]}
+        cert, sig_alg, signature, query_string = %i[cert sig_alg signature query_string].map { |k| params[k]}
         signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(sig_alg)
-        return cert.public_key.verify(signature_algorithm.new, Base64.decode64(signature), query_string)
+        cert.public_key.verify(signature_algorithm.new, Base64.decode64(signature), query_string)
       end
 
       # Build the status error message
@@ -220,12 +219,10 @@ module OneLogin
           else
             printable_code = raw_status_code.split(':').last
           end
-          error_msg += ', was ' + printable_code
+          error_msg += ", was #{printable_code}"
         end
 
-        unless status_message.nil?
-          error_msg += ' -> ' + status_message
-        end
+        error_msg += " -> #{status_message}" unless status_message.nil?
 
         error_msg
       end
@@ -265,7 +262,7 @@ module OneLogin
           encrypt_data,
           "./ds:KeyInfo/xenc:EncryptedKey | ./KeyInfo/xenc:EncryptedKey | //xenc:EncryptedKey[@Id=$id]",
           { "ds" => DSIG, "xenc" => XENC },
-          { "id" => self.retrieve_symetric_key_reference(encrypt_data) }
+          { "id" => retrieve_symetric_key_reference(encrypt_data) }
         )
 
         encrypted_symmetric_key_element = REXML::XPath.first(
@@ -301,31 +298,35 @@ module OneLogin
       # @return [String] The deciphered text
       def self.retrieve_plaintext(cipher_text, symmetric_key, algorithm)
         case algorithm
-          when 'http://www.w3.org/2001/04/xmlenc#tripledes-cbc' then cipher = OpenSSL::Cipher.new('DES-EDE3-CBC').decrypt
-          when 'http://www.w3.org/2001/04/xmlenc#aes128-cbc' then cipher = OpenSSL::Cipher.new('AES-128-CBC').decrypt
-          when 'http://www.w3.org/2001/04/xmlenc#aes192-cbc' then cipher = OpenSSL::Cipher.new('AES-192-CBC').decrypt
-          when 'http://www.w3.org/2001/04/xmlenc#aes256-cbc' then cipher = OpenSSL::Cipher.new('AES-256-CBC').decrypt
-          when 'http://www.w3.org/2009/xmlenc11#aes128-gcm' then auth_cipher = OpenSSL::Cipher::AES.new(128, :GCM).decrypt
-          when 'http://www.w3.org/2009/xmlenc11#aes192-gcm' then auth_cipher = OpenSSL::Cipher::AES.new(192, :GCM).decrypt
-          when 'http://www.w3.org/2009/xmlenc11#aes256-gcm' then auth_cipher = OpenSSL::Cipher::AES.new(256, :GCM).decrypt
-          when 'http://www.w3.org/2001/04/xmlenc#rsa-1_5' then rsa = symmetric_key
-          when 'http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p' then oaep = symmetric_key
+        when 'http://www.w3.org/2001/04/xmlenc#tripledes-cbc' then cipher = OpenSSL::Cipher.new('DES-EDE3-CBC').decrypt
+        when 'http://www.w3.org/2001/04/xmlenc#aes128-cbc' then cipher = OpenSSL::Cipher.new('AES-128-CBC').decrypt
+        when 'http://www.w3.org/2001/04/xmlenc#aes192-cbc' then cipher = OpenSSL::Cipher.new('AES-192-CBC').decrypt
+        when 'http://www.w3.org/2001/04/xmlenc#aes256-cbc' then cipher = OpenSSL::Cipher.new('AES-256-CBC').decrypt
+        when 'http://www.w3.org/2009/xmlenc11#aes128-gcm' then auth_cipher = OpenSSL::Cipher.new('aes-128-gcm').decrypt
+        when 'http://www.w3.org/2009/xmlenc11#aes192-gcm' then auth_cipher = OpenSSL::Cipher.new('aes-192-gcm').decrypt
+        when 'http://www.w3.org/2009/xmlenc11#aes256-gcm' then auth_cipher = OpenSSL::Cipher.new('aes-256-gcm').decrypt
+        when 'http://www.w3.org/2001/04/xmlenc#rsa-1_5' then rsa = symmetric_key
+        when 'http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p' then oaep = symmetric_key
         end
 
         if cipher
           iv_len = cipher.iv_len
-          data = cipher_text[iv_len..-1]
-          cipher.padding, cipher.key, cipher.iv = 0, symmetric_key, cipher_text[0..iv_len-1]
+          data = cipher_text[iv_len..]
+          cipher.padding = 0
+          cipher.key = symmetric_key
+          cipher.iv = cipher_text[0..iv_len-1]
           assertion_plaintext = cipher.update(data)
           assertion_plaintext << cipher.final
         elsif auth_cipher
-          iv_len, text_len, tag_len = auth_cipher.iv_len, cipher_text.length, 16
+          iv_len = auth_cipher.iv_len
+          text_len = cipher_text.length
+          tag_len = 16
           data = cipher_text[iv_len..text_len-1-tag_len]
           auth_cipher.padding = 0
           auth_cipher.key = symmetric_key
           auth_cipher.iv = cipher_text[0..iv_len-1]
           auth_cipher.auth_data = ''
-          auth_cipher.auth_tag = cipher_text[text_len-tag_len..-1]
+          auth_cipher.auth_tag = cipher_text[text_len-tag_len..]
           assertion_plaintext = auth_cipher.update(data)
           assertion_plaintext << auth_cipher.final
         elsif rsa
@@ -356,12 +357,12 @@ module OneLogin
 
         if dest_uri.scheme.nil? || acs_uri.scheme.nil? || dest_uri.host.nil? || acs_uri.host.nil?
           raise URI::InvalidURIError
-        else
-          dest_uri.scheme.downcase == acs_uri.scheme.downcase &&
-            dest_uri.host.downcase == acs_uri.host.downcase &&
-            dest_uri.path == acs_uri.path &&
-            dest_uri.query == acs_uri.query
         end
+
+        dest_uri.scheme.casecmp(acs_uri.scheme) == 0 &&
+          dest_uri.host.casecmp(acs_uri.host) == 0 &&
+          dest_uri.path == acs_uri.path &&
+          dest_uri.query == acs_uri.query
       rescue URI::InvalidURIError
         original_uri_match?(destination_url, settings_url)
       end

@@ -24,7 +24,7 @@ module OneLogin
       # @return [Boolean] True if the AttributeService object has been initialized and set with the required values
       #                   (has attributes and a name)
       def configured?
-        @attributes.length > 0 && !@name.nil?
+        !@attributes.empty? && !@name.nil?
       end
 
       # Set a name to the service

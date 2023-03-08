@@ -35,10 +35,10 @@ module OneLogin
       # Response available options
       # This is not a whitelist to allow people extending OneLogin::RubySaml:Response
       # and pass custom options
-      AVAILABLE_OPTIONS = [
-        :allowed_clock_drift, :check_duplicated_attributes, :matches_request_id, :settings, :skip_audience, :skip_authnstatement, :skip_conditions,
-        :skip_destination, :skip_recipient_check, :skip_subject_confirmation
-      ]
+      AVAILABLE_OPTIONS = %i[
+        allowed_clock_drift check_duplicated_attributes matches_request_id settings skip_audience skip_authnstatement skip_conditions
+        skip_destination skip_recipient_check skip_subject_confirmation
+      ].freeze
       # TODO: Update the comment on initialize to describe every option
 
       # Constructs the SAML Response. A Response Object that is an extension of the SamlMessage class.
@@ -71,6 +71,8 @@ module OneLogin
         if assertion_encrypted?
           @decrypted_document = generate_decrypted_document
         end
+
+        super()
       end
 
       # Validates the SAML Response with the default values (soft = true)
@@ -93,7 +95,7 @@ module OneLogin
       #
       def name_id_format
         @name_id_format ||=
-          if name_id_node && name_id_node.attribute("Format")
+          if name_id_node&.attribute("Format")
             name_id_node.attribute("Format").value
           end
       end
@@ -104,7 +106,7 @@ module OneLogin
       #
       def name_id_spnamequalifier
         @name_id_spnamequalifier ||=
-          if name_id_node && name_id_node.attribute("SPNameQualifier")
+          if name_id_node&.attribute("SPNameQualifier")
             name_id_node.attribute("SPNameQualifier").value
           end
       end
@@ -113,7 +115,7 @@ module OneLogin
       #
       def name_id_namequalifier
         @name_id_namequalifier ||=
-          if name_id_node && name_id_node.attribute("NameQualifier")
+          if name_id_node&.attribute("NameQualifier")
             name_id_node.attribute("NameQualifier").value
           end
       end
@@ -165,11 +167,11 @@ module OneLogin
                 raise ValidationError.new("Found an Attribute element with duplicated Name")
               end
 
-              values = node.elements.collect{|e|
-                if (e.elements.nil? || e.elements.size == 0)
+              values = node.elements.collect  do |e|
+                if e.elements.nil? || e.elements.empty?
                   # SAMLCore requires that nil AttributeValues MUST contain xsi:nil XML attribute set to "true" or "1"
                   # otherwise the value is to be regarded as empty.
-                  ["true", "1"].include?(e.attributes['xsi:nil']) ? nil : Utils.element_text(e)
+                  %w[true 1].include?(e.attributes['xsi:nil']) ? nil : Utils.element_text(e)
                 # explicitly support saml2:NameID with saml2:NameQualifier if supplied in attributes
                 # this is useful for allowing eduPersonTargetedId to be passed as an opaque identifier to use to
                 # identify the subject in an SP rather than email or other less opaque attributes
@@ -180,7 +182,7 @@ module OneLogin
                     "#{base_path}#{Utils.element_text(n)}"
                   end
                 end
-              }
+              end
 
               attributes.add(name, values.flatten)
             end
@@ -218,7 +220,7 @@ module OneLogin
           )
           if nodes.size == 1
             node = nodes[0]
-            code = node.attributes["Value"] if node && node.attributes
+            code = node.attributes["Value"] if node&.attributes
 
             unless code == "urn:oasis:names:tc:SAML:2.0:status:Success"
               nodes = REXML::XPath.match(
@@ -247,9 +249,8 @@ module OneLogin
             "/p:Response/p:Status/p:StatusMessage",
             { "p" => PROTOCOL }
           )
-          if nodes.size == 1
-            Utils.element_text(nodes.first)
-          end
+
+          Utils.element_text(nodes.first) if nodes.size == 1
         end
       end
 
@@ -348,7 +349,7 @@ module OneLogin
       # @return [Boolean] True if the SAML Response contains an EncryptedAssertion element
       #
       def assertion_encrypted?
-        ! REXML::XPath.first(
+        !REXML::XPath.first(
           document,
           "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
           { "p" => PROTOCOL, "a" => ASSERTION }
@@ -377,25 +378,25 @@ module OneLogin
         reset_errors!
         return false unless validate_response_state
 
-        validations = [
-          :validate_version,
-          :validate_id,
-          :validate_success_status,
-          :validate_num_assertion,
-          :validate_no_duplicated_attributes,
-          :validate_signed_elements,
-          :validate_structure,
-          :validate_in_response_to,
-          :validate_one_conditions,
-          :validate_conditions,
-          :validate_one_authnstatement,
-          :validate_audience,
-          :validate_destination,
-          :validate_issuer,
-          :validate_session_expiration,
-          :validate_subject_confirmation,
-          :validate_name_id,
-          :validate_signature
+        validations = %i[
+          validate_version
+          validate_id
+          validate_success_status
+          validate_num_assertion
+          validate_no_duplicated_attributes
+          validate_signed_elements
+          validate_structure
+          validate_in_response_to
+          validate_one_conditions
+          validate_conditions
+          validate_one_authnstatement
+          validate_audience
+          validate_destination
+          validate_issuer
+          validate_session_expiration
+          validate_subject_confirmation
+          validate_name_id
+          validate_signature
         ]
 
         if collect_errors
@@ -428,10 +429,8 @@ module OneLogin
           return append_error(structure_error_msg)
         end
 
-        unless decrypted_document.nil?
-          unless valid_saml?(decrypted_document, soft)
-            return append_error(structure_error_msg)
-          end
+        if !decrypted_document.nil? && !valid_saml?(decrypted_document, soft)
+          return append_error(structure_error_msg)
         end
 
         true
@@ -458,11 +457,8 @@ module OneLogin
       # @return [Boolean] True if the SAML Response contains an ID, otherwise returns False
       #
       def validate_id
-        unless response_id
-          return append_error("Missing ID attribute on SAML Response")
-        end
-
-        true
+        return true if response_id
+        append_error("Missing ID attribute on SAML Response")
       end
 
       # Validates the SAML version (2.0)
@@ -470,11 +466,8 @@ module OneLogin
       # @return [Boolean] True if the SAML Response is 2.0, otherwise returns False
       #
       def validate_version
-        unless version(document) == "2.0"
-          return append_error("Unsupported SAML version")
-        end
-
-        true
+        return true if version(document) == "2.0"
+        append_error("Unsupported SAML version")
       end
 
       # Validates that the SAML Response only contains a single Assertion (encrypted or not).
@@ -564,7 +557,7 @@ module OneLogin
           if ref
             uri = ref.attributes.get_attribute("URI")
             if uri && !uri.value.empty?
-              sei = uri.value[1..-1]
+              sei = uri.value[1..]
 
               unless sei == id
                 return append_error("Found an invalid Signed Element. SAML Response rejected")
@@ -598,7 +591,7 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_in_response_to
-        return true unless options.has_key? :matches_request_id
+        return true unless options.key? :matches_request_id
         return true if options[:matches_request_id].nil?
         return true unless options[:matches_request_id] != in_response_to
 
@@ -622,7 +615,7 @@ module OneLogin
         end
 
         unless audiences.include? settings.sp_entity_id
-          s = audiences.count > 1 ? 's' : '';
+          s = audiences.count > 1 ? 's' : ''
           error_msg = "Invalid Audience#{s}. The audience#{s} #{audiences.join(',')}, did not match the expected audience #{settings.sp_entity_id}"
           return append_error(error_msg)
         end
@@ -792,7 +785,7 @@ module OneLogin
           break
         end
 
-        if !valid_subject_confirmation
+        unless valid_subject_confirmation
           error_msg = "A valid SubjectConfirmation was not found on this Response"
           return append_error(error_msg)
         end
@@ -811,10 +804,8 @@ module OneLogin
             return append_error("An empty NameID value found")
           end
 
-          unless settings.sp_entity_id.nil? || settings.sp_entity_id.empty? || name_id_spnamequalifier.nil? || name_id_spnamequalifier.empty?
-            if name_id_spnamequalifier != settings.sp_entity_id
+          if !(settings.sp_entity_id.nil? || settings.sp_entity_id.empty? || name_id_spnamequalifier.nil? || name_id_spnamequalifier.empty?) && (name_id_spnamequalifier != settings.sp_entity_id)
               return append_error("The SPNameQualifier value mistmatch the SP entityID value.")
-            end
           end
         end
 
@@ -841,7 +832,7 @@ module OneLogin
         doc = use_original ? document : decrypted_document
 
         # Check signature nodes
-        if sig_elements.nil? || sig_elements.size == 0
+        if sig_elements.nil? || sig_elements.empty?
           sig_elements = REXML::XPath.match(
             doc,
             "/p:Response/a:Assertion[@ID=$id]/ds:Signature",
@@ -851,7 +842,7 @@ module OneLogin
         end
 
         if sig_elements.size != 1
-          if sig_elements.size == 0
+          if sig_elements.empty?
              append_error("Signed element id ##{doc.signed_element_id} is not found")
           else
              append_error("Signed element id ##{doc.signed_element_id} is found more than once")
@@ -870,11 +861,9 @@ module OneLogin
           opts[:cert] = idp_cert
 
           if fingerprint && doc.validate_document(fingerprint, @soft, opts)
-            if settings.security[:check_idp_cert_expiration]
-              if OneLogin::RubySaml::Utils.is_cert_expired(idp_cert)
+            if settings.security[:check_idp_cert_expiration] && OneLogin::RubySaml::Utils.is_cert_expired(idp_cert)
                 error_msg = "IdP x509 certificate expired"
                 return append_error(error_msg)
-              end
             end
           else
             return append_error(error_msg)
@@ -884,18 +873,14 @@ module OneLogin
           expired = false
           idp_certs[:signing].each do |idp_cert|
             valid = doc.validate_document_with_cert(idp_cert, true)
-            if valid
-              if settings.security[:check_idp_cert_expiration]
-                if OneLogin::RubySaml::Utils.is_cert_expired(idp_cert)
-                  expired = true
-                end
-              end
-
-              # At least one certificate is valid, restore the old accumulated errors
-              @errors = old_errors
-              break
+            next unless valid
+            if settings.security[:check_idp_cert_expiration] && OneLogin::RubySaml::Utils.is_cert_expired(idp_cert)
+                expired = true
             end
 
+            # At least one certificate is valid, restore the old accumulated errors
+            @errors = old_errors
+            break
           end
           if expired
             error_msg = "IdP x509 certificate expired"
@@ -935,13 +920,13 @@ module OneLogin
             "/p:Response/a:Assertion[@ID=$id]#{subelt}",
             { "p" => PROTOCOL, "a" => ASSERTION },
             { 'id' => doc.signed_element_id }
-        )
+          )
         node ||= REXML::XPath.first(
             doc,
             "/p:Response[@ID=$id]/a:Assertion#{subelt}",
             { "p" => PROTOCOL, "a" => ASSERTION },
             { 'id' => doc.signed_element_id }
-        )
+          )
         node
       end
 
@@ -957,13 +942,13 @@ module OneLogin
             "/p:Response/a:Assertion[@ID=$id]#{subelt}",
             { "p" => PROTOCOL, "a" => ASSERTION },
             { 'id' => doc.signed_element_id }
-        )
-        node.concat( REXML::XPath.match(
+          )
+        node.concat(REXML::XPath.match(
             doc,
             "/p:Response[@ID=$id]/a:Assertion#{subelt}",
             { "p" => PROTOCOL, "a" => ASSERTION },
             { 'id' => doc.signed_element_id }
-        ))
+          ))
       end
 
       # Generates the decrypted_document
@@ -1004,7 +989,7 @@ module OneLogin
       # @return [REXML::Document] The decrypted EncryptedAssertion element
       #
       def decrypt_assertion(encrypted_assertion_node)
-        decrypt_element(encrypted_assertion_node, /(.*<\/(\w+:)?Assertion>)/m)
+        decrypt_element(encrypted_assertion_node, %r{(.*</(\w+:)?Assertion>)}m)
       end
 
       # Decrypts an EncryptedID element
@@ -1012,7 +997,7 @@ module OneLogin
       # @return [REXML::Document] The decrypted EncrypedtID element
       #
       def decrypt_nameid(encryptedid_node)
-        decrypt_element(encryptedid_node, /(.*<\/(\w+:)?NameID>)/m)
+        decrypt_element(encryptedid_node, %r{(.*</(\w+:)?NameID>)}m)
       end
 
       # Decrypts an EncryptedID element
@@ -1020,7 +1005,7 @@ module OneLogin
       # @return [REXML::Document] The decrypted EncrypedtID element
       #
       def decrypt_attribute(encryptedattribute_node)
-        decrypt_element(encryptedattribute_node, /(.*<\/(\w+:)?Attribute>)/m)
+        decrypt_element(encryptedattribute_node, %r{(.*</(\w+:)?Attribute>)}m)
       end
 
       # Decrypt an element
@@ -1046,7 +1031,7 @@ module OneLogin
 
         # To avoid namespace errors if saml namespace is not defined
         # create a parent node first with the namespace defined
-        elem_plaintext = node_header + elem_plaintext + '</node>'
+        elem_plaintext = "#{node_header}#{elem_plaintext}</node>"
         doc = REXML::Document.new(elem_plaintext)
         doc.root[0]
       end
@@ -1057,9 +1042,8 @@ module OneLogin
       # @return [Time|nil] The parsed value
       #
       def parse_time(node, attribute)
-        if node && node.attributes[attribute]
-          Time.parse(node.attributes[attribute])
-        end
+        return unless node && node.attributes[attribute]
+        Time.parse(node.attributes[attribute])
       end
     end
   end

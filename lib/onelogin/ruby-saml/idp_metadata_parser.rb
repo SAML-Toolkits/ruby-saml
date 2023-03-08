@@ -42,7 +42,7 @@ module OneLogin
 
       # fetch IdP descriptors from a metadata document
       def self.get_idps(metadata_document, only_entity_id=nil)
-        path = "//md:EntityDescriptor#{only_entity_id && '[@entityID="' + only_entity_id + '"]'}/md:IDPSSODescriptor"
+        path = "//md:EntityDescriptor#{"[@entityID=\"#{only_entity_id}\"]" if only_entity_id}/md:IDPSSODescriptor"
         REXML::XPath.match(
           metadata_document,
           path,
@@ -125,10 +125,8 @@ module OneLogin
 
         unless parsed_metadata[:cache_duration].nil?
           cache_valid_until_timestamp = OneLogin::RubySaml::Utils.parse_duration(parsed_metadata[:cache_duration])
-          unless cache_valid_until_timestamp.nil?
-            if parsed_metadata[:valid_until].nil? || cache_valid_until_timestamp < Time.parse(parsed_metadata[:valid_until], Time.now.utc).to_i
-              parsed_metadata[:valid_until] = Time.at(cache_valid_until_timestamp).utc.strftime("%Y-%m-%dT%H:%M:%SZ")
-            end
+          if !cache_valid_until_timestamp.nil? && (parsed_metadata[:valid_until].nil? || cache_valid_until_timestamp < Time.parse(parsed_metadata[:valid_until], Time.now.utc).to_i)
+            parsed_metadata[:valid_until] = Time.at(cache_valid_until_timestamp).utc.strftime("%Y-%m-%dT%H:%M:%SZ")
           end
         end
         # Remove the cache_duration because on the settings
@@ -197,7 +195,7 @@ module OneLogin
       # @raise [HttpError] Failure to fetch remote IdP metadata
       def get_idp_metadata(url, validate_cert)
         uri = URI.parse(url)
-        raise ArgumentError.new("url must begin with http or https") unless /^https?/ =~ uri.scheme
+        raise ArgumentError.new("url must begin with http or https") unless /^https?/.match?(uri.scheme)
         http = Net::HTTP.new(uri.host, uri.port)
 
         if uri.scheme == "https"
@@ -240,7 +238,7 @@ module OneLogin
             idp_cert_fingerprint: nil,
             idp_cert_multi: nil,
             valid_until: valid_until,
-            cache_duration: cache_duration,
+            cache_duration: cache_duration
           }.tap do |response_hash|
             merge_certificates_into(response_hash) unless certificates.nil?
           end
@@ -250,14 +248,14 @@ module OneLogin
         #
         def valid_until
           root = @idpsso_descriptor.root
-          root.attributes['validUntil'] if root && root.attributes
+          root.attributes['validUntil'] if root&.attributes
         end
 
         # @return [String|nil] 'cacheDuration' attribute of metadata
         #
         def cache_duration
           root = @idpsso_descriptor.root
-          root.attributes['cacheDuration'] if root && root.attributes
+          root.attributes['cacheDuration'] if root&.attributes
         end
 
         # @param name_id_priority [String|Array<String>] The prioritized list of NameIDFormat values to select. Will select first value if nil.
@@ -308,7 +306,7 @@ module OneLogin
             "md:SingleSignOnService[@Binding=\"#{binding}\"]/@Location",
             SamlMetadata::NAMESPACE
           )
-          node.value if node
+          node&.value
         end
 
         # @param binding_priority [String|Array<String>] The prioritized list of Binding values to select. Will select first value if nil.
@@ -323,7 +321,7 @@ module OneLogin
             "md:SingleLogoutService[@Binding=\"#{binding}\"]/@Location",
             SamlMetadata::NAMESPACE
           )
-          node.value if node
+          node&.value
         end
 
         # @param binding_priority [String|Array<String>] The prioritized list of Binding values to select. Will select first value if nil.
@@ -338,7 +336,7 @@ module OneLogin
             "md:SingleLogoutService[@Binding=\"#{binding}\"]/@ResponseLocation",
             SamlMetadata::NAMESPACE
           )
-          node.value if node
+          node&.value
         end
 
         # @return [String|nil] Unformatted Certificate if exists
@@ -394,7 +392,7 @@ module OneLogin
         #
         def attribute_names
           nodes = REXML::XPath.match(
-            @idpsso_descriptor  ,
+            @idpsso_descriptor,
             "saml:Attribute/@Name",
             SamlMetadata::NAMESPACE
           )
@@ -404,8 +402,8 @@ module OneLogin
         def merge_certificates_into(parsed_metadata)
           if (certificates.size == 1 &&
               (certificates_has_one('signing') || certificates_has_one('encryption'))) ||
-              (certificates_has_one('signing') && certificates_has_one('encryption') &&
-              certificates["signing"][0] == certificates["encryption"][0])
+             (certificates_has_one('signing') && certificates_has_one('encryption') &&
+             certificates["signing"][0] == certificates["encryption"][0])
 
             parsed_metadata[:idp_cert] = if certificates.key?("signing")
                                            certificates["signing"][0]

@@ -6,29 +6,29 @@ require 'logger'
 module OneLogin
   module RubySaml
     class Logging
-      DEFAULT_LOGGER = ::Logger.new(STDOUT)
+      DEFAULT_LOGGER = ::Logger.new($stdout)
 
       def self.logger
         @logger ||= begin
-          (defined?(::Rails) && Rails.respond_to?(:logger) && Rails.logger) ||
-            DEFAULT_LOGGER
+          logger = Rails.logger if defined?(::Rails) && Rails.respond_to?(:logger)
+          logger ||= DEFAULT_LOGGER
         end
       end
 
-      def self.logger=(logger)
-        @logger = logger
+      class << self
+        attr_writer :logger
       end
 
       def self.debug(message)
-        return if !!ENV["ruby-saml/testing"]
+        return if ENV["ruby-saml/testing"]
 
-        logger.debug message
+        logger.debug(message)
       end
 
       def self.info(message)
-        return if !!ENV["ruby-saml/testing"]
+        return if ENV["ruby-saml/testing"]
 
-        logger.info message
+        logger.info(message)
       end
     end
   end

@@ -40,15 +40,15 @@ module OneLogin
 
       # Iterate over all attributes
       #
-      def each
-        attributes.each{|name, values| yield name, values}
+      def each(&block)
+        attributes.each(&block)
       end
 
       # Test attribute presence by name
       # @param name [String] The attribute name to be checked
       #
       def include?(name)
-        attributes.has_key?(canonize_name(name))
+        attributes.key?(canonize_name(name))
       end
       
       # Return first value for an attribute
