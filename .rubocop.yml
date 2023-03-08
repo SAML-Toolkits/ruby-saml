@@ -12,4 +12,6 @@ AllCops:
     - 'lib/**/*'
   Exclude:
     - '**/*.xsd'
-    - 'vendor/**/*.rb'
+    - '.git/**/*'
+    - 'tmp/**/*'
+    - 'vendor/**/*'

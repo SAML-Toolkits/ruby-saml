@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CI: true
-      TESTOPTS: "-v"
+      TESTOPTS: '-v'
     steps:
       - uses: actions/checkout@v3
       - name: Set up Ruby 3.0
@@ -16,5 +16,9 @@ jobs:
         with:
           ruby-version: 3.0
           bundler-cache: true
+
+      - name: Install dependencies
+        run: bundle install
+
       - name: Run RuboCop
         run: bundle exec rubocop --parallel
