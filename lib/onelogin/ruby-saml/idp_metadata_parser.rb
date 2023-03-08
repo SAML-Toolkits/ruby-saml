@@ -228,19 +228,19 @@ module OneLogin
           sso_binding = options[:sso_binding]
           slo_binding = options[:slo_binding]
           {
-            :idp_entity_id => @entity_id,
-            :name_identifier_format => idp_name_id_format(options[:name_id_format]),
-            :idp_sso_service_url => single_signon_service_url(sso_binding),
-            :idp_sso_service_binding => single_signon_service_binding(sso_binding),
-            :idp_slo_service_url => single_logout_service_url(slo_binding),
-            :idp_slo_service_binding => single_logout_service_binding(slo_binding),
-            :idp_slo_response_service_url => single_logout_response_service_url(slo_binding),
-            :idp_attribute_names => attribute_names,
-            :idp_cert => nil,
-            :idp_cert_fingerprint => nil,
-            :idp_cert_multi => nil,
-            :valid_until => valid_until,
-            :cache_duration => cache_duration,
+            idp_entity_id: @entity_id,
+            name_identifier_format: idp_name_id_format(options[:name_id_format]),
+            idp_sso_service_url: single_signon_service_url(sso_binding),
+            idp_sso_service_binding: single_signon_service_binding(sso_binding),
+            idp_slo_service_url: single_logout_service_url(slo_binding),
+            idp_slo_service_binding: single_logout_service_binding(slo_binding),
+            idp_slo_response_service_url: single_logout_response_service_url(slo_binding),
+            idp_attribute_names: attribute_names,
+            idp_cert: nil,
+            idp_cert_fingerprint: nil,
+            idp_cert_multi: nil,
+            valid_until: valid_until,
+            cache_duration: cache_duration,
           }.tap do |response_hash|
             merge_certificates_into(response_hash) unless certificates.nil?
           end

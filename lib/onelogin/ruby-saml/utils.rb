@@ -9,8 +9,8 @@ module OneLogin
     # SAML2 Auxiliary class
     #
     class Utils
-      BINDINGS = { :post => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
-                   :redirect => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" }.freeze
+      BINDINGS = { post: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
+                   redirect: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" }.freeze
       DSIG = "http://www.w3.org/2000/09/xmldsig#"
       XENC = "http://www.w3.org/2001/04/xmlenc#"
       DURATION_FORMAT = %r(^

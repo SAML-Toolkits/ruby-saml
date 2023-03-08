@@ -78,10 +78,10 @@ module OneLogin
         if settings.idp_sso_service_binding == Utils::BINDINGS[:redirect] && settings.security[:authn_requests_signed] && settings.private_key
           params['SigAlg']    = settings.security[:signature_method]
           url_string = OneLogin::RubySaml::Utils.build_query(
-            :type => 'SAMLRequest',
-            :data => base64_request,
-            :relay_state => relay_state,
-            :sig_alg => params['SigAlg']
+            type: 'SAMLRequest',
+            data: base64_request,
+            relay_state: relay_state,
+            sig_alg: params['SigAlg']
           )
           sign_algorithm = XMLSecurity::BaseDocument.new.algorithm(settings.security[:signature_method])
           signature = settings.get_sp_key.sign(sign_algorithm.new, url_string)
