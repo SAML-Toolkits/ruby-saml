@@ -19,7 +19,7 @@ class IdpMetadataParserTest < Minitest::Test
 
   describe "parsing an IdP descriptor file" do
     it "extract settings details from xml" do
-      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata_parser = RubySaml::IdpMetadataParser.new
 
       settings = idp_metadata_parser.parse(idp_metadata_descriptor)
 
@@ -35,14 +35,14 @@ class IdpMetadataParserTest < Minitest::Test
     end
 
     it "extract certificate from md:KeyDescriptor[@use='signing']" do
-      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata_parser = RubySaml::IdpMetadataParser.new
       idp_metadata = idp_metadata_descriptor
       settings = idp_metadata_parser.parse(idp_metadata)
       assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", settings.idp_cert_fingerprint
     end
 
     it "extract certificate from md:KeyDescriptor[@use='encryption']" do
-      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata_parser = RubySaml::IdpMetadataParser.new
       idp_metadata = idp_metadata_descriptor
       idp_metadata = idp_metadata.sub(/<md:KeyDescriptor use="signing">(.*?)<\/md:KeyDescriptor>/m, "")
       settings = idp_metadata_parser.parse(idp_metadata)
@@ -50,7 +50,7 @@ class IdpMetadataParserTest < Minitest::Test
     end
 
     it "extract certificate from md:KeyDescriptor" do
-      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata_parser = RubySaml::IdpMetadataParser.new
       idp_metadata = idp_metadata_descriptor
       idp_metadata = idp_metadata.sub(/<md:KeyDescriptor use="signing">(.*?)<\/md:KeyDescriptor>/m, "")
       idp_metadata = idp_metadata.sub('<md:KeyDescriptor use="encryption">', '<md:KeyDescriptor>')
@@ -59,7 +59,7 @@ class IdpMetadataParserTest < Minitest::Test
     end
 
     it "extract SSO endpoint with no specific binding, it takes the first" do
-      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata_parser = RubySaml::IdpMetadataParser.new
       idp_metadata = idp_metadata_descriptor3
       settings = idp_metadata_parser.parse(idp_metadata)
       assert_equal "https://idp.example.com/idp/profile/Shibboleth/SSO", settings.idp_sso_service_url
@@ -67,7 +67,7 @@ class IdpMetadataParserTest < Minitest::Test
     end
 
     it "extract SSO endpoint with specific binding as a String" do
-      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata_parser = RubySaml::IdpMetadataParser.new
       idp_metadata = idp_metadata_descriptor3
       options = {}
       options[:sso_binding] = 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'
@@ -87,7 +87,7 @@ class IdpMetadataParserTest < Minitest::Test
     end
 
     it "extract SSO endpoint with specific binding as an Array" do
-      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata_parser = RubySaml::IdpMetadataParser.new
       idp_metadata = idp_metadata_descriptor3
       options = {}
       options[:sso_binding] = ['urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST']
@@ -115,14 +115,14 @@ class IdpMetadataParserTest < Minitest::Test
     end
 
     it "extract NameIDFormat no specific priority, it takes the first" do
-      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata_parser = RubySaml::IdpMetadataParser.new
       idp_metadata = idp_metadata_descriptor3
       settings = idp_metadata_parser.parse(idp_metadata)
       assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified", settings.name_identifier_format
     end
 
     it "extract NameIDFormat specific priority as a String" do
-      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata_parser = RubySaml::IdpMetadataParser.new
       idp_metadata = idp_metadata_descriptor3
       options = {}
       options[:name_id_format] = 'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified'
@@ -139,7 +139,7 @@ class IdpMetadataParserTest < Minitest::Test
     end
 
     it "extract NameIDFormat specific priority as an Array" do
-      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata_parser = RubySaml::IdpMetadataParser.new
       idp_metadata = idp_metadata_descriptor3
       options = {}
       options[:name_id_format] = ['urn:oasis:names:tc:SAML:2.0:nameid-format:persistent', 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress']
@@ -152,7 +152,7 @@ class IdpMetadataParserTest < Minitest::Test
     end
 
     it "uses settings options as hash for overrides" do
-      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata_parser = RubySaml::IdpMetadataParser.new
       idp_metadata = idp_metadata_descriptor
       settings = idp_metadata_parser.parse(idp_metadata, {
         :settings => {
@@ -168,12 +168,12 @@ class IdpMetadataParserTest < Minitest::Test
     end
 
     it "merges results into given settings object" do
-      settings = OneLogin::RubySaml::Settings.new(:security => {
+      settings = RubySaml::Settings.new(:security => {
         :digest_method => XMLSecurity::Document::SHA256,
         :signature_method => XMLSecurity::Document::RSA_SHA256
       })
 
-      OneLogin::RubySaml::IdpMetadataParser.new.parse(idp_metadata_descriptor, :settings => settings)
+      RubySaml::IdpMetadataParser.new.parse(idp_metadata_descriptor, :settings => settings)
 
       assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", settings.idp_cert_fingerprint
       assert_equal XMLSecurity::Document::SHA256, settings.security[:digest_method]
@@ -183,7 +183,7 @@ class IdpMetadataParserTest < Minitest::Test
 
   describe "parsing an IdP descriptor file into an Hash" do
     it "extract settings details from xml" do
-      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata_parser = RubySaml::IdpMetadataParser.new
 
       metadata = idp_metadata_parser.parse_to_hash(idp_metadata_descriptor)
 
@@ -199,14 +199,14 @@ class IdpMetadataParserTest < Minitest::Test
     end
 
     it "extract certificate from md:KeyDescriptor[@use='signing']" do
-      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata_parser = RubySaml::IdpMetadataParser.new
       idp_metadata = idp_metadata_descriptor
       metadata = idp_metadata_parser.parse_to_hash(idp_metadata)
       assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", metadata[:idp_cert_fingerprint]
     end
 
     it "extract certificate from md:KeyDescriptor[@use='encryption']" do
-      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata_parser = RubySaml::IdpMetadataParser.new
       idp_metadata = idp_metadata_descriptor
       idp_metadata = idp_metadata.sub(/<md:KeyDescriptor use="signing">(.*?)<\/md:KeyDescriptor>/m, "")
       parsed_metadata = idp_metadata_parser.parse_to_hash(idp_metadata)
@@ -214,7 +214,7 @@ class IdpMetadataParserTest < Minitest::Test
     end
 
     it "extract certificate from md:KeyDescriptor" do
-      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata_parser = RubySaml::IdpMetadataParser.new
       idp_metadata = idp_metadata_descriptor
       idp_metadata = idp_metadata.sub(/<md:KeyDescriptor use="signing">(.*?)<\/md:KeyDescriptor>/m, "")
       idp_metadata = idp_metadata.sub('<md:KeyDescriptor use="encryption">', '<md:KeyDescriptor>')
@@ -223,7 +223,7 @@ class IdpMetadataParserTest < Minitest::Test
     end
 
     it "extract SSO endpoint with no specific binding, it takes the first" do
-      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata_parser = RubySaml::IdpMetadataParser.new
       idp_metadata = idp_metadata_descriptor3
       metadata = idp_metadata_parser.parse_to_hash(idp_metadata)
       assert_equal "https://idp.example.com/idp/profile/Shibboleth/SSO", metadata[:idp_sso_service_url]
@@ -231,7 +231,7 @@ class IdpMetadataParserTest < Minitest::Test
     end
 
     it "extract SSO endpoint with specific binding" do
-      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata_parser = RubySaml::IdpMetadataParser.new
       idp_metadata = idp_metadata_descriptor3
       options = {}
       options[:sso_binding] = ['urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST']
@@ -251,7 +251,7 @@ class IdpMetadataParserTest < Minitest::Test
     end
 
     it "ignores a given :settings hash" do
-      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata_parser = RubySaml::IdpMetadataParser.new
       idp_metadata = idp_metadata_descriptor
       parsed_metadata = idp_metadata_parser.parse_to_hash(idp_metadata, {
         :settings => {
@@ -266,7 +266,7 @@ class IdpMetadataParserTest < Minitest::Test
     end
 
     it "can extract certificates multiple times in sequence" do
-      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata_parser = RubySaml::IdpMetadataParser.new
       idp_metadata1 = idp_metadata_descriptor
       idp_metadata2 = idp_metadata_descriptor4
       metadata1 = idp_metadata_parser.parse_to_hash(idp_metadata1)
@@ -279,7 +279,7 @@ class IdpMetadataParserTest < Minitest::Test
 
   describe "parsing an IdP descriptor file with multiple signing certs" do
     it "extract settings details from xml" do
-      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata_parser = RubySaml::IdpMetadataParser.new
 
       settings = idp_metadata_parser.parse(idp_metadata_descriptor2)
 
@@ -314,7 +314,7 @@ class IdpMetadataParserTest < Minitest::Test
     end
 
     it "extract settings from remote xml" do
-      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata_parser = RubySaml::IdpMetadataParser.new
       settings = idp_metadata_parser.parse_remote(@url)
 
       assert_equal "https://hello.example.com/access/saml/idp.xml", settings.idp_entity_id
@@ -330,7 +330,7 @@ class IdpMetadataParserTest < Minitest::Test
     end
 
     it "accept self signed certificate if insturcted" do
-      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata_parser = RubySaml::IdpMetadataParser.new
       idp_metadata_parser.parse_remote(@url, false)
 
       assert_equal OpenSSL::SSL::VERIFY_NONE, @http.verify_mode
@@ -350,7 +350,7 @@ class IdpMetadataParserTest < Minitest::Test
     end
 
     it "extract settings from remote xml" do
-      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata_parser = RubySaml::IdpMetadataParser.new
       parsed_metadata = idp_metadata_parser.parse_remote_to_hash(@url)
 
       assert_equal "https://hello.example.com/access/saml/idp.xml", parsed_metadata[:idp_entity_id]
@@ -366,7 +366,7 @@ class IdpMetadataParserTest < Minitest::Test
     end
 
     it "accept self signed certificate if insturcted" do
-      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata_parser = RubySaml::IdpMetadataParser.new
       idp_metadata_parser.parse_remote_to_hash(@url, false)
 
       assert_equal OpenSSL::SSL::VERIFY_NONE, @http.verify_mode
@@ -375,7 +375,7 @@ class IdpMetadataParserTest < Minitest::Test
 
   describe "download failure cases" do
     it "raises an exception when the url has no scheme" do
-      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata_parser = RubySaml::IdpMetadataParser.new
 
       exception = assert_raises(ArgumentError) do
         idp_metadata_parser.parse_remote("blahblah")
@@ -393,9 +393,9 @@ class IdpMetadataParserTest < Minitest::Test
       Net::HTTP.expects(:new).returns(@http)
       @http.expects(:request).returns(mock_response)
 
-      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata_parser = RubySaml::IdpMetadataParser.new
 
-      exception = assert_raises(OneLogin::RubySaml::HttpError) do
+      exception = assert_raises(RubySaml::HttpError) do
         idp_metadata_parser.parse_remote("https://hello.example.com/access/saml/idp.xml")
       end
 
@@ -405,7 +405,7 @@ class IdpMetadataParserTest < Minitest::Test
 
   describe "parsing metadata with and without ValidUntil and CacheDuration" do
     before do
-      @idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      @idp_metadata_parser = RubySaml::IdpMetadataParser.new
     end
 
     it "if no ValidUntil or CacheDuration return nothing" do
@@ -446,7 +446,7 @@ class IdpMetadataParserTest < Minitest::Test
 
   describe "parsing metadata with many entity descriptors" do
     before do
-      @idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      @idp_metadata_parser = RubySaml::IdpMetadataParser.new
       @idp_metadata = idp_metadata_multiple_descriptors2
       @settings = @idp_metadata_parser.parse(@idp_metadata)
     end
@@ -487,7 +487,7 @@ class IdpMetadataParserTest < Minitest::Test
 
   describe "parsing metadata with no IDPSSODescriptor element" do
     before do
-      @idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      @idp_metadata_parser = RubySaml::IdpMetadataParser.new
       @idp_metadata = no_idp_metadata_descriptor
     end
 
@@ -498,7 +498,7 @@ class IdpMetadataParserTest < Minitest::Test
 
   describe "parsing metadata with IDPSSODescriptor with multiple certs" do
     before do
-      @idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      @idp_metadata_parser = RubySaml::IdpMetadataParser.new
       @idp_metadata = idp_metadata_multiple_certs
       @settings = @idp_metadata_parser.parse(@idp_metadata)
     end
@@ -569,7 +569,7 @@ WQO0LPxPqRiUqUzyhDhLo/xXNrHCu4VbMw=="]
 
   describe "parsing metadata with IDPSSODescriptor with multiple signing certs" do
     before do
-      @idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      @idp_metadata_parser = RubySaml::IdpMetadataParser.new
       @idp_metadata = idp_metadata_multiple_signing_certs
       @settings = @idp_metadata_parser.parse(@idp_metadata)
     end
@@ -616,7 +616,7 @@ WQO0LPxPqRiUqUzyhDhLo/xXNrHCu4VbMw==", "MIICZDCCAc2gAwIBAgIBADANBgkqhkiG9w0BAQ0F
 
   describe "parsing metadata with IDPSSODescriptor with same signature cert and encrypt cert" do
     before do
-      @idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      @idp_metadata_parser = RubySaml::IdpMetadataParser.new
       @idp_metadata = idp_metadata_same_sign_and_encrypt_cert
       @settings = @idp_metadata_parser.parse(@idp_metadata)
     end
@@ -662,7 +662,7 @@ QOPR6cEwFZzP0tHTYbI839WgxX6hfhIUTUz6mLqq4+3P4BG3+1OXeVDg63y8Uh78
 
   describe "parsing metadata with IDPSSODescriptor with different signature cert and encrypt cert" do
     before do
-      @idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      @idp_metadata_parser = RubySaml::IdpMetadataParser.new
       @idp_metadata = idp_metadata_different_sign_and_encrypt_cert
       @settings = @idp_metadata_parser.parse(@idp_metadata)
     end
@@ -733,7 +733,7 @@ WQO0LPxPqRiUqUzyhDhLo/xXNrHCu4VbMw=="]
 
   describe "metadata with different singlelogout response location" do
     it "should return the responselocation if it exists" do
-      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata_parser = RubySaml::IdpMetadataParser.new
 
       settings = idp_metadata_parser.parse(idp_different_slo_response_location)
 
@@ -743,7 +743,7 @@ WQO0LPxPqRiUqUzyhDhLo/xXNrHCu4VbMw=="]
     end
 
     it "should set the responselocation to nil if it doesnt exist" do
-      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata_parser = RubySaml::IdpMetadataParser.new
 
       settings = idp_metadata_parser.parse(idp_without_slo_response_location)
 

@@ -5,8 +5,8 @@ require 'ruby_saml/metadata'
 class MetadataTest < Minitest::Test
 
   describe 'Metadata' do
-    let(:settings)          { OneLogin::RubySaml::Settings.new }
-    let(:xml_text)          { OneLogin::RubySaml::Metadata.new.generate(settings, false) }
+    let(:settings)          { RubySaml::Settings.new }
+    let(:xml_text)          { RubySaml::Metadata.new.generate(settings, false) }
     let(:xml_doc)           { REXML::Document.new(xml_text) }
     let(:spsso_descriptor)  { REXML::XPath.first(xml_doc, "//md:SPSSODescriptor") }
     let(:acs)               { REXML::XPath.first(xml_doc, "//md:AssertionConsumerService") }
@@ -18,7 +18,7 @@ class MetadataTest < Minitest::Test
     end
 
     it "generates Pretty Print Service Provider Metadata" do
-      xml_text = OneLogin::RubySaml::Metadata.new.generate(settings, true)
+      xml_text = RubySaml::Metadata.new.generate(settings, true)
       # assert correct xml declaration
       start = "<?xml version='1.0' encoding='UTF-8'?>\n<md:EntityDescriptor"
       assert_equal xml_text[0..start.length-1],start
@@ -40,7 +40,7 @@ class MetadataTest < Minitest::Test
     it "generates Service Provider Metadata" do
       settings.single_logout_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
       settings.single_logout_service_url = "https://foo.example/saml/sls"
-      xml_metadata = OneLogin::RubySaml::Metadata.new.generate(settings, false)
+      xml_metadata = RubySaml::Metadata.new.generate(settings, false)
 
       start = "<?xml version='1.0' encoding='UTF-8'?><md:EntityDescriptor"
       assert_equal xml_metadata[0..start.length-1],start
@@ -78,7 +78,7 @@ class MetadataTest < Minitest::Test
     it "generates Service Provider Metadata with ValidUntil and CacheDuration" do
       valid_until = Time.now + 172800
       cache_duration = 604800
-      xml_metadata = OneLogin::RubySaml::Metadata.new.generate(settings, false, valid_until, cache_duration)
+      xml_metadata = RubySaml::Metadata.new.generate(settings, false, valid_until, cache_duration)
       start = "<?xml version='1.0' encoding='UTF-8'?><md:EntityDescriptor"
       assert_equal xml_metadata[0..start.length-1],start
 
@@ -342,7 +342,7 @@ class MetadataTest < Minitest::Test
       describe "when custom metadata elements have been inserted" do
         let(:xml_text) { subclass.new.generate(settings, false) }
         let(:subclass) do
-          Class.new(OneLogin::RubySaml::Metadata) do
+          Class.new(RubySaml::Metadata) do
             def add_extras(root, _settings)
               idp = REXML::Element.new("md:IDPSSODescriptor")
               idp.attributes['protocolSupportEnumeration'] = 'urn:oasis:names:tc:SAML:2.0:protocol'

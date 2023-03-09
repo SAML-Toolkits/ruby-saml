@@ -6,14 +6,14 @@ require 'ruby_saml/setting_error'
 class RequestTest < Minitest::Test
 
   describe "Authrequest" do
-    let(:settings) { OneLogin::RubySaml::Settings.new }
+    let(:settings) { RubySaml::Settings.new }
 
     before do
       settings.idp_sso_service_url = "http://example.com"
     end
 
     it "create the deflated SAMLRequest URL parameter" do
-      auth_url = OneLogin::RubySaml::Authrequest.new.create(settings)
+      auth_url = RubySaml::Authrequest.new.create(settings)
       assert_match(/^http:\/\/example\.com\?SAMLRequest=/, auth_url)
       payload  = CGI.unescape(auth_url.split("=").last)
       decoded  = Base64.decode64(payload)
@@ -27,7 +27,7 @@ class RequestTest < Minitest::Test
     end
 
     it "create the deflated SAMLRequest URL parameter including the Destination" do
-      auth_url = OneLogin::RubySaml::Authrequest.new.create(settings)
+      auth_url = RubySaml::Authrequest.new.create(settings)
       payload  = CGI.unescape(auth_url.split("=").last)
       decoded  = Base64.decode64(payload)
 
@@ -41,7 +41,7 @@ class RequestTest < Minitest::Test
 
     it "create the SAMLRequest URL parameter without deflating" do
       settings.compress_request = false
-      auth_url = OneLogin::RubySaml::Authrequest.new.create(settings)
+      auth_url = RubySaml::Authrequest.new.create(settings)
       assert_match(/^http:\/\/example\.com\?SAMLRequest=/, auth_url)
       payload  = CGI.unescape(auth_url.split("=").last)
       decoded  = Base64.decode64(payload)
@@ -51,7 +51,7 @@ class RequestTest < Minitest::Test
 
     it "create the SAMLRequest URL parameter with IsPassive" do
       settings.passive = true
-      auth_url = OneLogin::RubySaml::Authrequest.new.create(settings)
+      auth_url = RubySaml::Authrequest.new.create(settings)
       assert_match(/^http:\/\/example\.com\?SAMLRequest=/, auth_url)
       payload  = CGI.unescape(auth_url.split("=").last)
       decoded  = Base64.decode64(payload)
@@ -66,7 +66,7 @@ class RequestTest < Minitest::Test
 
     it "create the SAMLRequest URL parameter with ProtocolBinding" do
       settings.protocol_binding = 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'
-      auth_url = OneLogin::RubySaml::Authrequest.new.create(settings)
+      auth_url = RubySaml::Authrequest.new.create(settings)
       assert_match(/^http:\/\/example\.com\?SAMLRequest=/, auth_url)
       payload  = CGI.unescape(auth_url.split("=").last)
       decoded  = Base64.decode64(payload)
@@ -81,7 +81,7 @@ class RequestTest < Minitest::Test
 
     it "create the SAMLRequest URL parameter with AttributeConsumingServiceIndex" do
       settings.attributes_index = 30
-      auth_url = OneLogin::RubySaml::Authrequest.new.create(settings)
+      auth_url = RubySaml::Authrequest.new.create(settings)
       assert_match(/^http:\/\/example\.com\?SAMLRequest=/, auth_url)
       payload  = CGI.unescape(auth_url.split("=").last)
       decoded  = Base64.decode64(payload)
@@ -95,7 +95,7 @@ class RequestTest < Minitest::Test
 
     it "create the SAMLRequest URL parameter with ForceAuthn" do
       settings.force_authn = true
-      auth_url = OneLogin::RubySaml::Authrequest.new.create(settings)
+      auth_url = RubySaml::Authrequest.new.create(settings)
       assert_match(/^http:\/\/example\.com\?SAMLRequest=/, auth_url)
       payload  = CGI.unescape(auth_url.split("=").last)
       decoded  = Base64.decode64(payload)
@@ -109,7 +109,7 @@ class RequestTest < Minitest::Test
 
     it "create the SAMLRequest URL parameter with NameID Format" do
       settings.name_identifier_format = "urn:oasis:names:tc:SAML:2.0:nameid-format:transient"
-      auth_url = OneLogin::RubySaml::Authrequest.new.create(settings)
+      auth_url = RubySaml::Authrequest.new.create(settings)
       assert_match(/^http:\/\/example\.com\?SAMLRequest=/, auth_url)
       payload = CGI.unescape(auth_url.split("=").last)
       decoded = Base64.decode64(payload)
@@ -125,7 +125,7 @@ class RequestTest < Minitest::Test
     it "create the SAMLRequest URL parameter with Subject" do
       settings.name_identifier_value_requested = "testuser@example.com"
       settings.name_identifier_format = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
-      auth_url = OneLogin::RubySaml::Authrequest.new.create(settings)
+      auth_url = RubySaml::Authrequest.new.create(settings)
       assert_match(/^http:\/\/example\.com\?SAMLRequest=/, auth_url)
       payload = CGI.unescape(auth_url.split("=").last)
       decoded = Base64.decode64(payload)
@@ -140,36 +140,36 @@ class RequestTest < Minitest::Test
     end
 
     it "accept extra parameters" do
-      auth_url = OneLogin::RubySaml::Authrequest.new.create(settings, { :hello => "there" })
+      auth_url = RubySaml::Authrequest.new.create(settings, { :hello => "there" })
       assert_match(/&hello=there$/, auth_url)
 
-      auth_url = OneLogin::RubySaml::Authrequest.new.create(settings, { :hello => nil })
+      auth_url = RubySaml::Authrequest.new.create(settings, { :hello => nil })
       assert_match(/&hello=$/, auth_url)
     end
 
     it "RelayState cases" do
-      auth_url = OneLogin::RubySaml::Authrequest.new.create(settings, { :RelayState => nil })
+      auth_url = RubySaml::Authrequest.new.create(settings, { :RelayState => nil })
       assert !auth_url.include?('RelayState')
 
-      auth_url = OneLogin::RubySaml::Authrequest.new.create(settings, { :RelayState => "http://example.com" })
+      auth_url = RubySaml::Authrequest.new.create(settings, { :RelayState => "http://example.com" })
       assert auth_url.include?('&RelayState=http%3A%2F%2Fexample.com')
 
-      auth_url = OneLogin::RubySaml::Authrequest.new.create(settings, { 'RelayState' => nil })
+      auth_url = RubySaml::Authrequest.new.create(settings, { 'RelayState' => nil })
       assert !auth_url.include?('RelayState')
 
-      auth_url = OneLogin::RubySaml::Authrequest.new.create(settings, { 'RelayState' => "http://example.com" })
+      auth_url = RubySaml::Authrequest.new.create(settings, { 'RelayState' => "http://example.com" })
       assert auth_url.include?('&RelayState=http%3A%2F%2Fexample.com')
     end
 
     it "creates request with ID prefixed with default '_'" do
-      request = OneLogin::RubySaml::Authrequest.new
+      request = RubySaml::Authrequest.new
 
       assert_match(/^_/, request.uuid)
     end
 
     it "creates request with ID is prefixed, when :id_prefix is passed" do
       RubySaml::Utils::set_prefix("test")
-      request = OneLogin::RubySaml::Authrequest.new
+      request = RubySaml::Authrequest.new
       assert_match(/^test/, request.uuid)
       RubySaml::Utils::set_prefix("_")
     end
@@ -180,8 +180,8 @@ class RequestTest < Minitest::Test
       end
 
       it "raises an error with a descriptive message" do
-        err = assert_raises OneLogin::RubySaml::SettingError do
-          OneLogin::RubySaml::Authrequest.new.create(settings)
+        err = assert_raises RubySaml::SettingError do
+          RubySaml::Authrequest.new.create(settings)
         end
         assert_match(/idp_sso_service_url is not set/, err.message)
       end
@@ -190,7 +190,7 @@ class RequestTest < Minitest::Test
     describe "when the target url doesn't contain a query string" do
       it "create the SAMLRequest parameter correctly" do
 
-        auth_url = OneLogin::RubySaml::Authrequest.new.create(settings)
+        auth_url = RubySaml::Authrequest.new.create(settings)
         assert_match(/^http:\/\/example.com\?SAMLRequest/, auth_url)
       end
     end
@@ -199,27 +199,27 @@ class RequestTest < Minitest::Test
       it "create the SAMLRequest parameter correctly" do
         settings.idp_sso_service_url = "http://example.com?field=value"
 
-        auth_url = OneLogin::RubySaml::Authrequest.new.create(settings)
+        auth_url = RubySaml::Authrequest.new.create(settings)
         assert_match(/^http:\/\/example.com\?field=value&SAMLRequest/, auth_url)
       end
     end
 
     it "create the saml:AuthnContextClassRef element correctly" do
       settings.authn_context = 'secure/name/password/uri'
-      auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+      auth_doc = RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
       assert_match(/<saml:AuthnContextClassRef>secure\/name\/password\/uri<\/saml:AuthnContextClassRef>/, auth_doc.to_s)
     end
 
     it "create multiple saml:AuthnContextClassRef elements correctly" do
       settings.authn_context = ['secure/name/password/uri', 'secure/email/password/uri']
-      auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+      auth_doc = RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
       assert_match(/<saml:AuthnContextClassRef>secure\/name\/password\/uri<\/saml:AuthnContextClassRef>/, auth_doc.to_s)
       assert_match(/<saml:AuthnContextClassRef>secure\/email\/password\/uri<\/saml:AuthnContextClassRef>/, auth_doc.to_s)
     end
 
     it "create the saml:AuthnContextClassRef with comparison exact" do
       settings.authn_context = 'secure/name/password/uri'
-      auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+      auth_doc = RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
       assert_match(/<samlp:RequestedAuthnContext[\S ]+Comparison='exact'/, auth_doc.to_s)
       assert_match(/<saml:AuthnContextClassRef>secure\/name\/password\/uri<\/saml:AuthnContextClassRef>/, auth_doc.to_s)
     end
@@ -227,14 +227,14 @@ class RequestTest < Minitest::Test
     it "create the saml:AuthnContextClassRef with comparison minimun" do
       settings.authn_context = 'secure/name/password/uri'
       settings.authn_context_comparison = 'minimun'
-      auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+      auth_doc = RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
       assert_match(/<samlp:RequestedAuthnContext[\S ]+Comparison='minimun'/, auth_doc.to_s)
       assert_match(/<saml:AuthnContextClassRef>secure\/name\/password\/uri<\/saml:AuthnContextClassRef>/, auth_doc.to_s)
     end
 
     it "create the saml:AuthnContextDeclRef element correctly" do
       settings.authn_context_decl_ref = 'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport'
-      auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+      auth_doc = RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
       assert_match(/<saml:AuthnContextDeclRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport<\/saml:AuthnContextDeclRef>/, auth_doc.to_s)
     end
 
@@ -249,7 +249,7 @@ class RequestTest < Minitest::Test
       end
 
       it "create a signed request" do
-        params = OneLogin::RubySaml::Authrequest.new.create_params(settings)
+        params = RubySaml::Authrequest.new.create_params(settings)
         request_xml = Base64.decode64(params["SAMLRequest"])
         assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], request_xml
         assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], request_xml
@@ -259,7 +259,7 @@ class RequestTest < Minitest::Test
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
         settings.security[:digest_method] = XMLSecurity::Document::SHA512
 
-        params = OneLogin::RubySaml::Authrequest.new.create_params(settings)
+        params = RubySaml::Authrequest.new.create_params(settings)
 
         request_xml = Base64.decode64(params["SAMLRequest"])
         assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], request_xml
@@ -284,7 +284,7 @@ class RequestTest < Minitest::Test
       it "create a signature parameter with RSA_SHA1 and validate it" do
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
 
-        params = OneLogin::RubySaml::Authrequest.new.create_params(settings, :RelayState => 'http://example.com')
+        params = RubySaml::Authrequest.new.create_params(settings, :RelayState => 'http://example.com')
         assert params['SAMLRequest']
         assert params[:RelayState]
         assert params['Signature']
@@ -303,7 +303,7 @@ class RequestTest < Minitest::Test
       it "create a signature parameter with RSA_SHA256 and validate it" do
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
 
-        params = OneLogin::RubySaml::Authrequest.new.create_params(settings, :RelayState => 'http://example.com')
+        params = RubySaml::Authrequest.new.create_params(settings, :RelayState => 'http://example.com')
         assert params['Signature']
         assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA256
 
@@ -319,13 +319,13 @@ class RequestTest < Minitest::Test
 
     it "create the saml:AuthnContextClassRef element correctly" do
       settings.authn_context = 'secure/name/password/uri'
-      auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+      auth_doc = RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
       assert auth_doc.to_s =~ /<saml:AuthnContextClassRef>secure\/name\/password\/uri<\/saml:AuthnContextClassRef>/
     end
 
     it "create the saml:AuthnContextClassRef with comparison exact" do
       settings.authn_context = 'secure/name/password/uri'
-      auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+      auth_doc = RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
       assert auth_doc.to_s =~ /<samlp:RequestedAuthnContext[\S ]+Comparison='exact'/
       assert auth_doc.to_s =~ /<saml:AuthnContextClassRef>secure\/name\/password\/uri<\/saml:AuthnContextClassRef>/
     end
@@ -333,20 +333,20 @@ class RequestTest < Minitest::Test
     it "create the saml:AuthnContextClassRef with comparison minimun" do
       settings.authn_context = 'secure/name/password/uri'
       settings.authn_context_comparison = 'minimun'
-      auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+      auth_doc = RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
       assert auth_doc.to_s =~ /<samlp:RequestedAuthnContext[\S ]+Comparison='minimun'/
       assert auth_doc.to_s =~ /<saml:AuthnContextClassRef>secure\/name\/password\/uri<\/saml:AuthnContextClassRef>/
     end
 
     it "create the saml:AuthnContextDeclRef element correctly" do
       settings.authn_context_decl_ref = 'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport'
-      auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+      auth_doc = RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
       assert auth_doc.to_s =~ /<saml:AuthnContextDeclRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport<\/saml:AuthnContextDeclRef>/
     end
 
     it "create multiple saml:AuthnContextDeclRef elements correctly " do
       settings.authn_context_decl_ref = ['name/password/uri', 'example/decl/ref']
-      auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+      auth_doc = RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
       assert auth_doc.to_s =~ /<saml:AuthnContextDeclRef>name\/password\/uri<\/saml:AuthnContextDeclRef>/
       assert auth_doc.to_s =~ /<saml:AuthnContextDeclRef>example\/decl\/ref<\/saml:AuthnContextDeclRef>/
     end
@@ -362,7 +362,7 @@ class RequestTest < Minitest::Test
       end
 
       it "create a signed request" do
-        params = OneLogin::RubySaml::Authrequest.new.create_params(settings)
+        params = RubySaml::Authrequest.new.create_params(settings)
         request_xml = Base64.decode64(params["SAMLRequest"])
         assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], request_xml
         assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], request_xml
@@ -385,7 +385,7 @@ class RequestTest < Minitest::Test
       it "create a signature parameter with RSA_SHA1 and validate it" do
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
 
-        params = OneLogin::RubySaml::Authrequest.new.create_params(settings, :RelayState => 'http://example.com')
+        params = RubySaml::Authrequest.new.create_params(settings, :RelayState => 'http://example.com')
         assert params['SAMLRequest']
         assert params[:RelayState]
         assert params['Signature']

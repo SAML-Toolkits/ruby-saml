@@ -17,8 +17,3 @@ require 'ruby_saml/metadata'
 require 'ruby_saml/idp_metadata_parser'
 require 'ruby_saml/utils'
 require 'ruby_saml/version'
-
-# For backward compatibility
-module OneLogin
-end
-OneLogin::RubySaml = RubySaml

@@ -7,7 +7,7 @@ class SettingsTest < Minitest::Test
 
   describe "Settings" do
     before do
-      @settings = OneLogin::RubySaml::Settings.new
+      @settings = RubySaml::Settings.new
     end
 
     it "should provide getters and settings" do
@@ -96,7 +96,7 @@ class SettingsTest < Minitest::Test
           :passive => true,
           :protocol_binding => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'
       }
-      @settings = OneLogin::RubySaml::Settings.new(config)
+      @settings = RubySaml::Settings.new(config)
 
       config.each do |k,v|
         assert_equal v, @settings.send(k)
@@ -115,13 +115,13 @@ class SettingsTest < Minitest::Test
     end
 
     it "does not modify default security settings" do
-      settings = OneLogin::RubySaml::Settings.new
+      settings = RubySaml::Settings.new
       settings.security[:authn_requests_signed] = true
       settings.security[:embed_sign] = true
       settings.security[:digest_method] = XMLSecurity::Document::SHA256
       settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
 
-      new_settings = OneLogin::RubySaml::Settings.new
+      new_settings = RubySaml::Settings.new
       assert_equal new_settings.security[:authn_requests_signed], false
       assert_equal new_settings.security[:embed_sign], false
       assert_equal new_settings.security[:digest_method], XMLSecurity::Document::SHA1
@@ -135,9 +135,9 @@ class SettingsTest < Minitest::Test
         }
       }
 
-      @default_attributes = OneLogin::RubySaml::Settings::DEFAULTS
+      @default_attributes = RubySaml::Settings::DEFAULTS
 
-      @settings = OneLogin::RubySaml::Settings.new(config, true)
+      @settings = RubySaml::Settings.new(config, true)
       assert_equal @settings.security[:metadata_signed], true
       assert_equal @settings.security[:digest_method], @default_attributes[:security][:digest_method]
     end
@@ -149,9 +149,9 @@ class SettingsTest < Minitest::Test
         }
       }
 
-      @default_attributes = OneLogin::RubySaml::Settings::DEFAULTS
+      @default_attributes = RubySaml::Settings::DEFAULTS
 
-      @settings = OneLogin::RubySaml::Settings.new(config)
+      @settings = RubySaml::Settings.new(config)
       assert_equal @settings.security[:metadata_signed], true
       assert_nil @settings.security[:digest_method]
     end
@@ -355,7 +355,7 @@ class SettingsTest < Minitest::Test
       it "raises an error if SP certificate expired and check_sp_cert_expiration enabled" do
         @settings.certificate = ruby_saml_cert_text
         @settings.security[:check_sp_cert_expiration] = true
-        assert_raises(OneLogin::RubySaml::ValidationError) { @settings.get_sp_cert }
+        assert_raises(RubySaml::ValidationError) { @settings.get_sp_cert }
       end
     end
 

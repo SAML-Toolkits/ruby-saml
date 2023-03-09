@@ -5,8 +5,8 @@ require 'ruby_saml/slo_logoutresponse'
 class SloLogoutresponseTest < Minitest::Test
 
   describe "SloLogoutresponse" do
-    let(:settings) { OneLogin::RubySaml::Settings.new }
-    let(:logout_request) { OneLogin::RubySaml::SloLogoutrequest.new(logout_request_document) }
+    let(:settings) { RubySaml::Settings.new }
+    let(:logout_request) { RubySaml::SloLogoutrequest.new(logout_request_document) }
 
     before do
       settings.idp_entity_id = 'https://app.onelogin.com/saml/metadata/SOMEACCOUNT'
@@ -19,7 +19,7 @@ class SloLogoutresponseTest < Minitest::Test
     end
 
     it "create the deflated SAMLResponse URL parameter" do
-      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, logout_request.id)
+      unauth_url = RubySaml::SloLogoutresponse.new.create(settings, logout_request.id)
       assert_match(/^http:\/\/unauth\.com\/logout\?SAMLResponse=/, unauth_url)
 
       inflated = decode_saml_response_payload(unauth_url)
@@ -27,46 +27,46 @@ class SloLogoutresponseTest < Minitest::Test
     end
 
     it "support additional params" do
-      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, nil, { :hello => nil })
+      unauth_url = RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, nil, { :hello => nil })
       assert_match(/&hello=$/, unauth_url)
 
-      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, nil, { :foo => "bar" })
+      unauth_url = RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, nil, { :foo => "bar" })
       assert_match(/&foo=bar$/, unauth_url)
 
-      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, nil, { :RelayState => "http://idp.example.com" })
+      unauth_url = RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, nil, { :RelayState => "http://idp.example.com" })
       assert_match(/&RelayState=http%3A%2F%2Fidp.example.com$/, unauth_url)
     end
 
     it "RelayState cases" do
-      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, nil, { :RelayState => nil })
+      unauth_url = RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, nil, { :RelayState => nil })
       assert !unauth_url.include?('RelayState')
 
-      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, nil, { :RelayState => "http://example.com" })
+      unauth_url = RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, nil, { :RelayState => "http://example.com" })
       assert unauth_url.include?('&RelayState=http%3A%2F%2Fexample.com')
 
-      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, nil, { 'RelayState' => nil })
+      unauth_url = RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, nil, { 'RelayState' => nil })
       assert !unauth_url.include?('RelayState')
 
-      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, nil, { 'RelayState' => "http://example.com" })
+      unauth_url = RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, nil, { 'RelayState' => "http://example.com" })
       assert unauth_url.include?('&RelayState=http%3A%2F%2Fexample.com')
     end
 
     it "set InResponseTo to the ID from the logout request" do
-      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, logout_request.id)
+      unauth_url = RubySaml::SloLogoutresponse.new.create(settings, logout_request.id)
 
       inflated = decode_saml_response_payload(unauth_url)
       assert_match(/InResponseTo='_c0348950-935b-0131-1060-782bcb56fcaa'/, inflated)
     end
 
     it "set a custom successful logout message on the response" do
-      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, "Custom Logout Message")
+      unauth_url = RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, "Custom Logout Message")
 
       inflated = decode_saml_response_payload(unauth_url)
       assert_match(/<samlp:StatusMessage>Custom Logout Message<\/samlp:StatusMessage>/, inflated)
     end
 
     it "set a custom logout message and an status on the response" do
-      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, nil, "Custom Logout Message", {}, "urn:oasis:names:tc:SAML:2.0:status:PartialLogout")
+      unauth_url = RubySaml::SloLogoutresponse.new.create(settings, nil, "Custom Logout Message", {}, "urn:oasis:names:tc:SAML:2.0:status:PartialLogout")
 
       inflated = decode_saml_response_payload(unauth_url)
       assert_match(/<samlp:StatusMessage>Custom Logout Message<\/samlp:StatusMessage>/, inflated)
@@ -76,7 +76,7 @@ class SloLogoutresponseTest < Minitest::Test
     it "uses the response location when set" do
       settings.idp_slo_response_service_url = "http://unauth.com/logout/return"
 
-      unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, logout_request.id)
+      unauth_url = RubySaml::SloLogoutresponse.new.create(settings, logout_request.id)
       assert_match(/^http:\/\/unauth\.com\/logout\/return\?SAMLResponse=/, unauth_url)
 
       inflated = decode_saml_response_payload(unauth_url)
@@ -85,16 +85,16 @@ class SloLogoutresponseTest < Minitest::Test
 
     describe "playgin with preix" do
       it "creates request with ID prefixed with default '_'" do
-        request = OneLogin::RubySaml::SloLogoutresponse.new
+        request = RubySaml::SloLogoutresponse.new
 
         assert_match(/^_/, request.uuid)
       end
 
       it "creates request with ID is prefixed, when :id_prefix is passed" do
-        OneLogin::RubySaml::Utils::set_prefix("test")
-        request = OneLogin::RubySaml::SloLogoutresponse.new
+        RubySaml::Utils::set_prefix("test")
+        request = RubySaml::SloLogoutresponse.new
         assert_match(/^test/, request.uuid)
-        OneLogin::RubySaml::Utils::set_prefix("_")
+        RubySaml::Utils::set_prefix("_")
       end
     end
 
@@ -108,7 +108,7 @@ class SloLogoutresponseTest < Minitest::Test
       end
 
       it "doesn't sign through create_xml_document" do
-        unauth_res = OneLogin::RubySaml::SloLogoutresponse.new
+        unauth_res = RubySaml::SloLogoutresponse.new
         inflated = unauth_res.create_xml_document(settings).to_s
 
         refute_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], inflated
@@ -117,7 +117,7 @@ class SloLogoutresponseTest < Minitest::Test
       end
 
       it "sign unsigned request" do
-        unauth_res = OneLogin::RubySaml::SloLogoutresponse.new
+        unauth_res = RubySaml::SloLogoutresponse.new
         unauth_res_doc = unauth_res.create_xml_document(settings)
         inflated = unauth_res_doc.to_s
 
@@ -133,7 +133,7 @@ class SloLogoutresponseTest < Minitest::Test
       end
 
       it "signs through create_logout_response_xml_doc" do
-        unauth_res = OneLogin::RubySaml::SloLogoutresponse.new
+        unauth_res = RubySaml::SloLogoutresponse.new
         inflated = unauth_res.create_logout_response_xml_doc(settings).to_s
 
         assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], inflated
@@ -143,7 +143,7 @@ class SloLogoutresponseTest < Minitest::Test
 
       it "create a signed logout response" do
         logout_request.settings = settings
-        params = OneLogin::RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message")
+        params = RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message")
 
         response_xml = Base64.decode64(params["SAMLResponse"])
         assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], response_xml
@@ -155,7 +155,7 @@ class SloLogoutresponseTest < Minitest::Test
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
         settings.security[:digest_method] = XMLSecurity::Document::SHA256
 
-        params = OneLogin::RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message")
+        params = RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message")
 
         response_xml = Base64.decode64(params["SAMLResponse"])
         assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], response_xml
@@ -168,7 +168,7 @@ class SloLogoutresponseTest < Minitest::Test
         settings.security[:digest_method] = XMLSecurity::Document::SHA512
         logout_request.settings = settings
 
-        params = OneLogin::RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message")
+        params = RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message")
 
         response_xml = Base64.decode64(params["SAMLResponse"])
         assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], response_xml
@@ -190,7 +190,7 @@ class SloLogoutresponseTest < Minitest::Test
       it "create a signature parameter with RSA_SHA1 and validate it" do
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
 
-        params = OneLogin::RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message", :RelayState => 'http://example.com')
+        params = RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message", :RelayState => 'http://example.com')
         assert params['SAMLResponse']
         assert params[:RelayState]
         assert params['Signature']
@@ -208,7 +208,7 @@ class SloLogoutresponseTest < Minitest::Test
       it "create a signature parameter with RSA_SHA256 /SHA256 and validate it" do
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
 
-        params = OneLogin::RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message", :RelayState => 'http://example.com')
+        params = RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message", :RelayState => 'http://example.com')
         assert params['SAMLResponse']
         assert params[:RelayState]
         assert params['Signature']
@@ -227,7 +227,7 @@ class SloLogoutresponseTest < Minitest::Test
       it "create a signature parameter with RSA_SHA384 / SHA384 and validate it" do
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA384
 
-        params = OneLogin::RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message", :RelayState => 'http://example.com')
+        params = RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message", :RelayState => 'http://example.com')
         assert params['SAMLResponse']
         assert params[:RelayState]
         assert params['Signature']
@@ -246,7 +246,7 @@ class SloLogoutresponseTest < Minitest::Test
       it "create a signature parameter with RSA_SHA512 / SHA512 and validate it" do
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA512
 
-        params = OneLogin::RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message", :RelayState => 'http://example.com')
+        params = RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message", :RelayState => 'http://example.com')
         assert params['SAMLResponse']
         assert params[:RelayState]
         assert params['Signature']
@@ -272,7 +272,7 @@ class SloLogoutresponseTest < Minitest::Test
       end
 
       it "doesn't sign through create_xml_document" do
-        unauth_res = OneLogin::RubySaml::SloLogoutresponse.new
+        unauth_res = RubySaml::SloLogoutresponse.new
         inflated = unauth_res.create_xml_document(settings).to_s
 
         refute_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], inflated
@@ -281,7 +281,7 @@ class SloLogoutresponseTest < Minitest::Test
       end
 
       it "sign unsigned request" do
-        unauth_res = OneLogin::RubySaml::SloLogoutresponse.new
+        unauth_res = RubySaml::SloLogoutresponse.new
         unauth_res_doc = unauth_res.create_xml_document(settings)
         inflated = unauth_res_doc.to_s
 
@@ -309,7 +309,7 @@ class SloLogoutresponseTest < Minitest::Test
       it "create a signature parameter with RSA_SHA1 and validate it" do
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
 
-        params = OneLogin::RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message", :RelayState => 'http://example.com')
+        params = RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message", :RelayState => 'http://example.com')
         assert params['SAMLResponse']
         assert params[:RelayState]
         assert params['Signature']
@@ -327,7 +327,7 @@ class SloLogoutresponseTest < Minitest::Test
 
     describe "#manipulate response_id" do
       it "be able to modify the response id" do
-        logoutresponse = OneLogin::RubySaml::SloLogoutresponse.new
+        logoutresponse = RubySaml::SloLogoutresponse.new
         response_id = logoutresponse.response_id
         assert_equal response_id, logoutresponse.uuid
         logoutresponse.uuid = "new_uuid"

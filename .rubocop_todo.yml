@@ -12,14 +12,14 @@
 # SupportedStyles: case, end
 Layout/CaseIndentation:
   Exclude:
-    - 'lib/onelogin/ruby-saml/utils.rb'
+    - 'lib/ruby_saml/utils.rb'
     - 'lib/xml_security.rb'
 
 # Offense count: 5
 # This cop supports safe autocorrection (--autocorrect).
 Layout/ClosingParenthesisIndentation:
   Exclude:
-    - 'lib/onelogin/ruby-saml/response.rb'
+    - 'lib/ruby_saml/response.rb'
     - 'lib/xml_security.rb'
 
 # Offense count: 1
@@ -27,28 +27,28 @@ Layout/ClosingParenthesisIndentation:
 # Configuration parameters: AllowForAlignment.
 Layout/CommentIndentation:
   Exclude:
-    - 'lib/onelogin/ruby-saml/logoutresponse.rb'
+    - 'lib/ruby_saml/logoutresponse.rb'
 
 # Offense count: 11
 # This cop supports safe autocorrection (--autocorrect).
 Layout/EmptyLineAfterGuardClause:
   Exclude:
-    - 'lib/onelogin/ruby-saml/authrequest.rb'
-    - 'lib/onelogin/ruby-saml/idp_metadata_parser.rb'
-    - 'lib/onelogin/ruby-saml/logoutrequest.rb'
-    - 'lib/onelogin/ruby-saml/logoutresponse.rb'
-    - 'lib/onelogin/ruby-saml/response.rb'
-    - 'lib/onelogin/ruby-saml/saml_message.rb'
-    - 'lib/onelogin/ruby-saml/slo_logoutresponse.rb'
+    - 'lib/ruby_saml/authrequest.rb'
+    - 'lib/ruby_saml/idp_metadata_parser.rb'
+    - 'lib/ruby_saml/logoutrequest.rb'
+    - 'lib/ruby_saml/logoutresponse.rb'
+    - 'lib/ruby_saml/response.rb'
+    - 'lib/ruby_saml/saml_message.rb'
+    - 'lib/ruby_saml/slo_logoutresponse.rb'
 
 # Offense count: 4
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: EmptyLineBetweenMethodDefs, EmptyLineBetweenClassDefs, EmptyLineBetweenModuleDefs, AllowAdjacentOneLineDefs, NumberOfEmptyLines.
 Layout/EmptyLineBetweenDefs:
   Exclude:
-    - 'lib/onelogin/ruby-saml/attributes.rb'
-    - 'lib/onelogin/ruby-saml/response.rb'
-    - 'lib/onelogin/ruby-saml/settings.rb'
+    - 'lib/ruby_saml/attributes.rb'
+    - 'lib/ruby_saml/response.rb'
+    - 'lib/ruby_saml/settings.rb'
 
 # Offense count: 1
 # This cop supports safe autocorrection (--autocorrect).
@@ -56,7 +56,7 @@ Layout/EmptyLineBetweenDefs:
 # SupportedStyles: empty_lines, no_empty_lines
 Layout/EmptyLinesAroundBlockBody:
   Exclude:
-    - 'lib/onelogin/ruby-saml/response.rb'
+    - 'lib/ruby_saml/response.rb'
 
 # Offense count: 12
 # This cop supports safe autocorrection (--autocorrect).
@@ -64,13 +64,13 @@ Layout/EmptyLinesAroundBlockBody:
 # SupportedStyles: empty_lines, empty_lines_except_namespace, empty_lines_special, no_empty_lines, beginning_only, ending_only
 Layout/EmptyLinesAroundClassBody:
   Exclude:
-    - 'lib/onelogin/ruby-saml/attributes.rb'
-    - 'lib/onelogin/ruby-saml/authrequest.rb'
-    - 'lib/onelogin/ruby-saml/idp_metadata_parser.rb'
-    - 'lib/onelogin/ruby-saml/logoutrequest.rb'
-    - 'lib/onelogin/ruby-saml/logoutresponse.rb'
-    - 'lib/onelogin/ruby-saml/metadata.rb'
-    - 'lib/onelogin/ruby-saml/slo_logoutresponse.rb'
+    - 'lib/ruby_saml/attributes.rb'
+    - 'lib/ruby_saml/authrequest.rb'
+    - 'lib/ruby_saml/idp_metadata_parser.rb'
+    - 'lib/ruby_saml/logoutrequest.rb'
+    - 'lib/ruby_saml/logoutresponse.rb'
+    - 'lib/ruby_saml/metadata.rb'
+    - 'lib/ruby_saml/slo_logoutresponse.rb'
     - 'lib/xml_security.rb'
 
 # Offense count: 1
@@ -85,17 +85,17 @@ Layout/EmptyLinesAroundMethodBody:
 # SupportedStyles: empty_lines, empty_lines_except_namespace, empty_lines_special, no_empty_lines
 Layout/EmptyLinesAroundModuleBody:
   Exclude:
-    - 'lib/onelogin/ruby-saml/attribute_service.rb'
-    - 'lib/onelogin/ruby-saml/attributes.rb'
-    - 'lib/onelogin/ruby-saml/logoutrequest.rb'
-    - 'lib/onelogin/ruby-saml/logoutresponse.rb'
-    - 'lib/onelogin/ruby-saml/metadata.rb'
-    - 'lib/onelogin/ruby-saml/response.rb'
-    - 'lib/onelogin/ruby-saml/saml_message.rb'
-    - 'lib/onelogin/ruby-saml/settings.rb'
-    - 'lib/onelogin/ruby-saml/slo_logoutrequest.rb'
-    - 'lib/onelogin/ruby-saml/slo_logoutresponse.rb'
-    - 'lib/onelogin/ruby-saml/utils.rb'
+    - 'lib/ruby_saml/attribute_service.rb'
+    - 'lib/ruby_saml/attributes.rb'
+    - 'lib/ruby_saml/logoutrequest.rb'
+    - 'lib/ruby_saml/logoutresponse.rb'
+    - 'lib/ruby_saml/metadata.rb'
+    - 'lib/ruby_saml/response.rb'
+    - 'lib/ruby_saml/saml_message.rb'
+    - 'lib/ruby_saml/settings.rb'
+    - 'lib/ruby_saml/slo_logoutrequest.rb'
+    - 'lib/ruby_saml/slo_logoutresponse.rb'
+    - 'lib/ruby_saml/utils.rb'
     - 'lib/xml_security.rb'
 
 # Offense count: 1
@@ -103,18 +103,18 @@ Layout/EmptyLinesAroundModuleBody:
 # SupportedStyles: native, lf, crlf
 Layout/EndOfLine:
   Exclude:
-    - 'lib/onelogin/ruby-saml/setting_error.rb'
+    - 'lib/ruby_saml/setting_error.rb'
 
 # Offense count: 5
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: AllowForAlignment, AllowBeforeTrailingComments, ForceEqualSignAlignment.
 Layout/ExtraSpacing:
   Exclude:
-    - 'lib/onelogin/ruby-saml/authrequest.rb'
-    - 'lib/onelogin/ruby-saml/idp_metadata_parser.rb'
-    - 'lib/onelogin/ruby-saml/logoutrequest.rb'
-    - 'lib/onelogin/ruby-saml/response.rb'
-    - 'lib/onelogin/ruby-saml/slo_logoutresponse.rb'
+    - 'lib/ruby_saml/authrequest.rb'
+    - 'lib/ruby_saml/idp_metadata_parser.rb'
+    - 'lib/ruby_saml/logoutrequest.rb'
+    - 'lib/ruby_saml/response.rb'
+    - 'lib/ruby_saml/slo_logoutresponse.rb'
 
 # Offense count: 6
 # This cop supports safe autocorrection (--autocorrect).
@@ -122,7 +122,7 @@ Layout/ExtraSpacing:
 # SupportedStyles: consistent, consistent_relative_to_receiver, special_for_inner_method_call, special_for_inner_method_call_in_parentheses
 Layout/FirstArgumentIndentation:
   Exclude:
-    - 'lib/onelogin/ruby-saml/response.rb'
+    - 'lib/ruby_saml/response.rb'
     - 'lib/xml_security.rb'
 
 # Offense count: 5
@@ -131,8 +131,8 @@ Layout/FirstArgumentIndentation:
 # SupportedStyles: special_inside_parentheses, consistent, align_braces
 Layout/FirstHashElementIndentation:
   Exclude:
-    - 'lib/onelogin/ruby-saml/authrequest.rb'
-    - 'lib/onelogin/ruby-saml/metadata.rb'
+    - 'lib/ruby_saml/authrequest.rb'
+    - 'lib/ruby_saml/metadata.rb'
 
 # Offense count: 1
 # This cop supports safe autocorrection (--autocorrect).
@@ -140,15 +140,15 @@ Layout/FirstHashElementIndentation:
 # SupportedStyles: normal, indented_internal_methods
 Layout/IndentationConsistency:
   Exclude:
-    - 'lib/onelogin/ruby-saml/authrequest.rb'
+    - 'lib/ruby_saml/authrequest.rb'
 
 # Offense count: 3
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: Width, AllowedPatterns.
 Layout/IndentationWidth:
   Exclude:
-    - 'lib/onelogin/ruby-saml/authrequest.rb'
-    - 'lib/onelogin/ruby-saml/response.rb'
+    - 'lib/ruby_saml/authrequest.rb'
+    - 'lib/ruby_saml/response.rb'
 
 # Offense count: 1
 # This cop supports safe autocorrection (--autocorrect).
@@ -156,21 +156,21 @@ Layout/IndentationWidth:
 # SupportedStyles: aligned, indented
 Layout/MultilineOperationIndentation:
   Exclude:
-    - 'lib/onelogin/ruby-saml/idp_metadata_parser.rb'
+    - 'lib/ruby_saml/idp_metadata_parser.rb'
 
 # Offense count: 3
 # This cop supports safe autocorrection (--autocorrect).
 Layout/SpaceAfterComma:
   Exclude:
-    - 'lib/onelogin/ruby-saml/response.rb'
-    - 'lib/onelogin/ruby-saml/settings.rb'
+    - 'lib/ruby_saml/response.rb'
+    - 'lib/ruby_saml/settings.rb'
     - 'lib/xml_security.rb'
 
 # Offense count: 1
 # This cop supports safe autocorrection (--autocorrect).
 Layout/SpaceAfterNot:
   Exclude:
-    - 'lib/onelogin/ruby-saml/response.rb'
+    - 'lib/ruby_saml/response.rb'
 
 # Offense count: 12
 # This cop supports safe autocorrection (--autocorrect).
@@ -178,13 +178,13 @@ Layout/SpaceAfterNot:
 # SupportedStyles: space, no_space
 Layout/SpaceAroundEqualsInParameterDefault:
   Exclude:
-    - 'lib/onelogin/ruby-saml/attribute_service.rb'
-    - 'lib/onelogin/ruby-saml/authrequest.rb'
-    - 'lib/onelogin/ruby-saml/idp_metadata_parser.rb'
-    - 'lib/onelogin/ruby-saml/logoutrequest.rb'
-    - 'lib/onelogin/ruby-saml/metadata.rb'
-    - 'lib/onelogin/ruby-saml/response.rb'
-    - 'lib/onelogin/ruby-saml/utils.rb'
+    - 'lib/ruby_saml/attribute_service.rb'
+    - 'lib/ruby_saml/authrequest.rb'
+    - 'lib/ruby_saml/idp_metadata_parser.rb'
+    - 'lib/ruby_saml/logoutrequest.rb'
+    - 'lib/ruby_saml/metadata.rb'
+    - 'lib/ruby_saml/response.rb'
+    - 'lib/ruby_saml/utils.rb'
 
 # Offense count: 18
 # This cop supports safe autocorrection (--autocorrect).
@@ -192,10 +192,10 @@ Layout/SpaceAroundEqualsInParameterDefault:
 # SupportedStylesForExponentOperator: space, no_space
 Layout/SpaceAroundOperators:
   Exclude:
-    - 'lib/onelogin/ruby-saml/authrequest.rb'
-    - 'lib/onelogin/ruby-saml/response.rb'
-    - 'lib/onelogin/ruby-saml/slo_logoutresponse.rb'
-    - 'lib/onelogin/ruby-saml/utils.rb'
+    - 'lib/ruby_saml/authrequest.rb'
+    - 'lib/ruby_saml/response.rb'
+    - 'lib/ruby_saml/slo_logoutresponse.rb'
+    - 'lib/ruby_saml/utils.rb'
     - 'lib/xml_security.rb'
 
 # Offense count: 2
@@ -205,14 +205,14 @@ Layout/SpaceAroundOperators:
 # SupportedStylesForEmptyBraces: space, no_space
 Layout/SpaceBeforeBlockBraces:
   Exclude:
-    - 'lib/onelogin/ruby-saml/attributes.rb'
-    - 'lib/onelogin/ruby-saml/response.rb'
+    - 'lib/ruby_saml/attributes.rb'
+    - 'lib/ruby_saml/response.rb'
 
 # Offense count: 1
 # This cop supports safe autocorrection (--autocorrect).
 Layout/SpaceBeforeComma:
   Exclude:
-    - 'lib/onelogin/ruby-saml/idp_metadata_parser.rb'
+    - 'lib/ruby_saml/idp_metadata_parser.rb'
 
 # Offense count: 9
 # This cop supports safe autocorrection (--autocorrect).
@@ -221,10 +221,10 @@ Layout/SpaceBeforeComma:
 # SupportedStylesForEmptyBraces: space, no_space
 Layout/SpaceInsideBlockBraces:
   Exclude:
-    - 'lib/onelogin/ruby-saml/attributes.rb'
-    - 'lib/onelogin/ruby-saml/idp_metadata_parser.rb'
-    - 'lib/onelogin/ruby-saml/response.rb'
-    - 'lib/onelogin/ruby-saml/utils.rb'
+    - 'lib/ruby_saml/attributes.rb'
+    - 'lib/ruby_saml/idp_metadata_parser.rb'
+    - 'lib/ruby_saml/response.rb'
+    - 'lib/ruby_saml/utils.rb'
 
 # Offense count: 41
 # This cop supports safe autocorrection (--autocorrect).
@@ -233,12 +233,12 @@ Layout/SpaceInsideBlockBraces:
 # SupportedStylesForEmptyBraces: space, no_space
 Layout/SpaceInsideHashLiteralBraces:
   Exclude:
-    - 'lib/onelogin/ruby-saml/authrequest.rb'
-    - 'lib/onelogin/ruby-saml/logoutrequest.rb'
-    - 'lib/onelogin/ruby-saml/metadata.rb'
-    - 'lib/onelogin/ruby-saml/response.rb'
-    - 'lib/onelogin/ruby-saml/settings.rb'
-    - 'lib/onelogin/ruby-saml/slo_logoutresponse.rb'
+    - 'lib/ruby_saml/authrequest.rb'
+    - 'lib/ruby_saml/logoutrequest.rb'
+    - 'lib/ruby_saml/metadata.rb'
+    - 'lib/ruby_saml/response.rb'
+    - 'lib/ruby_saml/settings.rb'
+    - 'lib/ruby_saml/slo_logoutresponse.rb'
     - 'lib/xml_security.rb'
 
 # Offense count: 1
@@ -247,7 +247,7 @@ Layout/SpaceInsideHashLiteralBraces:
 # SupportedStyles: space, compact, no_space
 Layout/SpaceInsideParens:
   Exclude:
-    - 'lib/onelogin/ruby-saml/response.rb'
+    - 'lib/ruby_saml/response.rb'
 
 # Offense count: 3
 # This cop supports safe autocorrection (--autocorrect).
@@ -255,24 +255,24 @@ Layout/SpaceInsideParens:
 # SupportedStyles: final_newline, final_blank_line
 Layout/TrailingEmptyLines:
   Exclude:
-    - 'lib/onelogin/ruby-saml/http_error.rb'
-    - 'lib/onelogin/ruby-saml/setting_error.rb'
-    - 'lib/onelogin/ruby-saml/validation_error.rb'
+    - 'lib/ruby_saml/http_error.rb'
+    - 'lib/ruby_saml/setting_error.rb'
+    - 'lib/ruby_saml/validation_error.rb'
 
 # Offense count: 5
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: AllowInHeredoc.
 Layout/TrailingWhitespace:
   Exclude:
-    - 'lib/onelogin/ruby-saml/attributes.rb'
-    - 'lib/onelogin/ruby-saml/idp_metadata_parser.rb'
+    - 'lib/ruby_saml/attributes.rb'
+    - 'lib/ruby_saml/idp_metadata_parser.rb'
 
 # Offense count: 3
 # This cop supports safe autocorrection (--autocorrect).
 Lint/AmbiguousOperatorPrecedence:
   Exclude:
-    - 'lib/onelogin/ruby-saml/idp_metadata_parser.rb'
-    - 'lib/onelogin/ruby-saml/utils.rb'
+    - 'lib/ruby_saml/idp_metadata_parser.rb'
+    - 'lib/ruby_saml/utils.rb'
 
 # Offense count: 1
 # This cop supports unsafe autocorrection (--autocorrect-all).
@@ -285,22 +285,22 @@ Lint/AssignmentInCondition:
 # This cop supports safe autocorrection (--autocorrect).
 Lint/DeprecatedOpenSSLConstant:
   Exclude:
-    - 'lib/onelogin/ruby-saml/utils.rb'
+    - 'lib/ruby_saml/utils.rb'
 
 # Offense count: 6
 Lint/MissingSuper:
   Exclude:
-    - 'lib/onelogin/ruby-saml/authrequest.rb'
-    - 'lib/onelogin/ruby-saml/logoutrequest.rb'
-    - 'lib/onelogin/ruby-saml/logoutresponse.rb'
-    - 'lib/onelogin/ruby-saml/response.rb'
-    - 'lib/onelogin/ruby-saml/slo_logoutrequest.rb'
-    - 'lib/onelogin/ruby-saml/slo_logoutresponse.rb'
+    - 'lib/ruby_saml/authrequest.rb'
+    - 'lib/ruby_saml/logoutrequest.rb'
+    - 'lib/ruby_saml/logoutresponse.rb'
+    - 'lib/ruby_saml/response.rb'
+    - 'lib/ruby_saml/slo_logoutrequest.rb'
+    - 'lib/ruby_saml/slo_logoutresponse.rb'
 
 # Offense count: 2
 Lint/NoReturnInBeginEndBlocks:
   Exclude:
-    - 'lib/onelogin/ruby-saml/idp_metadata_parser.rb'
+    - 'lib/ruby_saml/idp_metadata_parser.rb'
 
 # Offense count: 1
 # This cop supports unsafe autocorrection (--autocorrect-all).
@@ -308,24 +308,24 @@ Lint/NoReturnInBeginEndBlocks:
 # AllowedImplicitNamespaces: Gem
 Lint/RaiseException:
   Exclude:
-    - 'lib/onelogin/ruby-saml/utils.rb'
+    - 'lib/ruby_saml/utils.rb'
 
 # Offense count: 1
 Lint/ShadowingOuterLocalVariable:
   Exclude:
-    - 'lib/onelogin/ruby-saml/response.rb'
+    - 'lib/ruby_saml/response.rb'
 
 # Offense count: 1
 # Configuration parameters: AllowedPatterns.
 # AllowedPatterns: (?-mix:(exactly|at_least|at_most)\(\d+\)\.times)
 Lint/UnreachableLoop:
   Exclude:
-    - 'lib/onelogin/ruby-saml/saml_message.rb'
+    - 'lib/ruby_saml/saml_message.rb'
 
 # Offense count: 2
 Lint/UselessAssignment:
   Exclude:
-    - 'lib/onelogin/ruby-saml/response.rb'
+    - 'lib/ruby_saml/response.rb'
 
 # Offense count: 39
 # Configuration parameters: AllowedMethods, AllowedPatterns, CountRepeatedAttributes.
@@ -371,8 +371,8 @@ Metrics/PerceivedComplexity:
 # Offense count: 7
 Naming/AccessorMethodName:
   Exclude:
-    - 'lib/onelogin/ruby-saml/settings.rb'
-    - 'lib/onelogin/ruby-saml/utils.rb'
+    - 'lib/ruby_saml/settings.rb'
+    - 'lib/ruby_saml/utils.rb'
 
 # Offense count: 2
 # Configuration parameters: ExpectMatchingDefinition, CheckDefinitionPathHierarchy, CheckDefinitionPathHierarchyRoots, Regex, IgnoreExecutableScripts, AllowedAcronyms.
@@ -380,7 +380,7 @@ Naming/AccessorMethodName:
 # AllowedAcronyms: CLI, DSL, ACL, API, ASCII, CPU, CSS, DNS, EOF, GUID, HTML, HTTP, HTTPS, ID, IP, JSON, LHS, QPS, RAM, RHS, RPC, SLA, SMTP, SQL, SSH, TCP, TLS, TTL, UDP, UI, UID, UUID, URI, URL, UTF8, VM, XML, XMPP, XSRF, XSS
 Naming/FileName:
   Exclude:
-    - 'lib/onelogin/ruby-saml.rb'
+    - 'lib/ruby_saml.rb'
     - 'lib/ruby-saml.rb'
 
 # Offense count: 2
@@ -388,7 +388,7 @@ Naming/FileName:
 # SupportedStylesForLeadingUnderscores: disallowed, required, optional
 Naming/MemoizedInstanceVariableName:
   Exclude:
-    - 'lib/onelogin/ruby-saml/response.rb'
+    - 'lib/ruby_saml/response.rb'
 
 # Offense count: 3
 # Configuration parameters: NamePrefix, ForbiddenPrefixes, AllowedMethods, MethodDefinitionMacros.
@@ -399,64 +399,64 @@ Naming/MemoizedInstanceVariableName:
 Naming/PredicateName:
   Exclude:
     - 'spec/**/*'
-    - 'lib/onelogin/ruby-saml/response.rb'
-    - 'lib/onelogin/ruby-saml/slo_logoutrequest.rb'
-    - 'lib/onelogin/ruby-saml/utils.rb'
+    - 'lib/ruby_saml/response.rb'
+    - 'lib/ruby_saml/slo_logoutrequest.rb'
+    - 'lib/ruby_saml/utils.rb'
 
 # Offense count: 1
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: PreferredName.
 Naming/RescuedExceptionsVariableName:
   Exclude:
-    - 'lib/onelogin/ruby-saml/saml_message.rb'
+    - 'lib/ruby_saml/saml_message.rb'
 
 # Offense count: 14
 # Configuration parameters: EnforcedStyle, AllowedIdentifiers, AllowedPatterns.
 # SupportedStyles: snake_case, camelCase
 Naming/VariableName:
   Exclude:
-    - 'lib/onelogin/ruby-saml/utils.rb'
+    - 'lib/ruby_saml/utils.rb'
 
 # Offense count: 2
 # This cop supports unsafe autocorrection (--autocorrect-all).
 Performance/Casecmp:
   Exclude:
-    - 'lib/onelogin/ruby-saml/utils.rb'
+    - 'lib/ruby_saml/utils.rb'
 
 # Offense count: 1
 # Configuration parameters: MinSize.
 Performance/CollectionLiteralInLoop:
   Exclude:
-    - 'lib/onelogin/ruby-saml/response.rb'
+    - 'lib/ruby_saml/response.rb'
 
 # Offense count: 1
 # This cop supports safe autocorrection (--autocorrect).
 Performance/RegexpMatch:
   Exclude:
-    - 'lib/onelogin/ruby-saml/idp_metadata_parser.rb'
+    - 'lib/ruby_saml/idp_metadata_parser.rb'
 
 # Offense count: 1
 # This cop supports safe autocorrection (--autocorrect).
 Performance/StringIdentifierArgument:
   Exclude:
-    - 'lib/onelogin/ruby-saml/saml_message.rb'
+    - 'lib/ruby_saml/saml_message.rb'
 
 # Offense count: 5
 # This cop supports unsafe autocorrection (--autocorrect-all).
 Performance/StringInclude:
   Exclude:
-    - 'lib/onelogin/ruby-saml/authrequest.rb'
-    - 'lib/onelogin/ruby-saml/logoutrequest.rb'
-    - 'lib/onelogin/ruby-saml/slo_logoutresponse.rb'
-    - 'lib/onelogin/ruby-saml/utils.rb'
+    - 'lib/ruby_saml/authrequest.rb'
+    - 'lib/ruby_saml/logoutrequest.rb'
+    - 'lib/ruby_saml/slo_logoutresponse.rb'
+    - 'lib/ruby_saml/utils.rb'
 
 # Offense count: 8
 # This cop supports safe autocorrection (--autocorrect).
 Performance/StringReplacement:
   Exclude:
-    - 'lib/onelogin/ruby-saml/metadata.rb'
-    - 'lib/onelogin/ruby-saml/saml_message.rb'
-    - 'lib/onelogin/ruby-saml/utils.rb'
+    - 'lib/ruby_saml/metadata.rb'
+    - 'lib/ruby_saml/saml_message.rb'
+    - 'lib/ruby_saml/utils.rb'
     - 'lib/xml_security.rb'
 
 # Offense count: 54
@@ -465,12 +465,12 @@ Performance/StringReplacement:
 # SupportedStyles: separated, grouped
 Style/AccessorGrouping:
   Exclude:
-    - 'lib/onelogin/ruby-saml/attribute_service.rb'
-    - 'lib/onelogin/ruby-saml/idp_metadata_parser.rb'
-    - 'lib/onelogin/ruby-saml/logoutresponse.rb'
-    - 'lib/onelogin/ruby-saml/response.rb'
-    - 'lib/onelogin/ruby-saml/settings.rb'
-    - 'lib/onelogin/ruby-saml/slo_logoutrequest.rb'
+    - 'lib/ruby_saml/attribute_service.rb'
+    - 'lib/ruby_saml/idp_metadata_parser.rb'
+    - 'lib/ruby_saml/logoutresponse.rb'
+    - 'lib/ruby_saml/response.rb'
+    - 'lib/ruby_saml/settings.rb'
+    - 'lib/ruby_saml/slo_logoutrequest.rb'
 
 # Offense count: 5
 # This cop supports safe autocorrection (--autocorrect).
@@ -478,9 +478,9 @@ Style/AccessorGrouping:
 # SupportedStyles: prefer_alias, prefer_alias_method
 Style/Alias:
   Exclude:
-    - 'lib/onelogin/ruby-saml/attributes.rb'
-    - 'lib/onelogin/ruby-saml/response.rb'
-    - 'lib/onelogin/ruby-saml/slo_logoutrequest.rb'
+    - 'lib/ruby_saml/attributes.rb'
+    - 'lib/ruby_saml/response.rb'
+    - 'lib/ruby_saml/slo_logoutrequest.rb'
 
 # Offense count: 13
 # This cop supports unsafe autocorrection (--autocorrect-all).
@@ -488,10 +488,10 @@ Style/Alias:
 # SupportedStyles: always, conditionals
 Style/AndOr:
   Exclude:
-    - 'lib/onelogin/ruby-saml/authrequest.rb'
-    - 'lib/onelogin/ruby-saml/logoutrequest.rb'
-    - 'lib/onelogin/ruby-saml/response.rb'
-    - 'lib/onelogin/ruby-saml/slo_logoutresponse.rb'
+    - 'lib/ruby_saml/authrequest.rb'
+    - 'lib/ruby_saml/logoutrequest.rb'
+    - 'lib/ruby_saml/response.rb'
+    - 'lib/ruby_saml/slo_logoutresponse.rb'
 
 # Offense count: 2
 # This cop supports safe autocorrection (--autocorrect).
@@ -502,14 +502,14 @@ Style/AndOr:
 # AllowedMethods: lambda, proc, it
 Style/BlockDelimiters:
   Exclude:
-    - 'lib/onelogin/ruby-saml/response.rb'
-    - 'lib/onelogin/ruby-saml/utils.rb'
+    - 'lib/ruby_saml/response.rb'
+    - 'lib/ruby_saml/utils.rb'
 
 # Offense count: 3
 Style/ClassVars:
   Exclude:
-    - 'lib/onelogin/ruby-saml/attributes.rb'
-    - 'lib/onelogin/ruby-saml/saml_message.rb'
+    - 'lib/ruby_saml/attributes.rb'
+    - 'lib/ruby_saml/saml_message.rb'
 
 # Offense count: 1
 # This cop supports safe autocorrection (--autocorrect).
@@ -523,9 +523,9 @@ Style/ColonMethodCall:
 # SupportedStyles: assign_to_condition, assign_inside_condition
 Style/ConditionalAssignment:
   Exclude:
-    - 'lib/onelogin/ruby-saml/authrequest.rb'
-    - 'lib/onelogin/ruby-saml/logoutresponse.rb'
-    - 'lib/onelogin/ruby-saml/response.rb'
+    - 'lib/ruby_saml/authrequest.rb'
+    - 'lib/ruby_saml/logoutresponse.rb'
+    - 'lib/ruby_saml/response.rb'
     - 'lib/xml_security.rb'
 
 # Offense count: 8
@@ -534,10 +534,10 @@ Style/Documentation:
   Exclude:
     - 'spec/**/*'
     - 'test/**/*'
-    - 'lib/onelogin/ruby-saml/authrequest.rb'
-    - 'lib/onelogin/ruby-saml/error_handling.rb'
-    - 'lib/onelogin/ruby-saml/idp_metadata_parser.rb'
-    - 'lib/onelogin/ruby-saml/logging.rb'
+    - 'lib/ruby_saml/authrequest.rb'
+    - 'lib/ruby_saml/error_handling.rb'
+    - 'lib/ruby_saml/idp_metadata_parser.rb'
+    - 'lib/ruby_saml/logging.rb'
     - 'lib/xml_security.rb'
 
 # Offense count: 2
@@ -546,7 +546,7 @@ Style/Documentation:
 # SupportedStyles: allowed_in_returns, forbidden
 Style/DoubleNegation:
   Exclude:
-    - 'lib/onelogin/ruby-saml/logging.rb'
+    - 'lib/ruby_saml/logging.rb'
 
 # Offense count: 1
 # This cop supports safe autocorrection (--autocorrect).
@@ -560,13 +560,13 @@ Style/EmptyElse:
 # This cop supports safe autocorrection (--autocorrect).
 Style/ExpandPathArguments:
   Exclude:
-    - 'lib/onelogin/ruby-saml/saml_message.rb'
+    - 'lib/ruby_saml/saml_message.rb'
 
 # Offense count: 1
 # This cop supports safe autocorrection (--autocorrect).
 Style/ExplicitBlockArgument:
   Exclude:
-    - 'lib/onelogin/ruby-saml/attributes.rb'
+    - 'lib/ruby_saml/attributes.rb'
 
 # Offense count: 1
 # This cop supports unsafe autocorrection (--autocorrect-all).
@@ -574,36 +574,36 @@ Style/ExplicitBlockArgument:
 # SupportedStyles: each, for
 Style/For:
   Exclude:
-    - 'lib/onelogin/ruby-saml/metadata.rb'
+    - 'lib/ruby_saml/metadata.rb'
 
 # Offense count: 1
 # This cop supports unsafe autocorrection (--autocorrect-all).
 Style/GlobalStdStream:
   Exclude:
-    - 'lib/onelogin/ruby-saml/logging.rb'
+    - 'lib/ruby_saml/logging.rb'
 
 # Offense count: 4
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: MinBodyLength, AllowConsecutiveConditionals.
 Style/GuardClause:
   Exclude:
-    - 'lib/onelogin/ruby-saml/response.rb'
-    - 'lib/onelogin/ruby-saml/utils.rb'
+    - 'lib/ruby_saml/response.rb'
+    - 'lib/ruby_saml/utils.rb'
 
 # Offense count: 69
 # This cop supports safe autocorrection (--autocorrect).
 Style/IfUnlessModifier:
   Exclude:
-    - 'lib/onelogin/ruby-saml/authrequest.rb'
-    - 'lib/onelogin/ruby-saml/error_handling.rb'
-    - 'lib/onelogin/ruby-saml/idp_metadata_parser.rb'
-    - 'lib/onelogin/ruby-saml/logoutresponse.rb'
-    - 'lib/onelogin/ruby-saml/metadata.rb'
-    - 'lib/onelogin/ruby-saml/response.rb'
-    - 'lib/onelogin/ruby-saml/saml_message.rb'
-    - 'lib/onelogin/ruby-saml/settings.rb'
-    - 'lib/onelogin/ruby-saml/slo_logoutrequest.rb'
-    - 'lib/onelogin/ruby-saml/utils.rb'
+    - 'lib/ruby_saml/authrequest.rb'
+    - 'lib/ruby_saml/error_handling.rb'
+    - 'lib/ruby_saml/idp_metadata_parser.rb'
+    - 'lib/ruby_saml/logoutresponse.rb'
+    - 'lib/ruby_saml/metadata.rb'
+    - 'lib/ruby_saml/response.rb'
+    - 'lib/ruby_saml/saml_message.rb'
+    - 'lib/ruby_saml/settings.rb'
+    - 'lib/ruby_saml/slo_logoutrequest.rb'
+    - 'lib/ruby_saml/utils.rb'
     - 'lib/xml_security.rb'
 
 # Offense count: 2
@@ -612,8 +612,8 @@ Style/IfUnlessModifier:
 # SupportedStyles: literals, strict
 Style/MutableConstant:
   Exclude:
-    - 'lib/onelogin/ruby-saml/response.rb'
-    - 'lib/onelogin/ruby-saml/saml_message.rb'
+    - 'lib/ruby_saml/response.rb'
+    - 'lib/ruby_saml/saml_message.rb'
 
 # Offense count: 2
 # This cop supports safe autocorrection (--autocorrect).
@@ -621,14 +621,14 @@ Style/MutableConstant:
 # SupportedStyles: both, prefix, postfix
 Style/NegatedIf:
   Exclude:
-    - 'lib/onelogin/ruby-saml/response.rb'
-    - 'lib/onelogin/ruby-saml/settings.rb'
+    - 'lib/ruby_saml/response.rb'
+    - 'lib/ruby_saml/settings.rb'
 
 # Offense count: 1
 # This cop supports safe autocorrection (--autocorrect).
 Style/NegatedIfElseCondition:
   Exclude:
-    - 'lib/onelogin/ruby-saml/authrequest.rb'
+    - 'lib/ruby_saml/authrequest.rb'
 
 # Offense count: 6
 # This cop supports safe autocorrection (--autocorrect).
@@ -636,10 +636,10 @@ Style/NegatedIfElseCondition:
 # SupportedStyles: skip_modifier_ifs, always
 Style/Next:
   Exclude:
-    - 'lib/onelogin/ruby-saml/logoutresponse.rb'
-    - 'lib/onelogin/ruby-saml/metadata.rb'
-    - 'lib/onelogin/ruby-saml/response.rb'
-    - 'lib/onelogin/ruby-saml/slo_logoutrequest.rb'
+    - 'lib/ruby_saml/logoutresponse.rb'
+    - 'lib/ruby_saml/metadata.rb'
+    - 'lib/ruby_saml/response.rb'
+    - 'lib/ruby_saml/slo_logoutrequest.rb'
     - 'lib/xml_security.rb'
 
 # Offense count: 1
@@ -655,44 +655,44 @@ Style/NumericLiterals:
 Style/NumericPredicate:
   Exclude:
     - 'spec/**/*'
-    - 'lib/onelogin/ruby-saml/attribute_service.rb'
-    - 'lib/onelogin/ruby-saml/response.rb'
-    - 'lib/onelogin/ruby-saml/slo_logoutrequest.rb'
+    - 'lib/ruby_saml/attribute_service.rb'
+    - 'lib/ruby_saml/response.rb'
+    - 'lib/ruby_saml/slo_logoutrequest.rb'
 
 # Offense count: 15
 # Configuration parameters: AllowedMethods.
 # AllowedMethods: respond_to_missing?
 Style/OptionalBooleanParameter:
   Exclude:
-    - 'lib/onelogin/ruby-saml/idp_metadata_parser.rb'
-    - 'lib/onelogin/ruby-saml/logoutresponse.rb'
-    - 'lib/onelogin/ruby-saml/metadata.rb'
-    - 'lib/onelogin/ruby-saml/response.rb'
-    - 'lib/onelogin/ruby-saml/saml_message.rb'
-    - 'lib/onelogin/ruby-saml/settings.rb'
-    - 'lib/onelogin/ruby-saml/slo_logoutrequest.rb'
-    - 'lib/onelogin/ruby-saml/utils.rb'
+    - 'lib/ruby_saml/idp_metadata_parser.rb'
+    - 'lib/ruby_saml/logoutresponse.rb'
+    - 'lib/ruby_saml/metadata.rb'
+    - 'lib/ruby_saml/response.rb'
+    - 'lib/ruby_saml/saml_message.rb'
+    - 'lib/ruby_saml/settings.rb'
+    - 'lib/ruby_saml/slo_logoutrequest.rb'
+    - 'lib/ruby_saml/utils.rb'
     - 'lib/xml_security.rb'
 
 # Offense count: 2
 # This cop supports safe autocorrection (--autocorrect).
 Style/ParallelAssignment:
   Exclude:
-    - 'lib/onelogin/ruby-saml/utils.rb'
+    - 'lib/ruby_saml/utils.rb'
 
 # Offense count: 1
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: AllowSafeAssignment, AllowInMultilineConditions.
 Style/ParenthesesAroundCondition:
   Exclude:
-    - 'lib/onelogin/ruby-saml/response.rb'
+    - 'lib/ruby_saml/response.rb'
 
 # Offense count: 1
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: PreferredDelimiters.
 Style/PercentLiteralDelimiters:
   Exclude:
-    - 'lib/onelogin/ruby-saml/utils.rb'
+    - 'lib/ruby_saml/utils.rb'
 
 # Offense count: 1
 # This cop supports safe autocorrection (--autocorrect).
@@ -706,10 +706,10 @@ Style/PerlBackrefs:
 # SupportedStyles: short, verbose
 Style/PreferredHashMethods:
   Exclude:
-    - 'lib/onelogin/ruby-saml/attributes.rb'
-    - 'lib/onelogin/ruby-saml/logoutresponse.rb'
-    - 'lib/onelogin/ruby-saml/response.rb'
-    - 'lib/onelogin/ruby-saml/slo_logoutrequest.rb'
+    - 'lib/ruby_saml/attributes.rb'
+    - 'lib/ruby_saml/logoutresponse.rb'
+    - 'lib/ruby_saml/response.rb'
+    - 'lib/ruby_saml/slo_logoutrequest.rb'
 
 # Offense count: 21
 # This cop supports safe autocorrection (--autocorrect).
@@ -729,29 +729,29 @@ Style/RedundantArgument:
 # This cop supports safe autocorrection (--autocorrect).
 Style/RedundantBegin:
   Exclude:
-    - 'lib/onelogin/ruby-saml/logging.rb'
+    - 'lib/ruby_saml/logging.rb'
     - 'lib/xml_security.rb'
 
 # Offense count: 4
 # This cop supports safe autocorrection (--autocorrect).
 Style/RedundantRegexpEscape:
   Exclude:
-    - 'lib/onelogin/ruby-saml/utils.rb'
+    - 'lib/ruby_saml/utils.rb'
 
 # Offense count: 5
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: AllowMultipleReturnValues.
 Style/RedundantReturn:
   Exclude:
-    - 'lib/onelogin/ruby-saml/logoutresponse.rb'
-    - 'lib/onelogin/ruby-saml/utils.rb'
+    - 'lib/ruby_saml/logoutresponse.rb'
+    - 'lib/ruby_saml/utils.rb'
     - 'lib/xml_security.rb'
 
 # Offense count: 4
 # This cop supports safe autocorrection (--autocorrect).
 Style/RedundantSelf:
   Exclude:
-    - 'lib/onelogin/ruby-saml/utils.rb'
+    - 'lib/ruby_saml/utils.rb'
     - 'lib/xml_security.rb'
 
 # Offense count: 4
@@ -760,8 +760,8 @@ Style/RedundantSelf:
 # SupportedStyles: slashes, percent_r, mixed
 Style/RegexpLiteral:
   Exclude:
-    - 'lib/onelogin/ruby-saml/response.rb'
-    - 'lib/onelogin/ruby-saml/utils.rb'
+    - 'lib/ruby_saml/response.rb'
+    - 'lib/ruby_saml/utils.rb'
 
 # Offense count: 1
 # This cop supports safe autocorrection (--autocorrect).
@@ -769,7 +769,7 @@ Style/RegexpLiteral:
 # SupportedStyles: implicit, explicit
 Style/RescueStandardError:
   Exclude:
-    - 'lib/onelogin/ruby-saml/saml_message.rb'
+    - 'lib/ruby_saml/saml_message.rb'
 
 # Offense count: 10
 # This cop supports unsafe autocorrection (--autocorrect-all).
@@ -777,23 +777,23 @@ Style/RescueStandardError:
 # AllowedMethods: present?, blank?, presence, try, try!
 Style/SafeNavigation:
   Exclude:
-    - 'lib/onelogin/ruby-saml/idp_metadata_parser.rb'
-    - 'lib/onelogin/ruby-saml/response.rb'
-    - 'lib/onelogin/ruby-saml/slo_logoutrequest.rb'
+    - 'lib/ruby_saml/idp_metadata_parser.rb'
+    - 'lib/ruby_saml/response.rb'
+    - 'lib/ruby_saml/slo_logoutrequest.rb'
 
 # Offense count: 1
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: AllowAsExpressionSeparator.
 Style/Semicolon:
   Exclude:
-    - 'lib/onelogin/ruby-saml/response.rb'
+    - 'lib/ruby_saml/response.rb'
 
 # Offense count: 4
 # This cop supports unsafe autocorrection (--autocorrect-all).
 Style/SlicingWithRange:
   Exclude:
-    - 'lib/onelogin/ruby-saml/response.rb'
-    - 'lib/onelogin/ruby-saml/utils.rb'
+    - 'lib/ruby_saml/response.rb'
+    - 'lib/ruby_saml/utils.rb'
     - 'lib/xml_security.rb'
 
 # Offense count: 10
@@ -801,22 +801,22 @@ Style/SlicingWithRange:
 # Configuration parameters: AllowModifier.
 Style/SoleNestedConditional:
   Exclude:
-    - 'lib/onelogin/ruby-saml/idp_metadata_parser.rb'
-    - 'lib/onelogin/ruby-saml/logoutresponse.rb'
-    - 'lib/onelogin/ruby-saml/response.rb'
-    - 'lib/onelogin/ruby-saml/settings.rb'
-    - 'lib/onelogin/ruby-saml/slo_logoutrequest.rb'
+    - 'lib/ruby_saml/idp_metadata_parser.rb'
+    - 'lib/ruby_saml/logoutresponse.rb'
+    - 'lib/ruby_saml/response.rb'
+    - 'lib/ruby_saml/settings.rb'
+    - 'lib/ruby_saml/slo_logoutrequest.rb'
 
 # Offense count: 7
 # This cop supports unsafe autocorrection (--autocorrect-all).
 # Configuration parameters: Mode.
 Style/StringConcatenation:
   Exclude:
-    - 'lib/onelogin/ruby-saml/idp_metadata_parser.rb'
-    - 'lib/onelogin/ruby-saml/metadata.rb'
-    - 'lib/onelogin/ruby-saml/response.rb'
-    - 'lib/onelogin/ruby-saml/saml_message.rb'
-    - 'lib/onelogin/ruby-saml/utils.rb'
+    - 'lib/ruby_saml/idp_metadata_parser.rb'
+    - 'lib/ruby_saml/metadata.rb'
+    - 'lib/ruby_saml/response.rb'
+    - 'lib/ruby_saml/saml_message.rb'
+    - 'lib/ruby_saml/utils.rb'
 
 # Offense count: 457
 # This cop supports safe autocorrection (--autocorrect).
@@ -824,20 +824,20 @@ Style/StringConcatenation:
 # SupportedStyles: single_quotes, double_quotes
 Style/StringLiterals:
   Exclude:
-    - 'lib/onelogin/ruby-saml/attribute_service.rb'
-    - 'lib/onelogin/ruby-saml/authrequest.rb'
-    - 'lib/onelogin/ruby-saml/error_handling.rb'
-    - 'lib/onelogin/ruby-saml/idp_metadata_parser.rb'
-    - 'lib/onelogin/ruby-saml/logging.rb'
-    - 'lib/onelogin/ruby-saml/logoutrequest.rb'
-    - 'lib/onelogin/ruby-saml/logoutresponse.rb'
-    - 'lib/onelogin/ruby-saml/metadata.rb'
-    - 'lib/onelogin/ruby-saml/response.rb'
-    - 'lib/onelogin/ruby-saml/saml_message.rb'
-    - 'lib/onelogin/ruby-saml/settings.rb'
-    - 'lib/onelogin/ruby-saml/slo_logoutrequest.rb'
-    - 'lib/onelogin/ruby-saml/slo_logoutresponse.rb'
-    - 'lib/onelogin/ruby-saml/utils.rb'
+    - 'lib/ruby_saml/attribute_service.rb'
+    - 'lib/ruby_saml/authrequest.rb'
+    - 'lib/ruby_saml/error_handling.rb'
+    - 'lib/ruby_saml/idp_metadata_parser.rb'
+    - 'lib/ruby_saml/logging.rb'
+    - 'lib/ruby_saml/logoutrequest.rb'
+    - 'lib/ruby_saml/logoutresponse.rb'
+    - 'lib/ruby_saml/metadata.rb'
+    - 'lib/ruby_saml/response.rb'
+    - 'lib/ruby_saml/saml_message.rb'
+    - 'lib/ruby_saml/settings.rb'
+    - 'lib/ruby_saml/slo_logoutrequest.rb'
+    - 'lib/ruby_saml/slo_logoutresponse.rb'
+    - 'lib/ruby_saml/utils.rb'
     - 'lib/xml_security.rb'
 
 # Offense count: 8
@@ -853,7 +853,7 @@ Style/SymbolArray:
 # AllowedMethods: define_method
 Style/SymbolProc:
   Exclude:
-    - 'lib/onelogin/ruby-saml/utils.rb'
+    - 'lib/ruby_saml/utils.rb'
 
 # Offense count: 3
 # This cop supports safe autocorrection (--autocorrect).
@@ -861,9 +861,9 @@ Style/SymbolProc:
 # SupportedStyles: require_parentheses, require_no_parentheses, require_parentheses_when_complex
 Style/TernaryParentheses:
   Exclude:
-    - 'lib/onelogin/ruby-saml/authrequest.rb'
-    - 'lib/onelogin/ruby-saml/logoutrequest.rb'
-    - 'lib/onelogin/ruby-saml/slo_logoutresponse.rb'
+    - 'lib/ruby_saml/authrequest.rb'
+    - 'lib/ruby_saml/logoutrequest.rb'
+    - 'lib/ruby_saml/slo_logoutresponse.rb'
 
 # Offense count: 3
 # This cop supports safe autocorrection (--autocorrect).
@@ -871,9 +871,9 @@ Style/TernaryParentheses:
 # SupportedStylesForMultiline: comma, consistent_comma, no_comma
 Style/TrailingCommaInHashLiteral:
   Exclude:
-    - 'lib/onelogin/ruby-saml/authrequest.rb'
-    - 'lib/onelogin/ruby-saml/idp_metadata_parser.rb'
-    - 'lib/onelogin/ruby-saml/metadata.rb'
+    - 'lib/ruby_saml/authrequest.rb'
+    - 'lib/ruby_saml/idp_metadata_parser.rb'
+    - 'lib/ruby_saml/metadata.rb'
 
 # Offense count: 1
 # This cop supports safe autocorrection (--autocorrect).
@@ -881,7 +881,7 @@ Style/TrailingCommaInHashLiteral:
 # AllowedMethods: to_ary, to_a, to_c, to_enum, to_h, to_hash, to_i, to_int, to_io, to_open, to_path, to_proc, to_r, to_regexp, to_str, to_s, to_sym
 Style/TrivialAccessors:
   Exclude:
-    - 'lib/onelogin/ruby-saml/logging.rb'
+    - 'lib/ruby_saml/logging.rb'
 
 # Offense count: 1
 # This cop supports safe autocorrection (--autocorrect).
@@ -894,8 +894,8 @@ Style/WordArray:
 # This cop supports unsafe autocorrection (--autocorrect-all).
 Style/ZeroLengthPredicate:
   Exclude:
-    - 'lib/onelogin/ruby-saml/attribute_service.rb'
-    - 'lib/onelogin/ruby-saml/response.rb'
+    - 'lib/ruby_saml/attribute_service.rb'
+    - 'lib/ruby_saml/response.rb'
 
 # Offense count: 100
 # This cop supports safe autocorrection (--autocorrect).

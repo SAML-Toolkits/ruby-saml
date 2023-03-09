@@ -26,7 +26,7 @@ module RubySaml
     #
     def self.schema
       @@mutex.synchronize do
-        Dir.chdir(File.expand_path("../../../schemas", __FILE__)) do
+        Dir.chdir(File.expand_path("../../schemas", __FILE__)) do
           ::Nokogiri::XML::Schema(File.read("saml-schema-protocol-2.0.xsd"))
         end
       end
