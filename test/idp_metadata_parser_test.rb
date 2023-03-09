@@ -1,6 +1,6 @@
 require_relative 'test_helper'
 
-require 'onelogin/ruby-saml/idp_metadata_parser'
+require 'ruby_saml/idp_metadata_parser'
 
 class IdpMetadataParserTest < Minitest::Test
   class MockSuccessResponse < Net::HTTPSuccess

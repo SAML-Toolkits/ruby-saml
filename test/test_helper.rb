@@ -9,7 +9,7 @@ unless defined?(TruffleRuby)
   SimpleCov.start do
     add_filter "test/"
     add_filter "vendor/"
-    add_filter "lib/onelogin/ruby-saml/logging.rb"
+    add_filter "lib/ruby_saml/logging.rb"
   end
 end
 
@@ -24,11 +24,10 @@ Bundler.require :default, :test
 
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 $LOAD_PATH.unshift(File.dirname(__FILE__))
-
-require 'onelogin/ruby-saml/logging'
+require 'ruby_saml/logging'
 
 TEST_LOGGER = Logger.new(StringIO.new)
-OneLogin::RubySaml::Logging.logger = TEST_LOGGER
+RubySaml::Logging.logger = TEST_LOGGER
 
 class Minitest::Test
   def fixture(document, base64 = true)
@@ -292,7 +291,7 @@ class Minitest::Test
   # logoutresponse fixtures
   #
   def random_id
-    "_#{OneLogin::RubySaml::Utils.uuid}"
+    "_#{RubySaml::Utils.uuid}"
   end
 
   #

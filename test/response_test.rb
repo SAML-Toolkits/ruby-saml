@@ -1,6 +1,6 @@
 require_relative 'test_helper'
 
-require 'onelogin/ruby-saml/response'
+require 'ruby_saml/response'
 
 class RubySamlTest < Minitest::Test
 

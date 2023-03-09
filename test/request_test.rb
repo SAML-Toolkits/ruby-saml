@@ -1,7 +1,7 @@
 require_relative 'test_helper'
 
-require 'onelogin/ruby-saml/authrequest'
-require 'onelogin/ruby-saml/setting_error'
+require 'ruby_saml/authrequest'
+require 'ruby_saml/setting_error'
 
 class RequestTest < Minitest::Test
 
@@ -168,10 +168,10 @@ class RequestTest < Minitest::Test
     end
 
     it "creates request with ID is prefixed, when :id_prefix is passed" do
-      OneLogin::RubySaml::Utils::set_prefix("test")
+      RubySaml::Utils::set_prefix("test")
       request = OneLogin::RubySaml::Authrequest.new
       assert_match(/^test/, request.uuid)
-      OneLogin::RubySaml::Utils::set_prefix("_")
+      RubySaml::Utils::set_prefix("_")
     end
 
     describe "when the target url is not set" do
@@ -404,7 +404,7 @@ class RequestTest < Minitest::Test
 
     describe "#manipulate request_id" do
       it "be able to modify the request id" do
-        authnrequest = OneLogin::RubySaml::Authrequest.new
+        authnrequest = RubySaml::Authrequest.new
         request_id = authnrequest.request_id
         assert_equal request_id, authnrequest.uuid
         authnrequest.uuid = "new_uuid"

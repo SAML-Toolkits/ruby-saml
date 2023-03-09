@@ -1,6 +1,6 @@
 require_relative 'test_helper'
 
-require 'onelogin/ruby-saml/metadata'
+require 'ruby_saml/metadata'
 
 class MetadataTest < Minitest::Test
 

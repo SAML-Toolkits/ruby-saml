@@ -1,6 +1,6 @@
 require_relative 'test_helper'
 
-require 'onelogin/ruby-saml/logging'
+require 'ruby_saml/logging'
 
 class LoggingTest < Minitest::Test
 

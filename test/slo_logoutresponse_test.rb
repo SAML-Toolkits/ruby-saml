@@ -1,6 +1,6 @@
 require_relative 'test_helper'
 
-require 'onelogin/ruby-saml/slo_logoutresponse'
+require 'ruby_saml/slo_logoutresponse'
 
 class SloLogoutresponseTest < Minitest::Test
 

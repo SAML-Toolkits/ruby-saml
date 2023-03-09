@@ -1,6 +1,6 @@
 require_relative 'test_helper'
 
-require 'onelogin/ruby-saml/attributes'
+require 'ruby_saml/attributes'
 
 class AttributesTest < Minitest::Test
   describe 'Attributes' do

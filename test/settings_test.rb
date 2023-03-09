@@ -1,7 +1,7 @@
 require_relative 'test_helper'
 
-require 'onelogin/ruby-saml/settings'
-require 'onelogin/ruby-saml/validation_error'
+require 'ruby_saml/settings'
+require 'ruby_saml/validation_error'
 
 class SettingsTest < Minitest::Test
 
