@@ -47,7 +47,7 @@
 * Support Process Transform
 * Raise SettingError if invoking an action with no endpoint defined on the settings
 * Made IdpMetadataParser more extensible for subclasses
-*[#548](https://github.com/onelogin/ruby-saml/pull/548) Add :skip_audience option
+* [#548](https://github.com/onelogin/ruby-saml/pull/548) Add :skip_audience option
 * [#555](https://github.com/onelogin/ruby-saml/pull/555) Define 'soft' variable to prevent exception when doc cert is invalid
 * Improve documentation
 
