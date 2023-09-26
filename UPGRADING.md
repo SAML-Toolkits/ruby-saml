@@ -24,7 +24,7 @@ in favor of `idp_sso_service_url` and `idp_slo_service_url`. The `IdpMetadataPar
 
 ## Upgrading from 1.10.x to 1.11.0
 
-Version `1.11.0` deprecates the use of `settings.issuer` in favour of `settings.sp_entity_id`.
+Version `1.11.0` deprecates the use of `settings.issuer` in favour of `settings.idp_entity_id`.
 There are two new security settings: `settings.security[:check_idp_cert_expiration]` and
 `settings.security[:check_sp_cert_expiration]` (both false by default) that check if the
 IdP or SP X.509 certificate has expired, respectively.
