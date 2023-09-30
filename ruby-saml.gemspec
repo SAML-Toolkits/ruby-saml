@@ -66,7 +66,7 @@ Gem::Specification.new do |s|
     s.add_development_dependency('simplecov-lcov', '>0.7.0')
   end
 
-  s.add_development_dependency('minitest', '~> 5.5')
+  s.add_development_dependency('minitest', '~> 5.5', '<5.19.0')
   s.add_development_dependency('mocha',    '~> 0.14')
 
   if RUBY_VERSION < '2.0'

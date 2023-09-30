@@ -10,6 +10,7 @@ class RubySamlTest < Minitest::Test
 
     let(:settings) { OneLogin::RubySaml::Settings.new }
     let(:logout_request) { OneLogin::RubySaml::SloLogoutrequest.new(logout_request_document) }
+    let(:logout_request_encrypted_nameid) { OneLogin::RubySaml::SloLogoutrequest.new(logout_request_encrypted_nameid_document) }
     let(:invalid_logout_request) { OneLogin::RubySaml::SloLogoutrequest.new(invalid_logout_request_document) }
 
     before do
@@ -87,6 +88,18 @@ class RubySamlTest < Minitest::Test
       it "extract the value of the name id element" do
         assert_equal "someone@example.org", logout_request.nameid
       end
+
+      it 'is not possible when encryptID but no private key' do
+        assert_raises(OneLogin::RubySaml::ValidationError, "An EncryptedID found and no SP private key found on the settings to decrypt it") do
+          assert_equal "someone@example.org", logout_request_encrypted_nameid.nameid
+        end
+      end
+
+      it "extract the value of the name id element inside an EncryptedId" do
+        settings.private_key = ruby_saml_key_text
+        logout_request_encrypted_nameid.settings = settings
+        assert_equal "someone@example.org", logout_request_encrypted_nameid.nameid
+      end
     end
 
     describe "#nameid_format" do
@@ -94,6 +107,18 @@ class RubySamlTest < Minitest::Test
 
       it "extract the format attribute of the name id element" do
         assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress", logout_request.nameid_format
+      end
+
+      it 'is not possible when encryptID but no private key' do
+        assert_raises(OneLogin::RubySaml::ValidationError, "An EncryptedID found and no SP private key found on the settings to decrypt it") do
+          assert_equal "someone@example.org", logout_request_encrypted_nameid.nameid
+        end
+      end
+
+      it "extract the format attribute of the name id element" do
+        settings.private_key = ruby_saml_key_text
+        logout_request_encrypted_nameid.settings = settings
+        assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress", logout_request_encrypted_nameid.nameid_format
       end
     end
 
