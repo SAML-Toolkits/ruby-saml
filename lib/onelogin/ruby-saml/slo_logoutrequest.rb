@@ -62,10 +62,7 @@ module OneLogin
       # @return [String] Gets the NameID of the Logout Request.
       #
       def name_id
-        @name_id ||= begin
-          node = REXML::XPath.first(document, "/p:LogoutRequest/a:NameID", { "p" => PROTOCOL, "a" => ASSERTION })
-          Utils.element_text(node)
-        end
+        @name_id ||= Utils.element_text(name_id_node)
       end
 
       alias_method :nameid, :name_id
@@ -73,14 +70,49 @@ module OneLogin
       # @return [String] Gets the NameID Format of the Logout Request.
       #
       def name_id_format
-        @name_id_node ||= REXML::XPath.first(document, "/p:LogoutRequest/a:NameID", { "p" => PROTOCOL, "a" => ASSERTION })
         @name_id_format ||=
-          if @name_id_node && @name_id_node.attribute("Format")
-            @name_id_node.attribute("Format").value
+          if name_id_node && name_id_node.attribute("Format")
+            name_id_node.attribute("Format").value
           end
       end
 
       alias_method :nameid_format, :name_id_format
+
+      def name_id_node
+        @name_id_node ||=
+          begin
+            encrypted_node = REXML::XPath.first(document, "/p:LogoutRequest/a:EncryptedID", { "p" => PROTOCOL, "a" => ASSERTION })
+            if encrypted_node
+              node = decrypt_nameid(encrypted_node)
+            else
+              node = REXML::XPath.first(document, "/p:LogoutRequest/a:NameID", { "p" => PROTOCOL, "a" => ASSERTION })
+            end
+          end
+      end
+
+      # Decrypts an EncryptedID element
+      # @param encryptedid_node [REXML::Element] The EncryptedID element
+      # @return [REXML::Document] The decrypted EncrypedtID element
+      #
+      def decrypt_nameid(encrypt_node)
+
+        if settings.nil? || !settings.get_sp_key
+          raise ValidationError.new('An ' + encrypt_node.name + ' found and no SP private key found on the settings to decrypt it')
+        end
+
+        node_header = '<node xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">'
+
+        elem_plaintext = OneLogin::RubySaml::Utils.decrypt_data(encrypt_node, settings.get_sp_key)
+        # If we get some problematic noise in the plaintext after decrypting.
+        # This quick regexp parse will grab only the Element and discard the noise.
+        elem_plaintext = elem_plaintext.match(/(.*<\/(\w+:)?NameID>)/m)[0]
+
+        # To avoid namespace errors if saml namespace is not defined
+        # create a parent node first with the namespace defined
+        elem_plaintext = node_header + elem_plaintext + '</node>'
+        doc = REXML::Document.new(elem_plaintext)
+        doc.root[0]
+      end
 
       # @return [String|nil] Gets the ID attribute from the Logout Request. if exists.
       #
