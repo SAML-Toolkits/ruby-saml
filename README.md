@@ -698,7 +698,7 @@ signature validation process will fail at the Identity Provider.
 Ruby SAML supports EncryptedAssertion. The Identity Provider will encrypt the Assertion with the
 public cert of the Service Provider. The Service Provider will decrypt the EncryptedAssertion with its private key.
 
-You may enable EncryptedAssertion as follows. This will add `<md:KeyDescriptor use="encrytion">` to your
+You may enable EncryptedAssertion as follows. This will add `<md:KeyDescriptor use="encryption">` to your
 SP Metadata XML, to be read by the IdP.
 
 ```ruby
