@@ -237,6 +237,15 @@ class Minitest::Test
     @logout_request_document_with_name_id_format
   end
 
+  def logout_request_encrypted_nameid_document
+    unless @logout_request_encrypted_nameid_document
+      xml = read_logout_request("slo_request_encrypted_nameid.xml")
+      deflated = Zlib::Deflate.deflate(xml, 9)[2..-5]
+      @logout_request_encrypted_nameid_document = Base64.encode64(deflated)
+    end
+    @logout_request_encrypted_nameid_document
+  end
+
   def logout_request_xml_with_session_index
     @logout_request_xml_with_session_index ||= File.read(File.join(File.dirname(__FILE__), 'logout_requests', 'slo_request_with_session_index.xml'))
   end
