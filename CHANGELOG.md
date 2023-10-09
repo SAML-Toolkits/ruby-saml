@@ -1,4 +1,7 @@
 # Ruby SAML Changelog
+### 1.16.0 (Oct 09, 2023)
+* [#671](https://github.com/SAML-Toolkits/ruby-saml/pull/671) Add support on LogoutRequest with Encrypted NameID
+
 ### 1.15.0 (Jan 04, 2023)
 * [#650](https://github.com/SAML-Toolkits/ruby-saml/pull/650) Replace strip! by strip on compute_digest method
 * [#638](https://github.com/SAML-Toolkits/ruby-saml/pull/638) Fix dateTime format for the validUntil attribute of the generated metadata 
