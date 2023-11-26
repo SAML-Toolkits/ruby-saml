@@ -110,7 +110,6 @@ class RequestTest < Minitest::Test
     end
 
     describe "signing with HTTP-POST binding" do
-
       before do
         settings.security[:logout_requests_signed] = true
         settings.idp_slo_service_binding = :post
@@ -153,7 +152,7 @@ class RequestTest < Minitest::Test
         assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2000/09/xmldsig#sha1'/>], inflated
       end
 
-      it "created a signed logout request" do
+      it "create a signed logout request" do
         settings.compress_request = true
 
         unauth_req = OneLogin::RubySaml::Logoutrequest.new
@@ -165,6 +164,17 @@ class RequestTest < Minitest::Test
         assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2000/09/xmldsig#sha1'/>], inflated
       end
 
+      it "create an uncompressed signed logout request" do
+        settings.compress_request = false
+
+        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings)
+        request_xml = Base64.decode64(params["SAMLRequest"])
+
+        assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], request_xml
+        assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], request_xml
+        assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2000/09/xmldsig#sha1'/>], request_xml
+      end
+
       it "create a signed logout request with 256 digest and signature method" do
         settings.compress_request = false
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
@@ -172,7 +182,6 @@ class RequestTest < Minitest::Test
 
         params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings)
         request_xml = Base64.decode64(params["SAMLRequest"])
-
         assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], request_xml
         assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], request_xml
         assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmlenc#sha256'/>], request_xml
@@ -189,6 +198,53 @@ class RequestTest < Minitest::Test
         assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], request_xml
         assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha384'/>], request_xml
         assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmlenc#sha512'/>], request_xml
+      end
+
+      it "create a signed logout request using the first certificate and key" do
+        settings.compress_request = false
+        settings.certificate = nil
+        settings.private_key = nil
+        settings.sp_cert_multi = {
+          signing: [
+            { certificate: ruby_saml_cert_text, private_key: ruby_saml_key_text },
+            CertificateHelper.generate_pair_hash
+          ]
+        }
+
+        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings)
+        request_xml = Base64.decode64(params["SAMLRequest"])
+
+        assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], request_xml
+        assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], request_xml
+        assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2000/09/xmldsig#sha1'/>], request_xml
+      end
+
+      it "create a signed logout request using the first valid certificate and key when :check_sp_cert_expiration is true" do
+        settings.compress_request = false
+        settings.certificate = nil
+        settings.private_key = nil
+        settings.security[:check_sp_cert_expiration] = true
+        settings.sp_cert_multi = {
+          signing: [
+            { certificate: ruby_saml_cert_text, private_key: ruby_saml_key_text },
+            CertificateHelper.generate_pair_hash
+          ]
+        }
+
+        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings)
+        request_xml = Base64.decode64(params["SAMLRequest"])
+
+        assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], request_xml
+        assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], request_xml
+        assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2000/09/xmldsig#sha1'/>], request_xml
+      end
+
+      it "raises error when no valid certs and :check_sp_cert_expiration is true" do
+        settings.security[:check_sp_cert_expiration] = true
+
+        assert_raises(OneLogin::RubySaml::ValidationError, 'The SP certificate expired.') do
+          OneLogin::RubySaml::Logoutrequest.new.create_params(settings)
+        end
       end
     end
 
@@ -268,6 +324,41 @@ class RequestTest < Minitest::Test
         signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
         assert_equal signature_algorithm, OpenSSL::Digest::SHA512
         assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
+      end
+
+      it "create a signature parameter using the first certificate and key" do
+        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+        settings.compress_request = false
+        settings.certificate = nil
+        settings.private_key = nil
+        settings.sp_cert_multi = {
+          signing: [
+            { certificate: ruby_saml_cert_text, private_key: ruby_saml_key_text },
+            CertificateHelper.generate_pair_hash
+          ]
+        }
+
+        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
+        assert params['SAMLRequest']
+        assert params[:RelayState]
+        assert params['Signature']
+        assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA1
+
+        query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
+        query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
+        query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
+
+        signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
+        assert_equal signature_algorithm, OpenSSL::Digest::SHA1
+        assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
+      end
+
+      it "raises error when no valid certs and :check_sp_cert_expiration is true" do
+        settings.security[:check_sp_cert_expiration] = true
+
+        assert_raises(OneLogin::RubySaml::ValidationError, 'The SP certificate expired.') do
+          OneLogin::RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
+        end
       end
     end
 

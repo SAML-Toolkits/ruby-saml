@@ -315,7 +315,7 @@ class RubySamlTest < Minitest::Test
           assert_equal(CGI.unescape(query), CGI.unescape(original_query))
           # Make normalised signature based on our modified params.
           sign_algorithm = XMLSecurity::BaseDocument.new.algorithm(settings.security[:signature_method])
-          signature = settings.get_sp_key.sign(sign_algorithm.new, query)
+          signature = settings.get_sp_signing_key.sign(sign_algorithm.new, query)
           params['Signature'] = Base64.encode64(signature).gsub(/\n/, "")
           # Re-create the Logoutresponse based on these modified parameters,
           # and ask it to validate the signature. It will do it incorrectly,
@@ -351,7 +351,7 @@ class RubySamlTest < Minitest::Test
           assert_equal(CGI.unescape(query), CGI.unescape(original_query))
           # Make normalised signature based on our modified params.
           sign_algorithm = XMLSecurity::BaseDocument.new.algorithm(settings.security[:signature_method])
-          signature = settings.get_sp_key.sign(sign_algorithm.new, query)
+          signature = settings.get_sp_signing_key.sign(sign_algorithm.new, query)
           params['Signature'] = Base64.encode64(signature).gsub(/\n/, "")
           # Re-create the Logoutresponse based on these modified parameters,
           # and ask it to validate the signature. Provide the altered parameter
