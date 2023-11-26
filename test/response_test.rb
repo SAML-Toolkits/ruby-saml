@@ -1374,7 +1374,7 @@ class RubySamlTest < Minitest::Test
     end
 
     describe '#sign_document' do
-      it 'Sign an unsigned SAML Response XML and initiate the SAML object with it' do
+      it 'sign an unsigned SAML Response XML and initiate the SAML object with it' do
         xml = Base64.decode64(fixture("test_sign.xml"))
 
         document = XMLSecurity::Document.new(xml)
@@ -1404,11 +1404,9 @@ class RubySamlTest < Minitest::Test
         @no_signed_assertion = OneLogin::RubySaml::Response.new(response_document_valid_signed, :settings => settings)
       end
 
-
       it 'returns false if :want_assertion_signed enabled and Assertion not signed' do
         assert !@no_signed_assertion.send(:validate_signed_elements)
         assert_includes @no_signed_assertion.errors, "The Assertion of the Response is not signed and the SP requires it"
-
       end
 
       it 'returns true if :want_assertion_signed enabled and Assertion is signed' do
@@ -1568,6 +1566,14 @@ class RubySamlTest < Minitest::Test
           end
         end
 
+        it "is not possible to decrypt the assertion if private key has expired and :check_sp_expiration is true" do
+          settings.certificate = ruby_saml_cert_text
+          settings.security[:check_sp_cert_expiration] = true
+          assert_raises(OneLogin::RubySaml::ValidationError, "The SP certificate expired.") do
+            OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)
+          end
+        end
+
         it "is possible to decrypt the assertion if private key" do
           response = OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)
 
@@ -1584,6 +1590,26 @@ class RubySamlTest < Minitest::Test
             { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
           )
           assert_nil encrypted_assertion_node2
+          assert decrypted.name, "Assertion"
+        end
+
+        it "is possible to decrypt the assertion with one invalid and one valid private key" do
+          settings.private_key = nil
+          settings.sp_cert_multi = {
+            encryption: [
+              CertificateHelper.generate_pair_hash,
+              { certificate: ruby_saml_cert_text, private_key: ruby_saml_key_text }
+            ]
+          }
+          response = OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)
+
+          encrypted_assertion_node = REXML::XPath.first(
+            response.document,
+            "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
+            { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
+          )
+          decrypted = response.send(:decrypt_assertion, encrypted_assertion_node)
+
           assert decrypted.name, "Assertion"
         end
 

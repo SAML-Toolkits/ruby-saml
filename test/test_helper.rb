@@ -17,6 +17,7 @@ require 'bundler'
 require 'minitest/autorun'
 require 'mocha/setup'
 require 'timecop'
+Dir[File.expand_path('../helpers/**/*.rb', __FILE__)].each { |f| require f }
 
 Bundler.require :default, :test
 

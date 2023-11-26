@@ -78,9 +78,10 @@ module OneLogin
         response = deflate(response) if settings.compress_response
         base64_response = encode(response)
         response_params = {"SAMLResponse" => base64_response}
+        sp_signing_key = settings.get_sp_signing_key
 
-        if settings.idp_slo_service_binding == Utils::BINDINGS[:redirect] && settings.security[:logout_responses_signed] && settings.private_key
-          params['SigAlg']    = settings.security[:signature_method]
+        if settings.idp_slo_service_binding == Utils::BINDINGS[:redirect] && settings.security[:logout_responses_signed] && sp_signing_key
+          params['SigAlg'] = settings.security[:signature_method]
           url_string = OneLogin::RubySaml::Utils.build_query(
             :type => 'SAMLResponse',
             :data => base64_response,
@@ -88,7 +89,7 @@ module OneLogin
             :sig_alg => params['SigAlg']
           )
           sign_algorithm = XMLSecurity::BaseDocument.new.algorithm(settings.security[:signature_method])
-          signature = settings.get_sp_key.sign(sign_algorithm.new, url_string)
+          signature = sp_signing_key.sign(sign_algorithm.new, url_string)
           params['Signature'] = encode(signature)
         end
 
@@ -150,9 +151,8 @@ module OneLogin
 
       def sign_document(document, settings)
         # embed signature
-        if settings.idp_slo_service_binding == Utils::BINDINGS[:post] && settings.private_key && settings.certificate
-          private_key = settings.get_sp_key
-          cert = settings.get_sp_cert
+        cert, private_key = settings.get_sp_signing_pair
+        if settings.idp_slo_service_binding == Utils::BINDINGS[:post] && private_key && cert
           document.sign_document(private_key, cert, settings.security[:signature_method], settings.security[:digest_method])
         end
 

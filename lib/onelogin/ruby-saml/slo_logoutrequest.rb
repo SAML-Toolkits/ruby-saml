@@ -91,16 +91,16 @@ module OneLogin
       end
 
       # Decrypts an EncryptedID element
-      # @param encryptedid_node [REXML::Element] The EncryptedID element
+      # @param encrypted_id_node [REXML::Element] The EncryptedID element
       # @return [REXML::Document] The decrypted EncrypedtID element
       #
-      def decrypt_nameid(encrypt_node)
+      def decrypt_nameid(encrypted_id_node)
 
-        if settings.nil? || !settings.get_sp_key
-          raise ValidationError.new('An ' + encrypt_node.name + ' found and no SP private key found on the settings to decrypt it')
+        if settings.nil? || settings.get_sp_decryption_keys.empty?
+          raise ValidationError.new('An ' + encrypted_id_node.name + ' found and no SP private key found on the settings to decrypt it')
         end
 
-        elem_plaintext = OneLogin::RubySaml::Utils.decrypt_data(encrypt_node, settings.get_sp_key)
+        elem_plaintext = OneLogin::RubySaml::Utils.decrypt_multi(encrypted_id_node, settings.get_sp_decryption_keys)
         # If we get some problematic noise in the plaintext after decrypting.
         # This quick regexp parse will grab only the Element and discard the noise.
         elem_plaintext = elem_plaintext.match(/(.*<\/(\w+:)?NameID>)/m)[0]
