@@ -54,6 +54,11 @@ module OneLogin
       # @param url [String] Url where the XML of the Identity Provider Metadata is published.
       # @param validate_cert [Boolean] If true and the URL is HTTPs, the cert of the domain is checked.
       #
+      # @param request_options [Hash] options used for requesting the remote URL
+      # @option request_options [Numeric, nil] :open_timeout Number of seconds to wait for the connection to open. See Net::HTTP#open_timeout for more info. Default is the Net::HTTP default.
+      # @option request_options [Numeric, nil] :read_timeout Number of seconds to wait for one block to be read. See Net::HTTP#read_timeout for more info. Default is the Net::HTTP default.
+      # @option request_options [Integer, nil] :max_retries Maximum number of times to retry the request on certain errors. See Net::HTTP#max_retries= for more info. Default is the Net::HTTP default.
+      #
       # @param options [Hash] options used for parsing the metadata and the returned Settings instance
       # @option options [OneLogin::RubySaml::Settings, Hash] :settings the OneLogin::RubySaml::Settings object which gets the parsed metadata merged into or an hash for Settings overrides.
       # @option options [String, nil] :entity_id when this is given, the entity descriptor for this ID is used. When omitted, the first entity descriptor is used.
@@ -64,8 +69,8 @@ module OneLogin
       # @return [OneLogin::RubySaml::Settings]
       #
       # @raise [HttpError] Failure to fetch remote IdP metadata
-      def parse_remote(url, validate_cert = true, options = {})
-        idp_metadata = get_idp_metadata(url, validate_cert)
+      def parse_remote(url, validate_cert = true, request_options = {}, options = {})
+        idp_metadata = get_idp_metadata(url, validate_cert, request_options)
         parse(idp_metadata, options)
       end
 
@@ -73,6 +78,11 @@ module OneLogin
       #
       # @param url [String] Url where the XML of the Identity Provider Metadata is published.
       # @param validate_cert [Boolean] If true and the URL is HTTPs, the cert of the domain is checked.
+      #
+      # @param request_options [Hash] options used for requesting the remote URL
+      # @option request_options [Numeric, nil] :open_timeout Number of seconds to wait for the connection to open. See Net::HTTP#open_timeout for more info. Default is the Net::HTTP default.
+      # @option request_options [Numeric, nil] :read_timeout Number of seconds to wait for one block to be read. See Net::HTTP#read_timeout for more info. Default is the Net::HTTP default.
+      # @option request_options [Integer, nil] :max_retries Maximum number of times to retry the request on certain errors. See Net::HTTP#max_retries= for more info. Default is the Net::HTTP default.
       #
       # @param options [Hash] options used for parsing the metadata
       # @option options [String, nil] :entity_id when this is given, the entity descriptor for this ID is used. When omitted, the first entity descriptor is used.
@@ -83,14 +93,19 @@ module OneLogin
       # @return [Hash]
       #
       # @raise [HttpError] Failure to fetch remote IdP metadata
-      def parse_remote_to_hash(url, validate_cert = true, options = {})
-        parse_remote_to_array(url, validate_cert, options)[0]
+      def parse_remote_to_hash(url, validate_cert = true, request_options = {}, options = {})
+        parse_remote_to_array(url, validate_cert, request_options, options)[0]
       end
 
       # Parse all Identity Provider metadata and return the results as Array
       #
       # @param url [String] Url where the XML of the Identity Provider Metadata is published.
       # @param validate_cert [Boolean] If true and the URL is HTTPs, the cert of the domain is checked.
+      #
+      # @param request_options [Hash] options used for requesting the remote URL
+      # @option request_options [Numeric, nil] :open_timeout Number of seconds to wait for the connection to open. See Net::HTTP#open_timeout for more info. Default is the Net::HTTP default.
+      # @option request_options [Numeric, nil] :read_timeout Number of seconds to wait for one block to be read. See Net::HTTP#read_timeout for more info. Default is the Net::HTTP default.
+      # @option request_options [Integer, nil] :max_retries Maximum number of times to retry the request on certain errors. See Net::HTTP#max_retries= for more info. Default is the Net::HTTP default.
       #
       # @param options [Hash] options used for parsing the metadata
       # @option options [String, nil] :entity_id when this is given, the entity descriptor for this ID is used. When omitted, all found IdPs are returned.
@@ -101,8 +116,8 @@ module OneLogin
       # @return [Array<Hash>]
       #
       # @raise [HttpError] Failure to fetch remote IdP metadata
-      def parse_remote_to_array(url, validate_cert = true, options = {})
-        idp_metadata = get_idp_metadata(url, validate_cert)
+      def parse_remote_to_array(url, validate_cert = true, request_options = {}, options = {})
+        idp_metadata = get_idp_metadata(url, validate_cert, request_options)
         parse_to_array(idp_metadata, options)
       end
 
@@ -191,9 +206,13 @@ module OneLogin
       # Retrieve the remote IdP metadata from the URL or a cached copy.
       # @param url [String] Url where the XML of the Identity Provider Metadata is published.
       # @param validate_cert [Boolean] If true and the URL is HTTPs, the cert of the domain is checked.
+      # @param request_options [Hash] options used for requesting the remote URL
+      # @option request_options [Numeric, nil] :open_timeout Number of seconds to wait for the connection to open. See Net::HTTP#open_timeout for more info. Default is the Net::HTTP default.
+      # @option request_options [Numeric, nil] :read_timeout Number of seconds to wait for one block to be read. See Net::HTTP#read_timeout for more info. Default is the Net::HTTP default.
+      # @option request_options [Integer, nil] :max_retries Maximum number of times to retry the request on certain errors. See Net::HTTP#max_retries= for more info. Default is the Net::HTTP default.
       # @return [REXML::document] Parsed XML IdP metadata
       # @raise [HttpError] Failure to fetch remote IdP metadata
-      def get_idp_metadata(url, validate_cert)
+      def get_idp_metadata(url, validate_cert, request_options)
         uri = URI.parse(url)
         raise ArgumentError.new("url must begin with http or https") unless /^https?/ =~ uri.scheme
         http = Net::HTTP.new(uri.host, uri.port)
@@ -209,6 +228,10 @@ module OneLogin
             http.cert_store = OpenSSL::SSL::SSLContext::DEFAULT_CERT_STORE
           end
         end
+
+        http.open_timeout = request_options[:open_timeout] if request_options[:open_timeout]
+        http.read_timeout = request_options[:read_timeout] if request_options[:read_timeout]
+        http.max_retries = request_options[:max_retries] if request_options[:max_retries]
 
         get = Net::HTTP::Get.new(uri.request_uri)
         get.basic_auth uri.user, uri.password if uri.user

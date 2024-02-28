@@ -335,6 +335,19 @@ class IdpMetadataParserTest < Minitest::Test
 
       assert_equal OpenSSL::SSL::VERIFY_NONE, @http.verify_mode
     end
+
+    it "allows setting HTTP options on the request" do
+      refute_equal 2, @http.open_timeout
+      refute_equal 3, @http.read_timeout
+      refute_equal 4, @http.max_retries
+
+      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      settings = idp_metadata_parser.parse_remote(@url, true, open_timeout: 2, read_timeout: 3, max_retries: 4)
+
+      assert_equal 2, @http.open_timeout
+      assert_equal 3, @http.read_timeout
+      assert_equal 4, @http.max_retries
+    end
   end
 
   describe "download and parse IdP descriptor file into an Hash" do
