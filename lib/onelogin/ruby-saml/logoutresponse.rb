@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "xml_security"
 require "onelogin/ruby-saml/saml_message"
 

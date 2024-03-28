@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require File.expand_path(File.join(File.dirname(__FILE__), "test_helper"))
 
 require 'onelogin/ruby-saml/logoutrequest'
@@ -213,7 +215,7 @@ class RequestTest < Minitest::Test
         assert params['Signature']
         assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA1
 
-        query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
+        query_string = +"SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
         query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
         query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
@@ -229,7 +231,7 @@ class RequestTest < Minitest::Test
         assert params['Signature']
         assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA256
 
-        query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
+        query_string = +"SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
         query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
         query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
@@ -245,7 +247,7 @@ class RequestTest < Minitest::Test
         assert params['Signature']
         assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA384
 
-        query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
+        query_string = +"SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
         query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
         query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
@@ -261,7 +263,7 @@ class RequestTest < Minitest::Test
         assert params['Signature']
         assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA512
 
-        query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
+        query_string = +"SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
         query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
         query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
@@ -314,7 +316,7 @@ class RequestTest < Minitest::Test
         assert params['Signature']
         assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA1
 
-        query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
+        query_string = +"SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
         query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
         query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'logger'
 
 # Simplistic log class when we're running in Rails

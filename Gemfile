@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 #
 # Please keep this file alphabetized and organized
 #

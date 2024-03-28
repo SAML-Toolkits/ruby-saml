@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rexml/document"
 
 require "onelogin/ruby-saml/logging"
@@ -37,7 +39,7 @@ module OneLogin
         params = create_params(settings, params)
         params_prefix = (settings.idp_sso_service_url =~ /\?/) ? '&' : '?'
         saml_request = CGI.escape(params.delete("SAMLRequest"))
-        request_params = "#{params_prefix}SAMLRequest=#{saml_request}"
+        request_params = +"#{params_prefix}SAMLRequest=#{saml_request}"
         params.each_pair do |key, value|
           request_params << "&#{key}=#{CGI.escape(value.to_s)}"
         end

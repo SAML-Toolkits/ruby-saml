@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 if RUBY_VERSION < '1.9'
   require 'uuid'
 else
@@ -140,7 +142,7 @@ module OneLogin
       def self.build_query(params)
         type, data, relay_state, sig_alg = [:type, :data, :relay_state, :sig_alg].map { |k| params[k]}
 
-        url_string = "#{type}=#{CGI.escape(data)}"
+        url_string = +"#{type}=#{CGI.escape(data)}"
         url_string << "&RelayState=#{CGI.escape(relay_state)}" if relay_state
         url_string << "&SigAlg=#{CGI.escape(sig_alg)}"
       end
@@ -157,7 +159,7 @@ module OneLogin
       def self.build_query_from_raw_parts(params)
         type, raw_data, raw_relay_state, raw_sig_alg = [:type, :raw_data, :raw_relay_state, :raw_sig_alg].map { |k| params[k]}
 
-        url_string = "#{type}=#{raw_data}"
+        url_string = +"#{type}=#{raw_data}"
         url_string << "&RelayState=#{raw_relay_state}" if raw_relay_state
         url_string << "&SigAlg=#{raw_sig_alg}"
       end
