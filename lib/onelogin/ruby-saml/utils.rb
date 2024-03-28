@@ -32,7 +32,7 @@ module OneLogin
           (\d+)W                    # 8: Weeks
         )
       $)x.freeze
-      UUID_PREFIX = '_'
+      UUID_PREFIX = +'_'
 
       # Checks if the x509 cert provided is expired
       #
@@ -216,6 +216,8 @@ module OneLogin
       # @param status_message [Strig] StatusMessage value
       # @return [String] The status error message
       def self.status_error_msg(error_msg, raw_status_code = nil, status_message = nil)
+        error_msg = error_msg.dup
+
         unless raw_status_code.nil?
           if raw_status_code.include? "|"
             status_codes = raw_status_code.split(' | ')
