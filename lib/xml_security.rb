@@ -58,16 +58,16 @@ module XMLSecurity
     SHA512        = 'http://www.w3.org/2001/04/xmlenc#sha512'
     ENVELOPED_SIG = 'http://www.w3.org/2000/09/xmldsig#enveloped-signature'
 
-    def canon_algorithm(element)
+    def canon_algorithm(element, default = true)
       case get_algorithm_attr(element)
-      when "http://www.w3.org/TR/2001/REC-xml-c14n-20010315",
-        "http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments"
+      when %r{\Ahttp://www\.w3\.org/TR/2001/REC-xml-c14n-20010315#?(?:WithComments)?\z}i
         Nokogiri::XML::XML_C14N_1_0
-      when "http://www.w3.org/2006/12/xml-c14n11",
-        "http://www.w3.org/2006/12/xml-c14n11#WithComments"
+      when %r{\Ahttp://www\.w3\.org/2006/12/xml-c14n11#?(?:WithComments)?\z}i
         Nokogiri::XML::XML_C14N_1_1
-      else
+      when %r{\Ahttp://www\.w3\.org/2001/10/xml-exc-c14n#?(?:WithComments)?\z}i
         Nokogiri::XML::XML_C14N_EXCLUSIVE_1_0
+      else
+        Nokogiri::XML::XML_C14N_EXCLUSIVE_1_0 if default
       end
     end
 
@@ -92,7 +92,6 @@ module XMLSecurity
 
     def hash_algorithm(element)
       alg = get_algorithm_attr(element)
-      puts alg.inspect
       hash_alg = alg && (alg.downcase.match(/(?:\A|[#-])(sha\d+)\z/i) || {})[1] # TODO: Use &. operator
 
       case hash_alg
@@ -436,7 +435,7 @@ module XMLSecurity
 
       transforms.each do |transform_element|
         next unless transform_element.attributes && transform_element.attributes["Algorithm"]
-        canon_algorithm = XMLSecurity::Crypto.canon_algorithm(transform_element)
+        canon_algorithm = XMLSecurity::Crypto.canon_algorithm(transform_element, false)
       end
 
       canon_algorithm

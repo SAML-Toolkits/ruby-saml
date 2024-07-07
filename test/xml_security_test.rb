@@ -308,10 +308,6 @@ class XmlSecurityTest < Minitest::Test
       it "be able to validate a good response" do
         Timecop.freeze(Time.parse('2012-11-28 17:55:00 UTC')) do
           response.stubs(:validate_subject_confirmation).returns(true)
-          response.is_valid?(true)
-          puts response.errors
-          puts response.document
-
           assert response.is_valid?
         end
       end
