@@ -42,7 +42,7 @@ module OneLogin
 
       # fetch IdP descriptors from a metadata document
       def self.get_idps(metadata_document, only_entity_id=nil)
-        path = "//md:EntityDescriptor#{('[@entityID="' + only_entity_id + '"]') if only_entity_id}/md:IDPSSODescriptor"
+        path = "//md:EntityDescriptor#{"[@entityID=\"#{only_entity_id}\"]" if only_entity_id}/md:IDPSSODescriptor"
         REXML::XPath.match(
           metadata_document,
           path,
@@ -125,10 +125,8 @@ module OneLogin
 
         unless parsed_metadata[:cache_duration].nil?
           cache_valid_until_timestamp = OneLogin::RubySaml::Utils.parse_duration(parsed_metadata[:cache_duration])
-          unless cache_valid_until_timestamp.nil?
-            if parsed_metadata[:valid_until].nil? || cache_valid_until_timestamp < Time.parse(parsed_metadata[:valid_until], Time.now.utc).to_i
-              parsed_metadata[:valid_until] = Time.at(cache_valid_until_timestamp).utc.strftime("%Y-%m-%dT%H:%M:%SZ")
-            end
+          if !cache_valid_until_timestamp.nil? && (parsed_metadata[:valid_until].nil? || cache_valid_until_timestamp < Time.parse(parsed_metadata[:valid_until], Time.now.utc).to_i)
+            parsed_metadata[:valid_until] = Time.at(cache_valid_until_timestamp).utc.strftime("%Y-%m-%dT%H:%M:%SZ")
           end
         end
         # Remove the cache_duration because on the settings
@@ -240,7 +238,7 @@ module OneLogin
             idp_cert_fingerprint: nil,
             idp_cert_multi: nil,
             valid_until: valid_until,
-            cache_duration: cache_duration,
+            cache_duration: cache_duration
           }.tap do |response_hash|
             merge_certificates_into(response_hash) unless certificates.nil?
           end

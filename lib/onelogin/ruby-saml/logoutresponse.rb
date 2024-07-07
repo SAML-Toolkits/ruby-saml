@@ -59,7 +59,7 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def success?
-        return status_code == "urn:oasis:names:tc:SAML:2.0:status:Success"
+        status_code == "urn:oasis:names:tc:SAML:2.0:status:Success"
       end
 
       # @return [String|nil] Gets the InResponseTo attribute from the Logout Response if exists.
@@ -116,13 +116,13 @@ module OneLogin
       def validate(collect_errors = false)
         reset_errors!
 
-        validations = [
-          :valid_state?,
-          :validate_success_status,
-          :validate_structure,
-          :valid_in_response_to?,
-          :valid_issuer?,
-          :validate_signature
+        validations = %i[
+          valid_state?
+          validate_success_status
+          validate_structure
+          valid_in_response_to?
+          valid_issuer?
+          validate_signature
         ]
 
         if collect_errors
@@ -185,7 +185,7 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def valid_in_response_to?
-        return true unless options.has_key? :matches_request_id
+        return true unless options.key? :matches_request_id
         return true if options[:matches_request_id].nil?
         return true unless options[:matches_request_id] != in_response_to
 
@@ -212,8 +212,8 @@ module OneLogin
       #
       def validate_signature
         return true if options.nil?
-        return true unless options.has_key? :get_params
-        return true unless options[:get_params].has_key? 'Signature'
+        return true unless options.key? :get_params
+        return true unless options[:get_params].key? 'Signature'
 
         options[:raw_get_params] = OneLogin::RubySaml::Utils.prepare_raw_get_params(options[:raw_get_params], options[:get_params], settings.security[:lowercase_url_encoding])
 
@@ -225,7 +225,7 @@ module OneLogin
         idp_certs = settings.get_idp_cert_multi
 
         if idp_cert.nil? && (idp_certs.nil? || idp_certs[:signing].empty?)
-          return options.has_key? :relax_signature_validation
+          return options.key? :relax_signature_validation
         end
 
         query_string = OneLogin::RubySaml::Utils.build_query_from_raw_parts(
@@ -243,10 +243,8 @@ module OneLogin
             signature: options[:get_params]['Signature'],
             query_string: query_string
           )
-          if valid && settings.security[:check_idp_cert_expiration]
-            if OneLogin::RubySaml::Utils.is_cert_expired(idp_cert)
-              expired = true
-            end
+          if valid && settings.security[:check_idp_cert_expiration] && OneLogin::RubySaml::Utils.is_cert_expired(idp_cert)
+            expired = true
           end
         else
           valid = false
@@ -257,14 +255,11 @@ module OneLogin
               signature: options[:get_params]['Signature'],
               query_string: query_string
             )
-            if valid
-              if settings.security[:check_idp_cert_expiration]
-                if OneLogin::RubySaml::Utils.is_cert_expired(signing_idp_cert)
-                  expired = true
-                end
-              end
-              break
+            next unless valid
+            if settings.security[:check_idp_cert_expiration] && OneLogin::RubySaml::Utils.is_cert_expired(signing_idp_cert)
+              expired = true
             end
+            break
           end
         end
 

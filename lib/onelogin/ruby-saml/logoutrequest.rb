@@ -35,7 +35,7 @@ module OneLogin
       #
       def create(settings, params={})
         params = create_params(settings, params)
-        params_prefix = (settings.idp_slo_service_url =~ /\?/) ? '&' : '?'
+        params_prefix = /\?/.match?(settings.idp_slo_service_url) ? '&' : '?'
         saml_request = CGI.escape(params.delete("SAMLRequest"))
         request_params = +"#{params_prefix}SAMLRequest=#{saml_request}"
         params.each_pair do |key, value|

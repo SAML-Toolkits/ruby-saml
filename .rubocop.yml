@@ -15,3 +15,9 @@ AllCops:
     - '.git/**/*'
     - 'tmp/**/*'
     - 'vendor/**/*'
+
+Style/NumericPredicate:
+  EnforcedStyle: comparison
+
+Style/RaiseArgs:
+  EnforcedStyle: compact

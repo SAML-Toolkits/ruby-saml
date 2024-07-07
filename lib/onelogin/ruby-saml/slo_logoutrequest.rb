@@ -40,9 +40,7 @@ module OneLogin
         @soft = true
         unless options[:settings].nil?
           @settings = options[:settings]
-          unless @settings.soft.nil?
-            @soft = @settings.soft
-          end
+          @soft = @settings.soft unless @settings.soft.nil?
         end
 
         @request = decode_raw_saml(request, settings)
@@ -147,14 +145,14 @@ module OneLogin
       def validate(collect_errors = false)
         reset_errors!
 
-        validations = [
-          :validate_request_state,
-          :validate_id,
-          :validate_version,
-          :validate_structure,
-          :validate_not_on_or_after,
-          :validate_issuer,
-          :validate_signature
+        validations = %i[
+          validate_request_state
+          validate_id
+          validate_version
+          validate_structure
+          validate_not_on_or_after
+          validate_issuer
+          validate_signature
         ]
 
         if collect_errors
@@ -170,11 +168,8 @@ module OneLogin
       # @return [Boolean] True if the Logout Request contains an ID, otherwise returns False
       #
       def validate_id
-        unless id
-          return append_error("Missing ID attribute on Logout Request")
-        end
-
-        true
+        return true if id
+        append_error("Missing ID attribute on Logout Request")
       end
 
       # Validates the SAML version (2.0)
@@ -182,11 +177,8 @@ module OneLogin
       # @return [Boolean] True if the Logout Request is 2.0, otherwise returns False
       #
       def validate_version
-        unless version(document) == "2.0"
-          return append_error("Unsupported SAML version")
-        end
-
-        true
+        return true if version(document) == "2.0"
+        append_error("Unsupported SAML version")
       end
 
       # Validates the time. (If the logout request was initialized with the :allowed_clock_drift
@@ -248,8 +240,8 @@ module OneLogin
       #
       def validate_signature
         return true if options.nil?
-        return true unless options.has_key? :get_params
-        return true unless options[:get_params].has_key? 'Signature'
+        return true unless options.key? :get_params
+        return true unless options[:get_params].key? 'Signature'
 
         options[:raw_get_params] = OneLogin::RubySaml::Utils.prepare_raw_get_params(options[:raw_get_params], options[:get_params], settings.security[:lowercase_url_encoding])
 
@@ -261,7 +253,7 @@ module OneLogin
         idp_certs = settings.get_idp_cert_multi
 
         if idp_cert.nil? && (idp_certs.nil? || idp_certs[:signing].empty?)
-          return options.has_key? :relax_signature_validation
+          return options.key? :relax_signature_validation
         end
 
         query_string = OneLogin::RubySaml::Utils.build_query_from_raw_parts(
@@ -279,10 +271,8 @@ module OneLogin
             signature: options[:get_params]['Signature'],
             query_string: query_string
           )
-          if valid && settings.security[:check_idp_cert_expiration]
-            if OneLogin::RubySaml::Utils.is_cert_expired(idp_cert)
-              expired = true
-            end
+          if valid && settings.security[:check_idp_cert_expiration] && OneLogin::RubySaml::Utils.is_cert_expired(idp_cert)
+            expired = true
           end
         else
           valid = false
@@ -293,14 +283,12 @@ module OneLogin
               signature: options[:get_params]['Signature'],
               query_string: query_string
             )
-            if valid
-              if settings.security[:check_idp_cert_expiration]
-                if OneLogin::RubySaml::Utils.is_cert_expired(signing_idp_cert)
-                  expired = true
-                end
-              end
-              break
+            next unless valid
+
+            if settings.security[:check_idp_cert_expiration] && OneLogin::RubySaml::Utils.is_cert_expired(signing_idp_cert)
+              expired = true
             end
+            break
           end
         end
 

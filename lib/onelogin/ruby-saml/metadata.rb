@@ -52,7 +52,7 @@ module OneLogin
         root.attributes["ID"] = OneLogin::RubySaml::Utils.uuid
         root.attributes["entityID"] = settings.sp_entity_id if settings.sp_entity_id
         root.attributes["validUntil"] = valid_until.utc.strftime('%Y-%m-%dT%H:%M:%SZ') if valid_until
-        root.attributes["cacheDuration"] = "PT" + cache_duration.to_s + "S" if cache_duration
+        root.attributes["cacheDuration"] = "PT#{cache_duration}S" if cache_duration
         root
       end
 
@@ -60,7 +60,7 @@ module OneLogin
         root.add_element "md:SPSSODescriptor", {
             "protocolSupportEnumeration" => "urn:oasis:names:tc:SAML:2.0:protocol",
             "AuthnRequestsSigned" => settings.security[:authn_requests_signed],
-            "WantAssertionsSigned" => settings.security[:want_assertions_signed],
+            "WantAssertionsSigned" => settings.security[:want_assertions_signed]
         }
       end
 
@@ -71,22 +71,22 @@ module OneLogin
         cert_new = settings.get_sp_cert_new
 
         [cert, cert_new].each do |sp_cert|
-          if sp_cert
-            cert_text = Base64.encode64(sp_cert.to_der).gsub("\n", '')
-            kd = sp_sso.add_element "md:KeyDescriptor", { "use" => "signing" }
-            ki = kd.add_element "ds:KeyInfo", {"xmlns:ds" => "http://www.w3.org/2000/09/xmldsig#"}
-            xd = ki.add_element "ds:X509Data"
-            xc = xd.add_element "ds:X509Certificate"
-            xc.text = cert_text
+          next unless sp_cert
 
-            if settings.security[:want_assertions_encrypted]
-              kd2 = sp_sso.add_element "md:KeyDescriptor", { "use" => "encryption" }
-              ki2 = kd2.add_element "ds:KeyInfo", {"xmlns:ds" => "http://www.w3.org/2000/09/xmldsig#"}
-              xd2 = ki2.add_element "ds:X509Data"
-              xc2 = xd2.add_element "ds:X509Certificate"
-              xc2.text = cert_text
-            end
-          end
+          cert_text = Base64.encode64(sp_cert.to_der).gsub("\n", '')
+          kd = sp_sso.add_element "md:KeyDescriptor", { "use" => "signing" }
+          ki = kd.add_element "ds:KeyInfo", {"xmlns:ds" => "http://www.w3.org/2000/09/xmldsig#"}
+          xd = ki.add_element "ds:X509Data"
+          xc = xd.add_element "ds:X509Certificate"
+          xc.text = cert_text
+
+          next unless settings.security[:want_assertions_encrypted]
+
+          kd2 = sp_sso.add_element "md:KeyDescriptor", { "use" => "encryption" }
+          ki2 = kd2.add_element "ds:KeyInfo", {"xmlns:ds" => "http://www.w3.org/2000/09/xmldsig#"}
+          xd2 = ki2.add_element "ds:X509Data"
+          xc2 = xd2.add_element "ds:X509Certificate"
+          xc2.text = cert_text
         end
 
         sp_sso
@@ -131,11 +131,11 @@ module OneLogin
               "FriendlyName" => attribute[:friendly_name],
               "isRequired" => attribute[:is_required] || false
             }
-            unless attribute[:attribute_value].nil?
-              Array(attribute[:attribute_value]).each do |value|
-                sp_attr_val = sp_req_attr.add_element "saml:AttributeValue"
-                sp_attr_val.text = value.to_s
-              end
+            next if attribute[:attribute_value].nil?
+
+            Array(attribute[:attribute_value]).each do |value|
+              sp_attr_val = sp_req_attr.add_element "saml:AttributeValue"
+              sp_attr_val.text = value.to_s
             end
           end
         end

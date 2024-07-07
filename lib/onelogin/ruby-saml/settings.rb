@@ -197,7 +197,7 @@ module OneLogin
 
         certs = {signing: [], encryption: [] }
 
-        [:signing, :encryption].each do |type|
+        %i[signing encryption].each do |type|
           certs_for_type = idp_cert_multi[type] || idp_cert_multi[type.to_s]
           next if !certs_for_type || certs_for_type.empty?
 
@@ -218,10 +218,8 @@ module OneLogin
         formatted_cert = OneLogin::RubySaml::Utils.format_cert(certificate)
         cert = OpenSSL::X509::Certificate.new(formatted_cert)
 
-        if security[:check_sp_cert_expiration]
-          if OneLogin::RubySaml::Utils.is_cert_expired(cert)
-            raise OneLogin::RubySaml::ValidationError.new("The SP certificate expired.")
-          end
+        if security[:check_sp_cert_expiration] && OneLogin::RubySaml::Utils.is_cert_expired(cert)
+          raise OneLogin::RubySaml::ValidationError.new("The SP certificate expired.")
         end
 
         cert
