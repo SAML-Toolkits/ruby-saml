@@ -273,7 +273,7 @@ class RequestTest < Minitest::Test
         query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
         query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
-        signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
+        signature_algorithm = XMLSecurity::Crypto.hash_algorithm(params['SigAlg'])
         assert_equal signature_algorithm, OpenSSL::Digest::SHA1
         assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
       end
@@ -289,7 +289,7 @@ class RequestTest < Minitest::Test
         query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
         query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
-        signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
+        signature_algorithm = XMLSecurity::Crypto.hash_algorithm(params['SigAlg'])
         assert_equal signature_algorithm, OpenSSL::Digest::SHA256
         assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
       end
@@ -305,7 +305,7 @@ class RequestTest < Minitest::Test
         query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
         query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
-        signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
+        signature_algorithm = XMLSecurity::Crypto.hash_algorithm(params['SigAlg'])
         assert_equal signature_algorithm, OpenSSL::Digest::SHA384
         assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
       end
@@ -321,7 +321,7 @@ class RequestTest < Minitest::Test
         query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
         query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
-        signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
+        signature_algorithm = XMLSecurity::Crypto.hash_algorithm(params['SigAlg'])
         assert_equal signature_algorithm, OpenSSL::Digest::SHA512
         assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
       end
@@ -348,7 +348,7 @@ class RequestTest < Minitest::Test
         query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
         query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
-        signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
+        signature_algorithm = XMLSecurity::Crypto.hash_algorithm(params['SigAlg'])
         assert_equal signature_algorithm, OpenSSL::Digest::SHA1
         assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
       end
@@ -409,7 +409,7 @@ class RequestTest < Minitest::Test
         query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
         query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
-        signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
+        signature_algorithm = XMLSecurity::Crypto.hash_algorithm(params['SigAlg'])
         assert_equal signature_algorithm, OpenSSL::Digest::SHA1
         assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
       end

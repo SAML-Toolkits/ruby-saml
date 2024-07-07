@@ -75,14 +75,14 @@ module OneLogin
         sp_signing_key = settings.get_sp_signing_key
 
         if settings.idp_sso_service_binding == Utils::BINDINGS[:redirect] && settings.security[:authn_requests_signed] && sp_signing_key
-          params['SigAlg'] = settings.security[:signature_method]
+          params['SigAlg'] = settings.get_sp_signature_method
           url_string = OneLogin::RubySaml::Utils.build_query(
             :type => 'SAMLRequest',
             :data => base64_request,
             :relay_state => relay_state,
             :sig_alg => params['SigAlg']
           )
-          sign_algorithm = XMLSecurity::BaseDocument.new.algorithm(settings.security[:signature_method])
+          sign_algorithm = XMLSecurity::Crypto.hash_algorithm(settings.get_sp_signature_method)
           signature = sp_signing_key.sign(sign_algorithm.new, url_string)
           params['Signature'] = encode(signature)
         end
@@ -182,7 +182,7 @@ module OneLogin
       def sign_document(document, settings)
         cert, private_key = settings.get_sp_signing_pair
         if settings.idp_sso_service_binding == Utils::BINDINGS[:post] && settings.security[:authn_requests_signed] && private_key && cert
-          document.sign_document(private_key, cert, settings.security[:signature_method], settings.security[:digest_method])
+          document.sign_document(private_key, cert, settings.get_sp_signature_method, settings.get_sp_digest_method)
         end
 
         document

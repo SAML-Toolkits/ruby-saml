@@ -124,8 +124,8 @@ class SettingsTest < Minitest::Test
       new_settings = OneLogin::RubySaml::Settings.new
       assert_equal new_settings.security[:authn_requests_signed], false
       assert_equal new_settings.security[:embed_sign], false
-      assert_equal new_settings.security[:digest_method], XMLSecurity::Document::SHA1
-      assert_equal new_settings.security[:signature_method], XMLSecurity::Document::RSA_SHA1
+      assert_equal new_settings.get_sp_digest_method, XMLSecurity::Document::SHA1
+      assert_equal new_settings.get_sp_signature_method, XMLSecurity::Document::RSA_SHA1
     end
 
     it "overrides only provided security attributes passing a second parameter" do
@@ -397,7 +397,7 @@ class SettingsTest < Minitest::Test
 
       it "returns the private key when it is valid" do
         @settings.private_key = ruby_saml_key_text
-        assert @settings.get_sp_key.kind_of? OpenSSL::PKey::RSA
+        assert @settings.get_sp_key.kind_of?(OpenSSL::PKey::RSA)
       end
 
       it "raises when the private key is not valid" do

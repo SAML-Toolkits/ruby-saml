@@ -150,12 +150,25 @@ module OneLogin
       # Given a private key string, return an OpenSSL::PKey::RSA object.
       #
       # @param cert [String] The original private key
-      # @return [OpenSSL::PKey::RSA] The private key object
+      # @return [OpenSSL::PKey::PKey] The private key object
       #
       def self.build_private_key_object(private_key)
         return nil if private_key.nil? || private_key.empty?
 
-        OpenSSL::PKey::RSA.new(format_private_key(private_key))
+        private_key = format_private_key(private_key)
+        error = nil
+
+        [ OpenSSL::PKey::RSA,
+          OpenSSL::PKey::DSA,
+          OpenSSL::PKey::EC ].each do |key_class|
+          begin
+            return key_class.new(private_key)
+          rescue OpenSSL::PKey::PKeyError => e
+            error ||= e
+          end
+        end
+
+        raise error
       end
 
       # Build the Query String signature that will be used in the HTTP-Redirect binding
@@ -237,7 +250,7 @@ module OneLogin
       #
       def self.verify_signature(params)
         cert, sig_alg, signature, query_string = [:cert, :sig_alg, :signature, :query_string].map { |k| params[k]}
-        signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(sig_alg)
+        signature_algorithm = XMLSecurity::Crypto.hash_algorithm(sig_alg)
         return cert.public_key.verify(signature_algorithm.new, Base64.decode64(signature), query_string)
       end
 
@@ -269,7 +282,7 @@ module OneLogin
       # Obtains the decrypted string from an Encrypted node element in XML,
       # given multiple private keys to try.
       # @param encrypted_node [REXML::Element] The Encrypted element
-      # @param private_keys [Array<OpenSSL::PKey::RSA>] The Service provider private key
+      # @param private_keys [Array<OpenSSL::PKey::PKey>] The Service provider private key
       # @return [String] The decrypted data
       def self.decrypt_multi(encrypted_node, private_keys)
         raise ArgumentError.new('private_keys must be specified') if !private_keys || private_keys.empty?
@@ -288,7 +301,7 @@ module OneLogin
 
       # Obtains the decrypted string from an Encrypted node element in XML
       # @param encrypted_node [REXML::Element] The Encrypted element
-      # @param private_key [OpenSSL::PKey::RSA] The Service provider private key
+      # @param private_key [OpenSSL::PKey::PKey] The Service provider private key
       # @return [String] The decrypted data
       def self.decrypt_data(encrypted_node, private_key)
         encrypt_data = REXML::XPath.first(
@@ -314,7 +327,7 @@ module OneLogin
 
       # Obtains the symmetric key from the EncryptedData element
       # @param encrypt_data [REXML::Element]     The EncryptedData element
-      # @param private_key [OpenSSL::PKey::RSA] The Service provider private key
+      # @param private_key [OpenSSL::PKey::PKey] The Service provider private key
       # @return [String] The symmetric key
       def self.retrieve_symmetric_key(encrypt_data, private_key)
         encrypted_key = REXML::XPath.first(

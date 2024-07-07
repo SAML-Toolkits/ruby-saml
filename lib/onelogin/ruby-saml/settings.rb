@@ -172,7 +172,7 @@ module OneLogin
         idp_cert_fingerprint || begin
           idp_cert = get_idp_cert
           if idp_cert
-            fingerprint_alg = XMLSecurity::BaseDocument.new.algorithm(idp_cert_fingerprint_algorithm).new
+            fingerprint_alg = XMLSecurity::Crypto.hash_algorithm(idp_cert_fingerprint_algorithm).new
             fingerprint_alg.hexdigest(idp_cert.to_der).upcase.scan(/../).join(":")
           end
         end
@@ -205,7 +205,7 @@ module OneLogin
         certs
       end
 
-      # @return [Hash<Symbol, Array<Array<OpenSSL::X509::Certificate, OpenSSL::PKey::RSA>>>]
+      # @return [Hash<Symbol, Array<Array<OpenSSL::X509::Certificate, OpenSSL::PKey::PKey>>>]
       #   Build the SP certificates and private keys from the settings. If
       #   check_sp_cert_expiration is true, only returns certificates and private keys
       #   that are not expired.
@@ -225,7 +225,7 @@ module OneLogin
         active_certs.freeze
       end
 
-      # @return [Array<OpenSSL::X509::Certificate, OpenSSL::PKey::RSA>]
+      # @return [Array<OpenSSL::X509::Certificate, OpenSSL::PKey::PKey>]
       #   The SP signing certificate and private key.
       def get_sp_signing_pair
         get_sp_certs[:signing].first
@@ -261,6 +261,43 @@ module OneLogin
       def get_sp_cert_new
         node = get_sp_certs[:signing].last
         node[0] if node
+      end
+
+      # @return [String] The XML Signature Algorithm attribute.
+      #
+      # This method is intentionally hacky for backwards compatibility of the
+      # settings.security[:signature_method] parameter. Previously, this parameter
+      # could have a value such as "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
+      # which assumes the public key type RSA. To add support for DSA and ECDSA, we will now
+      # ignore the "rsa-" prefix and only use the "sha256" hash algorithm component.
+      def get_sp_signature_method
+        sig_alg = security[:signature_method] || 'sha1' # TODO: change to sha256 by default
+        hash_alg = sig_alg.to_s.match(/(?:\A|[#_-])(sha\d+)\z/i)[1]
+        key_alg = case get_sp_signing_key
+                  when OpenSSL::PKey::RSA then 'RSA'
+                  when OpenSSL::PKey::DSA then 'DSA'
+                  when OpenSSL::PKey::EC  then 'ECDSA'
+                  else
+                    'RSA'
+                    # raise ArgumentError.new("Unsupported signing key type: #{get_sp_signing_key.class}")
+                  end
+
+        begin
+          XMLSecurity::Crypto.const_get("#{key_alg}_#{hash_alg}".upcase)
+        rescue NameError
+          raise ArgumentError.new("Unsupported signature method: #{sig_alg}")
+        end
+      end
+
+      def get_sp_digest_method
+        digest_alg = security[:digest_method] || 'sha1' # TODO: change to sha256 by default
+        alg = digest_alg.to_s.match(/(?:\A|#)(sha\d+)\z/i)[1]
+
+        begin
+          XMLSecurity::Crypto.const_get(alg.upcase)
+        rescue NameError
+          raise ArgumentError.new("Unsupported signature method: #{digest_alg}")
+        end
       end
 
       def idp_binding_from_embed_sign

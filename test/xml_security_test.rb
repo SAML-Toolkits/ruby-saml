@@ -88,48 +88,48 @@ class XmlSecurityTest < Minitest::Test
   describe "#canon_algorithm" do
     it "C14N_EXCLUSIVE_1_0" do
       canon_algorithm = Nokogiri::XML::XML_C14N_EXCLUSIVE_1_0
-      assert_equal canon_algorithm, XMLSecurity::BaseDocument.new.canon_algorithm("http://www.w3.org/2001/10/xml-exc-c14n#")
-      assert_equal canon_algorithm, XMLSecurity::BaseDocument.new.canon_algorithm("http://www.w3.org/2001/10/xml-exc-c14n#WithComments")
-      assert_equal canon_algorithm, XMLSecurity::BaseDocument.new.canon_algorithm("other")
+      assert_equal canon_algorithm, XMLSecurity::Crypto.canon_algorithm("http://www.w3.org/2001/10/xml-exc-c14n#")
+      assert_equal canon_algorithm, XMLSecurity::Crypto.canon_algorithm("http://www.w3.org/2001/10/xml-exc-c14n#WithComments")
+      assert_equal canon_algorithm, XMLSecurity::Crypto.canon_algorithm("other")
     end
 
     it "C14N_1_0" do
       canon_algorithm = Nokogiri::XML::XML_C14N_1_0
-      assert_equal canon_algorithm, XMLSecurity::BaseDocument.new.canon_algorithm("http://www.w3.org/TR/2001/REC-xml-c14n-20010315")
-      assert_equal canon_algorithm, XMLSecurity::BaseDocument.new.canon_algorithm("http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments")
+      assert_equal canon_algorithm, XMLSecurity::Crypto.canon_algorithm("http://www.w3.org/TR/2001/REC-xml-c14n-20010315")
+      assert_equal canon_algorithm, XMLSecurity::Crypto.canon_algorithm("http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments")
     end
 
     it "XML_C14N_1_1" do
       canon_algorithm = Nokogiri::XML::XML_C14N_1_1
-      assert_equal canon_algorithm, XMLSecurity::BaseDocument.new.canon_algorithm("http://www.w3.org/2006/12/xml-c14n11")
-      assert_equal canon_algorithm, XMLSecurity::BaseDocument.new.canon_algorithm("http://www.w3.org/2006/12/xml-c14n11#WithComments")
+      assert_equal canon_algorithm, XMLSecurity::Crypto.canon_algorithm("http://www.w3.org/2006/12/xml-c14n11")
+      assert_equal canon_algorithm, XMLSecurity::Crypto.canon_algorithm("http://www.w3.org/2006/12/xml-c14n11#WithComments")
     end
   end
 
   describe "#algorithm" do
     it "SHA1" do
       alg = OpenSSL::Digest::SHA1
-      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2000/09/xmldsig#rsa-sha1")
-      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2000/09/xmldsig#sha1")
-      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("other")
+      assert_equal alg, XMLSecurity::Crypto.hash_algorithm("http://www.w3.org/2000/09/xmldsig#rsa-sha1")
+      assert_equal alg, XMLSecurity::Crypto.hash_algorithm("http://www.w3.org/2000/09/xmldsig#sha1")
+      assert_equal alg, XMLSecurity::Crypto.hash_algorithm("other")
     end
 
     it "SHA256" do
       alg = OpenSSL::Digest::SHA256
-      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#rsa-sha256")
-      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#sha256")
+      assert_equal alg, XMLSecurity::Crypto.hash_algorithm("http://www.w3.org/2001/04/xmldsig-more#rsa-sha256")
+      assert_equal alg, XMLSecurity::Crypto.hash_algorithm("http://www.w3.org/2001/04/xmldsig-more#sha256")
     end
 
     it "SHA384" do
       alg = OpenSSL::Digest::SHA384
-      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#rsa-sha384")
-      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#sha384")
+      assert_equal alg, XMLSecurity::Crypto.hash_algorithm("http://www.w3.org/2001/04/xmldsig-more#rsa-sha384")
+      assert_equal alg, XMLSecurity::Crypto.hash_algorithm("http://www.w3.org/2001/04/xmldsig-more#sha384")
     end
 
     it "SHA512" do
       alg = OpenSSL::Digest::SHA512
-      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#rsa-sha512")
-      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#sha512")
+      assert_equal alg, XMLSecurity::Crypto.hash_algorithm("http://www.w3.org/2001/04/xmldsig-more#rsa-sha512")
+      assert_equal alg, XMLSecurity::Crypto.hash_algorithm("http://www.w3.org/2001/04/xmldsig-more#sha512")
     end
   end
 
@@ -299,15 +299,19 @@ class XmlSecurityTest < Minitest::Test
     end
 
     describe "StarfieldTMS" do
-      let (:response) { OneLogin::RubySaml::Response.new(fixture(:starfield_response)) }
+      let(:response) { OneLogin::RubySaml::Response.new(fixture(:starfield_response)) }
 
       before do
         response.settings = OneLogin::RubySaml::Settings.new(:idp_cert_fingerprint => "8D:BA:53:8E:A3:B6:F9:F1:69:6C:BB:D9:D8:BD:41:B3:AC:4F:9D:4D")
       end
 
       it "be able to validate a good response" do
-        Timecop.freeze Time.parse('2012-11-28 17:55:00 UTC') do
+        Timecop.freeze(Time.parse('2012-11-28 17:55:00 UTC')) do
           response.stubs(:validate_subject_confirmation).returns(true)
+          response.is_valid?(true)
+          puts response.errors
+          puts response.document
+
           assert response.is_valid?
         end
       end

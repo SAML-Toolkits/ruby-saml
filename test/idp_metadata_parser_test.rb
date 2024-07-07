@@ -163,8 +163,8 @@ class IdpMetadataParserTest < Minitest::Test
         }
       })
       assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", settings.idp_cert_fingerprint
-      assert_equal XMLSecurity::Document::SHA256, settings.security[:digest_method]
-      assert_equal XMLSecurity::Document::RSA_SHA256, settings.security[:signature_method]
+      assert_equal XMLSecurity::Document::SHA256, settings.get_sp_digest_method
+      assert_equal XMLSecurity::Document::RSA_SHA256, settings.get_sp_signature_method
     end
 
     it "merges results into given settings object" do
@@ -176,8 +176,8 @@ class IdpMetadataParserTest < Minitest::Test
       OneLogin::RubySaml::IdpMetadataParser.new.parse(idp_metadata_descriptor, :settings => settings)
 
       assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", settings.idp_cert_fingerprint
-      assert_equal XMLSecurity::Document::SHA256, settings.security[:digest_method]
-      assert_equal XMLSecurity::Document::RSA_SHA256, settings.security[:signature_method]
+      assert_equal XMLSecurity::Document::SHA256, settings.get_sp_digest_method
+      assert_equal XMLSecurity::Document::RSA_SHA256, settings.get_sp_signature_method
     end
   end
 

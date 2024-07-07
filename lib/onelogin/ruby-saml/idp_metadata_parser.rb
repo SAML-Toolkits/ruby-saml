@@ -389,7 +389,7 @@ module OneLogin
 
             cert = OpenSSL::X509::Certificate.new(Base64.decode64(certificate))
 
-            fingerprint_alg = XMLSecurity::BaseDocument.new.algorithm(fingerprint_algorithm).new
+            fingerprint_alg = XMLSecurity::Crypto.hash_algorithm(fingerprint_algorithm).new
             fingerprint_alg.hexdigest(cert.to_der).upcase.scan(/../).join(":")
           end
         end

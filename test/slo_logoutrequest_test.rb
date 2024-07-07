@@ -401,7 +401,7 @@ class RubySamlTest < Minitest::Test
         refute_equal(query, original_query)
         assert_equal(CGI.unescape(query), CGI.unescape(original_query))
         # Make normalised signature based on our modified params.
-        sign_algorithm = XMLSecurity::BaseDocument.new.algorithm(settings.security[:signature_method])
+        sign_algorithm = XMLSecurity::Crypto.hash_algorithm(settings.get_sp_signature_method)
         signature = settings.get_sp_signing_key.sign(sign_algorithm.new, query)
         params['Signature'] = Base64.encode64(signature).gsub(/\n/, "")
         # Construct SloLogoutrequest and ask it to validate the signature.
@@ -436,7 +436,7 @@ class RubySamlTest < Minitest::Test
         refute_equal(query, original_query)
         assert_equal(CGI.unescape(query), CGI.unescape(original_query))
         # Make normalised signature based on our modified params.
-        sign_algorithm = XMLSecurity::BaseDocument.new.algorithm(settings.security[:signature_method])
+        sign_algorithm = XMLSecurity::Crypto.hash_algorithm(settings.get_sp_signature_method)
         signature = settings.get_sp_signing_key.sign(sign_algorithm.new, query)
         params['Signature'] = Base64.encode64(signature).gsub(/\n/, "")
         # Construct SloLogoutrequest and ask it to validate the signature.
@@ -468,14 +468,12 @@ class RubySamlTest < Minitest::Test
         # send is based on this base64 request.
         params = {
           'SAMLRequest' => downcased_escape(base64_request),
-          'SigAlg' => downcased_escape(settings.security[:signature_method]),
+          'SigAlg' => downcased_escape(settings.get_sp_signature_method),
         }
         # Assemble query string.
         query = "SAMLRequest=#{params['SAMLRequest']}&SigAlg=#{params['SigAlg']}"
         # Make normalised signature based on our modified params.
-        sign_algorithm = XMLSecurity::BaseDocument.new.algorithm(
-          settings.security[:signature_method]
-        )
+        sign_algorithm = XMLSecurity::Crypto.hash_algorithm(settings.get_sp_signature_method)
         signature = settings.get_sp_signing_key.sign(sign_algorithm.new, query)
         params['Signature'] = downcased_escape(Base64.encode64(signature).gsub(/\n/, ""))
 
