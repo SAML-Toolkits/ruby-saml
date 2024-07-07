@@ -34,16 +34,24 @@ module OneLogin
       $)x.freeze
       UUID_PREFIX = '_'
 
-      # Checks if the x509 cert provided is expired
+      # Checks if the x509 cert provided is expired.
       #
-      # @param cert [Certificate] The x509 certificate
-      #
+      # @param cert [OpenSSL::X509::Certificate|String] The x509 certificate.
+      # @return [true|false] Whether the certificate is expired.
       def self.is_cert_expired(cert)
-        if cert.is_a?(String)
-          cert = OpenSSL::X509::Certificate.new(cert)
-        end
+        cert = OpenSSL::X509::Certificate.new(cert) if cert.is_a?(String)
 
-        return cert.not_after < Time.now
+        cert.not_after < Time.now
+      end
+
+      # Checks if the x509 cert provided has both started and has not expired.
+      #
+      # @param cert [OpenSSL::X509::Certificate|String] The x509 certificate.
+      # @return [true|false] Whether the certificate is currently active.
+      def self.is_cert_active(cert)
+        cert = OpenSSL::X509::Certificate.new(cert) if cert.is_a?(String)
+        now = Time.now
+        cert.not_before <= now && cert.not_after >= now
       end
 
       # Interprets a ISO8601 duration value relative to a given timestamp.
@@ -128,6 +136,28 @@ module OneLogin
         "-----BEGIN #{key_label}-----\n#{key}\n-----END #{key_label}-----"
       end
 
+      # Given a certificate string, return an OpenSSL::X509::Certificate object.
+      #
+      # @param cert [String] The original certificate
+      # @return [OpenSSL::X509::Certificate] The certificate object
+      #
+      def self.build_cert_object(cert)
+        return nil if cert.nil? || cert.empty?
+
+        OpenSSL::X509::Certificate.new(format_cert(cert))
+      end
+
+      # Given a private key string, return an OpenSSL::PKey::RSA object.
+      #
+      # @param cert [String] The original private key
+      # @return [OpenSSL::PKey::RSA] The private key object
+      #
+      def self.build_private_key_object(private_key)
+        return nil if private_key.nil? || private_key.empty?
+
+        OpenSSL::PKey::RSA.new(format_private_key(private_key))
+      end
+
       # Build the Query String signature that will be used in the HTTP-Redirect binding
       # to generate the Signature
       # @param params [Hash] Parameters to build the Query String
@@ -199,7 +229,7 @@ module OneLogin
 
       # Validate the Signature parameter sent on the HTTP-Redirect binding
       # @param params [Hash] Parameters to be used in the validation process
-      # @option params [OpenSSL::X509::Certificate] cert The Identity provider public certtificate
+      # @option params [OpenSSL::X509::Certificate] cert The IDP public certificate
       # @option params [String] sig_alg The SigAlg parameter
       # @option params [String] signature The Signature parameter (base64 encoded)
       # @option params [String] query_string The full GET Query String to be compared
@@ -236,9 +266,29 @@ module OneLogin
         error_msg
       end
 
+      # Obtains the decrypted string from an Encrypted node element in XML,
+      # given multiple private keys to try.
+      # @param encrypted_node [REXML::Element] The Encrypted element
+      # @param private_keys [Array<OpenSSL::PKey::RSA>] The Service provider private key
+      # @return [String] The decrypted data
+      def self.decrypt_multi(encrypted_node, private_keys)
+        raise ArgumentError.new('private_keys must be specified') if !private_keys || private_keys.empty?
+
+        error = nil
+        private_keys.each do |key|
+          begin
+            return decrypt_data(encrypted_node, key)
+          rescue OpenSSL::PKey::PKeyError => e
+            error ||= e
+          end
+        end
+
+        raise(error) if error
+      end
+
       # Obtains the decrypted string from an Encrypted node element in XML
-      # @param encrypted_node [REXML::Element]     The Encrypted element
-      # @param private_key    [OpenSSL::PKey::RSA] The Service provider private key
+      # @param encrypted_node [REXML::Element] The Encrypted element
+      # @param private_key [OpenSSL::PKey::RSA] The Service provider private key
       # @return [String] The decrypted data
       def self.decrypt_data(encrypted_node, private_key)
         encrypt_data = REXML::XPath.first(
@@ -302,7 +352,7 @@ module OneLogin
 
       # Obtains the deciphered text
       # @param cipher_text [String]   The ciphered text
-      # @param symmetric_key [String] The symetric key used to encrypt the text
+      # @param symmetric_key [String] The symmetric key used to encrypt the text
       # @param algorithm [String]     The encrypted algorithm
       # @return [String] The deciphered text
       def self.retrieve_plaintext(cipher_text, symmetric_key, algorithm)

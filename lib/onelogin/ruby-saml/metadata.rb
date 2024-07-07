@@ -62,29 +62,14 @@ module OneLogin
         }
       end
 
-      # Add KeyDescriptor if messages will be signed / encrypted
-      # with SP certificate, and new SP certificate if any
+      # Add KeyDescriptor elements for SP certificates.
       def add_sp_certificates(sp_sso, settings)
-        cert = settings.get_sp_cert
-        cert_new = settings.get_sp_cert_new
+        certs = settings.get_sp_certs
 
-        for sp_cert in [cert, cert_new]
-          if sp_cert
-            cert_text = Base64.encode64(sp_cert.to_der).gsub("\n", '')
-            kd = sp_sso.add_element "md:KeyDescriptor", { "use" => "signing" }
-            ki = kd.add_element "ds:KeyInfo", {"xmlns:ds" => "http://www.w3.org/2000/09/xmldsig#"}
-            xd = ki.add_element "ds:X509Data"
-            xc = xd.add_element "ds:X509Certificate"
-            xc.text = cert_text
+        certs[:signing].each { |cert, _| add_sp_cert_element(sp_sso, cert, :signing) }
 
-            if settings.security[:want_assertions_encrypted]
-              kd2 = sp_sso.add_element "md:KeyDescriptor", { "use" => "encryption" }
-              ki2 = kd2.add_element "ds:KeyInfo", {"xmlns:ds" => "http://www.w3.org/2000/09/xmldsig#"}
-              xd2 = ki2.add_element "ds:X509Data"
-              xc2 = xd2.add_element "ds:X509Certificate"
-              xc2.text = cert_text
-            end
-          end
+        if settings.security[:want_assertions_encrypted]
+          certs[:encryption].each { |cert, _| add_sp_cert_element(sp_sso, cert, :encryption) }
         end
 
         sp_sso
@@ -153,8 +138,7 @@ module OneLogin
       def embed_signature(meta_doc, settings)
         return unless settings.security[:metadata_signed]
 
-        private_key = settings.get_sp_key
-        cert = settings.get_sp_cert
+        cert, private_key = settings.get_sp_signing_pair
         return unless private_key && cert
 
         meta_doc.sign_document(private_key, cert, settings.security[:signature_method], settings.security[:digest_method])
@@ -171,6 +155,18 @@ module OneLogin
         end
 
         ret
+      end
+
+      private
+
+      def add_sp_cert_element(sp_sso, cert, use)
+        return unless cert
+        cert_text = Base64.encode64(cert.to_der).gsub("\n", '')
+        kd = sp_sso.add_element "md:KeyDescriptor", { "use" => use.to_s }
+        ki = kd.add_element "ds:KeyInfo", { "xmlns:ds" => "http://www.w3.org/2000/09/xmldsig#" }
+        xd = ki.add_element "ds:X509Data"
+        xc = xd.add_element "ds:X509Certificate"
+        xc.text = cert_text
       end
     end
   end

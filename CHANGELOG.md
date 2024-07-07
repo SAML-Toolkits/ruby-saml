@@ -1,11 +1,20 @@
 # Ruby SAML Changelog
+
+### 1.17.0
+* [#673](https://github.com/SAML-Toolkits/ruby-saml/pull/673) Add `Settings#sp_cert_multi` paramter to facilitate SP certificate and key rotation.
+* [#673](https://github.com/SAML-Toolkits/ruby-saml/pull/673) Support multiple simultaneous SP decryption keys via `Settings#sp_cert_multi` parameter.
+* [#673](https://github.com/SAML-Toolkits/ruby-saml/pull/673) Deprecate `Settings#certificate_new` parameter.
+* [#673](https://github.com/SAML-Toolkits/ruby-saml/pull/673) `:check_sp_cert_expiration` will use the first non-expired certificate/key when signing/decrypting. It will raise an error only if there are no valid certificates/keys.
+* [#673](https://github.com/SAML-Toolkits/ruby-saml/pull/673) `:check_sp_cert_expiration` now validates the certificate `not_before` condition; previously it was only validating `not_after`.
+* [#673](https://github.com/SAML-Toolkits/ruby-saml/pull/673) `:check_sp_cert_expiration` now causes the generated SP metadata to exclude any inactive/expired certificates.
+
 ### 1.16.0 (Oct 09, 2023)
 * [#671](https://github.com/SAML-Toolkits/ruby-saml/pull/671) Add support on LogoutRequest with Encrypted NameID
 
 ### 1.15.0 (Jan 04, 2023)
 * [#650](https://github.com/SAML-Toolkits/ruby-saml/pull/650) Replace strip! by strip on compute_digest method
 * [#638](https://github.com/SAML-Toolkits/ruby-saml/pull/638) Fix dateTime format for the validUntil attribute of the generated metadata 
-* [#576](https://github.com/SAML-Toolkits/ruby-saml/pull/576) Support idp cert multi with string keys
+* [#576](https://github.com/SAML-Toolkits/ruby-saml/pull/576) Support `Settings#idp_cert_multi` with string keys
 * [#567](https://github.com/SAML-Toolkits/ruby-saml/pull/567) Improve Code quality
 * Add info about new repo, new maintainer, new security contact
 * Fix tests, Adjust dependencies, Add ruby 3.2 and new jruby versions tests to the CI. Add coveralls support
