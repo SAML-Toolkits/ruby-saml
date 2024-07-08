@@ -300,7 +300,7 @@ module OneLogin
           end
 
           nodes = issuer_response_nodes + issuer_assertion_nodes
-          nodes.map { |node| Utils.element_text(node) }.compact.uniq
+          nodes.filter_map { |node| Utils.element_text(node) }.uniq
         end
       end
 

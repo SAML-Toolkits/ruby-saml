@@ -27,7 +27,7 @@ module OneLogin
           |
           (\d+)W                    # 8: Weeks
         )
-      $/x.freeze
+      $/x
       UUID_PREFIX = +'_'
 
       # Checks if the x509 cert provided is expired.
