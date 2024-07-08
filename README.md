@@ -20,8 +20,6 @@ We created a demo project for Rails 4 that uses the latest version of this libra
 
 ### Supported Ruby Versions
 
-* 2.6
-* 2.7
 * 3.0
 * 3.1
 * 3.2
