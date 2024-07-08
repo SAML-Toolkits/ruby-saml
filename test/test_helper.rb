@@ -19,6 +19,7 @@ require 'bundler'
 require 'minitest/autorun'
 require 'mocha/minitest'
 require 'timecop'
+Dir[File.expand_path('../helpers/**/*.rb', __FILE__)].each { |f| require f }
 
 Bundler.require :default, :test
 
@@ -237,6 +238,15 @@ class Minitest::Test
       @logout_request_document_with_name_id_format = Base64.encode64(deflated)
     end
     @logout_request_document_with_name_id_format
+  end
+
+  def logout_request_encrypted_nameid_document
+    unless @logout_request_encrypted_nameid_document
+      xml = read_logout_request("slo_request_encrypted_nameid.xml")
+      deflated = Zlib::Deflate.deflate(xml, 9)[2..-5]
+      @logout_request_encrypted_nameid_document = Base64.encode64(deflated)
+    end
+    @logout_request_encrypted_nameid_document
   end
 
   def logout_request_xml_with_session_index

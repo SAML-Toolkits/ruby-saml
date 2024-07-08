@@ -217,17 +217,42 @@ class MetadataTest < Minitest::Test
         it "generates Service Provider Metadata with X509Certificate for encrypt" do
           assert_equal 4, key_descriptors.length
           assert_equal "signing", key_descriptors[0].attribute("use").value
-          assert_equal "encryption", key_descriptors[1].attribute("use").value
-          assert_equal "signing", key_descriptors[2].attribute("use").value
+          assert_equal "signing", key_descriptors[1].attribute("use").value
+          assert_equal "encryption", key_descriptors[2].attribute("use").value
           assert_equal "encryption", key_descriptors[3].attribute("use").value
 
           assert_equal 4, cert_nodes.length
-          assert_equal cert_nodes[0].text, cert_nodes[1].text
-          assert_equal cert_nodes[2].text, cert_nodes[3].text
+          assert_equal cert_nodes[0].text, cert_nodes[2].text
+          assert_equal cert_nodes[1].text, cert_nodes[3].text
           assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
         end
       end
 
+      describe "with check_sp_cert_expiration and expired keys" do
+        before do
+          settings.security[:want_assertions_encrypted] = true
+          settings.security[:check_sp_cert_expiration] = true
+          valid_pair = CertificateHelper.generate_pair_hash
+          early_pair = CertificateHelper.generate_pair_hash(not_before: Time.now + 60)
+          expired_pair = CertificateHelper.generate_pair_hash(not_after: Time.now - 60)
+          settings.certificate = nil
+          settings.certificate_new = nil
+          settings.private_key = nil
+          settings.sp_cert_multi = {
+            signing: [valid_pair, early_pair, expired_pair],
+            encryption: [valid_pair, early_pair, expired_pair]
+          }
+        end
+
+        it "generates Service Provider Metadata with X509Certificate for encrypt" do
+          assert_equal 2, key_descriptors.length
+          assert_equal "signing", key_descriptors[0].attribute("use").value
+          assert_equal "encryption", key_descriptors[1].attribute("use").value
+
+          assert_equal 2, cert_nodes.length
+          assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
+        end
+      end
     end
 
     describe "when attribute service is configured with multiple attribute values" do

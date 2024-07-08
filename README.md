@@ -683,7 +683,7 @@ signature validation process will fail at the Identity Provider.
 Ruby SAML supports EncryptedAssertion. The Identity Provider will encrypt the Assertion with the
 public cert of the Service Provider. The Service Provider will decrypt the EncryptedAssertion with its private key.
 
-You may enable EncryptedAssertion as follows. This will add `<md:KeyDescriptor use="encrytion">` to your
+You may enable EncryptedAssertion as follows. This will add `<md:KeyDescriptor use="encryption">` to your
 SP Metadata XML, to be read by the IdP.
 
 ```ruby
@@ -720,6 +720,48 @@ validation fails. You may disable such exceptions using the `settings.security[:
   settings.security[:soft] = true  # Do not raise error on failed signature/certificate validations
 ```
 
+#### Advanced SP Certificate Usage & Key Rollover
+
+Ruby SAML provides the `settings.sp_cert_multi` parameter to enable the following
+advanced usage scenarios:
+- Rotating SP certificates and private keys without disruption of service.
+- Specifying separate SP certificates for signing and encryption.
+
+The `sp_cert_multi` parameter replaces `certificate` and `private_key`
+(you may not specify both pparameters at the same time.) `sp_cert_multi` has the following shape:
+
+```ruby
+settings.sp_cert_multi = {
+  signing: [
+    { certificate: cert1, private_key: private_key1 },
+    { certificate: cert2, private_key: private_key2 }
+  ],
+  encryption: [
+    { certificate: cert1, private_key: private_key1 },
+    { certificate: cert3, private_key: private_key1 }
+  ],
+}
+```
+
+Certificate rotation is acheived by inserting new certificates at the bottom of each list,
+and then removing the old certificates from the top of the list once your IdPs have migrated.
+A common practice is for apps to publish the current SP metadata at a URL endpoint and have
+the IdP regularly poll for updates.
+
+Note the following:
+- You may re-use the same certificate and/or private key in multiple places, including for both signing and encryption.
+- The IdP should attempt to verify signatures with *all* `:signing` certificates,
+  and permit if *any one* succeeds. When signing, Ruby SAML will use the first SP certificate
+  in the `sp_cert_multi[:signing]` array. This will be the first active/non-expired certificate
+  in the array if `settings.security[:check_sp_cert_expiration]` is true.
+- The IdP may encrypt with any of the SP certificates in the `sp_cert_multi[:encryption]`
+  array. When decrypting, Ruby SAML attempt to decrypt with each SP private key in
+  `sp_cert_multi[:encryption]` until the decryption is successful. This will skip private
+  keys for inactive/expired certificates if `:check_sp_cert_expiration` is true.
+- If `:check_sp_cert_expiration` is true, the generated SP metadata XML will not include
+  inactive/expired certificates. This avoids validation errors when the IdP reads the SP
+  metadata.
+
 #### Audience Validation
 
 A service provider should only consider a SAML response valid if the IdP includes an <AudienceRestriction>
@@ -741,29 +783,6 @@ is invalid using the `settings.security[:strict_audience_validation]` parameter.
 
 ```ruby
 settings.security[:strict_audience_validation] = true
-```
-
-#### Key Rollover
-
-To update the SP X.509 certificate and private key without disruption of service, you may define the parameter
-`settings.certificate_new`. This will publish the new SP certificate in your metadata so that your IdP counterparties
-may cache it in preparation for rollover.
-
-For example, if you to rollover from `CERT A` to `CERT B`. Before rollover, your settings should look as follows.
-Both `CERT A` and `CERT B` will now appear in your SP metadata, however `CERT A` will still be used for signing
-and encryption at this time.
-
-```ruby
-  settings.certificate = "CERT A"
-  settings.private_key = "PRIVATE KEY FOR CERT A"
-  settings.certificate_new = "CERT B"
-```
-
-After the IdP has cached `CERT B`, you may then change your settings as follows:
-
-```ruby
-  settings.certificate = "CERT B"
-  settings.private_key = "PRIVATE KEY FOR CERT B"
 ```
 
 ## Single Log Out
