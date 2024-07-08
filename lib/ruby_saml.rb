@@ -17,3 +17,6 @@ require 'ruby_saml/metadata'
 require 'ruby_saml/idp_metadata_parser'
 require 'ruby_saml/utils'
 require 'ruby_saml/version'
+
+# @deprecated This alias will be removed in version 2.1.0
+OneLogin = Object

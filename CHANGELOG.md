@@ -2,6 +2,7 @@
 
 ### 2.0.0
 * [#685](https://github.com/SAML-Toolkits/ruby-saml/pull/685) Remove `OneLogin` namespace. The root namespace of the gem is now `RubySaml`.
+* [#685](https://github.com/SAML-Toolkits/ruby-saml/pull/685) Create namespace alias `OneLogin = Object` for backward compatibility, to be removed in version `2.1.0`.
 * [#685](https://github.com/SAML-Toolkits/ruby-saml/pull/685) Change directly structure from `lib/onelogin/ruby-saml` to `lib/ruby_saml`.
 * [#685](https://github.com/SAML-Toolkits/ruby-saml/pull/685) Move schema files from `lib/onelogin/schemas` to `lib/ruby_saml/schemas`.
 
