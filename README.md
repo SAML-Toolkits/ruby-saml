@@ -53,7 +53,7 @@ can create an XML External Entity (XXE) vulnerability if the XML data is not tru
 However, ruby-saml never enables this dangerous Nokogiri configuration;
 ruby-saml never enables DTDLOAD, and it never disables NONET.
 
-The OneLogin::RubySaml::IdpMetadataParser class does not validate in any way the URL
+The RubySaml::IdpMetadataParser class does not validate in any way the URL
 that is introduced in order to be parsed.
 
 Usually the same administrator that handles the Service Provider also sets the URL to
@@ -87,13 +87,13 @@ gem install ruby-saml
 You may require the entire Ruby SAML gem:
 
 ```ruby
-require 'onelogin/ruby-saml'
+require 'ruby_saml'
 ```
 
 or just the required components individually:
 
 ```ruby
-require 'onelogin/ruby-saml/authrequest'
+require 'ruby_saml/authrequest'
 ```
 
 ### Installation on Ruby 1.8.7
@@ -124,7 +124,7 @@ To override the default behavior and control the destination of log messages, pr
 a ruby Logger object to the gem's logging singleton:
 
 ```ruby
-OneLogin::RubySaml::Logging.logger = Logger.new('/var/log/ruby-saml.log')
+RubySaml::Logging.logger = Logger.new('/var/log/ruby-saml.log')
 ```
 
 ## The Initialization Phase
@@ -136,7 +136,7 @@ like this (ignore the saml_settings method call for now):
 
 ```ruby
 def init
-  request = OneLogin::RubySaml::Authrequest.new
+  request = RubySaml::Authrequest.new
   redirect_to(request.create(saml_settings))
 end
 ```
@@ -145,7 +145,7 @@ If the SP knows who should be authenticated in the IdP, then can provide that in
 
 ```ruby
 def init
-  request = OneLogin::RubySaml::Authrequest.new
+  request = RubySaml::Authrequest.new
   saml_settings.name_identifier_value_requested = "testuser@example.com"
   saml_settings.name_identifier_format = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
   redirect_to(request.create(saml_settings))
@@ -159,7 +159,7 @@ methods are specific to your application):
 
 ```ruby
 def consume
-  response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], :settings => saml_settings)
+  response = RubySaml::Response.new(params[:SAMLResponse], :settings => saml_settings)
 
   # We validate the SAML Response and check if the user already exists in the system
   if response.is_valid?
@@ -178,7 +178,7 @@ This is all handled with how you specify the settings that are in play via the `
 That could be implemented along the lines of this:
 
 ```
-response = OneLogin::RubySaml::Response.new(params[:SAMLResponse])
+response = RubySaml::Response.new(params[:SAMLResponse])
 response.settings = saml_settings
 ```
 
@@ -190,7 +190,7 @@ If you don't know what expect, always use the former (set the settings on initia
 
 ```ruby
 def saml_settings
-  settings = OneLogin::RubySaml::Settings.new
+  settings = RubySaml::Settings.new
 
   settings.assertion_consumer_service_url = "http://#{request.host}/saml/consume"
   settings.sp_entity_id                   = "http://#{request.host}/saml/metadata"
@@ -221,16 +221,16 @@ end
 
 The use of settings.issuer is deprecated in favour of settings.sp_entity_id since version 1.11.0
 
-Some assertion validations can be skipped by passing parameters to `OneLogin::RubySaml::Response.new()`.
+Some assertion validations can be skipped by passing parameters to `RubySaml::Response.new()`.
 For example, you can skip the `AuthnStatement`, `Conditions`, `Recipient`, or the `SubjectConfirmation`
 validations by initializing the response with different options:
 
 ```ruby
-response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], {skip_authnstatement: true}) # skips AuthnStatement
-response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], {skip_conditions: true}) # skips conditions
-response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], {skip_subject_confirmation: true}) # skips subject confirmation
-response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], {skip_recipient_check: true}) # doesn't skip subject confirmation, but skips the recipient check which is a sub check of the subject_confirmation check
-response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], {skip_audience: true}) # skips audience check
+response = RubySaml::Response.new(params[:SAMLResponse], {skip_authnstatement: true}) # skips AuthnStatement
+response = RubySaml::Response.new(params[:SAMLResponse], {skip_conditions: true}) # skips conditions
+response = RubySaml::Response.new(params[:SAMLResponse], {skip_subject_confirmation: true}) # skips subject confirmation
+response = RubySaml::Response.new(params[:SAMLResponse], {skip_recipient_check: true}) # doesn't skip subject confirmation, but skips the recipient check which is a sub check of the subject_confirmation check
+response = RubySaml::Response.new(params[:SAMLResponse], {skip_audience: true}) # skips audience check
 ```
 
 All that's left is to wrap everything in a controller and reference it in the initialization and
@@ -240,12 +240,12 @@ consumption URLs in OneLogin. A full controller example could look like this:
 # This controller expects you to use the URLs /saml/init and /saml/consume in your OneLogin application.
 class SamlController < ApplicationController
   def init
-    request = OneLogin::RubySaml::Authrequest.new
+    request = RubySaml::Authrequest.new
     redirect_to(request.create(saml_settings))
   end
 
   def consume
-    response          = OneLogin::RubySaml::Response.new(params[:SAMLResponse])
+    response          = RubySaml::Response.new(params[:SAMLResponse])
     response.settings = saml_settings
 
     # We validate the SAML Response and check if the user already exists in the system
@@ -262,7 +262,7 @@ class SamlController < ApplicationController
   private
 
   def saml_settings
-    settings = OneLogin::RubySaml::Settings.new
+    settings = RubySaml::Settings.new
 
     settings.assertion_consumer_service_url = "http://#{request.host}/saml/consume"
     settings.sp_entity_id                   = "http://#{request.host}/saml/metadata"
@@ -335,8 +335,8 @@ Using `IdpMetadataParser#parse_remote`, the IdP metadata will be added to the se
 ```ruby
 def saml_settings
 
-  idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
-  # Returns OneLogin::RubySaml::Settings pre-populated with IdP metadata
+  idp_metadata_parser = RubySaml::IdpMetadataParser.new
+  # Returns RubySaml::Settings pre-populated with IdP metadata
   settings = idp_metadata_parser.parse_remote("https://example.com/auth/saml2/idp/metadata")
 
   settings.assertion_consumer_service_url = "http://#{request.host}/saml/consume"
@@ -397,7 +397,7 @@ by the values of binding and nameid:
 
 ### Parsing Metadata into an Hash
 
-The `OneLogin::RubySaml::IdpMetadataParser` also provides the methods `#parse_to_hash` and `#parse_remote_to_hash`.
+The `RubySaml::IdpMetadataParser` also provides the methods `#parse_to_hash` and `#parse_remote_to_hash`.
 Those return an Hash instead of a `Settings` object, which may be useful for configuring
 [omniauth-saml](https://github.com/omniauth/omniauth-saml), for instance.
 
@@ -412,11 +412,11 @@ but it can be done as follows:
 
 ```ruby
 require "xml_security"
-require "onelogin/ruby-saml/utils"
-require "onelogin/ruby-saml/idp_metadata_parser"
+require "ruby_saml/utils"
+require "ruby_saml/idp_metadata_parser"
 
 url = "<url_to_the_metadata>"
-idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+idp_metadata_parser = RubySaml::IdpMetadataParser.new
 
 uri = URI.parse(url)
 raise ArgumentError.new("url must begin with http or https") unless /^https?/ =~ uri.scheme
@@ -433,7 +433,7 @@ xml = response.body
 errors = []
 doc = XMLSecurity::SignedDocument.new(xml, errors)
 cert_str = "<include_cert_here>"
-cert = OneLogin::RubySaml::Utils.format_cert("cert_str")
+cert = RubySaml::Utils.format_cert("cert_str")
 metadata_sign_cert = OpenSSL::X509::Certificate.new(cert)
 valid = doc.validate_document_with_cert(metadata_sign_cert, true)
 if valid
@@ -452,7 +452,7 @@ If you are using `saml:AttributeStatement` to transfer data like the username, y
 `single_value_compatibility` (when activated, only the first value is returned)
 
 ```ruby
-response = OneLogin::RubySaml::Response.new(params[:SAMLResponse])
+response = RubySaml::Response.new(params[:SAMLResponse])
 response.settings = saml_settings
 
 response.attributes[:username]
@@ -492,7 +492,7 @@ Imagine this `saml:AttributeStatement`
 ```
 
 ```ruby
-pp(response.attributes)   # is an OneLogin::RubySaml::Attributes object
+pp(response.attributes)   # is an RubySaml::Attributes object
 # => @attributes=
   {"uid"=>["demo"],
    "another_value"=>["value1", "value2"],
@@ -502,7 +502,7 @@ pp(response.attributes)   # is an OneLogin::RubySaml::Attributes object
    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname"=>["usersName"]}>
 
 # Active single_value_compatibility
-OneLogin::RubySaml::Attributes.single_value_compatibility = true
+RubySaml::Attributes.single_value_compatibility = true
 
 pp(response.attributes[:uid])
 # => "demo"
@@ -538,7 +538,7 @@ pp(response.attributes.fetch(/givenname/))
 # => "usersName"
 
 # Deprecated single_value_compatibility
-OneLogin::RubySaml::Attributes.single_value_compatibility = false
+RubySaml::Attributes.single_value_compatibility = false
 
 pp(response.attributes[:uid])
 # => ["demo"]
@@ -585,7 +585,7 @@ building the authrequest object.
 To form a trusted pair relationship with the IdP, the SP (you) need to provide metadata XML
 to the IdP for various good reasons. (Caching, certificate lookups, relaying party permissions, etc)
 
-The class `OneLogin::RubySaml::Metadata` takes care of this by reading the Settings and returning XML.  All you have to do is add a controller to return the data, then give this URL to the IdP administrator.
+The class `RubySaml::Metadata` takes care of this by reading the Settings and returning XML.  All you have to do is add a controller to return the data, then give this URL to the IdP administrator.
 
 The metadata will be polled by the IdP every few minutes, so updating your settings should propagate
 to the IdP settings.
@@ -595,7 +595,7 @@ class SamlController < ApplicationController
   # ... the rest of your controller definitions ...
   def metadata
     settings = Account.get_saml_settings
-    meta = OneLogin::RubySaml::Metadata.new
+    meta = RubySaml::Metadata.new
     render :xml => meta.generate(settings), :content_type => "application/samlmetadata+xml"
   end
 end
@@ -711,7 +711,7 @@ You may require SP and IdP certificates to be non-expired using the following se
   settings.security[:check_sp_cert_expiration] = true   # Raise error SP X.509 cert is expired
 ```
 
-By default, Ruby SAML will raise a `OneLogin::RubySaml::ValidationError` if a signature or certificate
+By default, Ruby SAML will raise a `RubySaml::ValidationError` if a signature or certificate
 validation fails. You may disable such exceptions using the `settings.security[:soft]` parameter.
 
 ```ruby
@@ -800,7 +800,7 @@ def sp_logout_request
     delete_session
   else
 
-    logout_request = OneLogin::RubySaml::Logoutrequest.new
+    logout_request = RubySaml::Logoutrequest.new
     logger.info "New SP SLO for userid '#{session[:userid]}' transactionid '#{logout_request.uuid}'"
 
     if settings.name_identifier_value.nil?
@@ -831,9 +831,9 @@ def process_logout_response
   settings = Account.get_saml_settings
 
   if session.has_key? :transaction_id
-    logout_response = OneLogin::RubySaml::Logoutresponse.new(params[:SAMLResponse], settings, :matches_request_id => session[:transaction_id])
+    logout_response = RubySaml::Logoutresponse.new(params[:SAMLResponse], settings, :matches_request_id => session[:transaction_id])
   else
-    logout_response = OneLogin::RubySaml::Logoutresponse.new(params[:SAMLResponse], settings)
+    logout_response = RubySaml::Logoutresponse.new(params[:SAMLResponse], settings)
   end
 
   logger.info "LogoutResponse is: #{logout_response.to_s}"
@@ -867,7 +867,7 @@ def idp_logout_request
   # uppercase. Turn it True for ADFS compatibility on signature verification
   settings.security[:lowercase_url_encoding] = true
 
-  logout_request = OneLogin::RubySaml::SloLogoutrequest.new(
+  logout_request = RubySaml::SloLogoutrequest.new(
     params[:SAMLRequest], settings: settings
   )
   if !logout_request.is_valid?
@@ -881,7 +881,7 @@ def idp_logout_request
 
   # Generate a response to the IdP.
   logout_request_id = logout_request.id
-  logout_response = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, logout_request_id, nil, :RelayState => params[:RelayState])
+  logout_response = RubySaml::SloLogoutresponse.new.create(settings, logout_request_id, nil, :RelayState => params[:RelayState])
   redirect_to logout_response
 end
 ```
@@ -913,7 +913,7 @@ First, ensure that both systems synchronize their clocks, using for example the 
 Even then you may experience intermittent issues, as the clock of the Identity Provider may drift slightly ahead of your system clocks. To allow for a small amount of clock drift, you can initialize the response by passing in an option named `:allowed_clock_drift`. Its value must be given in a number (and/or fraction) of seconds. The value given is added to the current time at which the response is validated before it's tested against the `NotBefore` assertion. For example:
 
 ```ruby
-response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], :allowed_clock_drift => 1.second)
+response = RubySaml::Response.new(params[:SAMLResponse], :allowed_clock_drift => 1.second)
 ```
 
 Make sure to keep the value as comfortably small as possible to keep security risks to a minimum.
@@ -928,14 +928,14 @@ Example:
 
 ```ruby
 def consume
-  response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], { settings: saml_settings })
+  response = RubySaml::Response.new(params[:SAMLResponse], { settings: saml_settings })
   ...
 end
 
 private
 
 def saml_settings
-  OneLogin::RubySaml::Settings.new(message_max_bytesize: 500_000)
+  RubySaml::Settings.new(message_max_bytesize: 500_000)
 end
 ```
 
@@ -944,7 +944,7 @@ end
 To request attributes from the IdP the SP needs to provide an attribute service within it's metadata and reference the index in the assertion.
 
 ```ruby
-settings = OneLogin::RubySaml::Settings.new
+settings = RubySaml::Settings.new
 settings.attributes_index = 5
 settings.attribute_consuming_service.configure do
   service_name "Service"
@@ -959,11 +959,11 @@ The `attribute_value` option additionally accepts an array of possible values.
 ## Custom Metadata Fields
 
 Some IdPs may require to add SPs to add additional fields (Organization, ContactPerson, etc.)
-into the SP metadata. This can be achieved by extending the `OneLogin::RubySaml::Metadata`
+into the SP metadata. This can be achieved by extending the `RubySaml::Metadata`
 class and overriding the `#add_extras` method as per the following example:
 
 ```ruby
-class MyMetadata < OneLogin::RubySaml::Metadata
+class MyMetadata < RubySaml::Metadata
   def add_extras(root, _settings)
     org = root.add_element("md:Organization")
     org.add_element("md:OrganizationName", 'xml:lang' => "en-US").text = 'ACME Inc.'
