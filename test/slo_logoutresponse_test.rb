@@ -99,7 +99,6 @@ class SloLogoutresponseTest < Minitest::Test
     end
 
     describe "signing with HTTP-POST binding" do
-
       before do
         settings.idp_sso_service_binding = :redirect
         settings.idp_slo_service_binding = :post
@@ -143,6 +142,7 @@ class SloLogoutresponseTest < Minitest::Test
 
       it "create a signed logout response" do
         logout_request.settings = settings
+
         params = OneLogin::RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message")
 
         response_xml = Base64.decode64(params["SAMLResponse"])
@@ -154,6 +154,7 @@ class SloLogoutresponseTest < Minitest::Test
       it "create a signed logout response with 256 digest and signature methods" do
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
         settings.security[:digest_method] = XMLSecurity::Document::SHA256
+        logout_request.settings = settings
 
         params = OneLogin::RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message")
 
@@ -174,6 +175,54 @@ class SloLogoutresponseTest < Minitest::Test
         assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], response_xml
         assert_match(/<ds:SignatureMethod Algorithm='http:\/\/www.w3.org\/2001\/04\/xmldsig-more#rsa-sha384'\/>/, response_xml)
         assert_match(/<ds:DigestMethod Algorithm='http:\/\/www.w3.org\/2001\/04\/xmlenc#sha512'\/>/, response_xml)
+      end
+
+      it "create a signed logout response using the first certificate and key" do
+        settings.certificate = nil
+        settings.private_key = nil
+        settings.sp_cert_multi = {
+          signing: [
+            { certificate: ruby_saml_cert_text, private_key: ruby_saml_key_text },
+            CertificateHelper.generate_pair_hash
+          ]
+        }
+        logout_request.settings = settings
+
+        params = OneLogin::RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message")
+
+        response_xml = Base64.decode64(params["SAMLResponse"])
+        assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], response_xml
+        assert_match(/<ds:SignatureMethod Algorithm='http:\/\/www.w3.org\/2000\/09\/xmldsig#rsa-sha1'\/>/, response_xml)
+        assert_match(/<ds:DigestMethod Algorithm='http:\/\/www.w3.org\/2000\/09\/xmldsig#sha1'\/>/, response_xml)
+      end
+
+      it "create a signed logout response using the first valid certificate and key when :check_sp_cert_expiration is true" do
+        settings.certificate = nil
+        settings.private_key = nil
+        settings.security[:check_sp_cert_expiration] = true
+        settings.sp_cert_multi = {
+          signing: [
+            { certificate: ruby_saml_cert_text, private_key: ruby_saml_key_text },
+            CertificateHelper.generate_pair_hash
+          ]
+        }
+        logout_request.settings = settings
+
+        params = OneLogin::RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message")
+
+        response_xml = Base64.decode64(params["SAMLResponse"])
+        assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], response_xml
+        assert_match(/<ds:SignatureMethod Algorithm='http:\/\/www.w3.org\/2000\/09\/xmldsig#rsa-sha1'\/>/, response_xml)
+        assert_match(/<ds:DigestMethod Algorithm='http:\/\/www.w3.org\/2000\/09\/xmldsig#sha1'\/>/, response_xml)
+      end
+
+      it "raises error when no valid certs and :check_sp_cert_expiration is true" do
+        settings.security[:check_sp_cert_expiration] = true
+        logout_request.settings = settings
+
+        assert_raises(OneLogin::RubySaml::ValidationError, 'The SP certificate expired.') do
+          OneLogin::RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message")
+        end
       end
     end
 
@@ -261,10 +310,44 @@ class SloLogoutresponseTest < Minitest::Test
         assert_equal signature_algorithm, OpenSSL::Digest::SHA512
         assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
       end
+
+      it "create a signature parameter using the first certificate and key" do
+        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+        settings.compress_request = false
+        settings.certificate = nil
+        settings.private_key = nil
+        settings.sp_cert_multi = {
+          signing: [
+            { certificate: ruby_saml_cert_text, private_key: ruby_saml_key_text },
+            CertificateHelper.generate_pair_hash
+          ]
+        }
+
+        params = OneLogin::RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message", :RelayState => 'http://example.com')
+        assert params['SAMLResponse']
+        assert params[:RelayState]
+        assert params['Signature']
+        assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA1
+
+        query_string = "SAMLResponse=#{CGI.escape(params['SAMLResponse'])}"
+        query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
+        query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
+
+        signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
+        assert_equal signature_algorithm, OpenSSL::Digest::SHA1
+        assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
+      end
+
+      it "raises error when no valid certs and :check_sp_cert_expiration is true" do
+        settings.security[:check_sp_cert_expiration] = true
+
+        assert_raises(OneLogin::RubySaml::ValidationError, 'The SP certificate expired.') do
+          OneLogin::RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message", :RelayState => 'http://example.com')
+        end
+      end
     end
 
     describe "DEPRECATED: signing with HTTP-POST binding via :embed_sign" do
-
       before do
         settings.compress_response = false
         settings.security[:logout_responses_signed] = true

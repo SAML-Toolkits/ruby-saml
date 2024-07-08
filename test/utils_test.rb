@@ -85,7 +85,6 @@ class UtilsTest < Minitest::Test
       invalid_chained_certificate1 = read_certificate("invalid_chained_certificate1")
       assert_equal formatted_chained_certificate, OneLogin::RubySaml::Utils.format_cert(invalid_chained_certificate1)
     end
-
   end
 
   describe ".format_private_key" do
@@ -148,7 +147,49 @@ class UtilsTest < Minitest::Test
     end
   end
 
-  describe "build_query" do
+  describe '.build_cert_object' do
+    it 'returns a certificate object for valid certificate string' do
+      cert_object = OneLogin::RubySaml::Utils.build_cert_object(ruby_saml_cert_text)
+      assert_instance_of OpenSSL::X509::Certificate, cert_object
+    end
+
+    it 'returns nil for nil certificate string' do
+      assert_nil OneLogin::RubySaml::Utils.build_cert_object(nil)
+    end
+
+    it 'returns nil for empty certificate string' do
+      assert_nil OneLogin::RubySaml::Utils.build_cert_object('')
+    end
+
+    it 'raises error when given an invalid certificate string' do
+      assert_raises OpenSSL::X509::CertificateError do
+        OneLogin::RubySaml::Utils.build_cert_object('Foobar')
+      end
+    end
+  end
+
+  describe '.build_private_key_object' do
+    it 'returns a private key object for valid private key string' do
+      private_key_object = OneLogin::RubySaml::Utils.build_private_key_object(ruby_saml_key_text)
+      assert_instance_of OpenSSL::PKey::RSA, private_key_object
+    end
+
+    it 'returns nil for nil private key string' do
+      assert_nil OneLogin::RubySaml::Utils.build_private_key_object(nil)
+    end
+
+    it 'returns nil for empty private key string' do
+      assert_nil OneLogin::RubySaml::Utils.build_private_key_object('')
+    end
+
+    it 'raises error when given an invalid private key string' do
+      assert_raises OpenSSL::PKey::RSAError do
+        OneLogin::RubySaml::Utils.build_private_key_object('Foobar')
+      end
+    end
+  end
+
+  describe ".build_query" do
     it "returns the query string" do
       params = {}
       params[:type] = "SAMLRequest"
@@ -160,7 +201,7 @@ class UtilsTest < Minitest::Test
     end
   end
 
-  describe "#verify_signature" do
+  describe ".verify_signature" do
     before do
       @params = {}
       @params[:cert] = ruby_saml_cert
@@ -179,7 +220,7 @@ class UtilsTest < Minitest::Test
     end
   end
 
-  describe "#status_error_msg" do
+  describe ".status_error_msg" do
     it "returns a error msg with status_code and status message" do
       error_msg = "The status code of the Logout Response was not Success"
       status_code = "urn:oasis:names:tc:SAML:2.0:status:Requester"
@@ -214,7 +255,7 @@ class UtilsTest < Minitest::Test
       end
     end
 
-    describe 'uri_match' do
+    describe '.uri_match?' do
       it 'matches two urls' do
         destination = 'http://www.example.com/test?var=stuff'
         settings = 'http://www.example.com/test?var=stuff'
@@ -264,7 +305,7 @@ class UtilsTest < Minitest::Test
       end
     end
 
-    describe 'element_text' do
+    describe '.element_text' do
       it 'returns the element text' do
         element = REXML::Document.new('<element>element text</element>').elements.first
         assert_equal 'element text', OneLogin::RubySaml::Utils.element_text(element)
@@ -298,7 +339,117 @@ class UtilsTest < Minitest::Test
         element = REXML::Document.new('<element></element>').elements.first
         assert_equal '', OneLogin::RubySaml::Utils.element_text(element)
       end
+    end
+  end
 
+  describe '.decrypt_multi' do
+    let(:private_key) { ruby_saml_key }
+    let(:invalid_key1) { CertificateHelper.generate_key }
+    let(:invalid_key2) { CertificateHelper.generate_key }
+    let(:settings) { OneLogin::RubySaml::Settings.new(:private_key => private_key.to_pem) }
+    let(:response) { OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings) }
+    let(:encrypted) do
+      REXML::XPath.first(
+        response.document,
+        "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
+        { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
+      )
+    end
+
+    it 'successfully decrypts with the first private key' do
+      assert_match /\A<saml:Assertion/, OneLogin::RubySaml::Utils.decrypt_multi(encrypted, [private_key])
+    end
+
+    it 'successfully decrypts with a subsequent private key' do
+      assert_match /\A<saml:Assertion/, OneLogin::RubySaml::Utils.decrypt_multi(encrypted, [invalid_key1, private_key])
+    end
+
+    it 'raises an error when there is only one key and it fails to decrypt' do
+      assert_raises OpenSSL::PKey::PKeyError do
+        OneLogin::RubySaml::Utils.decrypt_multi(encrypted, [invalid_key1])
+      end
+    end
+
+    it 'raises an error when all keys fail to decrypt' do
+      assert_raises OpenSSL::PKey::PKeyError do
+        OneLogin::RubySaml::Utils.decrypt_multi(encrypted, [invalid_key1, invalid_key2])
+      end
+    end
+
+    it 'raises an error when private keys is an empty array' do
+      assert_raises ArgumentError do
+        OneLogin::RubySaml::Utils.decrypt_multi(encrypted, [])
+      end
+    end
+
+    it 'raises an error when private keys is nil' do
+      assert_raises ArgumentError do
+        OneLogin::RubySaml::Utils.decrypt_multi(encrypted, [])
+      end
+    end
+  end
+
+  describe '.is_cert_expired' do
+    it 'returns true for expired certificate' do
+      expired_cert = CertificateHelper.generate_cert(not_after: Time.now - 60)
+      assert OneLogin::RubySaml::Utils.is_cert_expired(expired_cert)
+    end
+
+    it 'returns false for not-started certificate' do
+      not_started_cert = CertificateHelper.generate_cert(not_before: Time.now + 60)
+      refute OneLogin::RubySaml::Utils.is_cert_active(not_started_cert)
+    end
+
+    it 'returns false for active certificate' do
+      valid_cert = CertificateHelper.generate_cert
+      refute OneLogin::RubySaml::Utils.is_cert_expired(valid_cert)
+    end
+
+    it 'returns true for expired certificate string' do
+      expired_cert_string = CertificateHelper.generate_cert(not_after: Time.now - 60).to_pem
+      assert OneLogin::RubySaml::Utils.is_cert_expired(expired_cert_string)
+    end
+
+    it 'returns false for not-started certificate string' do
+      not_started_cert_string = CertificateHelper.generate_cert(not_before: Time.now + 60).to_pem
+      refute OneLogin::RubySaml::Utils.is_cert_active(not_started_cert_string)
+    end
+
+    it 'returns false for active certificate string' do
+      valid_cert_string = CertificateHelper.generate_cert.to_pem
+      refute OneLogin::RubySaml::Utils.is_cert_expired(valid_cert_string)
+    end
+  end
+
+  describe '.is_cert_active' do
+    it 'returns true for active certificate' do
+      valid_cert = CertificateHelper.generate_cert
+      assert OneLogin::RubySaml::Utils.is_cert_active(valid_cert)
+    end
+
+    it 'returns false for not-started certificate' do
+      not_started_cert = CertificateHelper.generate_cert(not_before: Time.now + 60)
+      refute OneLogin::RubySaml::Utils.is_cert_active(not_started_cert)
+    end
+
+    it 'returns false for expired certificate' do
+      expired_cert = CertificateHelper.generate_cert(not_after: Time.now - 60)
+      refute OneLogin::RubySaml::Utils.is_cert_active(expired_cert)
+    end
+
+    it 'returns true for active certificate string' do
+      valid_cert_string = CertificateHelper.generate_cert.to_pem
+      assert OneLogin::RubySaml::Utils.is_cert_active(valid_cert_string)
+    end
+
+    it 'returns false for not-started certificate string' do
+      not_started_cert_string = CertificateHelper.generate_cert(not_before: Time.now + 60).to_pem
+      refute OneLogin::RubySaml::Utils.is_cert_active(not_started_cert_string)
+    end
+
+    it 'returns false for expired certificate string' do
+      expired_cert_string = CertificateHelper.generate_cert(not_after: Time.now - 60).to_pem
+      refute OneLogin::RubySaml::Utils.is_cert_active(expired_cert_string)
     end
   end
 end

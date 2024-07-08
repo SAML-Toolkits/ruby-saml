@@ -20,7 +20,7 @@ Gem::Specification.new do |s|
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.3.7}
-  s.required_ruby_version = '>= 2.6.0'
+  s.required_ruby_version = '>= 3.0'
   s.summary = %q{SAML Ruby Tookit}
 
   s.add_dependency('nokogiri', '>= 1.13.10')

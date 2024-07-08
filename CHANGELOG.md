@@ -1,9 +1,20 @@
 # Ruby SAML Changelog
 
+### 1.17.0
+* [#673](https://github.com/SAML-Toolkits/ruby-saml/pull/673) Add `Settings#sp_cert_multi` paramter to facilitate SP certificate and key rotation.
+* [#673](https://github.com/SAML-Toolkits/ruby-saml/pull/673) Support multiple simultaneous SP decryption keys via `Settings#sp_cert_multi` parameter.
+* [#673](https://github.com/SAML-Toolkits/ruby-saml/pull/673) Deprecate `Settings#certificate_new` parameter.
+* [#673](https://github.com/SAML-Toolkits/ruby-saml/pull/673) `:check_sp_cert_expiration` will use the first non-expired certificate/key when signing/decrypting. It will raise an error only if there are no valid certificates/keys.
+* [#673](https://github.com/SAML-Toolkits/ruby-saml/pull/673) `:check_sp_cert_expiration` now validates the certificate `not_before` condition; previously it was only validating `not_after`.
+* [#673](https://github.com/SAML-Toolkits/ruby-saml/pull/673) `:check_sp_cert_expiration` now causes the generated SP metadata to exclude any inactive/expired certificates.
+
+### 1.16.0 (Oct 09, 2023)
+* [#671](https://github.com/SAML-Toolkits/ruby-saml/pull/671) Add support on LogoutRequest with Encrypted NameID
+
 ### 1.15.0 (Jan 04, 2023)
 * [#650](https://github.com/SAML-Toolkits/ruby-saml/pull/650) Replace strip! by strip on compute_digest method
 * [#638](https://github.com/SAML-Toolkits/ruby-saml/pull/638) Fix dateTime format for the validUntil attribute of the generated metadata 
-* [#576](https://github.com/SAML-Toolkits/ruby-saml/pull/576) Support idp cert multi with string keys
+* [#576](https://github.com/SAML-Toolkits/ruby-saml/pull/576) Support `Settings#idp_cert_multi` with string keys
 * [#567](https://github.com/SAML-Toolkits/ruby-saml/pull/567) Improve Code quality
 * Add info about new repo, new maintainer, new security contact
 * Fix tests, Adjust dependencies, Add ruby 3.2 and new jruby versions tests to the CI. Add coveralls support
@@ -48,7 +59,7 @@
 * Support Process Transform
 * Raise SettingError if invoking an action with no endpoint defined on the settings
 * Made IdpMetadataParser more extensible for subclasses
-*[#548](https://github.com/onelogin/ruby-saml/pull/548) Add :skip_audience option
+* [#548](https://github.com/onelogin/ruby-saml/pull/548) Add :skip_audience option
 * [#555](https://github.com/onelogin/ruby-saml/pull/555) Define 'soft' variable to prevent exception when doc cert is invalid
 * Improve documentation
 
@@ -107,7 +118,6 @@
 * [#423](https://github.com/onelogin/ruby-saml/pull/423) Allow format_cert to work with chained certificates
 * [#422](https://github.com/onelogin/ruby-saml/pull/422) Use to_s for requested attribute value
 
-
 ### 1.5.0 (August 31, 2017)
 * [#400](https://github.com/onelogin/ruby-saml/pull/400) When validating Signature use stored IdP certficate if Signature contains no info about Certificate
 * [#402](https://github.com/onelogin/ruby-saml/pull/402)  Fix validate_response_state method that rejected SAMLResponses when using idp_cert_multi and idp_cert and idp_cert_fingerprint were not provided.
@@ -115,7 +125,6 @@
 * [#407](https://github.com/onelogin/ruby-saml/issues/407) Improve IdpMetadataParser raising an ArgumentError when parser method receive a metadata string with no IDPSSODescriptor element.
 * [#374](https://github.com/onelogin/ruby-saml/issues/374) Support more than one level of StatusCode
 * [#405](https://github.com/onelogin/ruby-saml/pull/405) Support ADFS encrypted key (Accept KeyInfo nodes with no ds namespace)
-
 
 ### 1.4.3 (May 18, 2017)
 * Added SubjectConfirmation Recipient validation

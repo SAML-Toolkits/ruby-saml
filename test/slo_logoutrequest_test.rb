@@ -10,6 +10,7 @@ class RubySamlTest < Minitest::Test
 
     let(:settings) { OneLogin::RubySaml::Settings.new }
     let(:logout_request) { OneLogin::RubySaml::SloLogoutrequest.new(logout_request_document) }
+    let(:logout_request_encrypted_nameid) { OneLogin::RubySaml::SloLogoutrequest.new(logout_request_encrypted_nameid_document) }
     let(:invalid_logout_request) { OneLogin::RubySaml::SloLogoutrequest.new(invalid_logout_request_document) }
 
     before do
@@ -87,6 +88,18 @@ class RubySamlTest < Minitest::Test
       it "extract the value of the name id element" do
         assert_equal "someone@example.org", logout_request.nameid
       end
+
+      it 'is not possible when encryptID but no private key' do
+        assert_raises(OneLogin::RubySaml::ValidationError, "An EncryptedID found and no SP private key found on the settings to decrypt it") do
+          assert_equal "someone@example.org", logout_request_encrypted_nameid.nameid
+        end
+      end
+
+      it "extract the value of the name id element inside an EncryptedId" do
+        settings.private_key = ruby_saml_key_text
+        logout_request_encrypted_nameid.settings = settings
+        assert_equal "someone@example.org", logout_request_encrypted_nameid.nameid
+      end
     end
 
     describe "#nameid_format" do
@@ -94,6 +107,18 @@ class RubySamlTest < Minitest::Test
 
       it "extract the format attribute of the name id element" do
         assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress", logout_request.nameid_format
+      end
+
+      it 'is not possible when encryptID but no private key' do
+        assert_raises(OneLogin::RubySaml::ValidationError, "An EncryptedID found and no SP private key found on the settings to decrypt it") do
+          assert_equal "someone@example.org", logout_request_encrypted_nameid.nameid
+        end
+      end
+
+      it "extract the format attribute of the name id element" do
+        settings.private_key = ruby_saml_key_text
+        logout_request_encrypted_nameid.settings = settings
+        assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress", logout_request_encrypted_nameid.nameid_format
       end
     end
 
@@ -256,11 +281,13 @@ class RubySamlTest < Minitest::Test
         logout_request.settings.idp_entity_id = 'https://app.onelogin.com/saml/metadata/SOMEACCOUNT'
         assert logout_request.send(:validate_issuer)
       end
+
       it "return false when the issuer of the Logout Request does not match the IdP entityId" do
         logout_request.settings.idp_entity_id = 'http://idp.example.com/invalid'
         assert !logout_request.send(:validate_issuer)
         assert_includes logout_request.errors, "Doesn't match the issuer, expected: <#{logout_request.settings.idp_entity_id}>, but was: <https://app.onelogin.com/saml/metadata/SOMEACCOUNT>"
       end
+
       it "raise when the issuer of the Logout Request does not match the IdP entityId" do
         logout_request.settings.idp_entity_id = 'http://idp.example.com/invalid'
         logout_request.soft = false
@@ -375,7 +402,7 @@ class RubySamlTest < Minitest::Test
         assert_equal(CGI.unescape(query), CGI.unescape(original_query))
         # Make normalised signature based on our modified params.
         sign_algorithm = XMLSecurity::BaseDocument.new.algorithm(settings.security[:signature_method])
-        signature = settings.get_sp_key.sign(sign_algorithm.new, query)
+        signature = settings.get_sp_signing_key.sign(sign_algorithm.new, query)
         params['Signature'] = Base64.encode64(signature).gsub(/\n/, "")
         # Construct SloLogoutrequest and ask it to validate the signature.
         # It will do it incorrectly, because it will compute it based on re-encoded
@@ -410,7 +437,7 @@ class RubySamlTest < Minitest::Test
         assert_equal(CGI.unescape(query), CGI.unescape(original_query))
         # Make normalised signature based on our modified params.
         sign_algorithm = XMLSecurity::BaseDocument.new.algorithm(settings.security[:signature_method])
-        signature = settings.get_sp_key.sign(sign_algorithm.new, query)
+        signature = settings.get_sp_signing_key.sign(sign_algorithm.new, query)
         params['Signature'] = Base64.encode64(signature).gsub(/\n/, "")
         # Construct SloLogoutrequest and ask it to validate the signature.
         # Provide the altered parameter in its raw URI-encoded form,
@@ -449,7 +476,7 @@ class RubySamlTest < Minitest::Test
         sign_algorithm = XMLSecurity::BaseDocument.new.algorithm(
           settings.security[:signature_method]
         )
-        signature = settings.get_sp_key.sign(sign_algorithm.new, query)
+        signature = settings.get_sp_signing_key.sign(sign_algorithm.new, query)
         params['Signature'] = downcased_escape(Base64.encode64(signature).gsub(/\n/, ""))
 
         # Then parameters are usually unescaped, like we manage them in rails
@@ -527,7 +554,6 @@ class RubySamlTest < Minitest::Test
         logout_request_sign_test.settings = settings
         assert !logout_request_sign_test.send(:validate_signature)
         assert_includes logout_request_sign_test.errors, "Invalid Signature on Logout Request"
-
       end
     end
   end

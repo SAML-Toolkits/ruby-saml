@@ -62,8 +62,8 @@ module OneLogin
       attr_accessor :attributes_index
       attr_accessor :force_authn
       attr_accessor :certificate
-      attr_accessor :certificate_new
       attr_accessor :private_key
+      attr_accessor :sp_cert_multi
       attr_accessor :authn_context
       attr_accessor :authn_context_comparison
       attr_accessor :authn_context_decl_ref
@@ -72,6 +72,7 @@ module OneLogin
       attr_accessor :security
       attr_accessor :soft
       # Deprecated
+      attr_accessor :certificate_new
       attr_accessor :assertion_consumer_logout_service_url
       attr_reader   :assertion_consumer_logout_service_binding
       attr_accessor :issuer
@@ -182,10 +183,7 @@ module OneLogin
       # @return [OpenSSL::X509::Certificate|nil] Build the IdP certificate from the settings (previously format it)
       #
       def get_idp_cert
-        return nil if idp_cert.nil? || idp_cert.empty?
-
-        formatted_cert = OneLogin::RubySaml::Utils.format_cert(idp_cert)
-        OpenSSL::X509::Certificate.new(formatted_cert)
+        OneLogin::RubySaml::Utils.build_cert_object(idp_cert)
       end
 
       # @return [Hash with 2 arrays of OpenSSL::X509::Certificate] Build multiple IdP certificates from the settings.
@@ -202,45 +200,69 @@ module OneLogin
           next if !certs_for_type || certs_for_type.empty?
 
           certs_for_type.each do |idp_cert|
-            formatted_cert = OneLogin::RubySaml::Utils.format_cert(idp_cert)
-            certs[type].push(OpenSSL::X509::Certificate.new(formatted_cert))
+            certs[type].push(OneLogin::RubySaml::Utils.build_cert_object(idp_cert))
           end
         end
 
         certs
       end
 
-      # @return [OpenSSL::X509::Certificate|nil] Build the SP certificate from the settings (previously format it)
-      #
-      def get_sp_cert
-        return nil if certificate.nil? || certificate.empty?
+      # @return [Hash<Symbol, Array<Array<OpenSSL::X509::Certificate, OpenSSL::PKey::RSA>>>]
+      #   Build the SP certificates and private keys from the settings. If
+      #   check_sp_cert_expiration is true, only returns certificates and private keys
+      #   that are not expired.
+      def get_sp_certs
+        certs = get_all_sp_certs
+        return certs unless security[:check_sp_cert_expiration]
 
-        formatted_cert = OneLogin::RubySaml::Utils.format_cert(certificate)
-        cert = OpenSSL::X509::Certificate.new(formatted_cert)
+        active_certs = { signing: [], encryption: [] }
+        certs.each do |use, pairs|
+          next if pairs.empty?
 
-        if security[:check_sp_cert_expiration] && OneLogin::RubySaml::Utils.is_cert_expired(cert)
-          raise OneLogin::RubySaml::ValidationError.new("The SP certificate expired.")
+          pairs = pairs.select { |cert, _| !cert || OneLogin::RubySaml::Utils.is_cert_active(cert) }
+          raise OneLogin::RubySaml::ValidationError.new("The SP certificate expired.") if pairs.empty?
+
+          active_certs[use] = pairs.freeze
         end
-
-        cert
+        active_certs.freeze
       end
 
-      # @return [OpenSSL::X509::Certificate|nil] Build the New SP certificate from the settings (previously format it)
+      # @return [Array<OpenSSL::X509::Certificate, OpenSSL::PKey::RSA>]
+      #   The SP signing certificate and private key.
+      def get_sp_signing_pair
+        get_sp_certs[:signing].first
+      end
+
+      # @return [OpenSSL::X509::Certificate] The SP signing certificate.
+      # @deprecated Use get_sp_signing_pair or get_sp_certs instead.
+      def get_sp_cert
+        node = get_sp_signing_pair
+        node[0] if node
+      end
+
+      # @return [OpenSSL::PKey::RSA] The SP signing key.
+      def get_sp_signing_key
+        node = get_sp_signing_pair
+        node[1] if node
+      end
+
+      # @deprecated Use get_sp_signing_key or get_sp_certs instead.
+      alias_method :get_sp_key, :get_sp_signing_key
+
+      # @return [Array<OpenSSL::PKey::RSA>] The SP decryption keys.
+      def get_sp_decryption_keys
+        ary = get_sp_certs[:encryption].map { |pair| pair[1] }
+        ary.compact!
+        ary.uniq!(&:to_pem)
+        ary.freeze
+      end
+
+      # @return [OpenSSL::X509::Certificate|nil] Build the New SP certificate from the settings.
       #
+      # @deprecated Use get_sp_certs instead
       def get_sp_cert_new
-        return nil if certificate_new.nil? || certificate_new.empty?
-
-        formatted_cert = OneLogin::RubySaml::Utils.format_cert(certificate_new)
-        OpenSSL::X509::Certificate.new(formatted_cert)
-      end
-
-      # @return [OpenSSL::PKey::RSA] Build the SP private from the settings (previously format it)
-      #
-      def get_sp_key
-        return nil if private_key.nil? || private_key.empty?
-
-        formatted_private_key = OneLogin::RubySaml::Utils.format_private_key(private_key)
-        OpenSSL::PKey::RSA.new(formatted_private_key)
+        node = get_sp_certs[:signing].last
+        node[0] if node
       end
 
       def idp_binding_from_embed_sign
@@ -279,6 +301,85 @@ module OneLogin
           lowercase_url_encoding: false
         }.freeze
       }.freeze
+
+      private
+
+      # @return [Hash<Symbol, Array<Array<OpenSSL::X509::Certificate, OpenSSL::PKey::RSA>>>]
+      #   Build the SP certificates and private keys from the settings. Returns all
+      #   certificates and private keys, even if they are expired.
+      def get_all_sp_certs
+        validate_sp_certs_params!
+        get_sp_certs_multi || get_sp_certs_single
+      end
+
+      # Validate certificate, certificate_new, private_key, and sp_cert_multi params.
+      def validate_sp_certs_params!
+        multi    = sp_cert_multi   && !sp_cert_multi.empty?
+        cert     = certificate     && !certificate.empty?
+        cert_new = certificate_new && !certificate_new.empty?
+        pk       = private_key     && !private_key.empty?
+        if multi && (cert || cert_new || pk)
+          raise ArgumentError.new("Cannot specify both sp_cert_multi and certificate, certificate_new, private_key parameters")
+        end
+      end
+
+      # Get certs from certificate, certificate_new, and private_key parameters.
+      def get_sp_certs_single
+        certs = { :signing => [], :encryption => [] }
+
+        sp_key = OneLogin::RubySaml::Utils.build_private_key_object(private_key)
+        cert = OneLogin::RubySaml::Utils.build_cert_object(certificate)
+        if cert || sp_key
+          ary = [cert, sp_key].freeze
+          certs[:signing] << ary
+          certs[:encryption] << ary
+        end
+
+        cert_new = OneLogin::RubySaml::Utils.build_cert_object(certificate_new)
+        if cert_new
+          ary = [cert_new, sp_key].freeze
+          certs[:signing] << ary
+          certs[:encryption] << ary
+        end
+
+        certs
+      end
+
+      # Get certs from get_sp_cert_multi parameter.
+      def get_sp_certs_multi
+        return if sp_cert_multi.nil? || sp_cert_multi.empty?
+
+        raise ArgumentError.new("sp_cert_multi must be a Hash") unless sp_cert_multi.is_a?(Hash)
+
+        certs = { :signing => [], :encryption => [] }.freeze
+
+        [:signing, :encryption].each do |type|
+          certs_for_type = sp_cert_multi[type] || sp_cert_multi[type.to_s]
+          next if !certs_for_type || certs_for_type.empty?
+
+          unless certs_for_type.is_a?(Array) && certs_for_type.all? { |cert| cert.is_a?(Hash) }
+            raise ArgumentError.new("sp_cert_multi :#{type} node must be an Array of Hashes")
+          end
+
+          certs_for_type.each do |pair|
+            cert = pair[:certificate] || pair['certificate'] || pair[:cert] || pair['cert']
+            key  = pair[:private_key] || pair['private_key'] || pair[:key] || pair['key']
+
+            unless cert && key
+              raise ArgumentError.new("sp_cert_multi :#{type} node Hashes must specify keys :certificate and :private_key")
+            end
+
+            certs[type] << [
+              OneLogin::RubySaml::Utils.build_cert_object(cert),
+              OneLogin::RubySaml::Utils.build_private_key_object(key)
+            ].freeze
+          end
+        end
+
+        certs.each { |_, ary| ary.freeze }
+        certs
+      end
     end
   end
 end
+

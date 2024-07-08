@@ -300,7 +300,7 @@ module OneLogin
           end
 
           nodes = issuer_response_nodes + issuer_assertion_nodes
-          nodes.map { |node| Utils.element_text(node) }.compact.uniq
+          nodes.filter_map { |node| Utils.element_text(node) }.uniq
         end
       end
 
@@ -901,9 +901,9 @@ module OneLogin
           begin
             encrypted_node = xpath_first_from_signed_assertion('/a:Subject/a:EncryptedID')
             if encrypted_node
-              node = decrypt_nameid(encrypted_node)
+              decrypt_nameid(encrypted_node)
             else
-              node = xpath_first_from_signed_assertion('/a:Subject/a:NameID')
+              xpath_first_from_signed_assertion('/a:Subject/a:NameID')
             end
           end
       end
@@ -955,7 +955,7 @@ module OneLogin
       # @return [XMLSecurity::SignedDocument] The SAML Response with the assertion decrypted
       #
       def generate_decrypted_document
-        if settings.nil? || !settings.get_sp_key
+        if settings.nil? || settings.get_sp_decryption_keys.empty?
           raise ValidationError.new('An EncryptedAssertion found and no SP private key found on the settings to decrypt it. Be sure you provided the :settings parameter at the initialize method')
         end
 
@@ -993,28 +993,28 @@ module OneLogin
       end
 
       # Decrypts an EncryptedID element
-      # @param encryptedid_node [REXML::Element] The EncryptedID element
+      # @param encrypted_id_node [REXML::Element] The EncryptedID element
       # @return [REXML::Document] The decrypted EncrypedtID element
       #
-      def decrypt_nameid(encryptedid_node)
-        decrypt_element(encryptedid_node, %r{(.*</(\w+:)?NameID>)}m)
+      def decrypt_nameid(encrypted_id_node)
+        decrypt_element(encrypted_id_node, /(.*<\/(\w+:)?NameID>)/m)
       end
 
-      # Decrypts an EncryptedID element
-      # @param encryptedid_node [REXML::Element] The EncryptedID element
-      # @return [REXML::Document] The decrypted EncrypedtID element
+      # Decrypts an EncryptedAttribute element
+      # @param encrypted_attribute_node [REXML::Element] The EncryptedAttribute element
+      # @return [REXML::Document] The decrypted EncryptedAttribute element
       #
-      def decrypt_attribute(encryptedattribute_node)
-        decrypt_element(encryptedattribute_node, %r{(.*</(\w+:)?Attribute>)}m)
+      def decrypt_attribute(encrypted_attribute_node)
+        decrypt_element(encrypted_attribute_node, /(.*<\/(\w+:)?Attribute>)/m)
       end
 
       # Decrypt an element
-      # @param encryptedid_node [REXML::Element] The encrypted element
-      # @param rgrex string Regex
+      # @param encrypt_node [REXML::Element] The encrypted element
+      # @param regexp [Regexp] The regular expression to extract the decrypted data
       # @return [REXML::Document] The decrypted element
       #
-      def decrypt_element(encrypt_node, rgrex)
-        if settings.nil? || !settings.get_sp_key
+      def decrypt_element(encrypt_node, regexp)
+        if settings.nil? || settings.get_sp_decryption_keys.empty?
           raise ValidationError.new('An ' + encrypt_node.name + ' found and no SP private key found on the settings to decrypt it')
         end
 
@@ -1024,10 +1024,11 @@ module OneLogin
           node_header = '<node xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">'
         end
 
-        elem_plaintext = OneLogin::RubySaml::Utils.decrypt_data(encrypt_node, settings.get_sp_key)
+        elem_plaintext = OneLogin::RubySaml::Utils.decrypt_multi(encrypt_node, settings.get_sp_decryption_keys)
+
         # If we get some problematic noise in the plaintext after decrypting.
         # This quick regexp parse will grab only the Element and discard the noise.
-        elem_plaintext = elem_plaintext.match(rgrex)[0]
+        elem_plaintext = elem_plaintext.match(regexp)[0]
 
         # To avoid namespace errors if saml namespace is not defined
         # create a parent node first with the namespace defined
