@@ -8,7 +8,7 @@ class XmlSecurityTest < Minitest::Test
 
     let(:decoded_response) { Base64.decode64(response_document_without_recipient) }
     let(:document) { XMLSecurity::SignedDocument.new(decoded_response) }
-    let(:settings) { OneLogin::RubySaml::Settings.new() }
+    let(:settings) { RubySaml::Settings.new() }
 
     before do
       @base64cert = document.elements["//ds:X509Certificate"].text
@@ -19,7 +19,7 @@ class XmlSecurityTest < Minitest::Test
     end
 
     it "should run validate with throwing NS related exceptions" do
-      assert_raises(OneLogin::RubySaml::ValidationError) do
+      assert_raises(RubySaml::ValidationError) do
         document.validate_signature(@base64cert, false)
       end
     end
@@ -35,7 +35,7 @@ class XmlSecurityTest < Minitest::Test
     end
 
     it "should raise Fingerprint mismatch" do
-      exception = assert_raises(OneLogin::RubySaml::ValidationError) do
+      exception = assert_raises(RubySaml::ValidationError) do
         document.validate_document("no:fi:ng:er:pr:in:t", false)
       end
       assert_equal("Fingerprint mismatch", exception.message)
@@ -43,7 +43,7 @@ class XmlSecurityTest < Minitest::Test
     end
 
     it "should raise Digest mismatch" do
-      exception = assert_raises(OneLogin::RubySaml::ValidationError) do
+      exception = assert_raises(RubySaml::ValidationError) do
         document.validate_signature(@base64cert, false)
       end
       assert_equal("Digest mismatch", exception.message)
@@ -55,7 +55,7 @@ class XmlSecurityTest < Minitest::Test
                     "<ds:DigestValue>b9xsAXLsynugg3Wc1CI3kpWku+0=</ds:DigestValue>")
       mod_document = XMLSecurity::SignedDocument.new(decoded_response)
       base64cert = mod_document.elements["//ds:X509Certificate"].text
-      exception = assert_raises(OneLogin::RubySaml::ValidationError) do
+      exception = assert_raises(RubySaml::ValidationError) do
         mod_document.validate_signature(base64cert, false)
       end
       assert_equal("Key validation error", exception.message)
@@ -71,7 +71,7 @@ class XmlSecurityTest < Minitest::Test
     it "raise validation error when the X509Certificate is missing and no cert provided" do
       decoded_response.sub!(/<ds:X509Certificate>.*<\/ds:X509Certificate>/, "")
       mod_document = XMLSecurity::SignedDocument.new(decoded_response)
-      exception = assert_raises(OneLogin::RubySaml::ValidationError) do
+      exception = assert_raises(RubySaml::ValidationError) do
         mod_document.validate_document("a fingerprint", false) # The fingerprint isn't relevant to this test
       end
       assert_equal("Certificate element missing in response (ds:X509Certificate) and not cert provided at settings", exception.message)
@@ -134,7 +134,7 @@ class XmlSecurityTest < Minitest::Test
   end
 
   describe "Fingerprint Algorithms" do
-    let(:response_fingerprint_test) { OneLogin::RubySaml::Response.new(fixture(:adfs_response_sha1, false)) }
+    let(:response_fingerprint_test) { RubySaml::Response.new(fixture(:adfs_response_sha1, false)) }
 
     it "validate using SHA1" do
       sha1_fingerprint = "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72"
@@ -213,7 +213,7 @@ class XmlSecurityTest < Minitest::Test
 
       it 'support inclusive canonicalization' do
         skip('test not yet implemented')
-        response = OneLogin::RubySaml::Response.new(fixture("tdnf_response.xml"))
+        response = RubySaml::Response.new(fixture("tdnf_response.xml"))
         response.stubs(:conditions).returns(nil)
         assert !response.is_valid?
         assert !response.is_valid?
@@ -245,13 +245,13 @@ class XmlSecurityTest < Minitest::Test
       end
 
       it "sign an AuthNRequest" do
-        request = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+        request = RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
         request.sign_document(ruby_saml_key, ruby_saml_cert)
         # verify our signature
         signed_doc = XMLSecurity::SignedDocument.new(request.to_s)
         assert signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
 
-        request2 = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+        request2 = RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
         request2.sign_document(ruby_saml_key, ruby_saml_cert_text)
         # verify our signature
         signed_doc2 = XMLSecurity::SignedDocument.new(request2.to_s)
@@ -259,7 +259,7 @@ class XmlSecurityTest < Minitest::Test
       end
 
       it "sign an AuthNRequest with certificate as text" do
-        request = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+        request = RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
         request.sign_document(ruby_saml_key, ruby_saml_cert_text)
 
         # verify our signature
@@ -268,13 +268,13 @@ class XmlSecurityTest < Minitest::Test
       end
 
       it "sign a LogoutRequest" do
-        logout_request = OneLogin::RubySaml::Logoutrequest.new.create_logout_request_xml_doc(settings)
+        logout_request = RubySaml::Logoutrequest.new.create_logout_request_xml_doc(settings)
         logout_request.sign_document(ruby_saml_key, ruby_saml_cert)
         # verify our signature
         signed_doc = XMLSecurity::SignedDocument.new(logout_request.to_s)
         assert signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
 
-        logout_request2 = OneLogin::RubySaml::Logoutrequest.new.create_logout_request_xml_doc(settings)
+        logout_request2 = RubySaml::Logoutrequest.new.create_logout_request_xml_doc(settings)
         logout_request2.sign_document(ruby_saml_key, ruby_saml_cert_text)
         # verify our signature
         signed_doc2 = XMLSecurity::SignedDocument.new(logout_request2.to_s)
@@ -283,13 +283,13 @@ class XmlSecurityTest < Minitest::Test
       end
 
       it "sign a LogoutResponse" do
-        logout_response = OneLogin::RubySaml::SloLogoutresponse.new.create_logout_response_xml_doc(settings, 'request_id_example', "Custom Logout Message")
+        logout_response = RubySaml::SloLogoutresponse.new.create_logout_response_xml_doc(settings, 'request_id_example', "Custom Logout Message")
         logout_response.sign_document(ruby_saml_key, ruby_saml_cert)
         # verify our signature
         signed_doc = XMLSecurity::SignedDocument.new(logout_response.to_s)
         assert signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
 
-        logout_response2 = OneLogin::RubySaml::SloLogoutresponse.new.create_logout_response_xml_doc(settings, 'request_id_example', "Custom Logout Message")
+        logout_response2 = RubySaml::SloLogoutresponse.new.create_logout_response_xml_doc(settings, 'request_id_example', "Custom Logout Message")
         logout_response2.sign_document(ruby_saml_key, ruby_saml_cert_text)
         # verify our signature
         signed_doc2 = XMLSecurity::SignedDocument.new(logout_response2.to_s)
@@ -299,10 +299,10 @@ class XmlSecurityTest < Minitest::Test
     end
 
     describe "StarfieldTMS" do
-      let (:response) { OneLogin::RubySaml::Response.new(fixture(:starfield_response)) }
+      let (:response) { RubySaml::Response.new(fixture(:starfield_response)) }
 
       before do
-        response.settings = OneLogin::RubySaml::Settings.new(:idp_cert_fingerprint => "8D:BA:53:8E:A3:B6:F9:F1:69:6C:BB:D9:D8:BD:41:B3:AC:4F:9D:4D")
+        response.settings = RubySaml::Settings.new(:idp_cert_fingerprint => "8D:BA:53:8E:A3:B6:F9:F1:69:6C:BB:D9:D8:BD:41:B3:AC:4F:9D:4D")
       end
 
       it "be able to validate a good response" do
@@ -342,7 +342,7 @@ class XmlSecurityTest < Minitest::Test
       describe 'with valid document' do
         describe 'when response has signed message and assertion' do
           let(:document_data) { read_response('response_with_signed_message_and_assertion.xml') }
-          let(:document) { OneLogin::RubySaml::Response.new(document_data).document }
+          let(:document) { RubySaml::Response.new(document_data).document }
           let(:fingerprint) { '4b68c453c7d994aad9025c99d5efcf566287fe8d' }
 
           it 'is valid' do
@@ -352,7 +352,7 @@ class XmlSecurityTest < Minitest::Test
 
         describe 'when response has signed assertion' do
           let(:document_data) { read_response('response_with_signed_assertion_3.xml') }
-          let(:document) { OneLogin::RubySaml::Response.new(document_data).document }
+          let(:document) { RubySaml::Response.new(document_data).document }
           let(:fingerprint) { '4b68c453c7d994aad9025c99d5efcf566287fe8d' }
 
           it 'is valid' do
@@ -363,7 +363,7 @@ class XmlSecurityTest < Minitest::Test
 
       describe 'signature_wrapping_attack' do
         let(:document_data) { read_invalid_response("signature_wrapping_attack.xml.base64") }
-        let(:document) { OneLogin::RubySaml::Response.new(document_data).document }
+        let(:document) { RubySaml::Response.new(document_data).document }
         let(:fingerprint) { 'afe71c28ef740bc87425be13a2263d37971da1f9' }
 
         it 'is invalid' do
@@ -373,7 +373,7 @@ class XmlSecurityTest < Minitest::Test
 
       describe 'signature wrapping attack - doubled SAML response body' do
         let(:document_data) { read_invalid_response("response_with_doubled_signed_assertion.xml") }
-        let(:document) { OneLogin::RubySaml::Response.new(document_data) }
+        let(:document) { RubySaml::Response.new(document_data) }
         let(:fingerprint) { '4b68c453c7d994aad9025c99d5efcf566287fe8d' }
 
         it 'is valid, but the unsigned information is ignored in favour of the signed information' do
@@ -384,7 +384,7 @@ class XmlSecurityTest < Minitest::Test
 
       describe 'signature wrapping attack - concealed SAML response body' do
         let(:document_data) { read_invalid_response("response_with_concealed_signed_assertion.xml") }
-        let(:document) { OneLogin::RubySaml::Response.new(document_data) }
+        let(:document) { RubySaml::Response.new(document_data) }
         let(:fingerprint) { '4b68c453c7d994aad9025c99d5efcf566287fe8d' }
 
         it 'is valid, but fails to retrieve information' do
@@ -396,17 +396,17 @@ class XmlSecurityTest < Minitest::Test
 
     describe '#validate_document_with_cert' do
       let(:document_data) { read_response('response_with_signed_message_and_assertion.xml') }
-      let(:document) { OneLogin::RubySaml::Response.new(document_data).document }
+      let(:document) { RubySaml::Response.new(document_data).document }
       let(:idp_cert) { OpenSSL::X509::Certificate.new(ruby_saml_cert_text) }
       let(:fingerprint) { '4b68c453c7d994aad9025c99d5efcf566287fe8d' }
 
       describe 'with invalid document ' do
         describe 'when certificate is invalid' do
-          let(:document) { OneLogin::RubySaml::Response.new(document_data).document }
+          let(:document) { RubySaml::Response.new(document_data).document }
 
           it 'is invalid' do
             wrong_document_data = document_data.sub(/<ds:X509Certificate>.*<\/ds:X509Certificate>/, "<ds:X509Certificate>invalid<\/ds:X509Certificate>")
-            wrong_document = OneLogin::RubySaml::Response.new(wrong_document_data).document
+            wrong_document = RubySaml::Response.new(wrong_document_data).document
             refute wrong_document.validate_document_with_cert(idp_cert), 'Document should be invalid'
           end
         end
@@ -420,7 +420,7 @@ class XmlSecurityTest < Minitest::Test
         end
         
         describe 'when response has no cert but you have local cert' do
-          let(:document) { OneLogin::RubySaml::Response.new(response_document_valid_signed_without_x509certificate).document }
+          let(:document) { RubySaml::Response.new(response_document_valid_signed_without_x509certificate).document }
           let(:idp_cert) { OpenSSL::X509::Certificate.new(ruby_saml_cert_text) }
 
           it 'is valid' do
@@ -454,7 +454,7 @@ class XmlSecurityTest < Minitest::Test
         let(:idp_cert) { OpenSSL::X509::Certificate.new(ruby_saml_cert_text2) }
 
         it 'is not valid' do
-          exception = assert_raises(OneLogin::RubySaml::ValidationError) do
+          exception = assert_raises(RubySaml::ValidationError) do
             document.validate_document_with_cert(idp_cert, false)
           end
           assert_equal("Certificate of the Signature element does not match provided certificate", exception.message)

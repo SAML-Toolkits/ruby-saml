@@ -1,5 +1,15 @@
 # Ruby SAML Migration Guide
 
+## Updating from 1.17.x to 2.0.0
+
+Before attempting to upgrade to `2.0.0`:
+- Upgrade your project to minimum Ruby 3.0, JRuby 9.4, or TruffleRuby 22.
+- Upgrade RubySaml to `1.17.x`. Note that RubySaml `1.17.x` is compatible with up to Ruby 3.3.
+
+RubySaml version `2.0.0` changes the root namespace from `OneLogin::RubySaml::` to just `RubySaml::`. This will require you
+to search your codebase for the string `OneLogin::` and remove it as appropriate. Aside from this namespace change,
+the class names themselves have intentionally been kept the same.
+
 ## Updating from 1.12.x to 1.13.0
 
 Version `1.13.0` adds `settings.idp_sso_service_binding` and `settings.idp_slo_service_binding`, and
@@ -86,7 +96,7 @@ options = {
     "RelayState" => raw_query_params["RelayState"],
   },
 }
-slo_logout_request = OneLogin::RubySaml::SloLogoutrequest.new(query_params["SAMLRequest"], settings, options)
+slo_logout_request = RubySaml::SloLogoutrequest.new(query_params["SAMLRequest"], settings, options)
 raise "Invalid Logout Request" unless slo_logout_request.is_valid?
 ```
 

@@ -1,17 +1,17 @@
 require_relative 'test_helper'
 require 'logout_responses/logoutresponse_fixtures'
 
-require 'onelogin/ruby-saml/slo_logoutrequest'
+require 'ruby_saml/slo_logoutrequest'
 require 'timecop'
 
 class RubySamlTest < Minitest::Test
 
   describe "SloLogoutrequest" do
 
-    let(:settings) { OneLogin::RubySaml::Settings.new }
-    let(:logout_request) { OneLogin::RubySaml::SloLogoutrequest.new(logout_request_document) }
-    let(:logout_request_encrypted_nameid) { OneLogin::RubySaml::SloLogoutrequest.new(logout_request_encrypted_nameid_document) }
-    let(:invalid_logout_request) { OneLogin::RubySaml::SloLogoutrequest.new(invalid_logout_request_document) }
+    let(:settings) { RubySaml::Settings.new }
+    let(:logout_request) { RubySaml::SloLogoutrequest.new(logout_request_document) }
+    let(:logout_request_encrypted_nameid) { RubySaml::SloLogoutrequest.new(logout_request_encrypted_nameid_document) }
+    let(:invalid_logout_request) { RubySaml::SloLogoutrequest.new(invalid_logout_request_document) }
 
     before do
       settings.idp_entity_id = 'https://app.onelogin.com/saml/metadata/SOMEACCOUNT'
@@ -22,13 +22,13 @@ class RubySamlTest < Minitest::Test
 
     describe "initiator" do
       it "raise an exception when logout request is initialized with nil" do
-        assert_raises(ArgumentError) { OneLogin::RubySaml::SloLogoutrequest.new(nil) }
+        assert_raises(ArgumentError) { RubySaml::SloLogoutrequest.new(nil) }
       end
     end
 
     describe "#is_valid?" do
       it "return false when logout request is initialized with blank data" do
-        logout_request_blank = OneLogin::RubySaml::SloLogoutrequest.new('')
+        logout_request_blank = RubySaml::SloLogoutrequest.new('')
         assert !logout_request_blank.is_valid?
         assert_includes logout_request_blank.errors, 'Blank logout request'
       end
@@ -68,7 +68,7 @@ class RubySamlTest < Minitest::Test
         options = {}
         options[:get_params] = params
 
-        logout_request_sign_test = OneLogin::RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
+        logout_request_sign_test = RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
         logout_request_sign_test.settings = settings
 
         collect_errors = true
@@ -79,7 +79,7 @@ class RubySamlTest < Minitest::Test
 
       it "raise error for invalid xml" do
         invalid_logout_request.soft = false
-        assert_raises(OneLogin::RubySaml::ValidationError) { invalid_logout_request.is_valid? }
+        assert_raises(RubySaml::ValidationError) { invalid_logout_request.is_valid? }
       end
 
     end
@@ -90,7 +90,7 @@ class RubySamlTest < Minitest::Test
       end
 
       it 'is not possible when encryptID but no private key' do
-        assert_raises(OneLogin::RubySaml::ValidationError, "An EncryptedID found and no SP private key found on the settings to decrypt it") do
+        assert_raises(RubySaml::ValidationError, "An EncryptedID found and no SP private key found on the settings to decrypt it") do
           assert_equal "someone@example.org", logout_request_encrypted_nameid.nameid
         end
       end
@@ -103,14 +103,14 @@ class RubySamlTest < Minitest::Test
     end
 
     describe "#nameid_format" do
-      let(:logout_request) { OneLogin::RubySaml::SloLogoutrequest.new(logout_request_document_with_name_id_format) }
+      let(:logout_request) { RubySaml::SloLogoutrequest.new(logout_request_document_with_name_id_format) }
 
       it "extract the format attribute of the name id element" do
         assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress", logout_request.nameid_format
       end
 
       it 'is not possible when encryptID but no private key' do
-        assert_raises(OneLogin::RubySaml::ValidationError, "An EncryptedID found and no SP private key found on the settings to decrypt it") do
+        assert_raises(RubySaml::ValidationError, "An EncryptedID found and no SP private key found on the settings to decrypt it") do
           assert_equal "someone@example.org", logout_request_encrypted_nameid.nameid
         end
       end
@@ -149,7 +149,7 @@ class RubySamlTest < Minitest::Test
       end
 
       it "return an Array with one SessionIndex" do
-        logout_request_with_session_index = OneLogin::RubySaml::SloLogoutrequest.new(logout_request_xml_with_session_index)
+        logout_request_with_session_index = RubySaml::SloLogoutrequest.new(logout_request_xml_with_session_index)
         assert_equal ['_ea853497-c58a-408a-bc23-c849752d9741'], logout_request_with_session_index.session_indexes
       end
     end
@@ -161,7 +161,7 @@ class RubySamlTest < Minitest::Test
       end
 
       it "return false when there is an invalid ID in the logout request" do
-        logout_request_blank = OneLogin::RubySaml::SloLogoutrequest.new('')
+        logout_request_blank = RubySaml::SloLogoutrequest.new('')
         assert !logout_request_blank.send(:validate_id)
         assert_includes logout_request_blank.errors, "Missing ID attribute on Logout Request"
       end
@@ -173,7 +173,7 @@ class RubySamlTest < Minitest::Test
       end
 
       it "return false when the logout request is not SAML 2.0 Version" do
-        logout_request_blank = OneLogin::RubySaml::SloLogoutrequest.new('')
+        logout_request_blank = RubySaml::SloLogoutrequest.new('')
         assert !logout_request_blank.send(:validate_version)
         assert_includes logout_request_blank.errors, "Unsupported SAML version"
       end
@@ -203,7 +203,7 @@ class RubySamlTest < Minitest::Test
         Timecop.freeze Time.parse('2014-07-17T01:01:49Z') do
           logout_request.document.root.attributes['NotOnOrAfter'] = '2014-07-17T01:01:48Z'
           logout_request.soft = false
-          assert_raises(OneLogin::RubySaml::ValidationError, "Current time is on or after NotOnOrAfter") do
+          assert_raises(RubySaml::ValidationError, "Current time is on or after NotOnOrAfter") do
             logout_request.send(:validate_not_on_or_after)
           end
         end
@@ -242,16 +242,16 @@ class RubySamlTest < Minitest::Test
       end
 
       it "return false when invalid logout request xml" do
-        logout_request_blank = OneLogin::RubySaml::SloLogoutrequest.new('')
+        logout_request_blank = RubySaml::SloLogoutrequest.new('')
         logout_request_blank.soft = true
         assert !logout_request_blank.send(:validate_request_state)
         assert_includes logout_request_blank.errors, "Blank logout request"
       end
 
       it "raise error for invalid xml" do
-        logout_request_blank = OneLogin::RubySaml::SloLogoutrequest.new('')
+        logout_request_blank = RubySaml::SloLogoutrequest.new('')
         logout_request_blank.soft = false
-        assert_raises(OneLogin::RubySaml::ValidationError, "Blank logout request") do
+        assert_raises(RubySaml::ValidationError, "Blank logout request") do
           logout_request_blank.send(:validate_request_state)
         end
       end
@@ -270,7 +270,7 @@ class RubySamlTest < Minitest::Test
 
       it "raise when encountering a Logout Request bad formatted" do
         invalid_logout_request.soft = false
-        assert_raises(OneLogin::RubySaml::ValidationError, "Element '{urn:oasis:names:tc:SAML:2.0:assertion}Issuer': This element is not expected") do
+        assert_raises(RubySaml::ValidationError, "Element '{urn:oasis:names:tc:SAML:2.0:assertion}Issuer': This element is not expected") do
           invalid_logout_request.send(:validate_structure)
         end
       end
@@ -291,7 +291,7 @@ class RubySamlTest < Minitest::Test
       it "raise when the issuer of the Logout Request does not match the IdP entityId" do
         logout_request.settings.idp_entity_id = 'http://idp.example.com/invalid'
         logout_request.soft = false
-        assert_raises(OneLogin::RubySaml::ValidationError, "Doesn't match the issuer, expected: <#{logout_request.settings.idp_entity_id}>, but was: <https://app.onelogin.com/saml/metadata/SOMEACCOUNT>") do
+        assert_raises(RubySaml::ValidationError, "Doesn't match the issuer, expected: <#{logout_request.settings.idp_entity_id}>, but was: <https://app.onelogin.com/saml/metadata/SOMEACCOUNT>") do
           logout_request.send(:validate_issuer)
         end
       end
@@ -308,12 +308,12 @@ class RubySamlTest < Minitest::Test
       it "return true when no idp_cert is provided and option :relax_signature_validation is present" do
         settings.idp_cert = nil
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
-        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
+        params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
         params['RelayState'] = params[:RelayState]
         options = {}
         options[:get_params] = params
         options[:relax_signature_validation] = true
-        logout_request_sign_test = OneLogin::RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
+        logout_request_sign_test = RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
         logout_request_sign_test.settings = settings
         assert logout_request_sign_test.send(:validate_signature)
       end
@@ -321,32 +321,32 @@ class RubySamlTest < Minitest::Test
       it "return false when no idp_cert is provided and no option :relax_signature_validation is present" do
         settings.idp_cert = nil
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
-        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
+        params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
         params['RelayState'] = params[:RelayState]
         options = {}
         options[:get_params] = params
-        logout_request_sign_test = OneLogin::RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
+        logout_request_sign_test = RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
         logout_request_sign_test.settings = settings
         assert !logout_request_sign_test.send(:validate_signature)
       end
 
       it "return true when valid RSA_SHA1 Signature" do
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
-        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
+        params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
         params['RelayState'] = params[:RelayState]
         options = {}
         options[:get_params] = params
-        logout_request_sign_test = OneLogin::RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
+        logout_request_sign_test = RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
         logout_request_sign_test.settings = settings
         assert logout_request_sign_test.send(:validate_signature)
       end
 
       it "return true when valid RSA_SHA256 Signature" do
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
-        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
+        params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
         options = {}
         options[:get_params] = params
-        logout_request_sign_test = OneLogin::RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
+        logout_request_sign_test = RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
         params['RelayState'] = params[:RelayState]
         logout_request_sign_test.settings = settings
         assert logout_request_sign_test.send(:validate_signature)
@@ -354,13 +354,13 @@ class RubySamlTest < Minitest::Test
 
       it "return false when invalid RSA_SHA1 Signature" do
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
-        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
+        params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
         params['RelayState'] = 'http://invalid.example.com'
         params[:RelayState] = params['RelayState']
         options = {}
         options[:get_params] = params
 
-        logout_request_sign_test = OneLogin::RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
+        logout_request_sign_test = RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
         logout_request_sign_test.settings = settings
         assert !logout_request_sign_test.send(:validate_signature)
       end
@@ -368,15 +368,15 @@ class RubySamlTest < Minitest::Test
       it "raise when invalid RSA_SHA1 Signature" do
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
         settings.soft = false
-        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
+        params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
         params['RelayState'] = 'http://invalid.example.com'
         params[:RelayState] = params['RelayState']
         options = {}
         options[:get_params] = params
         options[:settings] = settings
 
-        logout_request_sign_test = OneLogin::RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
-        assert_raises(OneLogin::RubySaml::ValidationError, "Invalid Signature on Logout Request") do
+        logout_request_sign_test = RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
+        assert_raises(RubySaml::ValidationError, "Invalid Signature on Logout Request") do
           logout_request_sign_test.send(:validate_signature)
         end
       end
@@ -385,9 +385,9 @@ class RubySamlTest < Minitest::Test
         # Use Logoutrequest only to build the SAMLRequest parameter.
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
         settings.soft = false
-        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings, "RelayState" => "http://example.com")
+        params = RubySaml::Logoutrequest.new.create_params(settings, "RelayState" => "http://example.com")
         # Assemble query string.
-        query = OneLogin::RubySaml::Utils.build_query(
+        query = RubySaml::Utils.build_query(
           :type => 'SAMLRequest',
           :data => params['SAMLRequest'],
           :relay_state => params['RelayState'],
@@ -410,8 +410,8 @@ class RubySamlTest < Minitest::Test
         options = {}
         options[:get_params] = params
         options[:settings] = settings
-        logout_request_sign_test = OneLogin::RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
-        assert_raises(OneLogin::RubySaml::ValidationError, "Invalid Signature on Logout Request") do
+        logout_request_sign_test = RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
+        assert_raises(RubySaml::ValidationError, "Invalid Signature on Logout Request") do
           logout_request_sign_test.send(:validate_signature)
         end
       end
@@ -420,9 +420,9 @@ class RubySamlTest < Minitest::Test
         # Use Logoutrequest only to build the SAMLRequest parameter.
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
         settings.soft = false
-        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings, "RelayState" => "http://example.com")
+        params = RubySaml::Logoutrequest.new.create_params(settings, "RelayState" => "http://example.com")
         # Assemble query string.
-        query = OneLogin::RubySaml::Utils.build_query(
+        query = RubySaml::Utils.build_query(
           :type => 'SAMLRequest',
           :data => params['SAMLRequest'],
           :relay_state => params['RelayState'],
@@ -449,7 +449,7 @@ class RubySamlTest < Minitest::Test
           "RelayState" => "http%3A%2F%2Fex%61mple.com",
         }
         options[:settings] = settings
-        logout_request_sign_test = OneLogin::RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
+        logout_request_sign_test = RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
         assert logout_request_sign_test.send(:validate_signature)
       end
 
@@ -459,8 +459,8 @@ class RubySamlTest < Minitest::Test
         settings.soft = false
 
         # Creating the query manually to tweak it later instead of using
-        # OneLogin::RubySaml::Utils.build_query
-        request_doc = OneLogin::RubySaml::Logoutrequest.new.create_logout_request_xml_doc(settings)
+        # RubySaml::Utils.build_query
+        request_doc = RubySaml::Logoutrequest.new.create_logout_request_xml_doc(settings)
         request = Zlib::Deflate.deflate(request_doc.to_s, 9)[2..-5]
         base64_request = Base64.encode64(request).gsub(/\n/, "")
         # The original request received from Azure AD comes with downcased
@@ -483,17 +483,17 @@ class RubySamlTest < Minitest::Test
         params = params.map { |k, v| [k, CGI.unescape(v)] }.to_h
         # Construct SloLogoutrequest and ask it to validate the signature.
         # It will fail because the signature is based on the downcased request
-        logout_request_downcased_test = OneLogin::RubySaml::SloLogoutrequest.new(
+        logout_request_downcased_test = RubySaml::SloLogoutrequest.new(
           params['SAMLRequest'], get_params: params, settings: settings,
         )
-        assert_raises(OneLogin::RubySaml::ValidationError, "Invalid Signature on Logout Request") do
+        assert_raises(RubySaml::ValidationError, "Invalid Signature on Logout Request") do
           logout_request_downcased_test.send(:validate_signature)
         end
 
         # For this case, the parameters will be forced to be downcased after
         # being escaped with :lowercase_url_encoding security option
         settings.security[:lowercase_url_encoding] = true
-        logout_request_force_downcasing_test = OneLogin::RubySaml::SloLogoutrequest.new(
+        logout_request_force_downcasing_test = RubySaml::SloLogoutrequest.new(
           params['SAMLRequest'], get_params: params, settings: settings
         )
         assert logout_request_force_downcasing_test.send(:validate_signature)
@@ -510,11 +510,11 @@ class RubySamlTest < Minitest::Test
       end
 
       it "return true when at least a idp_cert is valid" do
-        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
+        params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
         params['RelayState'] = params[:RelayState]
         options = {}
         options[:get_params] = params
-        logout_request_sign_test = OneLogin::RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
+        logout_request_sign_test = RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
         settings.idp_cert_multi = {
           :signing => [ruby_saml_cert_text2, ruby_saml_cert_text],
           :encryption => []
@@ -524,12 +524,12 @@ class RubySamlTest < Minitest::Test
       end
 
       it "return false when cert expired and check_idp_cert_expiration expired" do
-        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
+        params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
         params['RelayState'] = params[:RelayState]
         options = {}
         options[:get_params] = params
         settings.security[:check_idp_cert_expiration] = true
-        logout_request_sign_test = OneLogin::RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
+        logout_request_sign_test = RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
         settings.idp_cert = nil
         settings.idp_cert_multi = {
           :signing => [ruby_saml_cert_text],
@@ -541,11 +541,11 @@ class RubySamlTest < Minitest::Test
       end
 
       it "return false when none cert on idp_cert_multi is valid" do
-        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
+        params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
         params['RelayState'] = params[:RelayState]
         options = {}
         options[:get_params] = params
-        logout_request_sign_test = OneLogin::RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
+        logout_request_sign_test = RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
         settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
         settings.idp_cert_multi = {
           :signing => [ruby_saml_cert_text2, ruby_saml_cert_text2],

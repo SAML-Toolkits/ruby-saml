@@ -1,11 +1,11 @@
 require_relative 'test_helper'
 
-require 'onelogin/ruby-saml/logoutrequest'
+require 'ruby_saml/logoutrequest'
 
 class RequestTest < Minitest::Test
 
   describe "Logoutrequest" do
-    let(:settings) { OneLogin::RubySaml::Settings.new }
+    let(:settings) { RubySaml::Settings.new }
 
     before do
       settings.idp_slo_service_url = "http://unauth.com/logout"
@@ -13,7 +13,7 @@ class RequestTest < Minitest::Test
     end
 
     it "create the deflated SAMLRequest URL parameter" do
-      unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings)
+      unauth_url = RubySaml::Logoutrequest.new.create(settings)
       assert_match(/^http:\/\/unauth\.com\/logout\?SAMLRequest=/, unauth_url)
 
       inflated = decode_saml_request_payload(unauth_url)
@@ -21,33 +21,33 @@ class RequestTest < Minitest::Test
     end
 
     it "support additional params" do
-      unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings, { :hello => nil })
+      unauth_url = RubySaml::Logoutrequest.new.create(settings, { :hello => nil })
       assert_match(/&hello=$/, unauth_url)
 
-      unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings, { :foo => "bar" })
+      unauth_url = RubySaml::Logoutrequest.new.create(settings, { :foo => "bar" })
       assert_match(/&foo=bar$/, unauth_url)
     end
 
     it "RelayState cases" do
-      unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings, { :RelayState => nil })
+      unauth_url = RubySaml::Logoutrequest.new.create(settings, { :RelayState => nil })
       assert !unauth_url.include?('RelayState')
 
-      unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings, { :RelayState => "http://example.com" })
+      unauth_url = RubySaml::Logoutrequest.new.create(settings, { :RelayState => "http://example.com" })
       assert unauth_url.include?('&RelayState=http%3A%2F%2Fexample.com')
 
-      unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings, { 'RelayState' => nil })
+      unauth_url = RubySaml::Logoutrequest.new.create(settings, { 'RelayState' => nil })
       assert !unauth_url.include?('RelayState')
 
-      unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings, { 'RelayState' => "http://example.com" })
+      unauth_url = RubySaml::Logoutrequest.new.create(settings, { 'RelayState' => "http://example.com" })
       assert unauth_url.include?('&RelayState=http%3A%2F%2Fexample.com')
     end
 
     it "set sessionindex" do
       settings.idp_slo_service_url = "http://example.com"
-      sessionidx = OneLogin::RubySaml::Utils.uuid
+      sessionidx = RubySaml::Utils.uuid
       settings.sessionindex = sessionidx
 
-      unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings, { :nameid => "there" })
+      unauth_url = RubySaml::Logoutrequest.new.create(settings, { :nameid => "there" })
       inflated = decode_saml_request_payload(unauth_url)
 
       assert_match(/<samlp:SessionIndex/, inflated)
@@ -59,7 +59,7 @@ class RequestTest < Minitest::Test
       name_identifier_value = "abc123"
       settings.name_identifier_value = name_identifier_value
 
-      unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings, { :nameid => "there" })
+      unauth_url = RubySaml::Logoutrequest.new.create(settings, { :nameid => "there" })
       inflated = decode_saml_request_payload(unauth_url)
 
       assert_match(/<saml:NameID/, inflated)
@@ -68,7 +68,7 @@ class RequestTest < Minitest::Test
 
     describe "when the target url doesn't contain a query string" do
       it "create the SAMLRequest parameter correctly" do
-        unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings)
+        unauth_url = RubySaml::Logoutrequest.new.create(settings)
         assert_match(/^http:\/\/unauth.com\/logout\?SAMLRequest/, unauth_url)
       end
     end
@@ -77,7 +77,7 @@ class RequestTest < Minitest::Test
       it "create the SAMLRequest parameter correctly" do
         settings.idp_slo_service_url = "http://example.com?field=value"
 
-        unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings)
+        unauth_url = RubySaml::Logoutrequest.new.create(settings)
         assert_match(/^http:\/\/example.com\?field=value&SAMLRequest/, unauth_url)
       end
     end
@@ -86,7 +86,7 @@ class RequestTest < Minitest::Test
       it "have access to the request uuid" do
         settings.idp_slo_service_url = "http://example.com?field=value"
 
-        unauth_req = OneLogin::RubySaml::Logoutrequest.new
+        unauth_req = RubySaml::Logoutrequest.new
         unauth_url = unauth_req.create(settings)
 
         inflated = decode_saml_request_payload(unauth_url)
@@ -96,16 +96,16 @@ class RequestTest < Minitest::Test
 
     describe "playgin with preix" do
       it "creates request with ID prefixed with default '_'" do
-        request = OneLogin::RubySaml::Logoutrequest.new
+        request = RubySaml::Logoutrequest.new
 
         assert_match(/^_/, request.uuid)
       end
 
       it "creates request with ID is prefixed, when :id_prefix is passed" do
-        OneLogin::RubySaml::Utils::set_prefix("test")
-        request = OneLogin::RubySaml::Logoutrequest.new
+        RubySaml::Utils::set_prefix("test")
+        request = RubySaml::Logoutrequest.new
         assert_match(/^test/, request.uuid)
-        OneLogin::RubySaml::Utils::set_prefix("_")
+        RubySaml::Utils::set_prefix("_")
       end
     end
 
@@ -119,7 +119,7 @@ class RequestTest < Minitest::Test
       end
 
       it "doesn't sign through create_xml_document" do
-        unauth_req = OneLogin::RubySaml::Logoutrequest.new
+        unauth_req = RubySaml::Logoutrequest.new
         inflated = unauth_req.create_xml_document(settings).to_s
 
         refute_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], inflated
@@ -128,7 +128,7 @@ class RequestTest < Minitest::Test
       end
 
       it "sign unsigned request" do
-        unauth_req = OneLogin::RubySaml::Logoutrequest.new
+        unauth_req = RubySaml::Logoutrequest.new
         unauth_req_doc = unauth_req.create_xml_document(settings)
         inflated = unauth_req_doc.to_s
 
@@ -144,7 +144,7 @@ class RequestTest < Minitest::Test
       end
 
       it "signs through create_logout_request_xml_doc" do
-        unauth_req = OneLogin::RubySaml::Logoutrequest.new
+        unauth_req = RubySaml::Logoutrequest.new
         inflated = unauth_req.create_logout_request_xml_doc(settings).to_s
 
         assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], inflated
@@ -155,7 +155,7 @@ class RequestTest < Minitest::Test
       it "create a signed logout request" do
         settings.compress_request = true
 
-        unauth_req = OneLogin::RubySaml::Logoutrequest.new
+        unauth_req = RubySaml::Logoutrequest.new
         unauth_url = unauth_req.create(settings)
 
         inflated = decode_saml_request_payload(unauth_url)
@@ -167,7 +167,7 @@ class RequestTest < Minitest::Test
       it "create an uncompressed signed logout request" do
         settings.compress_request = false
 
-        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings)
+        params = RubySaml::Logoutrequest.new.create_params(settings)
         request_xml = Base64.decode64(params["SAMLRequest"])
 
         assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], request_xml
@@ -180,7 +180,7 @@ class RequestTest < Minitest::Test
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
         settings.security[:digest_method] = XMLSecurity::Document::SHA256
 
-        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings)
+        params = RubySaml::Logoutrequest.new.create_params(settings)
         request_xml = Base64.decode64(params["SAMLRequest"])
         assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], request_xml
         assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], request_xml
@@ -192,7 +192,7 @@ class RequestTest < Minitest::Test
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA384
         settings.security[:digest_method] = XMLSecurity::Document::SHA512
 
-        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings)
+        params = RubySaml::Logoutrequest.new.create_params(settings)
         request_xml = Base64.decode64(params["SAMLRequest"])
 
         assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], request_xml
@@ -211,7 +211,7 @@ class RequestTest < Minitest::Test
           ]
         }
 
-        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings)
+        params = RubySaml::Logoutrequest.new.create_params(settings)
         request_xml = Base64.decode64(params["SAMLRequest"])
 
         assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], request_xml
@@ -231,7 +231,7 @@ class RequestTest < Minitest::Test
           ]
         }
 
-        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings)
+        params = RubySaml::Logoutrequest.new.create_params(settings)
         request_xml = Base64.decode64(params["SAMLRequest"])
 
         assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], request_xml
@@ -242,8 +242,8 @@ class RequestTest < Minitest::Test
       it "raises error when no valid certs and :check_sp_cert_expiration is true" do
         settings.security[:check_sp_cert_expiration] = true
 
-        assert_raises(OneLogin::RubySaml::ValidationError, 'The SP certificate expired.') do
-          OneLogin::RubySaml::Logoutrequest.new.create_params(settings)
+        assert_raises(RubySaml::ValidationError, 'The SP certificate expired.') do
+          RubySaml::Logoutrequest.new.create_params(settings)
         end
       end
     end
@@ -263,7 +263,7 @@ class RequestTest < Minitest::Test
       it "create a signature parameter with RSA_SHA1 / SHA1 and validate it" do
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
 
-        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
+        params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
         assert params['SAMLRequest']
         assert params[:RelayState]
         assert params['Signature']
@@ -281,7 +281,7 @@ class RequestTest < Minitest::Test
       it "create a signature parameter with RSA_SHA256 / SHA256 and validate it" do
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
 
-        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
+        params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
         assert params['Signature']
         assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA256
 
@@ -297,7 +297,7 @@ class RequestTest < Minitest::Test
       it "create a signature parameter with RSA_SHA384 / SHA384 and validate it" do
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA384
 
-        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
+        params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
         assert params['Signature']
         assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA384
 
@@ -313,7 +313,7 @@ class RequestTest < Minitest::Test
       it "create a signature parameter with RSA_SHA512 / SHA512 and validate it" do
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA512
 
-        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
+        params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
         assert params['Signature']
         assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA512
 
@@ -338,7 +338,7 @@ class RequestTest < Minitest::Test
           ]
         }
 
-        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
+        params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
         assert params['SAMLRequest']
         assert params[:RelayState]
         assert params['Signature']
@@ -356,8 +356,8 @@ class RequestTest < Minitest::Test
       it "raises error when no valid certs and :check_sp_cert_expiration is true" do
         settings.security[:check_sp_cert_expiration] = true
 
-        assert_raises(OneLogin::RubySaml::ValidationError, 'The SP certificate expired.') do
-          OneLogin::RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
+        assert_raises(RubySaml::ValidationError, 'The SP certificate expired.') do
+          RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
         end
       end
     end
@@ -375,7 +375,7 @@ class RequestTest < Minitest::Test
       it "created a signed logout request" do
         settings.compress_request = true
 
-        unauth_req = OneLogin::RubySaml::Logoutrequest.new
+        unauth_req = RubySaml::Logoutrequest.new
         unauth_url = unauth_req.create(settings)
 
         inflated = decode_saml_request_payload(unauth_url)
@@ -399,7 +399,7 @@ class RequestTest < Minitest::Test
       it "create a signature parameter with RSA_SHA1 / SHA1 and validate it" do
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
 
-        params = OneLogin::RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
+        params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
         assert params['SAMLRequest']
         assert params[:RelayState]
         assert params['Signature']
@@ -417,7 +417,7 @@ class RequestTest < Minitest::Test
 
     describe "#manipulate request_id" do
       it "be able to modify the request id" do
-        logoutrequest = OneLogin::RubySaml::Logoutrequest.new
+        logoutrequest = RubySaml::Logoutrequest.new
         request_id = logoutrequest.request_id
         assert_equal request_id, logoutrequest.uuid
         logoutrequest.uuid = "new_uuid"

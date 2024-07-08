@@ -23,7 +23,7 @@ class UtilsTest < Minitest::Test
 
     def result(duration, reference = 0)
       Time.at(
-        OneLogin::RubySaml::Utils.parse_duration(duration, reference)
+        RubySaml::Utils.parse_duration(duration, reference)
       ).utc.iso8601(3)
     end
 
@@ -45,45 +45,45 @@ class UtilsTest < Minitest::Test
 
     it "returns empty string when the cert is an empty string" do
       cert = ""
-      assert_equal "", OneLogin::RubySaml::Utils.format_cert(cert)
+      assert_equal "", RubySaml::Utils.format_cert(cert)
     end
 
     it "returns nil when the cert is nil" do
       cert = nil
-      assert_nil OneLogin::RubySaml::Utils.format_cert(cert)
+      assert_nil RubySaml::Utils.format_cert(cert)
     end
 
     it "returns the certificate when it is valid" do
-      assert_equal formatted_certificate, OneLogin::RubySaml::Utils.format_cert(formatted_certificate)
+      assert_equal formatted_certificate, RubySaml::Utils.format_cert(formatted_certificate)
     end
 
     it "reformats the certificate when there are spaces and no line breaks" do
       invalid_certificate1 = read_certificate("invalid_certificate1")
-      assert_equal formatted_certificate, OneLogin::RubySaml::Utils.format_cert(invalid_certificate1)
+      assert_equal formatted_certificate, RubySaml::Utils.format_cert(invalid_certificate1)
     end
 
     it "reformats the certificate when there are spaces and no headers" do
       invalid_certificate2 = read_certificate("invalid_certificate2")
-      assert_equal formatted_certificate, OneLogin::RubySaml::Utils.format_cert(invalid_certificate2)
+      assert_equal formatted_certificate, RubySaml::Utils.format_cert(invalid_certificate2)
     end
 
     it "returns the cert when it's encoded" do
       encoded_certificate = read_certificate("certificate.der")
-      assert_equal encoded_certificate, OneLogin::RubySaml::Utils.format_cert(encoded_certificate)
+      assert_equal encoded_certificate, RubySaml::Utils.format_cert(encoded_certificate)
     end
 
     it "reformats the certificate when there line breaks and no headers" do
       invalid_certificate3 = read_certificate("invalid_certificate3")
-      assert_equal formatted_certificate, OneLogin::RubySaml::Utils.format_cert(invalid_certificate3)
+      assert_equal formatted_certificate, RubySaml::Utils.format_cert(invalid_certificate3)
     end
 
     it "returns the chained certificate when it is a valid chained certificate" do
-      assert_equal formatted_chained_certificate, OneLogin::RubySaml::Utils.format_cert(formatted_chained_certificate)
+      assert_equal formatted_chained_certificate, RubySaml::Utils.format_cert(formatted_chained_certificate)
     end
 
     it "reformats the chained certificate when there are spaces and no line breaks" do
       invalid_chained_certificate1 = read_certificate("invalid_chained_certificate1")
-      assert_equal formatted_chained_certificate, OneLogin::RubySaml::Utils.format_cert(invalid_chained_certificate1)
+      assert_equal formatted_chained_certificate, RubySaml::Utils.format_cert(invalid_chained_certificate1)
     end
   end
 
@@ -94,31 +94,31 @@ class UtilsTest < Minitest::Test
 
     it "returns empty string when the private key is an empty string" do
       private_key = ""
-      assert_equal "", OneLogin::RubySaml::Utils.format_private_key(private_key)
+      assert_equal "", RubySaml::Utils.format_private_key(private_key)
     end
 
     it "returns nil when the private key is nil" do
       private_key = nil
-      assert_nil OneLogin::RubySaml::Utils.format_private_key(private_key)
+      assert_nil RubySaml::Utils.format_private_key(private_key)
     end
 
     it "returns the private key when it is valid" do
-      assert_equal formatted_private_key, OneLogin::RubySaml::Utils.format_private_key(formatted_private_key)
+      assert_equal formatted_private_key, RubySaml::Utils.format_private_key(formatted_private_key)
     end
 
     it "reformats the private key when there are spaces and no line breaks" do
       invalid_private_key1 = read_certificate("invalid_private_key1")
-      assert_equal formatted_private_key, OneLogin::RubySaml::Utils.format_private_key(invalid_private_key1)
+      assert_equal formatted_private_key, RubySaml::Utils.format_private_key(invalid_private_key1)
     end
 
     it "reformats the private key when there are spaces and no headers" do
       invalid_private_key2 = read_certificate("invalid_private_key2")
-      assert_equal formatted_private_key, OneLogin::RubySaml::Utils.format_private_key(invalid_private_key2)
+      assert_equal formatted_private_key, RubySaml::Utils.format_private_key(invalid_private_key2)
     end
 
     it "reformats the private key when there line breaks and no headers" do
       invalid_private_key3 = read_certificate("invalid_private_key3")
-      assert_equal formatted_private_key, OneLogin::RubySaml::Utils.format_private_key(invalid_private_key3)
+      assert_equal formatted_private_key, RubySaml::Utils.format_private_key(invalid_private_key3)
     end
 
     describe "an RSA public key" do
@@ -127,64 +127,64 @@ class UtilsTest < Minitest::Test
       end
 
       it "returns the private key when it is valid" do
-        assert_equal formatted_rsa_private_key, OneLogin::RubySaml::Utils.format_private_key(formatted_rsa_private_key)
+        assert_equal formatted_rsa_private_key, RubySaml::Utils.format_private_key(formatted_rsa_private_key)
       end
 
       it "reformats the private key when there are spaces and no line breaks" do
         invalid_rsa_private_key1 = read_certificate("invalid_rsa_private_key1")
-        assert_equal formatted_rsa_private_key, OneLogin::RubySaml::Utils.format_private_key(invalid_rsa_private_key1)
+        assert_equal formatted_rsa_private_key, RubySaml::Utils.format_private_key(invalid_rsa_private_key1)
       end
 
       it "reformats the private key when there are spaces and no headers" do
         invalid_rsa_private_key2 = read_certificate("invalid_rsa_private_key2")
-        assert_equal formatted_private_key, OneLogin::RubySaml::Utils.format_private_key(invalid_rsa_private_key2)
+        assert_equal formatted_private_key, RubySaml::Utils.format_private_key(invalid_rsa_private_key2)
       end
 
       it "reformats the private key when there line breaks and no headers" do
         invalid_rsa_private_key3 = read_certificate("invalid_rsa_private_key3")
-        assert_equal formatted_private_key, OneLogin::RubySaml::Utils.format_private_key(invalid_rsa_private_key3)
+        assert_equal formatted_private_key, RubySaml::Utils.format_private_key(invalid_rsa_private_key3)
       end
     end
   end
 
   describe '.build_cert_object' do
     it 'returns a certificate object for valid certificate string' do
-      cert_object = OneLogin::RubySaml::Utils.build_cert_object(ruby_saml_cert_text)
+      cert_object = RubySaml::Utils.build_cert_object(ruby_saml_cert_text)
       assert_instance_of OpenSSL::X509::Certificate, cert_object
     end
 
     it 'returns nil for nil certificate string' do
-      assert_nil OneLogin::RubySaml::Utils.build_cert_object(nil)
+      assert_nil RubySaml::Utils.build_cert_object(nil)
     end
 
     it 'returns nil for empty certificate string' do
-      assert_nil OneLogin::RubySaml::Utils.build_cert_object('')
+      assert_nil RubySaml::Utils.build_cert_object('')
     end
 
     it 'raises error when given an invalid certificate string' do
       assert_raises OpenSSL::X509::CertificateError do
-        OneLogin::RubySaml::Utils.build_cert_object('Foobar')
+        RubySaml::Utils.build_cert_object('Foobar')
       end
     end
   end
 
   describe '.build_private_key_object' do
     it 'returns a private key object for valid private key string' do
-      private_key_object = OneLogin::RubySaml::Utils.build_private_key_object(ruby_saml_key_text)
+      private_key_object = RubySaml::Utils.build_private_key_object(ruby_saml_key_text)
       assert_instance_of OpenSSL::PKey::RSA, private_key_object
     end
 
     it 'returns nil for nil private key string' do
-      assert_nil OneLogin::RubySaml::Utils.build_private_key_object(nil)
+      assert_nil RubySaml::Utils.build_private_key_object(nil)
     end
 
     it 'returns nil for empty private key string' do
-      assert_nil OneLogin::RubySaml::Utils.build_private_key_object('')
+      assert_nil RubySaml::Utils.build_private_key_object('')
     end
 
     it 'raises error when given an invalid private key string' do
       assert_raises OpenSSL::PKey::RSAError do
-        OneLogin::RubySaml::Utils.build_private_key_object('Foobar')
+        RubySaml::Utils.build_private_key_object('Foobar')
       end
     end
   end
@@ -196,7 +196,7 @@ class UtilsTest < Minitest::Test
       params[:data] = "PHNhbWxwOkF1dGhuUmVxdWVzdCBEZXN0aW5hdGlvbj0naHR0cDovL2V4YW1wbGUuY29tP2ZpZWxkPXZhbHVlJyBJRD0nXzk4NmUxZDEwLWVhY2ItMDEzMi01MGRkLTAwOTBmNWRlZGQ3NycgSXNzdWVJbnN0YW50PScyMDE1LTA2LTAxVDIwOjM0OjU5WicgVmVyc2lvbj0nMi4wJyB4bWxuczpzYW1sPSd1cm46b2FzaXM6bmFtZXM6dGM6U0FNTDoyLjA6YXNzZXJ0aW9uJyB4bWxuczpzYW1scD0ndXJuOm9hc2lzOm5hbWVzOnRjOlNBTUw6Mi4wOnByb3RvY29sJy8+"
       params[:relay_state] = "http://example.com"
       params[:sig_alg] = "http://www.w3.org/2000/09/xmldsig#rsa-sha1"
-      query_string = OneLogin::RubySaml::Utils.build_query(params)
+      query_string = RubySaml::Utils.build_query(params)
       assert_equal "SAMLRequest=PHNhbWxwOkF1dGhuUmVxdWVzdCBEZXN0aW5hdGlvbj0naHR0cDovL2V4YW1wbGUuY29tP2ZpZWxkPXZhbHVlJyBJRD0nXzk4NmUxZDEwLWVhY2ItMDEzMi01MGRkLTAwOTBmNWRlZGQ3NycgSXNzdWVJbnN0YW50PScyMDE1LTA2LTAxVDIwOjM0OjU5WicgVmVyc2lvbj0nMi4wJyB4bWxuczpzYW1sPSd1cm46b2FzaXM6bmFtZXM6dGM6U0FNTDoyLjA6YXNzZXJ0aW9uJyB4bWxuczpzYW1scD0ndXJuOm9hc2lzOm5hbWVzOnRjOlNBTUw6Mi4wOnByb3RvY29sJy8%2B&RelayState=http%3A%2F%2Fexample.com&SigAlg=http%3A%2F%2Fwww.w3.org%2F2000%2F09%2Fxmldsig%23rsa-sha1", query_string
     end
   end
@@ -211,12 +211,12 @@ class UtilsTest < Minitest::Test
 
     it "returns true when the signature is valid" do
       @params[:signature] = "uWJm/T4gKLYEsVu1j/ZmjDeHp9zYPXPXWTXHFJZf2KKnWg57fUw3x2l6KTyRQ+Xjigb+sfYdGnnwmIz6KngXYRnh7nO6inspRLWOwkqQFy9iR9LDlMcfpXV/0g3oAxBxO6tX8MUHqR2R62SYZRGd1rxC9apg4vQiP97+atOI8t4="
-      assert OneLogin::RubySaml::Utils.verify_signature(@params)
+      assert RubySaml::Utils.verify_signature(@params)
     end
 
     it "returns false when the signature is invalid" do
       @params[:signature] = "uWJm/InVaLiDsVu1j/ZmjDeHp9zYPXPXWTXHFJZf2KKnWg57fUw3x2l6KTyRQ+Xjigb+sfYdGnnwmIz6KngXYRnh7nO6inspRLWOwkqQFy9iR9LDlMcfpXV/0g3oAxBxO6tX8MUHqR2R62SYZRGd1rxC9apg4vQiP97+atOI8t4="
-      assert !OneLogin::RubySaml::Utils.verify_signature(@params)
+      assert !RubySaml::Utils.verify_signature(@params)
     end
   end
 
@@ -225,20 +225,20 @@ class UtilsTest < Minitest::Test
       error_msg = "The status code of the Logout Response was not Success"
       status_code = "urn:oasis:names:tc:SAML:2.0:status:Requester"
       status_message = "The request could not be performed due to an error on the part of the requester."
-      status_error_msg = OneLogin::RubySaml::Utils.status_error_msg(error_msg, status_code, status_message)
+      status_error_msg = RubySaml::Utils.status_error_msg(error_msg, status_code, status_message)
       assert_equal "The status code of the Logout Response was not Success, was Requester -> The request could not be performed due to an error on the part of the requester.", status_error_msg
     end
 
     it "returns a error msg with status_code" do
       error_msg = "The status code of the Logout Response was not Success"
       status_code = "urn:oasis:names:tc:SAML:2.0:status:Requester"
-      status_error_msg = OneLogin::RubySaml::Utils.status_error_msg(error_msg, status_code)
+      status_error_msg = RubySaml::Utils.status_error_msg(error_msg, status_code)
       assert_equal "The status code of the Logout Response was not Success, was Requester", status_error_msg
     end
 
     it "returns a error msg" do
       error_msg = "The status code of the Logout Response was not Success"
-      status_error_msg = OneLogin::RubySaml::Utils.status_error_msg(error_msg)
+      status_error_msg = RubySaml::Utils.status_error_msg(error_msg)
       assert_equal "The status code of the Logout Response was not Success", status_error_msg
     end
   end
@@ -247,11 +247,11 @@ class UtilsTest < Minitest::Test
 
     describe ".uuid" do
       it "returns a uuid starting with an underscore" do
-        assert_match(/^_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/, OneLogin::RubySaml::Utils.uuid)
+        assert_match(/^_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/, RubySaml::Utils.uuid)
       end
 
       it "doesn't return the same value twice" do
-        refute_equal OneLogin::RubySaml::Utils.uuid, OneLogin::RubySaml::Utils.uuid
+        refute_equal RubySaml::Utils.uuid, RubySaml::Utils.uuid
       end
     end
 
@@ -259,85 +259,85 @@ class UtilsTest < Minitest::Test
       it 'matches two urls' do
         destination = 'http://www.example.com/test?var=stuff'
         settings = 'http://www.example.com/test?var=stuff'
-        assert OneLogin::RubySaml::Utils.uri_match?(destination, settings)
+        assert RubySaml::Utils.uri_match?(destination, settings)
       end
 
       it 'fails to match two urls' do
         destination = 'http://www.example.com/test?var=stuff'
         settings = 'http://www.example.com/othertest?var=stuff'
-        assert !OneLogin::RubySaml::Utils.uri_match?(destination, settings)
+        assert !RubySaml::Utils.uri_match?(destination, settings)
       end
 
       it "matches two URLs if the scheme case doesn't match" do
         destination = 'http://www.example.com/test?var=stuff'
         settings = 'HTTP://www.example.com/test?var=stuff'
-        assert OneLogin::RubySaml::Utils.uri_match?(destination, settings)
+        assert RubySaml::Utils.uri_match?(destination, settings)
       end
 
       it "matches two URLs if the host case doesn't match" do
         destination = 'http://www.EXAMPLE.com/test?var=stuff'
         settings = 'http://www.example.com/test?var=stuff'
-        assert OneLogin::RubySaml::Utils.uri_match?(destination, settings)
+        assert RubySaml::Utils.uri_match?(destination, settings)
       end
 
       it "fails to match two URLs if the path case doesn't match" do
         destination = 'http://www.example.com/TEST?var=stuff'
         settings = 'http://www.example.com/test?var=stuff'
-        assert !OneLogin::RubySaml::Utils.uri_match?(destination, settings)
+        assert !RubySaml::Utils.uri_match?(destination, settings)
       end
 
       it "fails to match two URLs if the query case doesn't match" do
         destination = 'http://www.example.com/test?var=stuff'
         settings = 'http://www.example.com/test?var=STUFF'
-        assert !OneLogin::RubySaml::Utils.uri_match?(destination, settings)
+        assert !RubySaml::Utils.uri_match?(destination, settings)
       end
 
       it 'matches two non urls' do
         destination = 'stuff'
         settings = 'stuff'
-        assert OneLogin::RubySaml::Utils.uri_match?(destination, settings)
+        assert RubySaml::Utils.uri_match?(destination, settings)
       end
 
       it "fails to match two non urls" do
         destination = 'stuff'
         settings = 'not stuff'
-        assert !OneLogin::RubySaml::Utils.uri_match?(destination, settings)
+        assert !RubySaml::Utils.uri_match?(destination, settings)
       end
     end
 
     describe '.element_text' do
       it 'returns the element text' do
         element = REXML::Document.new('<element>element text</element>').elements.first
-        assert_equal 'element text', OneLogin::RubySaml::Utils.element_text(element)
+        assert_equal 'element text', RubySaml::Utils.element_text(element)
       end
 
       it 'returns all segments of the element text' do
         element = REXML::Document.new('<element>element <!-- comment -->text</element>').elements.first
-        assert_equal 'element text', OneLogin::RubySaml::Utils.element_text(element)
+        assert_equal 'element text', RubySaml::Utils.element_text(element)
       end
 
       it 'returns normalized element text' do
         element = REXML::Document.new('<element>element &amp; text</element>').elements.first
-        assert_equal 'element & text', OneLogin::RubySaml::Utils.element_text(element)
+        assert_equal 'element & text', RubySaml::Utils.element_text(element)
       end
 
       it 'returns the CDATA element text' do
         element = REXML::Document.new('<element><![CDATA[element & text]]></element>').elements.first
-        assert_equal 'element & text', OneLogin::RubySaml::Utils.element_text(element)
+        assert_equal 'element & text', RubySaml::Utils.element_text(element)
       end
 
       it 'returns the element text with newlines and additional whitespace' do
         element = REXML::Document.new("<element>  element \n text  </element>").elements.first
-        assert_equal "  element \n text  ", OneLogin::RubySaml::Utils.element_text(element)
+        assert_equal "  element \n text  ", RubySaml::Utils.element_text(element)
       end
 
       it 'returns nil when element is nil' do
-        assert_nil OneLogin::RubySaml::Utils.element_text(nil)
+        assert_nil RubySaml::Utils.element_text(nil)
       end
 
       it 'returns empty string when element has no text' do
         element = REXML::Document.new('<element></element>').elements.first
-        assert_equal '', OneLogin::RubySaml::Utils.element_text(element)
+        assert_equal '', RubySaml::Utils.element_text(element)
       end
     end
   end
@@ -346,8 +346,8 @@ class UtilsTest < Minitest::Test
     let(:private_key) { ruby_saml_key }
     let(:invalid_key1) { CertificateHelper.generate_key }
     let(:invalid_key2) { CertificateHelper.generate_key }
-    let(:settings) { OneLogin::RubySaml::Settings.new(:private_key => private_key.to_pem) }
-    let(:response) { OneLogin::RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings) }
+    let(:settings) { RubySaml::Settings.new(:private_key => private_key.to_pem) }
+    let(:response) { RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings) }
     let(:encrypted) do
       REXML::XPath.first(
         response.document,
@@ -357,34 +357,34 @@ class UtilsTest < Minitest::Test
     end
 
     it 'successfully decrypts with the first private key' do
-      assert_match /\A<saml:Assertion/, OneLogin::RubySaml::Utils.decrypt_multi(encrypted, [private_key])
+      assert_match /\A<saml:Assertion/, RubySaml::Utils.decrypt_multi(encrypted, [private_key])
     end
 
     it 'successfully decrypts with a subsequent private key' do
-      assert_match /\A<saml:Assertion/, OneLogin::RubySaml::Utils.decrypt_multi(encrypted, [invalid_key1, private_key])
+      assert_match /\A<saml:Assertion/, RubySaml::Utils.decrypt_multi(encrypted, [invalid_key1, private_key])
     end
 
     it 'raises an error when there is only one key and it fails to decrypt' do
       assert_raises OpenSSL::PKey::PKeyError do
-        OneLogin::RubySaml::Utils.decrypt_multi(encrypted, [invalid_key1])
+        RubySaml::Utils.decrypt_multi(encrypted, [invalid_key1])
       end
     end
 
     it 'raises an error when all keys fail to decrypt' do
       assert_raises OpenSSL::PKey::PKeyError do
-        OneLogin::RubySaml::Utils.decrypt_multi(encrypted, [invalid_key1, invalid_key2])
+        RubySaml::Utils.decrypt_multi(encrypted, [invalid_key1, invalid_key2])
       end
     end
 
     it 'raises an error when private keys is an empty array' do
       assert_raises ArgumentError do
-        OneLogin::RubySaml::Utils.decrypt_multi(encrypted, [])
+        RubySaml::Utils.decrypt_multi(encrypted, [])
       end
     end
 
     it 'raises an error when private keys is nil' do
       assert_raises ArgumentError do
-        OneLogin::RubySaml::Utils.decrypt_multi(encrypted, [])
+        RubySaml::Utils.decrypt_multi(encrypted, [])
       end
     end
   end
@@ -392,64 +392,64 @@ class UtilsTest < Minitest::Test
   describe '.is_cert_expired' do
     it 'returns true for expired certificate' do
       expired_cert = CertificateHelper.generate_cert(not_after: Time.now - 60)
-      assert OneLogin::RubySaml::Utils.is_cert_expired(expired_cert)
+      assert RubySaml::Utils.is_cert_expired(expired_cert)
     end
 
     it 'returns false for not-started certificate' do
       not_started_cert = CertificateHelper.generate_cert(not_before: Time.now + 60)
-      refute OneLogin::RubySaml::Utils.is_cert_active(not_started_cert)
+      refute RubySaml::Utils.is_cert_active(not_started_cert)
     end
 
     it 'returns false for active certificate' do
       valid_cert = CertificateHelper.generate_cert
-      refute OneLogin::RubySaml::Utils.is_cert_expired(valid_cert)
+      refute RubySaml::Utils.is_cert_expired(valid_cert)
     end
 
     it 'returns true for expired certificate string' do
       expired_cert_string = CertificateHelper.generate_cert(not_after: Time.now - 60).to_pem
-      assert OneLogin::RubySaml::Utils.is_cert_expired(expired_cert_string)
+      assert RubySaml::Utils.is_cert_expired(expired_cert_string)
     end
 
     it 'returns false for not-started certificate string' do
       not_started_cert_string = CertificateHelper.generate_cert(not_before: Time.now + 60).to_pem
-      refute OneLogin::RubySaml::Utils.is_cert_active(not_started_cert_string)
+      refute RubySaml::Utils.is_cert_active(not_started_cert_string)
     end
 
     it 'returns false for active certificate string' do
       valid_cert_string = CertificateHelper.generate_cert.to_pem
-      refute OneLogin::RubySaml::Utils.is_cert_expired(valid_cert_string)
+      refute RubySaml::Utils.is_cert_expired(valid_cert_string)
     end
   end
 
   describe '.is_cert_active' do
     it 'returns true for active certificate' do
       valid_cert = CertificateHelper.generate_cert
-      assert OneLogin::RubySaml::Utils.is_cert_active(valid_cert)
+      assert RubySaml::Utils.is_cert_active(valid_cert)
     end
 
     it 'returns false for not-started certificate' do
       not_started_cert = CertificateHelper.generate_cert(not_before: Time.now + 60)
-      refute OneLogin::RubySaml::Utils.is_cert_active(not_started_cert)
+      refute RubySaml::Utils.is_cert_active(not_started_cert)
     end
 
     it 'returns false for expired certificate' do
       expired_cert = CertificateHelper.generate_cert(not_after: Time.now - 60)
-      refute OneLogin::RubySaml::Utils.is_cert_active(expired_cert)
+      refute RubySaml::Utils.is_cert_active(expired_cert)
     end
 
     it 'returns true for active certificate string' do
       valid_cert_string = CertificateHelper.generate_cert.to_pem
-      assert OneLogin::RubySaml::Utils.is_cert_active(valid_cert_string)
+      assert RubySaml::Utils.is_cert_active(valid_cert_string)
     end
 
     it 'returns false for not-started certificate string' do
       not_started_cert_string = CertificateHelper.generate_cert(not_before: Time.now + 60).to_pem
-      refute OneLogin::RubySaml::Utils.is_cert_active(not_started_cert_string)
+      refute RubySaml::Utils.is_cert_active(not_started_cert_string)
     end
 
     it 'returns false for expired certificate string' do
       expired_cert_string = CertificateHelper.generate_cert(not_after: Time.now - 60).to_pem
-      refute OneLogin::RubySaml::Utils.is_cert_active(expired_cert_string)
+      refute RubySaml::Utils.is_cert_active(expired_cert_string)
     end
   end
 end

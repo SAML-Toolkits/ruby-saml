@@ -4,8 +4,8 @@ class RubySamlTest < Minitest::Test
 
   describe "SamlMessage" do
 
-    let(:settings) { OneLogin::RubySaml::Settings.new }
-    let(:saml_message) { OneLogin::RubySaml::SamlMessage.new }
+    let(:settings) { RubySaml::Settings.new }
+    let(:saml_message) { RubySaml::SamlMessage.new }
     let(:response_document) { read_response("response_unsigned_xml_base64") }
     let(:response_document_xml) { read_response("adfs_response_xmlns.xml") }
 
@@ -64,19 +64,19 @@ class RubySamlTest < Minitest::Test
      </samlp:LogoutRequest>""" }
 
       it "raises error when SAML Message exceed the allowed bytes" do
-        assert_raises(OneLogin::RubySaml::ValidationError, "Encoded SAML Message exceeds #{OneLogin::RubySaml::Settings::DEFAULTS[:message_max_bytesize]} bytes, so was rejected") do
-            saml_message = OneLogin::RubySaml::SamlMessage.new
+        assert_raises(RubySaml::ValidationError, "Encoded SAML Message exceeds #{RubySaml::Settings::DEFAULTS[:message_max_bytesize]} bytes, so was rejected") do
+            saml_message = RubySaml::SamlMessage.new
             saml_message.send(:decode_raw_saml, bomb)
         end
       end
 
       describe 'with a custom setting for message_max_bytesize' do
         let(:message_max_bytesize) { 100_00 }
-        let(:settings) { OneLogin::RubySaml::Settings.new({:message_max_bytesize => message_max_bytesize}) }
+        let(:settings) { RubySaml::Settings.new({:message_max_bytesize => message_max_bytesize}) }
 
         it 'uses the custom setting' do
-          assert_raises(OneLogin::RubySaml::ValidationError, "Encoded SAML Message exceeds #{message_max_bytesize} bytes, so was rejected") do
-            saml_message = OneLogin::RubySaml::SamlMessage.new
+          assert_raises(RubySaml::ValidationError, "Encoded SAML Message exceeds #{message_max_bytesize} bytes, so was rejected") do
+            saml_message = RubySaml::SamlMessage.new
             saml_message.send(:decode_raw_saml, bomb, settings)
           end
         end
