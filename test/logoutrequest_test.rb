@@ -362,59 +362,6 @@ class RequestTest < Minitest::Test
       end
     end
 
-    describe "DEPRECATED: signing with HTTP-POST binding via :embed_sign" do
-
-      before do
-        # sign the logout request
-        settings.security[:logout_requests_signed] = true
-        settings.security[:embed_sign] = true
-        settings.certificate = ruby_saml_cert_text
-        settings.private_key = ruby_saml_key_text
-      end
-
-      it "created a signed logout request" do
-        settings.compress_request = true
-
-        unauth_req = RubySaml::Logoutrequest.new
-        unauth_url = unauth_req.create(settings)
-
-        inflated = decode_saml_request_payload(unauth_url)
-        assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], inflated
-        assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], inflated
-        assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2000/09/xmldsig#sha1'/>], inflated
-      end
-    end
-
-    describe "DEPRECATED: signing with HTTP-Redirect binding via :embed_sign" do
-
-      let(:cert) { OpenSSL::X509::Certificate.new(ruby_saml_cert_text) }
-
-      before do
-        settings.security[:logout_requests_signed] = true
-        settings.security[:embed_sign] = false
-        settings.certificate = ruby_saml_cert_text
-        settings.private_key = ruby_saml_key_text
-      end
-
-      it "create a signature parameter with RSA_SHA1 / SHA1 and validate it" do
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
-
-        params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
-        assert params['SAMLRequest']
-        assert params[:RelayState]
-        assert params['Signature']
-        assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA1
-
-        query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
-        query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
-        query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
-
-        signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
-        assert_equal signature_algorithm, OpenSSL::Digest::SHA1
-        assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
-      end
-    end
-
     describe "#manipulate request_id" do
       it "be able to modify the request id" do
         logoutrequest = RubySaml::Logoutrequest.new

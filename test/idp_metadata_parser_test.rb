@@ -654,8 +654,8 @@ QOPR6cEwFZzP0tHTYbI839WgxX6hfhIUTUz6mLqq4+3P4BG3+1OXeVDg63y8Uh78
       assert_equal("https://app.onelogin.com/saml/metadata/383123", @settings.idp_entity_id)
       assert_equal("urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress", @settings.name_identifier_format)
       assert_equal("https://app.onelogin.com/trust/saml2/http-post/sso/383123", @settings.idp_sso_service_url)
+      assert_equal("urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", @settings.idp_sso_service_binding)
       assert_nil(@settings.idp_slo_service_url)
-      # TODO: next line can be changed to `assert_nil @settings.idp_slo_service_binding` after :embed_sign is removed.
       assert_nil(@settings.instance_variable_get('@idp_slo_service_binding'))
     end
   end
@@ -726,7 +726,6 @@ WQO0LPxPqRiUqUzyhDhLo/xXNrHCu4VbMw=="]
       assert_equal "https://app.onelogin.com/trust/saml2/http-post/sso/383123", @settings.idp_sso_service_url
       assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", @settings.idp_sso_service_binding
       assert_nil @settings.idp_slo_service_url
-      # TODO: next line can be changed to `assert_nil @settings.idp_slo_service_binding` after :embed_sign is removed.
       assert_nil @settings.instance_variable_get('@idp_slo_service_binding')
     end
   end
