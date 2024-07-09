@@ -185,8 +185,6 @@ module RubySaml
       idpsso_descriptors.map {|id| IdpMetadata.new(id, id.parent.attributes["entityID"])}
     end
 
-    private
-
     # Retrieve the remote IdP metadata from the URL or a cached copy.
     # @param url [String] Url where the XML of the Identity Provider Metadata is published.
     # @param validate_cert [Boolean] If true and the URL is HTTPs, the cert of the domain is checked.
@@ -212,6 +210,8 @@ module RubySaml
         "Failed to fetch idp metadata: #{response.code}: #{response.message}"
       )
     end
+
+    private
 
     class IdpMetadata
       attr_reader :idpsso_descriptor, :entity_id

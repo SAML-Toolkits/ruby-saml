@@ -11,12 +11,14 @@
 * [#690](https://github.com/SAML-Toolkits/ruby-saml/pull/690) Remove deprecated `settings.security[:embed_sign]` parameter.
 
 ### 1.17.0
+* [#687](https://github.com/SAML-Toolkits/ruby-saml/pull/687) Add CI coverage for Ruby 3.3 and Windows.
 * [#673](https://github.com/SAML-Toolkits/ruby-saml/pull/673) Add `Settings#sp_cert_multi` paramter to facilitate SP certificate and key rotation.
 * [#673](https://github.com/SAML-Toolkits/ruby-saml/pull/673) Support multiple simultaneous SP decryption keys via `Settings#sp_cert_multi` parameter.
 * [#673](https://github.com/SAML-Toolkits/ruby-saml/pull/673) Deprecate `Settings#certificate_new` parameter.
 * [#673](https://github.com/SAML-Toolkits/ruby-saml/pull/673) `:check_sp_cert_expiration` will use the first non-expired certificate/key when signing/decrypting. It will raise an error only if there are no valid certificates/keys.
 * [#673](https://github.com/SAML-Toolkits/ruby-saml/pull/673) `:check_sp_cert_expiration` now validates the certificate `not_before` condition; previously it was only validating `not_after`.
 * [#673](https://github.com/SAML-Toolkits/ruby-saml/pull/673) `:check_sp_cert_expiration` now causes the generated SP metadata to exclude any inactive/expired certificates.
+* [#691](https://github.com/SAML-Toolkits/ruby-saml/pull/691) Make IdpMetadataParser#get_idp_metadata public.
 
 ### 1.16.0 (Oct 09, 2023)
 * [#671](https://github.com/SAML-Toolkits/ruby-saml/pull/671) Add support on LogoutRequest with Encrypted NameID
