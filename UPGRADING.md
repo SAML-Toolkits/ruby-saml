@@ -68,6 +68,18 @@ settings.idp_slo_service_binding = :redirect
 
 For clarity, the default value of both parameters is `:redirect` if they are not set.
 
+### Deprecation of Compression Settings
+
+The `settings.compress_request` and `settings.compress_response` parameters have been deprecated
+and are no longer functional. They will be removed in RubySaml 2.1.0. Please remove `compress_request`
+and `compress_response` everywhere within your project code.
+
+The SAML SP request/response message compression behavior is now controlled automatically by the
+`settings.idp_sso_service_binding` and `settings.idp_slo_service_binding` parameters respectively:
+`HTTP-Redirect` will always use compression, while `HTTP-POST` will not. For clarity, here
+"compression" is used to make redirect URLs which contain SAML messages be shorter. For POST messages,
+compression may be achieved by enabling `Content-Encoding: gzip` on your webserver.
+
 ## Updating from 1.12.x to 1.13.0
 
 Version `1.13.0` adds `settings.idp_sso_service_binding` and `settings.idp_slo_service_binding`, and

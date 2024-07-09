@@ -7,6 +7,7 @@ require 'nokogiri'
 require 'rexml/document'
 require 'rexml/xpath'
 require 'ruby_saml/error_handling'
+require 'ruby_saml/logging'
 
 # Only supports SAML 2.0
 module RubySaml
@@ -104,11 +105,18 @@ module RubySaml
 
     # Deflate, base64 encode and url-encode a SAML Message (To be used in the HTTP-redirect binding)
     # @param saml [String] The plain SAML Message
-    # @param settings [RubySaml::Settings|nil] Toolkit settings
+    # @param settings_or_compress [true|false|RubySaml::Settings|nil] Whether or not the SAML should be deflated.
+    #   The usage of RubySaml::Settings here is deprecated.
     # @return [String] The deflated and encoded SAML Message (encoded if the compression is requested)
-    #
-    def encode_raw_saml(saml, settings)
-      saml = deflate(saml) if settings.compress_request
+    def encode_raw_saml(saml, settings_or_compress = false)
+      if settings_or_compress.is_a?(TrueClass)
+        saml = deflate(saml)
+      elsif settings_or_compress.respond_to?(:compress_request)
+        Logging.deprecate('Please change the second argument of `encode_raw_saml_message` to a boolean ' \
+                          'indicating whether or not to use compression. Using a boolean will be required ' \
+                          'in RubySaml 2.1.0.')
+        saml = deflate(saml) if settings_or_compress.compress_request
+      end
 
       CGI.escape(encode(saml))
     end

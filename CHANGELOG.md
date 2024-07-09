@@ -7,6 +7,7 @@
 * [#685](https://github.com/SAML-Toolkits/ruby-saml/pull/685) Move schema files from `lib/onelogin/schemas` to `lib/ruby_saml/schemas`.
 * [#692](https://github.com/SAML-Toolkits/ruby-saml/pull/692) Remove `XMLSecurity` namespace and replace with `RubySaml::XML`.
 * [#686](https://github.com/SAML-Toolkits/ruby-saml/pull/686) Use SHA-256 as the default hashing algorithm everywhere instead of SHA-1, including signatures, fingerprints, and digests.
+* [#695](https://github.com/SAML-Toolkits/ruby-saml/pull/695) Deprecate `settings.compress_request` and `settings.compess_response` parameters.
 * [#690](https://github.com/SAML-Toolkits/ruby-saml/pull/690) Remove deprecated `settings.security[:embed_sign]` parameter.
 
 ### 1.17.0

@@ -12,7 +12,6 @@ class SloLogoutresponseTest < Minitest::Test
       settings.idp_entity_id = 'https://app.onelogin.com/saml/metadata/SOMEACCOUNT'
       settings.idp_slo_service_url = "http://unauth.com/logout"
       settings.name_identifier_value = "f00f00"
-      settings.compress_request = true
       settings.certificate = ruby_saml_cert_text
       settings.private_key = ruby_saml_key_text
       logout_request.settings = settings
@@ -102,7 +101,6 @@ class SloLogoutresponseTest < Minitest::Test
       before do
         settings.idp_sso_service_binding = :redirect
         settings.idp_slo_service_binding = :post
-        settings.compress_response = false
         settings.security[:logout_responses_signed] = true
       end
 
@@ -232,7 +230,6 @@ class SloLogoutresponseTest < Minitest::Test
       before do
         settings.idp_sso_service_binding = :post
         settings.idp_slo_service_binding = :redirect
-        settings.compress_response = false
         settings.security[:logout_responses_signed] = true
       end
 
@@ -313,7 +310,6 @@ class SloLogoutresponseTest < Minitest::Test
 
       it "create a signature parameter using the first certificate and key" do
         settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
-        settings.compress_request = false
         settings.certificate = nil
         settings.private_key = nil
         settings.sp_cert_multi = {

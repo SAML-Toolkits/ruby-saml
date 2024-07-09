@@ -56,6 +56,7 @@ module RubySaml
       # The method expects :RelayState but sometimes we get 'RelayState' instead.
       # Based on the HashWithIndifferentAccess value in Rails we could experience
       # conflicts so this line will solve them.
+      binding_redirect = settings.idp_sso_service_binding == Utils::BINDINGS[:redirect]
       relay_state = params[:RelayState] || params['RelayState']
 
       if relay_state.nil?
@@ -71,12 +72,12 @@ module RubySaml
 
       Logging.debug "Created AuthnRequest: #{request}"
 
-      request = deflate(request) if settings.compress_request
+      request = deflate(request) if binding_redirect
       base64_request = encode(request)
       request_params = {"SAMLRequest" => base64_request}
       sp_signing_key = settings.get_sp_signing_key
 
-      if settings.idp_sso_service_binding == Utils::BINDINGS[:redirect] && settings.security[:authn_requests_signed] && sp_signing_key
+      if binding_redirect && settings.security[:authn_requests_signed] && sp_signing_key
         params['SigAlg'] = settings.security[:signature_method]
         url_string = RubySaml::Utils.build_query(
           type: 'SAMLRequest',

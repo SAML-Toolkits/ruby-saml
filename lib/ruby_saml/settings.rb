@@ -52,8 +52,6 @@ module RubySaml
     attr_accessor :name_identifier_value
     attr_accessor :name_identifier_value_requested
     attr_accessor :sessionindex
-    attr_accessor :compress_request
-    attr_accessor :compress_response
     attr_accessor :double_quote_xml_attribute_values
     attr_accessor :message_max_bytesize
     attr_accessor :passive
@@ -274,8 +272,6 @@ module RubySaml
       assertion_consumer_service_binding: Utils::BINDINGS[:post],
       single_logout_service_binding: Utils::BINDINGS[:redirect],
       idp_cert_fingerprint_algorithm: RubySaml::XML::Document::SHA256,
-      compress_request: true,
-      compress_response: true,
       message_max_bytesize: 250_000,
       soft: true,
       double_quote_xml_attribute_values: false,
@@ -296,7 +292,39 @@ module RubySaml
       }.freeze
     }.freeze
 
+    # @deprecated Will be removed in v2.1.0
+    def compress_request
+      compress_deprecation('compress_request', 'idp_sso_service_binding')
+      defined?(@compress_request) ? @compress_request : true
+    end
+
+    # @deprecated Will be removed in v2.1.0
+    def compress_request=(value)
+      compress_deprecation('compress_request', 'idp_sso_service_binding')
+      @compress_request = value
+    end
+
+    # @deprecated Will be removed in v2.1.0
+    def compress_response
+      compress_deprecation('compress_response', 'idp_slo_service_binding')
+      defined?(@compress_response) ? @compress_response : true
+    end
+
+    # @deprecated Will be removed in v2.1.0
+    def compress_response=(value)
+      compress_deprecation('compress_response', 'idp_slo_service_binding')
+      @compress_response = value
+    end
+
     private
+
+    # @deprecated Will be removed in v2.1.0
+    def compress_deprecation(old_param, new_param)
+      Logging.deprecate "`RubySaml::Settings##{old_param}` is deprecated and no longer functional. " \
+                        'It will be removed in RubySaml 2.1.0. ' \
+                        "Its functionality is now handled by `RubySaml::Settings##{new_param}` instead: " \
+                        '"HTTP-Redirect" will always be compressed, and "HTTP-POST" will always be uncompressed.'
+    end
 
     # @return [Hash<Symbol, Array<Array<OpenSSL::X509::Certificate, OpenSSL::PKey::RSA>>>]
     #   Build the SP certificates and private keys from the settings. Returns all
