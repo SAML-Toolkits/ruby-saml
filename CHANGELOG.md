@@ -5,6 +5,7 @@
 * [#685](https://github.com/SAML-Toolkits/ruby-saml/pull/685) Create namespace alias `OneLogin = Object` for backward compatibility, to be removed in version `2.1.0`.
 * [#685](https://github.com/SAML-Toolkits/ruby-saml/pull/685) Change directly structure from `lib/onelogin/ruby-saml` to `lib/ruby_saml`.
 * [#685](https://github.com/SAML-Toolkits/ruby-saml/pull/685) Move schema files from `lib/onelogin/schemas` to `lib/ruby_saml/schemas`.
+* [#692](https://github.com/SAML-Toolkits/ruby-saml/pull/692) Remove `XMLSecurity` namespace and replace with `RubySaml::XML`.
 * [#686](https://github.com/SAML-Toolkits/ruby-saml/pull/686) Use SHA-256 as the default hashing algorithm everywhere instead of SHA-1, including signatures, fingerprints, and digests.
 * [#690](https://github.com/SAML-Toolkits/ruby-saml/pull/690) Remove deprecated `settings.security[:embed_sign]` parameter.
 

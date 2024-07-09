@@ -340,7 +340,7 @@ class MetadataTest < Minitest::Test
         assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], xml_text
         assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmlenc#sha256'/>], xml_text
 
-        signed_metadata = XMLSecurity::SignedDocument.new(xml_text)
+        signed_metadata = RubySaml::XML::SignedDocument.new(xml_text)
         assert signed_metadata.validate_document(ruby_saml_cert_fingerprint, false)
 
         assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
@@ -348,8 +348,8 @@ class MetadataTest < Minitest::Test
 
       describe "when digest and signature methods are specified" do
         before do
-          settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
-          settings.security[:digest_method] = XMLSecurity::Document::SHA512
+          settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA256
+          settings.security[:digest_method] = RubySaml::XML::Document::SHA512
         end
 
         it "creates a signed metadata with specified digest and signature methods" do
@@ -357,7 +357,7 @@ class MetadataTest < Minitest::Test
           assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], xml_text
           assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmlenc#sha512'/>], xml_text
 
-          signed_metadata = XMLSecurity::SignedDocument.new(xml_text)
+          signed_metadata = RubySaml::XML::SignedDocument.new(xml_text)
           assert signed_metadata.validate_document(ruby_saml_cert_fingerprint, false)
 
           assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
@@ -400,7 +400,7 @@ class MetadataTest < Minitest::Test
           assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], xml_text
           assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmlenc#sha256'/>], xml_text
 
-          signed_metadata = XMLSecurity::SignedDocument.new(xml_text)
+          signed_metadata = RubySaml::XML::SignedDocument.new(xml_text)
           assert signed_metadata.validate_document(ruby_saml_cert_fingerprint, false)
 
           assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")

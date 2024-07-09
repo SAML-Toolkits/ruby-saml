@@ -229,7 +229,7 @@ module RubySaml
     #
     def self.verify_signature(params)
       cert, sig_alg, signature, query_string = %i[cert sig_alg signature query_string].map { |k| params[k]}
-      signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(sig_alg)
+      signature_algorithm = RubySaml::XML::BaseDocument.new.algorithm(sig_alg)
       cert.public_key.verify(signature_algorithm.new, Base64.decode64(signature), query_string)
     end
 

@@ -258,8 +258,8 @@ class RequestTest < Minitest::Test
       end
 
       it "create a signed request with 256 digest and signature methods" do
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
-        settings.security[:digest_method] = XMLSecurity::Document::SHA512
+        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA256
+        settings.security[:digest_method] = RubySaml::XML::Document::SHA512
 
         params = RubySaml::Authrequest.new.create_params(settings)
 
@@ -327,41 +327,41 @@ class RequestTest < Minitest::Test
       end
 
       it "create a signature parameter with RSA_SHA1 and validate it" do
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
 
         params = RubySaml::Authrequest.new.create_params(settings, :RelayState => 'http://example.com')
         assert params['SAMLRequest']
         assert params[:RelayState]
         assert params['Signature']
-        assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA1
+        assert_equal params['SigAlg'], RubySaml::XML::Document::RSA_SHA1
 
         query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
         query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
         query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
-        signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
+        signature_algorithm = RubySaml::XML::BaseDocument.new.algorithm(params['SigAlg'])
         assert_equal signature_algorithm, OpenSSL::Digest::SHA1
         assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
       end
 
       it "create a signature parameter with RSA_SHA256 and validate it" do
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
+        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA256
 
         params = RubySaml::Authrequest.new.create_params(settings, :RelayState => 'http://example.com')
         assert params['Signature']
-        assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA256
+        assert_equal params['SigAlg'], RubySaml::XML::Document::RSA_SHA256
 
         query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
         query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
         query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
-        signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
+        signature_algorithm = RubySaml::XML::BaseDocument.new.algorithm(params['SigAlg'])
         assert_equal signature_algorithm, OpenSSL::Digest::SHA256
         assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
       end
 
       it "create a signature parameter using the first certificate and key" do
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
         settings.compress_request = false
         settings.certificate = nil
         settings.private_key = nil
@@ -376,13 +376,13 @@ class RequestTest < Minitest::Test
         assert params['SAMLRequest']
         assert params[:RelayState]
         assert params['Signature']
-        assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA1
+        assert_equal params['SigAlg'], RubySaml::XML::Document::RSA_SHA1
 
         query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
         query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
         query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
-        signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
+        signature_algorithm = RubySaml::XML::BaseDocument.new.algorithm(params['SigAlg'])
         assert_equal signature_algorithm, OpenSSL::Digest::SHA1
         assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
       end

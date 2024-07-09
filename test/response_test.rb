@@ -74,7 +74,7 @@ class RubySamlTest < Minitest::Test
     end
 
     it "be able to parse a document which contains ampersands" do
-      XMLSecurity::SignedDocument.any_instance.stubs(:digests_match?).returns(true)
+      RubySaml::XML::SignedDocument.any_instance.stubs(:digests_match?).returns(true)
       RubySaml::Response.any_instance.stubs(:validate_conditions).returns(true)
 
       ampersands_response = RubySaml::Response.new(ampersands_document)
@@ -382,7 +382,7 @@ class RubySamlTest < Minitest::Test
           no_signature_response.stubs(:validate_subject_confirmation).returns(true)
           no_signature_response.settings = settings
           no_signature_response.settings.idp_cert_fingerprint = "3D:C5:BC:58:60:5D:19:64:94:E3:BA:C8:3D:49:01:D5:56:34:44:65:C2:85:0A:A8:65:A5:AC:76:7E:65:1F:F7"
-          XMLSecurity::SignedDocument.any_instance.expects(:validate_signature).returns(true)
+          RubySaml::XML::SignedDocument.any_instance.expects(:validate_signature).returns(true)
           assert no_signature_response.is_valid?
         end
 
@@ -1377,7 +1377,7 @@ class RubySamlTest < Minitest::Test
       it 'sign an unsigned SAML Response XML and initiate the SAML object with it' do
         xml = Base64.decode64(fixture("test_sign.xml"))
 
-        document = XMLSecurity::Document.new(xml)
+        document = RubySaml::XML::Document.new(xml)
 
         formatted_cert = RubySaml::Utils.format_cert(ruby_saml_cert_text)
         cert = OpenSSL::X509::Certificate.new(formatted_cert)
