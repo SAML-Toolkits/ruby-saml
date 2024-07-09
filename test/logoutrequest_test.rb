@@ -152,21 +152,7 @@ class RequestTest < Minitest::Test
         assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmlenc#sha256'/>], inflated
       end
 
-      it "create a signed logout request" do
-        settings.compress_request = true
-
-        unauth_req = RubySaml::Logoutrequest.new
-        unauth_url = unauth_req.create(settings)
-
-        inflated = decode_saml_request_payload(unauth_url)
-        assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], inflated
-        assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], inflated
-        assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmlenc#sha256'/>], inflated
-      end
-
       it "create an uncompressed signed logout request" do
-        settings.compress_request = false
-
         params = RubySaml::Logoutrequest.new.create_params(settings)
         request_xml = Base64.decode64(params["SAMLRequest"])
 
@@ -176,7 +162,6 @@ class RequestTest < Minitest::Test
       end
 
       it "create a signed logout request with 256 digest and signature method" do
-        settings.compress_request = false
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
         settings.security[:digest_method] = XMLSecurity::Document::SHA256
 
@@ -188,7 +173,6 @@ class RequestTest < Minitest::Test
       end
 
       it "create a signed logout request with 512 digest and signature method RSA_SHA384" do
-        settings.compress_request = false
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA384
         settings.security[:digest_method] = XMLSecurity::Document::SHA512
 
@@ -201,7 +185,6 @@ class RequestTest < Minitest::Test
       end
 
       it "create a signed logout request using the first certificate and key" do
-        settings.compress_request = false
         settings.certificate = nil
         settings.private_key = nil
         settings.sp_cert_multi = {
@@ -220,7 +203,6 @@ class RequestTest < Minitest::Test
       end
 
       it "create a signed logout request using the first valid certificate and key when :check_sp_cert_expiration is true" do
-        settings.compress_request = false
         settings.certificate = nil
         settings.private_key = nil
         settings.security[:check_sp_cert_expiration] = true
@@ -328,7 +310,6 @@ class RequestTest < Minitest::Test
 
       it "create a signature parameter using the first certificate and key" do
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
-        settings.compress_request = false
         settings.certificate = nil
         settings.private_key = nil
         settings.sp_cert_multi = {
@@ -366,6 +347,7 @@ class RequestTest < Minitest::Test
 
       before do
         # sign the logout request
+        settings.idp_slo_service_binding = RubySaml::Utils::BINDINGS[:post]
         settings.security[:logout_requests_signed] = true
         settings.security[:embed_sign] = true
         settings.certificate = ruby_saml_cert_text
@@ -373,12 +355,9 @@ class RequestTest < Minitest::Test
       end
 
       it "created a signed logout request" do
-        settings.compress_request = true
-
         unauth_req = RubySaml::Logoutrequest.new
-        unauth_url = unauth_req.create(settings)
+        inflated = unauth_req.create_logout_request_xml_doc(settings).to_s
 
-        inflated = decode_saml_request_payload(unauth_url)
         assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], inflated
         assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], inflated
         assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmlenc#sha256'/>], inflated
