@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "xml_security"
+require "ruby_saml/xml"
 require "ruby_saml/attributes"
 
 require "time"
@@ -65,7 +65,7 @@ module RubySaml
       end
 
       @response = decode_raw_saml(response, settings)
-      @document = XMLSecurity::SignedDocument.new(@response, @errors)
+      @document = RubySaml::XML::SignedDocument.new(@response, @errors)
 
       if assertion_encrypted?
         @decrypted_document = generate_decrypted_document
@@ -951,7 +951,7 @@ module RubySaml
     end
 
     # Generates the decrypted_document
-    # @return [XMLSecurity::SignedDocument] The SAML Response with the assertion decrypted
+    # @return [RubySaml::XML::SignedDocument] The SAML Response with the assertion decrypted
     #
     def generate_decrypted_document
       if settings.nil? || settings.get_sp_decryption_keys.empty?
@@ -964,8 +964,8 @@ module RubySaml
     end
 
     # Obtains a SAML Response with the EncryptedAssertion element decrypted
-    # @param document_copy [XMLSecurity::SignedDocument] A copy of the original SAML Response with the encrypted assertion
-    # @return [XMLSecurity::SignedDocument] The SAML Response with the assertion decrypted
+    # @param document_copy [RubySaml::XML::SignedDocument] A copy of the original SAML Response with the encrypted assertion
+    # @return [RubySaml::XML::SignedDocument] The SAML Response with the assertion decrypted
     #
     def decrypt_assertion_from_document(document_copy)
       response_node = REXML::XPath.first(
@@ -980,7 +980,7 @@ module RubySaml
       )
       response_node.add(decrypt_assertion(encrypted_assertion_node))
       encrypted_assertion_node.remove
-      XMLSecurity::SignedDocument.new(response_node.to_s)
+      RubySaml::XML::SignedDocument.new(response_node.to_s)
     end
 
     # Decrypts an EncryptedAssertion element

@@ -8,14 +8,26 @@ Before attempting to upgrade to `2.0.0`:
 - Upgrade your project to minimum Ruby 3.0, JRuby 9.4, or TruffleRuby 22.
 - Upgrade RubySaml to `1.17.x`. Note that RubySaml `1.17.x` is compatible with up to Ruby 3.3.
 
-### Root namespace changed to RubySaml
+### Root "OneLogin" namespace changed to "RubySaml"
 
-RubySaml version `2.0.0` changes the root namespace from `OneLogin::RubySaml::` to just `RubySaml::`. This will require you
-to search your codebase for the string `OneLogin::` and remove it as appropriate. Aside from this namespace change,
+RubySaml version `2.0.0` changes the root namespace from `OneLogin::RubySaml::` to just `RubySaml::`.
+Please remove `OneLogin::` and `onelogin/` everywhere in your codebase. Aside from this namespace change,
 the class names themselves have intentionally been kept the same.
 
-For backward compatibility, the alias `OneLogin = Object` has been set, so `OneLogin::RubySaml::` will still work.
-This alias will be removed in RubySaml version `2.1.0`.
+Note that the project folder structure has also been updated accordingly. Notably, the directory
+`lib/onelogin/schemas` is now `lib/ruby_saml/schemas`.
+
+For backward compatibility, the alias `OneLogin = Object` has been set, so `OneLogin::RubySaml::` will still work
+as before. This alias will be removed in RubySaml version `2.1.0`.
+
+### Root "XMLSecurity" namespace changed to "RubySaml::XML"
+
+RubySaml version `2.0.0` changes the namespace `RubySaml::XML::` to `RubySaml::XML::`. Please search your
+codebase for `RubySaml::XML::` and replace it as appropriate. In addition, you must replace direct usage of
+`require 'xml_security'` with `require 'ruby_saml/xml'`.
+
+For backward compatibility, the alias `XMLSecurity = RubySaml::XML` has been set, so `RubySaml::XML::` will still work
+as before. This alias will be removed in RubySaml version `2.1.0`.
 
 ### Security: Change default hashing algorithm to SHA-256 (was SHA-1)
 
@@ -30,9 +42,9 @@ To preserve the old insecure SHA-1 behavior *(not recommended)*, you may set `Ru
 ```ruby
 # Preserve RubySaml 1.x insecure SHA-1 behavior
 settings = RubySaml::Settings.new
-settings.idp_cert_fingerprint_algorithm = XMLSecurity::Document::SHA1
-settings.security[:digest_method] = XMLSecurity::Document::SHA1
-settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+settings.idp_cert_fingerprint_algorithm = RubySaml::XML::Document::SHA1
+settings.security[:digest_method] = RubySaml::XML::Document::SHA1
+settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
 ```
 
 ## Updating from 1.12.x to 1.13.0
@@ -108,7 +120,7 @@ The new preferred way to provide _SAMLResponse_, _RelayState_, and _SigAlg_ is v
 # In this example `query_params` is assumed to contain decoded query parameters,
 # and `raw_query_params` is assumed to contain encoded query parameters as sent by the IDP.
 settings = {
-  settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+  settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
   settings.soft = false
 }
 options = {
