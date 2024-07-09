@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "xml_security"
+require "ruby_saml/xml"
 require "ruby_saml/attribute_service"
 require "ruby_saml/utils"
 require "ruby_saml/validation_error"
@@ -173,7 +173,7 @@ module RubySaml
       idp_cert_fingerprint || begin
         idp_cert = get_idp_cert
         if idp_cert
-          fingerprint_alg = XMLSecurity::BaseDocument.new.algorithm(idp_cert_fingerprint_algorithm).new
+          fingerprint_alg = RubySaml::XML::BaseDocument.new.algorithm(idp_cert_fingerprint_algorithm).new
           fingerprint_alg.hexdigest(idp_cert.to_der).upcase.scan(/../).join(":")
         end
       end
@@ -277,7 +277,7 @@ module RubySaml
     DEFAULTS = {
       assertion_consumer_service_binding: Utils::BINDINGS[:post],
       single_logout_service_binding: Utils::BINDINGS[:redirect],
-      idp_cert_fingerprint_algorithm: XMLSecurity::Document::SHA256,
+      idp_cert_fingerprint_algorithm: RubySaml::XML::Document::SHA256,
       compress_request: true,
       compress_response: true,
       message_max_bytesize: 250_000,
@@ -292,8 +292,8 @@ module RubySaml
         want_name_id: false,
         metadata_signed: false,
         embed_sign: false, # Deprecated
-        digest_method: XMLSecurity::Document::SHA256,
-        signature_method: XMLSecurity::Document::RSA_SHA256,
+        digest_method: RubySaml::XML::Document::SHA256,
+        signature_method: RubySaml::XML::Document::RSA_SHA256,
         check_idp_cert_expiration: false,
         check_sp_cert_expiration: false,
         strict_audience_validation: false,

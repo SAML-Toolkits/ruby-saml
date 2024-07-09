@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
-require "xml_security"
+require "ruby_saml/xml"
 require "ruby_saml/saml_message"
-
 require "time"
 
 # Only supports SAML 2.0
@@ -45,7 +44,7 @@ module RubySaml
 
       @options = options
       @response = decode_raw_saml(response, settings)
-      @document = XMLSecurity::SignedDocument.new(@response)
+      @document = RubySaml::XML::SignedDocument.new(@response)
       super()
     end
 

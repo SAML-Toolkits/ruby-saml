@@ -59,12 +59,12 @@ class RubySamlTest < Minitest::Test
         settings.certificate = ruby_saml_cert_text
         settings.private_key = ruby_saml_key_text
         settings.idp_cert = ruby_saml_cert_text
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
         params = {}
         params['SAMLRequest'] = logout_request_deflated_base64
         params['RelayState'] = 'http://invalid.example.com'
         params['Signature'] = 'invalid_signature'
-        params['SigAlg'] = XMLSecurity::Document::RSA_SHA1
+        params['SigAlg'] = RubySaml::XML::Document::RSA_SHA1
         options = {}
         options[:get_params] = params
 
@@ -307,7 +307,7 @@ class RubySamlTest < Minitest::Test
 
       it "return true when no idp_cert is provided and option :relax_signature_validation is present" do
         settings.idp_cert = nil
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
         params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
         params['RelayState'] = params[:RelayState]
         options = {}
@@ -320,7 +320,7 @@ class RubySamlTest < Minitest::Test
 
       it "return false when no idp_cert is provided and no option :relax_signature_validation is present" do
         settings.idp_cert = nil
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
         params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
         params['RelayState'] = params[:RelayState]
         options = {}
@@ -331,7 +331,7 @@ class RubySamlTest < Minitest::Test
       end
 
       it "return true when valid RSA_SHA1 Signature" do
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
         params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
         params['RelayState'] = params[:RelayState]
         options = {}
@@ -342,7 +342,7 @@ class RubySamlTest < Minitest::Test
       end
 
       it "return true when valid RSA_SHA256 Signature" do
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
+        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA256
         params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
         options = {}
         options[:get_params] = params
@@ -353,7 +353,7 @@ class RubySamlTest < Minitest::Test
       end
 
       it "return false when invalid RSA_SHA1 Signature" do
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
         params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
         params['RelayState'] = 'http://invalid.example.com'
         params[:RelayState] = params['RelayState']
@@ -366,7 +366,7 @@ class RubySamlTest < Minitest::Test
       end
 
       it "raise when invalid RSA_SHA1 Signature" do
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
         settings.soft = false
         params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
         params['RelayState'] = 'http://invalid.example.com'
@@ -383,7 +383,7 @@ class RubySamlTest < Minitest::Test
 
       it "raise when get_params encoding differs from what this library generates" do
         # Use Logoutrequest only to build the SAMLRequest parameter.
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
         settings.soft = false
         params = RubySaml::Logoutrequest.new.create_params(settings, "RelayState" => "http://example.com")
         # Assemble query string.
@@ -401,7 +401,7 @@ class RubySamlTest < Minitest::Test
         refute_equal(query, original_query)
         assert_equal(CGI.unescape(query), CGI.unescape(original_query))
         # Make normalised signature based on our modified params.
-        sign_algorithm = XMLSecurity::BaseDocument.new.algorithm(settings.security[:signature_method])
+        sign_algorithm = RubySaml::XML::BaseDocument.new.algorithm(settings.security[:signature_method])
         signature = settings.get_sp_signing_key.sign(sign_algorithm.new, query)
         params['Signature'] = Base64.encode64(signature).gsub(/\n/, "")
         # Construct SloLogoutrequest and ask it to validate the signature.
@@ -418,7 +418,7 @@ class RubySamlTest < Minitest::Test
 
       it "return true even if raw_get_params encoding differs from what this library generates" do
         # Use Logoutrequest only to build the SAMLRequest parameter.
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
         settings.soft = false
         params = RubySaml::Logoutrequest.new.create_params(settings, "RelayState" => "http://example.com")
         # Assemble query string.
@@ -436,7 +436,7 @@ class RubySamlTest < Minitest::Test
         refute_equal(query, original_query)
         assert_equal(CGI.unescape(query), CGI.unescape(original_query))
         # Make normalised signature based on our modified params.
-        sign_algorithm = XMLSecurity::BaseDocument.new.algorithm(settings.security[:signature_method])
+        sign_algorithm = RubySaml::XML::BaseDocument.new.algorithm(settings.security[:signature_method])
         signature = settings.get_sp_signing_key.sign(sign_algorithm.new, query)
         params['Signature'] = Base64.encode64(signature).gsub(/\n/, "")
         # Construct SloLogoutrequest and ask it to validate the signature.
@@ -455,7 +455,7 @@ class RubySamlTest < Minitest::Test
 
       it "handles Azure AD downcased request encoding" do
         # Use Logoutrequest only to build the SAMLRequest parameter.
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
+        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA256
         settings.soft = false
 
         # Creating the query manually to tweak it later instead of using
@@ -473,7 +473,7 @@ class RubySamlTest < Minitest::Test
         # Assemble query string.
         query = "SAMLRequest=#{params['SAMLRequest']}&SigAlg=#{params['SigAlg']}"
         # Make normalised signature based on our modified params.
-        sign_algorithm = XMLSecurity::BaseDocument.new.algorithm(
+        sign_algorithm = RubySaml::XML::BaseDocument.new.algorithm(
           settings.security[:signature_method]
         )
         signature = settings.get_sp_signing_key.sign(sign_algorithm.new, query)
@@ -506,7 +506,7 @@ class RubySamlTest < Minitest::Test
         settings.private_key = ruby_saml_key_text
         settings.idp_cert = nil
         settings.security[:logout_requests_signed] = true
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
       end
 
       it "return true when at least a idp_cert is valid" do

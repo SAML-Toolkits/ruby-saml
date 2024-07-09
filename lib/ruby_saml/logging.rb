@@ -2,32 +2,33 @@
 
 require 'logger'
 
-# Simplistic log class when we're running in Rails
 module RubySaml
-  class Logging
+  module Logging
+    extend self
+
     DEFAULT_LOGGER = ::Logger.new($stdout)
 
-    def self.logger
+    attr_writer :logger
+
+    def logger
       @logger ||= begin
         logger = Rails.logger if defined?(::Rails) && Rails.respond_to?(:logger)
-        logger ||= DEFAULT_LOGGER
+        logger || DEFAULT_LOGGER
       end
     end
 
-    class << self
-      attr_writer :logger
+    %i[error warn debug info].each do |level|
+      define_method(level) do |message|
+        logger.send(level, message) if enabled?
+      end
     end
 
-    def self.debug(message)
-      return if ENV['ruby-saml/testing']
-
-      logger.debug(message)
+    def deprecate(message)
+      warn("[DEPRECATION] RubySaml: #{message}")
     end
 
-    def self.info(message)
-      return if ENV['ruby-saml/testing']
-
-      logger.info(message)
+    def enabled?
+      !ENV['ruby-saml/testing']
     end
   end
 end
