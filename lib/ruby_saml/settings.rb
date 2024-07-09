@@ -52,8 +52,6 @@ module RubySaml
     attr_accessor :name_identifier_value
     attr_accessor :name_identifier_value_requested
     attr_accessor :sessionindex
-    attr_accessor :compress_request
-    attr_accessor :compress_response
     attr_accessor :double_quote_xml_attribute_values
     attr_accessor :message_max_bytesize
     attr_accessor :passive
@@ -278,8 +276,6 @@ module RubySaml
       assertion_consumer_service_binding: Utils::BINDINGS[:post],
       single_logout_service_binding: Utils::BINDINGS[:redirect],
       idp_cert_fingerprint_algorithm: XMLSecurity::Document::SHA1,
-      compress_request: true,
-      compress_response: true,
       message_max_bytesize: 250_000,
       soft: true,
       double_quote_xml_attribute_values: false,

@@ -104,11 +104,11 @@ module RubySaml
 
     # Deflate, base64 encode and url-encode a SAML Message (To be used in the HTTP-redirect binding)
     # @param saml [String] The plain SAML Message
-    # @param settings [RubySaml::Settings|nil] Toolkit settings
+    # @param compress [true|false] Whether or not the SAML should be deflated.
     # @return [String] The deflated and encoded SAML Message (encoded if the compression is requested)
     #
-    def encode_raw_saml(saml, settings)
-      saml = deflate(saml) if settings.compress_request
+    def encode_raw_saml(saml, compress = false)
+      saml = deflate(saml) if compress
 
       CGI.escape(encode(saml))
     end

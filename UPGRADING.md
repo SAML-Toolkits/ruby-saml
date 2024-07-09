@@ -17,6 +17,15 @@ the class names themselves have intentionally been kept the same.
 For backward compatibility, the alias `OneLogin = Object` has been set, so `OneLogin::RubySaml::` will still work.
 This alias will be removed in RubySaml version `2.1.0`.
 
+### Removal of Compression Settings
+
+The `settings.compress_request` and `settings.compress_response` parameters have been removed.
+Please remove them everywhere within your project code. These behaviors are now set automatically
+according to the `settings.idp_sso_service_binding` and `settings.idp_slo_service_binding` parameters
+respectively: `HTTP-Redirect` will always use compression, while `HTTP-POST` will not. For clarity,
+here "compression" is used to make redirect URLs which contain SAML messages be shorter. For POST
+messages, compression may be achieved by enabling `Content-Encoding: gzip` on your webserver.
+
 ## Updating from 1.12.x to 1.13.0
 
 Version `1.13.0` adds `settings.idp_sso_service_binding` and `settings.idp_slo_service_binding`, and

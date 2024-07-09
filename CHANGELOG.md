@@ -5,6 +5,7 @@
 * [#685](https://github.com/SAML-Toolkits/ruby-saml/pull/685) Create namespace alias `OneLogin = Object` for backward compatibility, to be removed in version `2.1.0`.
 * [#685](https://github.com/SAML-Toolkits/ruby-saml/pull/685) Change directly structure from `lib/onelogin/ruby-saml` to `lib/ruby_saml`.
 * [#685](https://github.com/SAML-Toolkits/ruby-saml/pull/685) Move schema files from `lib/onelogin/schemas` to `lib/ruby_saml/schemas`.
+* [#689](https://github.com/SAML-Toolkits/ruby-saml/pull/689) Remove `settings.compress_request` and `settings.compess_response` parameters.
 
 ### 1.17.0
 * [#673](https://github.com/SAML-Toolkits/ruby-saml/pull/673) Add `Settings#sp_cert_multi` paramter to facilitate SP certificate and key rotation.

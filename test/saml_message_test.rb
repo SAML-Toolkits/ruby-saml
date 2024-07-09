@@ -15,13 +15,11 @@ class RubySamlTest < Minitest::Test
     end
 
     it "return encoded raw saml" do
-      settings.compress_request = true
-      encoded_raw = saml_message.send(:encode_raw_saml, logout_request_document, settings)
+      encoded_raw = saml_message.send(:encode_raw_saml, logout_request_document, true)
       assert logout_request_deflated_base64, encoded_raw
 
-      settings.compress_request = false
       deflated = saml_message.send(:deflate, logout_request_deflated_base64)
-      encoded_raw = saml_message.send(:encode_raw_saml, deflated, settings)
+      encoded_raw = saml_message.send(:encode_raw_saml, deflated, false)
       assert logout_request_deflated_base64, encoded_raw
     end
 

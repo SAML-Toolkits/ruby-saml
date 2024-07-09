@@ -17,7 +17,7 @@ class SettingsTest < Minitest::Test
         :idp_attribute_names, :issuer, :assertion_consumer_service_url, :single_logout_service_url,
         :sp_name_qualifier, :name_identifier_format, :name_identifier_value, :name_identifier_value_requested,
         :sessionindex, :attributes_index, :passive, :force_authn,
-        :compress_request, :double_quote_xml_attribute_values, :message_max_bytesize,
+        :double_quote_xml_attribute_values, :message_max_bytesize,
         :security, :certificate, :private_key, :certificate_new, :sp_cert_multi,
         :authn_context, :authn_context_comparison, :authn_context_decl_ref,
         :assertion_consumer_logout_service_url

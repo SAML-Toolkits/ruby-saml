@@ -42,7 +42,7 @@ class RequestTest < Minitest::Test
     end
 
     it "create the SAMLRequest URL parameter without deflating" do
-      settings.compress_request = false
+      settings.idp_sso_service_binding = RubySaml::Utils::BINDINGS[:post]
       auth_url = RubySaml::Authrequest.new.create(settings)
       assert_match(/^http:\/\/example\.com\?SAMLRequest=/, auth_url)
       payload  = CGI.unescape(auth_url.split("=").last)
@@ -242,7 +242,6 @@ class RequestTest < Minitest::Test
 
     describe "#create_params signing with HTTP-POST binding" do
       before do
-        settings.compress_request = false
         settings.idp_sso_service_url = "http://example.com?field=value"
         settings.idp_sso_service_binding = :post
         settings.security[:authn_requests_signed] = true
@@ -317,7 +316,6 @@ class RequestTest < Minitest::Test
       let(:cert) { OpenSSL::X509::Certificate.new(ruby_saml_cert_text) }
 
       before do
-        settings.compress_request = false
         settings.idp_sso_service_url = "http://example.com?field=value"
         settings.idp_sso_service_binding = :redirect
         settings.assertion_consumer_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST-SimpleSign"
@@ -362,7 +360,6 @@ class RequestTest < Minitest::Test
 
       it "create a signature parameter using the first certificate and key" do
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
-        settings.compress_request = false
         settings.certificate = nil
         settings.private_key = nil
         settings.sp_cert_multi = {
@@ -432,7 +429,6 @@ class RequestTest < Minitest::Test
 
     describe "DEPRECATED: #create_params signing with HTTP-POST binding via :embed_sign" do
       before do
-        settings.compress_request = false
         settings.idp_sso_service_url = "http://example.com?field=value"
         settings.security[:authn_requests_signed] = true
         settings.security[:embed_sign] = true
@@ -452,7 +448,6 @@ class RequestTest < Minitest::Test
       let(:cert) { OpenSSL::X509::Certificate.new(ruby_saml_cert_text) }
 
       before do
-        settings.compress_request = false
         settings.idp_sso_service_url = "http://example.com?field=value"
         settings.assertion_consumer_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST-SimpleSign"
         settings.security[:authn_requests_signed] = true
