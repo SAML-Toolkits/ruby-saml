@@ -1,6 +1,7 @@
 # Ruby SAML Changelog
 
 ### 1.17.0
+* [#687](https://github.com/SAML-Toolkits/ruby-saml/pull/687) Add CI coverage for Ruby 3.3 and Windows.
 * [#673](https://github.com/SAML-Toolkits/ruby-saml/pull/673) Add `Settings#sp_cert_multi` paramter to facilitate SP certificate and key rotation.
 * [#673](https://github.com/SAML-Toolkits/ruby-saml/pull/673) Support multiple simultaneous SP decryption keys via `Settings#sp_cert_multi` parameter.
 * [#673](https://github.com/SAML-Toolkits/ruby-saml/pull/673) Deprecate `Settings#certificate_new` parameter.
