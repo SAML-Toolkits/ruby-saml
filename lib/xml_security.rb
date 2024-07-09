@@ -71,11 +71,11 @@ module XMLSecurity
       algorithm = algorithm && algorithm =~ /(rsa-)?sha(.*?)$/i && ::Regexp.last_match(2).to_i
 
       case algorithm
-      when 256 then OpenSSL::Digest::SHA256
+      when 1 then OpenSSL::Digest::SHA1
       when 384 then OpenSSL::Digest::SHA384
       when 512 then OpenSSL::Digest::SHA512
       else
-        OpenSSL::Digest::SHA1
+        OpenSSL::Digest::SHA256
       end
     end
 
@@ -114,7 +114,7 @@ module XMLSecurity
     #   <KeyInfo />
     #   <Object />
     # </Signature>
-    def sign_document(private_key, certificate, signature_method = RSA_SHA1, digest_method = SHA1)
+    def sign_document(private_key, certificate, signature_method = RSA_SHA256, digest_method = SHA256)
       noko = Nokogiri::XML(to_s) do |config|
         config.options = XMLSecurity::BaseDocument::NOKOGIRI_OPTIONS
       end
@@ -216,7 +216,7 @@ module XMLSecurity
         if options[:fingerprint_alg]
           fingerprint_alg = XMLSecurity::BaseDocument.new.algorithm(options[:fingerprint_alg]).new
         else
-          fingerprint_alg = OpenSSL::Digest.new('SHA1')
+          fingerprint_alg = OpenSSL::Digest.new('SHA256')
         end
         fingerprint = fingerprint_alg.hexdigest(cert.to_der)
 
