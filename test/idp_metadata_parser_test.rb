@@ -26,7 +26,7 @@ class IdpMetadataParserTest < Minitest::Test
       assert_equal "https://hello.example.com/access/saml/idp.xml", settings.idp_entity_id
       assert_equal "https://hello.example.com/access/saml/login", settings.idp_sso_service_url
       assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", settings.idp_sso_service_binding
-      assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", settings.idp_cert_fingerprint
+      assert_equal "C4:C6:BD:41:EC:AD:57:97:CE:7B:7D:80:06:C3:E4:30:53:29:02:0B:DD:2D:47:02:9E:BD:85:AD:93:02:45:21", settings.idp_cert_fingerprint
       assert_equal "https://hello.example.com/access/saml/logout", settings.idp_slo_service_url
       assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", settings.idp_slo_service_binding
       assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified", settings.name_identifier_format
@@ -38,7 +38,7 @@ class IdpMetadataParserTest < Minitest::Test
       idp_metadata_parser = RubySaml::IdpMetadataParser.new
       idp_metadata = idp_metadata_descriptor
       settings = idp_metadata_parser.parse(idp_metadata)
-      assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", settings.idp_cert_fingerprint
+      assert_equal "C4:C6:BD:41:EC:AD:57:97:CE:7B:7D:80:06:C3:E4:30:53:29:02:0B:DD:2D:47:02:9E:BD:85:AD:93:02:45:21", settings.idp_cert_fingerprint
     end
 
     it "extract certificate from md:KeyDescriptor[@use='encryption']" do
@@ -46,7 +46,7 @@ class IdpMetadataParserTest < Minitest::Test
       idp_metadata = idp_metadata_descriptor
       idp_metadata = idp_metadata.sub(/<md:KeyDescriptor use="signing">(.*?)<\/md:KeyDescriptor>/m, "")
       settings = idp_metadata_parser.parse(idp_metadata)
-      assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", settings.idp_cert_fingerprint
+      assert_equal "C4:C6:BD:41:EC:AD:57:97:CE:7B:7D:80:06:C3:E4:30:53:29:02:0B:DD:2D:47:02:9E:BD:85:AD:93:02:45:21", settings.idp_cert_fingerprint
     end
 
     it "extract certificate from md:KeyDescriptor" do
@@ -55,7 +55,7 @@ class IdpMetadataParserTest < Minitest::Test
       idp_metadata = idp_metadata.sub(/<md:KeyDescriptor use="signing">(.*?)<\/md:KeyDescriptor>/m, "")
       idp_metadata = idp_metadata.sub('<md:KeyDescriptor use="encryption">', '<md:KeyDescriptor>')
       settings = idp_metadata_parser.parse(idp_metadata)
-      assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", settings.idp_cert_fingerprint
+      assert_equal "C4:C6:BD:41:EC:AD:57:97:CE:7B:7D:80:06:C3:E4:30:53:29:02:0B:DD:2D:47:02:9E:BD:85:AD:93:02:45:21", settings.idp_cert_fingerprint
     end
 
     it "extract SSO endpoint with no specific binding, it takes the first" do
@@ -162,7 +162,7 @@ class IdpMetadataParserTest < Minitest::Test
           }
         }
       })
-      assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", settings.idp_cert_fingerprint
+      assert_equal "C4:C6:BD:41:EC:AD:57:97:CE:7B:7D:80:06:C3:E4:30:53:29:02:0B:DD:2D:47:02:9E:BD:85:AD:93:02:45:21", settings.idp_cert_fingerprint
       assert_equal XMLSecurity::Document::SHA256, settings.security[:digest_method]
       assert_equal XMLSecurity::Document::RSA_SHA256, settings.security[:signature_method]
     end
@@ -175,7 +175,7 @@ class IdpMetadataParserTest < Minitest::Test
 
       RubySaml::IdpMetadataParser.new.parse(idp_metadata_descriptor, :settings => settings)
 
-      assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", settings.idp_cert_fingerprint
+      assert_equal "C4:C6:BD:41:EC:AD:57:97:CE:7B:7D:80:06:C3:E4:30:53:29:02:0B:DD:2D:47:02:9E:BD:85:AD:93:02:45:21", settings.idp_cert_fingerprint
       assert_equal XMLSecurity::Document::SHA256, settings.security[:digest_method]
       assert_equal XMLSecurity::Document::RSA_SHA256, settings.security[:signature_method]
     end
@@ -190,7 +190,7 @@ class IdpMetadataParserTest < Minitest::Test
       assert_equal "https://hello.example.com/access/saml/idp.xml", metadata[:idp_entity_id]
       assert_equal "https://hello.example.com/access/saml/login", metadata[:idp_sso_service_url]
       assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", metadata[:idp_sso_service_binding]
-      assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", metadata[:idp_cert_fingerprint]
+      assert_equal "C4:C6:BD:41:EC:AD:57:97:CE:7B:7D:80:06:C3:E4:30:53:29:02:0B:DD:2D:47:02:9E:BD:85:AD:93:02:45:21", metadata[:idp_cert_fingerprint]
       assert_equal "https://hello.example.com/access/saml/logout", metadata[:idp_slo_service_url]
       assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", metadata[:idp_slo_service_binding]
       assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified", metadata[:name_identifier_format]
@@ -202,7 +202,7 @@ class IdpMetadataParserTest < Minitest::Test
       idp_metadata_parser = RubySaml::IdpMetadataParser.new
       idp_metadata = idp_metadata_descriptor
       metadata = idp_metadata_parser.parse_to_hash(idp_metadata)
-      assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", metadata[:idp_cert_fingerprint]
+      assert_equal "C4:C6:BD:41:EC:AD:57:97:CE:7B:7D:80:06:C3:E4:30:53:29:02:0B:DD:2D:47:02:9E:BD:85:AD:93:02:45:21", metadata[:idp_cert_fingerprint]
     end
 
     it "extract certificate from md:KeyDescriptor[@use='encryption']" do
@@ -210,7 +210,7 @@ class IdpMetadataParserTest < Minitest::Test
       idp_metadata = idp_metadata_descriptor
       idp_metadata = idp_metadata.sub(/<md:KeyDescriptor use="signing">(.*?)<\/md:KeyDescriptor>/m, "")
       parsed_metadata = idp_metadata_parser.parse_to_hash(idp_metadata)
-      assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", parsed_metadata[:idp_cert_fingerprint]
+      assert_equal "C4:C6:BD:41:EC:AD:57:97:CE:7B:7D:80:06:C3:E4:30:53:29:02:0B:DD:2D:47:02:9E:BD:85:AD:93:02:45:21", parsed_metadata[:idp_cert_fingerprint]
     end
 
     it "extract certificate from md:KeyDescriptor" do
@@ -219,7 +219,7 @@ class IdpMetadataParserTest < Minitest::Test
       idp_metadata = idp_metadata.sub(/<md:KeyDescriptor use="signing">(.*?)<\/md:KeyDescriptor>/m, "")
       idp_metadata = idp_metadata.sub('<md:KeyDescriptor use="encryption">', '<md:KeyDescriptor>')
       parsed_metadata = idp_metadata_parser.parse_to_hash(idp_metadata)
-      assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", parsed_metadata[:idp_cert_fingerprint]
+      assert_equal "C4:C6:BD:41:EC:AD:57:97:CE:7B:7D:80:06:C3:E4:30:53:29:02:0B:DD:2D:47:02:9E:BD:85:AD:93:02:45:21", parsed_metadata[:idp_cert_fingerprint]
     end
 
     it "extract SSO endpoint with no specific binding, it takes the first" do
@@ -261,7 +261,7 @@ class IdpMetadataParserTest < Minitest::Test
           }
         }
       })
-      assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", parsed_metadata[:idp_cert_fingerprint]
+      assert_equal "C4:C6:BD:41:EC:AD:57:97:CE:7B:7D:80:06:C3:E4:30:53:29:02:0B:DD:2D:47:02:9E:BD:85:AD:93:02:45:21", parsed_metadata[:idp_cert_fingerprint]
       assert_nil parsed_metadata[:security]
     end
 
@@ -272,8 +272,8 @@ class IdpMetadataParserTest < Minitest::Test
       metadata1 = idp_metadata_parser.parse_to_hash(idp_metadata1)
       metadata2 = idp_metadata_parser.parse_to_hash(idp_metadata2)
 
-      assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", metadata1[:idp_cert_fingerprint]
-      assert_equal "CD:2B:2B:DA:FF:F5:DB:64:10:7C:AC:FD:FE:0F:CB:5D:73:5F:16:07", metadata2[:idp_cert_fingerprint]
+      assert_equal "C4:C6:BD:41:EC:AD:57:97:CE:7B:7D:80:06:C3:E4:30:53:29:02:0B:DD:2D:47:02:9E:BD:85:AD:93:02:45:21", metadata1[:idp_cert_fingerprint]
+      assert_equal "E5:52:D9:2C:3C:DC:3D:09:5C:90:76:82:AB:B6:75:B4:92:92:2C:42:87:7E:18:EB:17:F3:1F:39:FE:9F:7C:6A", metadata2[:idp_cert_fingerprint]
     end
   end
 
@@ -320,7 +320,7 @@ class IdpMetadataParserTest < Minitest::Test
       assert_equal "https://hello.example.com/access/saml/idp.xml", settings.idp_entity_id
       assert_equal "https://hello.example.com/access/saml/login", settings.idp_sso_service_url
       assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", settings.idp_sso_service_binding
-      assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", settings.idp_cert_fingerprint
+      assert_equal "C4:C6:BD:41:EC:AD:57:97:CE:7B:7D:80:06:C3:E4:30:53:29:02:0B:DD:2D:47:02:9E:BD:85:AD:93:02:45:21", settings.idp_cert_fingerprint
       assert_equal "https://hello.example.com/access/saml/logout", settings.idp_slo_service_url
       assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", settings.idp_slo_service_binding
       assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified", settings.name_identifier_format
@@ -356,7 +356,7 @@ class IdpMetadataParserTest < Minitest::Test
       assert_equal "https://hello.example.com/access/saml/idp.xml", parsed_metadata[:idp_entity_id]
       assert_equal "https://hello.example.com/access/saml/login", parsed_metadata[:idp_sso_service_url]
       assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", parsed_metadata[:idp_sso_service_binding]
-      assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", parsed_metadata[:idp_cert_fingerprint]
+      assert_equal "C4:C6:BD:41:EC:AD:57:97:CE:7B:7D:80:06:C3:E4:30:53:29:02:0B:DD:2D:47:02:9E:BD:85:AD:93:02:45:21", parsed_metadata[:idp_cert_fingerprint]
       assert_equal "https://hello.example.com/access/saml/logout", parsed_metadata[:idp_slo_service_url]
       assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", parsed_metadata[:idp_slo_service_binding]
       assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified", parsed_metadata[:name_identifier_format]
@@ -467,7 +467,7 @@ class IdpMetadataParserTest < Minitest::Test
       assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified", @settings.name_identifier_format
       assert_equal "https://hello.example.com/access/saml/login", @settings.idp_sso_service_url
       assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", @settings.idp_sso_service_binding
-      assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", @settings.idp_cert_fingerprint
+      assert_equal "C4:C6:BD:41:EC:AD:57:97:CE:7B:7D:80:06:C3:E4:30:53:29:02:0B:DD:2D:47:02:9E:BD:85:AD:93:02:45:21", @settings.idp_cert_fingerprint
       assert_equal "https://hello.example.com/access/saml/logout", @settings.idp_slo_service_url
       assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", @settings.idp_slo_service_binding
       assert_equal ["AuthToken", "SSOStartPage"], @settings.idp_attribute_names
@@ -477,10 +477,10 @@ class IdpMetadataParserTest < Minitest::Test
     it "should handle multiple descriptors at once" do
       settings = @idp_metadata_parser.parse_to_array(@idp_metadata)
       assert_equal "https://foo.example.com/access/saml/idp.xml", settings.first[:idp_entity_id]
-      assert_equal "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72", settings.first[:idp_cert_fingerprint]
+      assert_equal "C4:C6:BD:41:EC:AD:57:97:CE:7B:7D:80:06:C3:E4:30:53:29:02:0B:DD:2D:47:02:9E:BD:85:AD:93:02:45:21", settings.first[:idp_cert_fingerprint]
       assert_equal '2014-04-17T18:02:33.910Z', settings.first[:valid_until]
       assert_equal "https://bar.example.com/access/saml/idp.xml", settings.last[:idp_entity_id]
-      assert_equal "08:EB:6E:60:A2:14:4E:89:EC:FA:05:74:9D:72:BF:5D:BE:54:F0:1A", settings.last[:idp_cert_fingerprint]
+      assert_equal "74:E4:FA:29:20:26:36:8A:72:5E:9D:CF:4F:8E:1F:DC:D4:CE:E2:3C:9D:6F:93:35:A1:A7:8A:4D:79:83:21:D0", settings.last[:idp_cert_fingerprint]
       assert_equal '2014-04-17T18:02:33.910Z', settings.last[:valid_until]
     end
   end
@@ -649,7 +649,7 @@ QOPR6cEwFZzP0tHTYbI839WgxX6hfhIUTUz6mLqq4+3P4BG3+1OXeVDg63y8Uh78
 
     it "should return idp_cert and idp_cert_fingerprint and no idp_cert_multi" do
       assert_equal(expected_cert, @settings.idp_cert)
-      assert_equal("2D:A9:40:88:28:EE:67:BB:4A:5B:E0:58:A7:CC:71:95:2D:1B:C9:D3", @settings.idp_cert_fingerprint)
+      assert_equal("46:E3:68:F4:ED:61:43:2B:EC:36:E3:99:E9:03:4B:99:E5:B3:58:EF:A9:A9:00:FC:2D:C8:7C:14:C6:60:E3:8F", @settings.idp_cert_fingerprint)
       assert_equal({ :signing => [expected_cert], :encryption => [expected_cert] }, @settings.idp_cert_multi)
       assert_equal("https://app.onelogin.com/saml/metadata/383123", @settings.idp_entity_id)
       assert_equal("urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress", @settings.name_identifier_format)
