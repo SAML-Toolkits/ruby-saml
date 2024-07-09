@@ -40,6 +40,9 @@ jobs:
 
       - name: Coveralls
         uses: coverallsapp/github-action@master
+        # 2023/03/07 - Simplecov is not working on TruffleRuby.
+        # TruffleRuby tests are otherwise passing.
+        if: ${{ matrix.ruby-version != 'truffleruby' }}
         with:
           github-token: ${{ secrets.github_token }}
           parallel: true
