@@ -118,14 +118,14 @@ class SettingsTest < Minitest::Test
       settings = RubySaml::Settings.new
       settings.security[:authn_requests_signed] = true
       settings.security[:embed_sign] = true
-      settings.security[:digest_method] = XMLSecurity::Document::SHA256
-      settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
+      settings.security[:digest_method] = XMLSecurity::Document::SHA512
+      settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA512
 
       new_settings = RubySaml::Settings.new
       assert_equal new_settings.security[:authn_requests_signed], false
       assert_equal new_settings.security[:embed_sign], false
-      assert_equal new_settings.security[:digest_method], XMLSecurity::Document::SHA1
-      assert_equal new_settings.security[:signature_method], XMLSecurity::Document::RSA_SHA1
+      assert_equal new_settings.security[:digest_method], XMLSecurity::Document::SHA256
+      assert_equal new_settings.security[:signature_method], XMLSecurity::Document::RSA_SHA256
     end
 
     it "overrides only provided security attributes passing a second parameter" do

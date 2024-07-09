@@ -109,8 +109,8 @@ class SloLogoutresponseTest < Minitest::Test
         inflated = unauth_res.create_xml_document(settings).to_s
 
         refute_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], inflated
-        refute_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], inflated
-        refute_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2000/09/xmldsig#sha1'/>], inflated
+        refute_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], inflated
+        refute_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmlenc#sha256'/>], inflated
       end
 
       it "sign unsigned request" do
@@ -119,14 +119,14 @@ class SloLogoutresponseTest < Minitest::Test
         inflated = unauth_res_doc.to_s
 
         refute_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], inflated
-        refute_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], inflated
-        refute_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2000/09/xmldsig#sha1'/>], inflated
+        refute_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], inflated
+        refute_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmlenc#sha256'/>], inflated
 
         inflated = unauth_res.sign_document(unauth_res_doc, settings).to_s
 
         assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], inflated
-        assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], inflated
-        assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2000/09/xmldsig#sha1'/>], inflated
+        assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], inflated
+        assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmlenc#sha256'/>], inflated
       end
 
       it "signs through create_logout_response_xml_doc" do
@@ -134,24 +134,11 @@ class SloLogoutresponseTest < Minitest::Test
         inflated = unauth_res.create_logout_response_xml_doc(settings).to_s
 
         assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], inflated
-        assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], inflated
-        assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2000/09/xmldsig#sha1'/>], inflated
+        assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], inflated
+        assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmlenc#sha256'/>], inflated
       end
 
       it "create a signed logout response" do
-        logout_request.settings = settings
-
-        params = RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message")
-
-        response_xml = Base64.decode64(params["SAMLResponse"])
-        assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], response_xml
-        assert_match(/<ds:SignatureMethod Algorithm='http:\/\/www.w3.org\/2000\/09\/xmldsig#rsa-sha1'\/>/, response_xml)
-        assert_match(/<ds:DigestMethod Algorithm='http:\/\/www.w3.org\/2000\/09\/xmldsig#sha1'\/>/, response_xml)
-      end
-
-      it "create a signed logout response with 256 digest and signature methods" do
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
-        settings.security[:digest_method] = XMLSecurity::Document::SHA256
         logout_request.settings = settings
 
         params = RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message")
@@ -162,7 +149,20 @@ class SloLogoutresponseTest < Minitest::Test
         assert_match(/<ds:DigestMethod Algorithm='http:\/\/www.w3.org\/2001\/04\/xmlenc#sha256'\/>/, response_xml)
       end
 
-      it "create a signed logout response with 512 digest and signature method RSA_SHA384" do
+      it "create a signed logout response with SHA384 digest and signature method RSA_SHA512" do
+        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA512
+        settings.security[:digest_method] = XMLSecurity::Document::SHA384
+        logout_request.settings = settings
+
+        params = RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message")
+
+        response_xml = Base64.decode64(params["SAMLResponse"])
+        assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], response_xml
+        assert_match(/<ds:SignatureMethod Algorithm='http:\/\/www.w3.org\/2001\/04\/xmldsig-more#rsa-sha512'\/>/, response_xml)
+        assert_match(/<ds:DigestMethod Algorithm='http:\/\/www.w3.org\/2001\/04\/xmldsig-more#sha384'\/>/, response_xml)
+      end
+
+      it "create a signed logout response with SHA512 digest and signature method RSA_SHA384" do
         settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA384
         settings.security[:digest_method] = XMLSecurity::Document::SHA512
         logout_request.settings = settings
@@ -190,8 +190,8 @@ class SloLogoutresponseTest < Minitest::Test
 
         response_xml = Base64.decode64(params["SAMLResponse"])
         assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], response_xml
-        assert_match(/<ds:SignatureMethod Algorithm='http:\/\/www.w3.org\/2000\/09\/xmldsig#rsa-sha1'\/>/, response_xml)
-        assert_match(/<ds:DigestMethod Algorithm='http:\/\/www.w3.org\/2000\/09\/xmldsig#sha1'\/>/, response_xml)
+        assert_match(/<ds:SignatureMethod Algorithm='http:\/\/www.w3.org\/2001\/04\/xmldsig-more#rsa-sha256'\/>/, response_xml)
+        assert_match(/<ds:DigestMethod Algorithm='http:\/\/www.w3.org\/2001\/04\/xmlenc#sha256'\/>/, response_xml)
       end
 
       it "create a signed logout response using the first valid certificate and key when :check_sp_cert_expiration is true" do
@@ -210,8 +210,8 @@ class SloLogoutresponseTest < Minitest::Test
 
         response_xml = Base64.decode64(params["SAMLResponse"])
         assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], response_xml
-        assert_match(/<ds:SignatureMethod Algorithm='http:\/\/www.w3.org\/2000\/09\/xmldsig#rsa-sha1'\/>/, response_xml)
-        assert_match(/<ds:DigestMethod Algorithm='http:\/\/www.w3.org\/2000\/09\/xmldsig#sha1'\/>/, response_xml)
+        assert_match(/<ds:SignatureMethod Algorithm='http:\/\/www.w3.org\/2001\/04\/xmldsig-more#rsa-sha256'\/>/, response_xml)
+        assert_match(/<ds:DigestMethod Algorithm='http:\/\/www.w3.org\/2001\/04\/xmlenc#sha256'\/>/, response_xml)
       end
 
       it "raises error when no valid certs and :check_sp_cert_expiration is true" do
@@ -354,8 +354,8 @@ class SloLogoutresponseTest < Minitest::Test
         inflated = unauth_res.create_xml_document(settings).to_s
 
         refute_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], inflated
-        refute_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], inflated
-        refute_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2000/09/xmldsig#sha1'/>], inflated
+        refute_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], inflated
+        refute_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmlenc#sha256'/>], inflated
       end
 
       it "sign unsigned request" do
@@ -364,14 +364,14 @@ class SloLogoutresponseTest < Minitest::Test
         inflated = unauth_res_doc.to_s
 
         refute_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], inflated
-        refute_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], inflated
-        refute_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2000/09/xmldsig#sha1'/>], inflated
+        refute_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], inflated
+        refute_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmlenc#sha256'/>], inflated
 
         inflated = unauth_res.sign_document(unauth_res_doc, settings).to_s
 
         assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], inflated
-        assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], inflated
-        assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2000/09/xmldsig#sha1'/>], inflated
+        assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], inflated
+        assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmlenc#sha256'/>], inflated
       end
     end
 

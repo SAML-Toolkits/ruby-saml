@@ -275,7 +275,7 @@ module RubySaml
     DEFAULTS = {
       assertion_consumer_service_binding: Utils::BINDINGS[:post],
       single_logout_service_binding: Utils::BINDINGS[:redirect],
-      idp_cert_fingerprint_algorithm: XMLSecurity::Document::SHA1,
+      idp_cert_fingerprint_algorithm: XMLSecurity::Document::SHA256,
       message_max_bytesize: 250_000,
       soft: true,
       double_quote_xml_attribute_values: false,
@@ -288,8 +288,8 @@ module RubySaml
         want_name_id: false,
         metadata_signed: false,
         embed_sign: false, # Deprecated
-        digest_method: XMLSecurity::Document::SHA1,
-        signature_method: XMLSecurity::Document::RSA_SHA1,
+        digest_method: XMLSecurity::Document::SHA256,
+        signature_method: XMLSecurity::Document::RSA_SHA256,
         check_idp_cert_expiration: false,
         check_sp_cert_expiration: false,
         strict_audience_validation: false,
