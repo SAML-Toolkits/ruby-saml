@@ -9,6 +9,7 @@
 * [#686](https://github.com/SAML-Toolkits/ruby-saml/pull/686) Use SHA-256 as the default hashing algorithm everywhere instead of SHA-1, including signatures, fingerprints, and digests.
 * [#695](https://github.com/SAML-Toolkits/ruby-saml/pull/695) Deprecate `settings.compress_request` and `settings.compess_response` parameters.
 * [#690](https://github.com/SAML-Toolkits/ruby-saml/pull/690) Remove deprecated `settings.security[:embed_sign]` parameter.
+* [#697](https://github.com/SAML-Toolkits/ruby-saml/pull/697) Add deprecation for various parameters in `RubySaml::Settings`.
 
 ### 1.17.0
 * [#673](https://github.com/SAML-Toolkits/ruby-saml/pull/673) Add `Settings#sp_cert_multi` paramter to facilitate SP certificate and key rotation.
