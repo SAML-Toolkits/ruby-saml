@@ -91,7 +91,7 @@ module RubySaml
           relay_state: relay_state,
           sig_alg: params['SigAlg']
         )
-        sign_algorithm = XMLSecurity::BaseDocument.new.algorithm(settings.security[:signature_method])
+        sign_algorithm = RubySaml::XML::BaseDocument.new.algorithm(settings.security[:signature_method])
         signature = sp_signing_key.sign(sign_algorithm.new, url_string)
         params['Signature'] = encode(signature)
       end
@@ -118,7 +118,7 @@ module RubySaml
     def create_xml_document(settings, request_id = nil, logout_message = nil, status_code = nil)
       time = Time.now.utc.strftime('%Y-%m-%dT%H:%M:%SZ')
 
-      response_doc = XMLSecurity::Document.new
+      response_doc = RubySaml::XML::Document.new
       response_doc.uuid = uuid
 
       destination = settings.idp_slo_response_service_url || settings.idp_slo_service_url

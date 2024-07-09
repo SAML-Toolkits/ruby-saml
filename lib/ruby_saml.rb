@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'ruby_saml/logging'
+require 'ruby_saml/xml'
 require 'ruby_saml/saml_message'
 require 'ruby_saml/authrequest'
 require 'ruby_saml/logoutrequest'
@@ -18,5 +19,5 @@ require 'ruby_saml/idp_metadata_parser'
 require 'ruby_saml/utils'
 require 'ruby_saml/version'
 
-# @deprecated This alias will be removed in version 2.1.0
+# @deprecated This alias adds compatibility with v1.x and will be removed in v2.1.0
 OneLogin = Object

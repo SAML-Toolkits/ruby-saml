@@ -376,13 +376,13 @@ module RubySaml
 
       # @return [String|nil] the fingerpint of the X509Certificate if it exists
       #
-      def fingerprint(certificate, fingerprint_algorithm = XMLSecurity::Document::SHA256)
+      def fingerprint(certificate, fingerprint_algorithm = RubySaml::XML::Document::SHA256)
         @fingerprint ||= begin
           return unless certificate
 
           cert = OpenSSL::X509::Certificate.new(Base64.decode64(certificate))
 
-          fingerprint_alg = XMLSecurity::BaseDocument.new.algorithm(fingerprint_algorithm).new
+          fingerprint_alg = RubySaml::XML::BaseDocument.new.algorithm(fingerprint_algorithm).new
           fingerprint_alg.hexdigest(cert.to_der).upcase.scan(/../).join(":")
         end
       end

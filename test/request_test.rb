@@ -257,8 +257,8 @@ class RequestTest < Minitest::Test
       end
 
       it "create a signed request with 256 digest and signature methods" do
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
-        settings.security[:digest_method] = XMLSecurity::Document::SHA512
+        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA256
+        settings.security[:digest_method] = RubySaml::XML::Document::SHA512
 
         params = RubySaml::Authrequest.new.create_params(settings)
 
@@ -325,41 +325,41 @@ class RequestTest < Minitest::Test
       end
 
       it "create a signature parameter with RSA_SHA1 and validate it" do
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
 
         params = RubySaml::Authrequest.new.create_params(settings, :RelayState => 'http://example.com')
         assert params['SAMLRequest']
         assert params[:RelayState]
         assert params['Signature']
-        assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA1
+        assert_equal params['SigAlg'], RubySaml::XML::Document::RSA_SHA1
 
         query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
         query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
         query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
-        signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
+        signature_algorithm = RubySaml::XML::BaseDocument.new.algorithm(params['SigAlg'])
         assert_equal signature_algorithm, OpenSSL::Digest::SHA1
         assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
       end
 
       it "create a signature parameter with RSA_SHA256 and validate it" do
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
+        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA256
 
         params = RubySaml::Authrequest.new.create_params(settings, :RelayState => 'http://example.com')
         assert params['Signature']
-        assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA256
+        assert_equal params['SigAlg'], RubySaml::XML::Document::RSA_SHA256
 
         query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
         query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
         query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
-        signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
+        signature_algorithm = RubySaml::XML::BaseDocument.new.algorithm(params['SigAlg'])
         assert_equal signature_algorithm, OpenSSL::Digest::SHA256
         assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
       end
 
       it "create a signature parameter using the first certificate and key" do
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
         settings.certificate = nil
         settings.private_key = nil
         settings.sp_cert_multi = {
@@ -373,13 +373,13 @@ class RequestTest < Minitest::Test
         assert params['SAMLRequest']
         assert params[:RelayState]
         assert params['Signature']
-        assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA1
+        assert_equal params['SigAlg'], RubySaml::XML::Document::RSA_SHA1
 
         query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
         query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
         query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
-        signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
+        signature_algorithm = RubySaml::XML::BaseDocument.new.algorithm(params['SigAlg'])
         assert_equal signature_algorithm, OpenSSL::Digest::SHA1
         assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
       end
@@ -425,55 +425,6 @@ class RequestTest < Minitest::Test
       auth_doc = RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
       assert auth_doc.to_s =~ /<saml:AuthnContextDeclRef>name\/password\/uri<\/saml:AuthnContextDeclRef>/
       assert auth_doc.to_s =~ /<saml:AuthnContextDeclRef>example\/decl\/ref<\/saml:AuthnContextDeclRef>/
-    end
-
-    describe "DEPRECATED: #create_params signing with HTTP-POST binding via :embed_sign" do
-      before do
-        settings.idp_sso_service_url = "http://example.com?field=value"
-        settings.security[:authn_requests_signed] = true
-        settings.security[:embed_sign] = true
-        settings.certificate = ruby_saml_cert_text
-        settings.private_key = ruby_saml_key_text
-      end
-
-      it "create a signed request" do
-        params = RubySaml::Authrequest.new.create_params(settings)
-        request_xml = Base64.decode64(params["SAMLRequest"])
-        assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], request_xml
-        assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], request_xml
-      end
-    end
-
-    describe "DEPRECATED: #create_params signing with HTTP-Redirect binding via :embed_sign" do
-      let(:cert) { OpenSSL::X509::Certificate.new(ruby_saml_cert_text) }
-
-      before do
-        settings.idp_sso_service_url = "http://example.com?field=value"
-        settings.assertion_consumer_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST-SimpleSign"
-        settings.security[:authn_requests_signed] = true
-        settings.security[:embed_sign] = false
-        settings.certificate = ruby_saml_cert_text
-        settings.private_key = ruby_saml_key_text
-      end
-
-      it "create a signature parameter with RSA_SHA1 and validate it" do
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
-
-        params = RubySaml::Authrequest.new.create_params(settings, :RelayState => 'http://example.com')
-        assert params['SAMLRequest']
-        assert params[:RelayState]
-        assert params['Signature']
-        assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA1
-
-        query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
-        query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
-        query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
-
-        signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
-        assert_equal signature_algorithm, OpenSSL::Digest::SHA1
-
-        assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
-      end
     end
 
     describe "#manipulate request_id" do

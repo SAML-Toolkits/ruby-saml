@@ -85,7 +85,7 @@ module RubySaml
           relay_state: relay_state,
           sig_alg: params['SigAlg']
         )
-        sign_algorithm = XMLSecurity::BaseDocument.new.algorithm(settings.security[:signature_method])
+        sign_algorithm = RubySaml::XML::BaseDocument.new.algorithm(settings.security[:signature_method])
         signature = sp_signing_key.sign(sign_algorithm.new, url_string)
         params['Signature'] = encode(signature)
       end
@@ -109,7 +109,7 @@ module RubySaml
     def create_xml_document(settings)
       time = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-      request_doc = XMLSecurity::Document.new
+      request_doc = RubySaml::XML::Document.new
       request_doc.uuid = uuid
 
       root = request_doc.add_element "samlp:AuthnRequest", { "xmlns:samlp" => "urn:oasis:names:tc:SAML:2.0:protocol", "xmlns:saml" => "urn:oasis:names:tc:SAML:2.0:assertion" }

@@ -150,8 +150,8 @@ class SloLogoutresponseTest < Minitest::Test
       end
 
       it "create a signed logout response with SHA384 digest and signature method RSA_SHA512" do
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA512
-        settings.security[:digest_method] = XMLSecurity::Document::SHA384
+        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA512
+        settings.security[:digest_method] = RubySaml::XML::Document::SHA384
         logout_request.settings = settings
 
         params = RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message")
@@ -163,8 +163,8 @@ class SloLogoutresponseTest < Minitest::Test
       end
 
       it "create a signed logout response with SHA512 digest and signature method RSA_SHA384" do
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA384
-        settings.security[:digest_method] = XMLSecurity::Document::SHA512
+        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA384
+        settings.security[:digest_method] = RubySaml::XML::Document::SHA512
         logout_request.settings = settings
 
         params = RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message")
@@ -234,82 +234,82 @@ class SloLogoutresponseTest < Minitest::Test
       end
 
       it "create a signature parameter with RSA_SHA1 and validate it" do
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
 
         params = RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message", :RelayState => 'http://example.com')
         assert params['SAMLResponse']
         assert params[:RelayState]
         assert params['Signature']
-        assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA1
+        assert_equal params['SigAlg'], RubySaml::XML::Document::RSA_SHA1
 
         query_string = "SAMLResponse=#{CGI.escape(params['SAMLResponse'])}"
         query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
         query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
-        signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
+        signature_algorithm = RubySaml::XML::BaseDocument.new.algorithm(params['SigAlg'])
         assert_equal signature_algorithm, OpenSSL::Digest::SHA1
         assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
       end
 
       it "create a signature parameter with RSA_SHA256 /SHA256 and validate it" do
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
+        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA256
 
         params = RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message", :RelayState => 'http://example.com')
         assert params['SAMLResponse']
         assert params[:RelayState]
         assert params['Signature']
 
-        assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA256
+        assert_equal params['SigAlg'], RubySaml::XML::Document::RSA_SHA256
 
         query_string = "SAMLResponse=#{CGI.escape(params['SAMLResponse'])}"
         query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
         query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
-        signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
+        signature_algorithm = RubySaml::XML::BaseDocument.new.algorithm(params['SigAlg'])
         assert_equal signature_algorithm, OpenSSL::Digest::SHA256
         assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
       end
 
       it "create a signature parameter with RSA_SHA384 / SHA384 and validate it" do
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA384
+        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA384
 
         params = RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message", :RelayState => 'http://example.com')
         assert params['SAMLResponse']
         assert params[:RelayState]
         assert params['Signature']
 
-        assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA384
+        assert_equal params['SigAlg'], RubySaml::XML::Document::RSA_SHA384
 
         query_string = "SAMLResponse=#{CGI.escape(params['SAMLResponse'])}"
         query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
         query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
-        signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
+        signature_algorithm = RubySaml::XML::BaseDocument.new.algorithm(params['SigAlg'])
         assert_equal signature_algorithm, OpenSSL::Digest::SHA384
         assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
       end
 
       it "create a signature parameter with RSA_SHA512 / SHA512 and validate it" do
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA512
+        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA512
 
         params = RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message", :RelayState => 'http://example.com')
         assert params['SAMLResponse']
         assert params[:RelayState]
         assert params['Signature']
 
-        assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA512
+        assert_equal params['SigAlg'], RubySaml::XML::Document::RSA_SHA512
 
         query_string = "SAMLResponse=#{CGI.escape(params['SAMLResponse'])}"
         query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
         query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
-        signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
+        signature_algorithm = RubySaml::XML::BaseDocument.new.algorithm(params['SigAlg'])
         assert_equal signature_algorithm, OpenSSL::Digest::SHA512
         assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
       end
 
       it "create a signature parameter using the first certificate and key" do
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
         settings.certificate = nil
         settings.private_key = nil
         settings.sp_cert_multi = {
@@ -323,13 +323,13 @@ class SloLogoutresponseTest < Minitest::Test
         assert params['SAMLResponse']
         assert params[:RelayState]
         assert params['Signature']
-        assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA1
+        assert_equal params['SigAlg'], RubySaml::XML::Document::RSA_SHA1
 
         query_string = "SAMLResponse=#{CGI.escape(params['SAMLResponse'])}"
         query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
         query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
-        signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
+        signature_algorithm = RubySaml::XML::BaseDocument.new.algorithm(params['SigAlg'])
         assert_equal signature_algorithm, OpenSSL::Digest::SHA1
         assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
       end
@@ -340,65 +340,6 @@ class SloLogoutresponseTest < Minitest::Test
         assert_raises(RubySaml::ValidationError, 'The SP certificate expired.') do
           RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message", :RelayState => 'http://example.com')
         end
-      end
-    end
-
-    describe "DEPRECATED: signing with HTTP-POST binding via :embed_sign" do
-      before do
-        settings.security[:logout_responses_signed] = true
-        settings.security[:embed_sign] = true
-      end
-
-      it "doesn't sign through create_xml_document" do
-        unauth_res = RubySaml::SloLogoutresponse.new
-        inflated = unauth_res.create_xml_document(settings).to_s
-
-        refute_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], inflated
-        refute_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], inflated
-        refute_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmlenc#sha256'/>], inflated
-      end
-
-      it "sign unsigned request" do
-        unauth_res = RubySaml::SloLogoutresponse.new
-        unauth_res_doc = unauth_res.create_xml_document(settings)
-        inflated = unauth_res_doc.to_s
-
-        refute_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], inflated
-        refute_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], inflated
-        refute_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmlenc#sha256'/>], inflated
-
-        inflated = unauth_res.sign_document(unauth_res_doc, settings).to_s
-
-        assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], inflated
-        assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], inflated
-        assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmlenc#sha256'/>], inflated
-      end
-    end
-
-    describe "DEPRECATED: signing with HTTP-Redirect binding via :embed_sign" do
-      let(:cert) { OpenSSL::X509::Certificate.new(ruby_saml_cert_text) }
-
-      before do
-        settings.security[:logout_responses_signed] = true
-        settings.security[:embed_sign] = false
-      end
-
-      it "create a signature parameter with RSA_SHA1 and validate it" do
-        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
-
-        params = RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message", :RelayState => 'http://example.com')
-        assert params['SAMLResponse']
-        assert params[:RelayState]
-        assert params['Signature']
-        assert_equal params['SigAlg'], XMLSecurity::Document::RSA_SHA1
-
-        query_string = "SAMLResponse=#{CGI.escape(params['SAMLResponse'])}"
-        query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
-        query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
-
-        signature_algorithm = XMLSecurity::BaseDocument.new.algorithm(params['SigAlg'])
-        assert_equal signature_algorithm, OpenSSL::Digest::SHA1
-        assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
       end
     end
 

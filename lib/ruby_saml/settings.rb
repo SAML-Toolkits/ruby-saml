@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "xml_security"
+require "ruby_saml/xml"
 require "ruby_saml/attribute_service"
 require "ruby_saml/utils"
 require "ruby_saml/validation_error"
@@ -91,7 +91,7 @@ module RubySaml
     # @return [String] IdP Single Sign On Service Binding
     #
     def idp_sso_service_binding
-      @idp_sso_service_binding || idp_binding_from_embed_sign
+      @idp_sso_service_binding || Utils::BINDINGS[:redirect]
     end
 
     # Setter for IdP Single Sign On Service Binding
@@ -104,7 +104,7 @@ module RubySaml
     # @return [String] IdP Single Logout Service Binding
     #
     def idp_slo_service_binding
-      @idp_slo_service_binding || idp_binding_from_embed_sign
+      @idp_slo_service_binding || Utils::BINDINGS[:redirect]
     end
 
     # Setter for IdP Single Logout Service Binding
@@ -171,7 +171,7 @@ module RubySaml
       idp_cert_fingerprint || begin
         idp_cert = get_idp_cert
         if idp_cert
-          fingerprint_alg = XMLSecurity::BaseDocument.new.algorithm(idp_cert_fingerprint_algorithm).new
+          fingerprint_alg = RubySaml::XML::BaseDocument.new.algorithm(idp_cert_fingerprint_algorithm).new
           fingerprint_alg.hexdigest(idp_cert.to_der).upcase.scan(/../).join(":")
         end
       end
@@ -262,10 +262,6 @@ module RubySaml
       node[0] if node
     end
 
-    def idp_binding_from_embed_sign
-      security[:embed_sign] ? Utils::BINDINGS[:post] : Utils::BINDINGS[:redirect]
-    end
-
     def get_binding(value)
       return unless value
 
@@ -275,7 +271,7 @@ module RubySaml
     DEFAULTS = {
       assertion_consumer_service_binding: Utils::BINDINGS[:post],
       single_logout_service_binding: Utils::BINDINGS[:redirect],
-      idp_cert_fingerprint_algorithm: XMLSecurity::Document::SHA256,
+      idp_cert_fingerprint_algorithm: RubySaml::XML::Document::SHA256,
       message_max_bytesize: 250_000,
       soft: true,
       double_quote_xml_attribute_values: false,
@@ -287,9 +283,8 @@ module RubySaml
         want_assertions_encrypted: false,
         want_name_id: false,
         metadata_signed: false,
-        embed_sign: false, # Deprecated
-        digest_method: XMLSecurity::Document::SHA256,
-        signature_method: XMLSecurity::Document::RSA_SHA256,
+        digest_method: RubySaml::XML::Document::SHA256,
+        signature_method: RubySaml::XML::Document::RSA_SHA256,
         check_idp_cert_expiration: false,
         check_sp_cert_expiration: false,
         strict_audience_validation: false,
@@ -300,7 +295,7 @@ module RubySaml
     # @deprecated Will be removed in v2.1.0
     def compress_request
       compress_deprecation('compress_request', 'idp_sso_service_binding')
-      @compress_request
+      defined?(@compress_request) ? @compress_request : true
     end
 
     # @deprecated Will be removed in v2.1.0
@@ -312,7 +307,7 @@ module RubySaml
     # @deprecated Will be removed in v2.1.0
     def compress_response
       compress_deprecation('compress_response', 'idp_slo_service_binding')
-      @compress_response
+      defined?(@compress_response) ? @compress_response : true
     end
 
     # @deprecated Will be removed in v2.1.0

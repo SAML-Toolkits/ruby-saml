@@ -157,27 +157,27 @@ class IdpMetadataParserTest < Minitest::Test
       settings = idp_metadata_parser.parse(idp_metadata, {
         :settings => {
           :security => {
-            :digest_method => XMLSecurity::Document::SHA256,
-            :signature_method => XMLSecurity::Document::RSA_SHA256
+            :digest_method => RubySaml::XML::Document::SHA256,
+            :signature_method => RubySaml::XML::Document::RSA_SHA256
           }
         }
       })
       assert_equal "C4:C6:BD:41:EC:AD:57:97:CE:7B:7D:80:06:C3:E4:30:53:29:02:0B:DD:2D:47:02:9E:BD:85:AD:93:02:45:21", settings.idp_cert_fingerprint
-      assert_equal XMLSecurity::Document::SHA256, settings.security[:digest_method]
-      assert_equal XMLSecurity::Document::RSA_SHA256, settings.security[:signature_method]
+      assert_equal RubySaml::XML::Document::SHA256, settings.security[:digest_method]
+      assert_equal RubySaml::XML::Document::RSA_SHA256, settings.security[:signature_method]
     end
 
     it "merges results into given settings object" do
       settings = RubySaml::Settings.new(:security => {
-        :digest_method => XMLSecurity::Document::SHA256,
-        :signature_method => XMLSecurity::Document::RSA_SHA256
+        :digest_method => RubySaml::XML::Document::SHA256,
+        :signature_method => RubySaml::XML::Document::RSA_SHA256
       })
 
       RubySaml::IdpMetadataParser.new.parse(idp_metadata_descriptor, :settings => settings)
 
       assert_equal "C4:C6:BD:41:EC:AD:57:97:CE:7B:7D:80:06:C3:E4:30:53:29:02:0B:DD:2D:47:02:9E:BD:85:AD:93:02:45:21", settings.idp_cert_fingerprint
-      assert_equal XMLSecurity::Document::SHA256, settings.security[:digest_method]
-      assert_equal XMLSecurity::Document::RSA_SHA256, settings.security[:signature_method]
+      assert_equal RubySaml::XML::Document::SHA256, settings.security[:digest_method]
+      assert_equal RubySaml::XML::Document::RSA_SHA256, settings.security[:signature_method]
     end
   end
 
@@ -256,8 +256,8 @@ class IdpMetadataParserTest < Minitest::Test
       parsed_metadata = idp_metadata_parser.parse_to_hash(idp_metadata, {
         :settings => {
           :security => {
-            :digest_method => XMLSecurity::Document::SHA256,
-            :signature_method => XMLSecurity::Document::RSA_SHA256
+            :digest_method => RubySaml::XML::Document::SHA256,
+            :signature_method => RubySaml::XML::Document::RSA_SHA256
           }
         }
       })
@@ -654,8 +654,8 @@ QOPR6cEwFZzP0tHTYbI839WgxX6hfhIUTUz6mLqq4+3P4BG3+1OXeVDg63y8Uh78
       assert_equal("https://app.onelogin.com/saml/metadata/383123", @settings.idp_entity_id)
       assert_equal("urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress", @settings.name_identifier_format)
       assert_equal("https://app.onelogin.com/trust/saml2/http-post/sso/383123", @settings.idp_sso_service_url)
+      assert_equal("urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", @settings.idp_sso_service_binding)
       assert_nil(@settings.idp_slo_service_url)
-      # TODO: next line can be changed to `assert_nil @settings.idp_slo_service_binding` after :embed_sign is removed.
       assert_nil(@settings.instance_variable_get('@idp_slo_service_binding'))
     end
   end
@@ -726,7 +726,6 @@ WQO0LPxPqRiUqUzyhDhLo/xXNrHCu4VbMw=="]
       assert_equal "https://app.onelogin.com/trust/saml2/http-post/sso/383123", @settings.idp_sso_service_url
       assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", @settings.idp_sso_service_binding
       assert_nil @settings.idp_slo_service_url
-      # TODO: next line can be changed to `assert_nil @settings.idp_slo_service_binding` after :embed_sign is removed.
       assert_nil @settings.instance_variable_get('@idp_slo_service_binding')
     end
   end

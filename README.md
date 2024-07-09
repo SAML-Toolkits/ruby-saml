@@ -411,7 +411,7 @@ but it can be done as follows:
 * Provide the XML to the parse method if the signature was validated
 
 ```ruby
-require "xml_security"
+require "ruby_saml/xml"
 require "ruby_saml/utils"
 require "ruby_saml/idp_metadata_parser"
 
@@ -431,7 +431,7 @@ get.basic_auth uri.user, uri.password if uri.user
 response = http.request(get)
 xml = response.body
 errors = []
-doc = XMLSecurity::SignedDocument.new(xml, errors)
+doc = RubySaml::XML::SignedDocument.new(xml, errors)
 cert_str = "<include_cert_here>"
 cert = RubySaml::Utils.format_cert("cert_str")
 metadata_sign_cert = OpenSSL::X509::Certificate.new(cert)
@@ -634,8 +634,8 @@ to specify different certificates for each function.
 You may also globally set the SP signature and digest method, to be used in SP signing (functions 1 and 2 above):
 
 ```ruby
-  settings.security[:digest_method]    = XMLSecurity::Document::SHA1
-  settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
+  settings.security[:digest_method]    = RubySaml::XML::Document::SHA1
+  settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
 ```
 
 #### Signing SP Metadata
@@ -979,3 +979,14 @@ end
 # Output XML with custom metadata
 MyMetadata.new.generate(settings)
 ```
+
+## Attribution
+
+Portions of the code in `RubySaml::XML` namespace is adapted from earlier work
+copyrighted by either Oracle and/or Todd W. Saxton. The original code was distributed
+under the Common Development and Distribution License (CDDL) 1.0. This code is planned to
+be written entirely in future versions.
+
+## License
+
+RubySaml is made available under the MIT License. Refer to [LICENSE](LICENSE).
