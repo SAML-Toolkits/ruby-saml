@@ -337,8 +337,8 @@ class MetadataTest < Minitest::Test
 
       it "creates a signed metadata" do
         assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>]m, xml_text
-        assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], xml_text
-        assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2000/09/xmldsig#sha1'/>], xml_text
+        assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], xml_text
+        assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmlenc#sha256'/>], xml_text
 
         signed_metadata = XMLSecurity::SignedDocument.new(xml_text)
         assert signed_metadata.validate_document(ruby_saml_cert_fingerprint, false)
@@ -397,8 +397,8 @@ class MetadataTest < Minitest::Test
           assert_equal first_child.name, 'Signature'
 
           assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>]m, xml_text
-          assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1'/>], xml_text
-          assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2000/09/xmldsig#sha1'/>], xml_text
+          assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], xml_text
+          assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmlenc#sha256'/>], xml_text
 
           signed_metadata = XMLSecurity::SignedDocument.new(xml_text)
           assert signed_metadata.validate_document(ruby_saml_cert_fingerprint, false)

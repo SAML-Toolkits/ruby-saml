@@ -279,7 +279,7 @@ class Minitest::Test
   end
 
   def ruby_saml_cert_fingerprint
-    @ruby_saml_cert_fingerprint ||= Digest::SHA1.hexdigest(ruby_saml_cert.to_der).scan(/../).join(":")
+    @ruby_saml_cert_fingerprint ||= Digest::SHA256.hexdigest(ruby_saml_cert.to_der).scan(/../).join(":")
   end
 
   def ruby_saml_cert_text

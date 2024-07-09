@@ -111,13 +111,13 @@ class XmlSecurityTest < Minitest::Test
       alg = OpenSSL::Digest::SHA1
       assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2000/09/xmldsig#rsa-sha1")
       assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2000/09/xmldsig#sha1")
-      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("other")
     end
 
     it "SHA256" do
       alg = OpenSSL::Digest::SHA256
       assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#rsa-sha256")
       assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#sha256")
+      assert_equal alg, XMLSecurity::BaseDocument.new.algorithm("other")
     end
 
     it "SHA384" do
@@ -138,34 +138,35 @@ class XmlSecurityTest < Minitest::Test
 
     it "validate using SHA1" do
       sha1_fingerprint = "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72"
-      sha1_fingerprint_downcase = "f13c6b80905a030e6c913e5d15faddb016454872"
+      sha1_fingerprint_downcase = sha1_fingerprint.tr(':', '').downcase
 
-      assert response_fingerprint_test.document.validate_document(sha1_fingerprint)
-      assert response_fingerprint_test.document.validate_document(sha1_fingerprint, true, :fingerprint_alg => XMLSecurity::Document::SHA1)
-
-      assert response_fingerprint_test.document.validate_document(sha1_fingerprint_downcase)
-      assert response_fingerprint_test.document.validate_document(sha1_fingerprint_downcase, true, :fingerprint_alg => XMLSecurity::Document::SHA1)
+      assert response_fingerprint_test.document.validate_document(sha1_fingerprint, true, fingerprint_alg: XMLSecurity::Document::SHA1)
+      assert response_fingerprint_test.document.validate_document(sha1_fingerprint_downcase, true, fingerprint_alg: XMLSecurity::Document::SHA1)
     end
 
     it "validate using SHA256" do
       sha256_fingerprint = "C4:C6:BD:41:EC:AD:57:97:CE:7B:7D:80:06:C3:E4:30:53:29:02:0B:DD:2D:47:02:9E:BD:85:AD:93:02:45:21"
+      sha256_fingerprint_downcase = sha256_fingerprint.tr(':', '').downcase
 
-      assert !response_fingerprint_test.document.validate_document(sha256_fingerprint)
-      assert response_fingerprint_test.document.validate_document(sha256_fingerprint, true, :fingerprint_alg => XMLSecurity::Document::SHA256)
+      assert response_fingerprint_test.document.validate_document(sha256_fingerprint)
+      assert response_fingerprint_test.document.validate_document(sha256_fingerprint, true, fingerprint_alg: XMLSecurity::Document::SHA256)
+
+      assert response_fingerprint_test.document.validate_document(sha256_fingerprint_downcase)
+      assert response_fingerprint_test.document.validate_document(sha256_fingerprint_downcase, true, fingerprint_alg: XMLSecurity::Document::SHA256)
     end
 
     it "validate using SHA384" do
       sha384_fingerprint = "98:FE:17:90:31:E7:68:18:8A:65:4D:DA:F5:76:E2:09:97:BE:8B:E3:7E:AA:8D:63:64:7C:0C:38:23:9A:AC:A2:EC:CE:48:A6:74:4D:E0:4C:50:80:40:B4:8D:55:14:14"
 
       assert !response_fingerprint_test.document.validate_document(sha384_fingerprint)
-      assert response_fingerprint_test.document.validate_document(sha384_fingerprint, true, :fingerprint_alg => XMLSecurity::Document::SHA384)
+      assert response_fingerprint_test.document.validate_document(sha384_fingerprint, true, fingerprint_alg: XMLSecurity::Document::SHA384)
     end
 
     it "validate using SHA512" do
       sha512_fingerprint = "5A:AE:BA:D0:BA:9D:1E:25:05:01:1E:1A:C9:E9:FF:DB:ED:FA:6E:F7:52:EB:45:49:BD:DB:06:D8:A3:7E:CC:63:3A:04:A2:DD:DF:EE:61:05:D9:58:95:2A:77:17:30:4B:EB:4A:9F:48:4A:44:1C:D0:9E:0B:1E:04:77:FD:A3:D2"
 
       assert !response_fingerprint_test.document.validate_document(sha512_fingerprint)
-      assert response_fingerprint_test.document.validate_document(sha512_fingerprint, true, :fingerprint_alg => XMLSecurity::Document::SHA512)
+      assert response_fingerprint_test.document.validate_document(sha512_fingerprint, true, fingerprint_alg: XMLSecurity::Document::SHA512)
     end
 
   end
@@ -173,22 +174,22 @@ class XmlSecurityTest < Minitest::Test
   describe "Signature Algorithms" do
     it "validate using SHA1" do
       document = XMLSecurity::SignedDocument.new(fixture(:adfs_response_sha1, false))
-      assert document.validate_document("F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72")
+      assert document.validate_document("C4:C6:BD:41:EC:AD:57:97:CE:7B:7D:80:06:C3:E4:30:53:29:02:0B:DD:2D:47:02:9E:BD:85:AD:93:02:45:21")
     end
 
     it "validate using SHA256" do
       document = XMLSecurity::SignedDocument.new(fixture(:adfs_response_sha256, false))
-      assert document.validate_document("28:74:9B:E8:1F:E8:10:9C:A8:7C:A9:C3:E3:C5:01:6C:92:1C:B4:BA")
+      assert document.validate_document("3D:C5:BC:58:60:5D:19:64:94:E3:BA:C8:3D:49:01:D5:56:34:44:65:C2:85:0A:A8:65:A5:AC:76:7E:65:1F:F7")
     end
 
     it "validate using SHA384" do
       document = XMLSecurity::SignedDocument.new(fixture(:adfs_response_sha384, false))
-      assert document.validate_document("F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72")
+      assert document.validate_document("C4:C6:BD:41:EC:AD:57:97:CE:7B:7D:80:06:C3:E4:30:53:29:02:0B:DD:2D:47:02:9E:BD:85:AD:93:02:45:21")
     end
 
     it "validate using SHA512" do
       document = XMLSecurity::SignedDocument.new(fixture(:adfs_response_sha512, false))
-      assert document.validate_document("F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72")
+      assert document.validate_document("C4:C6:BD:41:EC:AD:57:97:CE:7B:7D:80:06:C3:E4:30:53:29:02:0B:DD:2D:47:02:9E:BD:85:AD:93:02:45:21")
     end
   end
 
@@ -302,7 +303,7 @@ class XmlSecurityTest < Minitest::Test
       let (:response) { RubySaml::Response.new(fixture(:starfield_response)) }
 
       before do
-        response.settings = RubySaml::Settings.new(:idp_cert_fingerprint => "8D:BA:53:8E:A3:B6:F9:F1:69:6C:BB:D9:D8:BD:41:B3:AC:4F:9D:4D")
+        response.settings = RubySaml::Settings.new(idp_cert_fingerprint: "8F:EB:0C:79:30:4A:E4:DF:B4:BD:7F:23:EE:29:3A:29:20:FE:BC:15:11:70:79:53:F4:37:55:05:2B:38:1A:42")
       end
 
       it "be able to validate a good response" do
@@ -343,7 +344,7 @@ class XmlSecurityTest < Minitest::Test
         describe 'when response has signed message and assertion' do
           let(:document_data) { read_response('response_with_signed_message_and_assertion.xml') }
           let(:document) { RubySaml::Response.new(document_data).document }
-          let(:fingerprint) { '4b68c453c7d994aad9025c99d5efcf566287fe8d' }
+          let(:fingerprint) { '6385109dd146a45d4382799491cb2707bd1ebda3738f27a0e4a4a8159c0fe6cd' }
 
           it 'is valid' do
             assert document.validate_document(fingerprint, true), 'Document should be valid'
@@ -353,7 +354,7 @@ class XmlSecurityTest < Minitest::Test
         describe 'when response has signed assertion' do
           let(:document_data) { read_response('response_with_signed_assertion_3.xml') }
           let(:document) { RubySaml::Response.new(document_data).document }
-          let(:fingerprint) { '4b68c453c7d994aad9025c99d5efcf566287fe8d' }
+          let(:fingerprint) { '6385109dd146a45d4382799491cb2707bd1ebda3738f27a0e4a4a8159c0fe6cd' }
 
           it 'is valid' do
             assert document.validate_document(fingerprint, true), 'Document should be valid'
@@ -374,7 +375,7 @@ class XmlSecurityTest < Minitest::Test
       describe 'signature wrapping attack - doubled SAML response body' do
         let(:document_data) { read_invalid_response("response_with_doubled_signed_assertion.xml") }
         let(:document) { RubySaml::Response.new(document_data) }
-        let(:fingerprint) { '4b68c453c7d994aad9025c99d5efcf566287fe8d' }
+        let(:fingerprint) { '6385109dd146a45d4382799491cb2707bd1ebda3738f27a0e4a4a8159c0fe6cd' }
 
         it 'is valid, but the unsigned information is ignored in favour of the signed information' do
           assert document.document.validate_document(fingerprint, true), 'Document should be valid'
@@ -385,7 +386,7 @@ class XmlSecurityTest < Minitest::Test
       describe 'signature wrapping attack - concealed SAML response body' do
         let(:document_data) { read_invalid_response("response_with_concealed_signed_assertion.xml") }
         let(:document) { RubySaml::Response.new(document_data) }
-        let(:fingerprint) { '4b68c453c7d994aad9025c99d5efcf566287fe8d' }
+        let(:fingerprint) { '6385109dd146a45d4382799491cb2707bd1ebda3738f27a0e4a4a8159c0fe6cd' }
 
         it 'is valid, but fails to retrieve information' do
           assert document.document.validate_document(fingerprint, true), 'Document should be valid'
