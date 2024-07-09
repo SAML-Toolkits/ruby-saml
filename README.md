@@ -20,14 +20,13 @@ We created a demo project for Rails 4 that uses the latest version of this libra
 
 ### Supported Ruby Versions
 
-* 3.0
-* 3.1
-* 3.2
-* JRuby 9.3
+The following Ruby versions are covered by CI testing:
+
+* Ruby (MRI) 3.0 to 3.3
 * JRuby 9.4
 * TruffleRuby (latest)
 
-For older Ruby support, please refer to older major versions of Ruby SAML.
+Older Ruby versions are supported on the 1.x release of Ruby SAML.
 
 ## Adding Features, Pull Requests
 
@@ -989,4 +988,4 @@ be written entirely in future versions.
 
 ## License
 
-RubySaml is made available under the MIT License. Refer to [LICENSE](LICENSE).
+Ruby SAML is made available under the MIT License. Refer to [LICENSE](LICENSE).

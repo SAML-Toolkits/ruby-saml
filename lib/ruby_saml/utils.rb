@@ -68,13 +68,20 @@ module RubySaml
       sign = matches[1] == '-' ? -1 : 1
 
       durYears, durMonths, durDays, durHours, durMinutes, durSeconds, durWeeks =
-        matches[2..8].map { |match| match ? sign * match.tr(',', '.').to_f : 0.0 }
+        matches[2..8].map do |match|
+          if match
+            match = match.tr(',', '.').gsub(/\.0*\z/, '')
+            sign * (match.include?('.') ? match.to_f : match.to_i)
+          else
+            0
+          end
+        end
 
-      initial_datetime = Time.at(timestamp).utc.to_datetime
-      final_datetime = initial_datetime.next_year(durYears)
-      final_datetime = final_datetime.next_month(durMonths)
-      final_datetime = final_datetime.next_day((7*durWeeks) + durDays)
-      final_datetime.to_time.utc.to_i + (durHours * 3600) + (durMinutes * 60) + durSeconds
+      datetime = Time.at(timestamp).utc.to_datetime
+      datetime = datetime.next_year(durYears)
+      datetime = datetime.next_month(durMonths)
+      datetime = datetime.next_day((7*durWeeks) + durDays)
+      datetime.to_time.utc.to_i + (durHours * 3600) + (durMinutes * 60) + durSeconds
     end
 
     # Return a properly formatted x509 certificate
