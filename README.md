@@ -9,14 +9,28 @@ Ruby SAML minor and tiny versions may introduce breaking changes. Please read
 
 ## Overview
 
-The Ruby SAML library is for implementing the client side of a SAML authorization,
-i.e. it provides a means for managing authorization initialization and confirmation
-requests from identity providers.
-
-SAML authorization is a two step process and you are expected to implement support for both.
+The Ruby SAML library is for implementing the Service Provider (SP) client side of
+a SAML authorization, i.e. it provides a means for managing authorization initialization
+and confirmation requests from Identity Providers (IdPs).
 
 We created a demo project for Rails 4 that uses the latest version of this library:
 [ruby-saml-example](https://github.com/saml-toolkits/ruby-saml-example)
+
+### Vulnerability Reporting
+
+If you believe you have discovered a security vulnerability in this gem, please report
+it by email to the maintainer: sixto.martin.garcia+security@gmail.com
+
+### Security Considerations
+
+- **Validation of the IdP Metadata URL:** When loading IdP Metadata from a URLs,
+  Ruby SAML requires you (the developer/administrator) to ensure the supplied URL is correct
+  and from a trusted source. Ruby SAML does not perform any validation that the URL
+  you entered is correct and/or safe.
+- **False-Positive Security Warnings:** Some tools may incorrectly report Ruby SAML as a
+  potential security vulnerability, due to it's dependency on Nokogiri. Such warnings can
+  be ignored; Ruby SAML uses Nokogiri in a safe way, by enabling its DTDLOAD option and
+  disabling its NONET option.
 
 ### Supported Ruby Versions
 
@@ -28,99 +42,25 @@ The following Ruby versions are covered by CI testing:
 
 Older Ruby versions are supported on the 1.x release of Ruby SAML.
 
-## Adding Features, Pull Requests
-
-* Fork the repository
-* Make your feature addition or bug fix
-* Add tests for your new features. This is important so we don't break any features in a future version unintentionally.
-* Ensure all tests pass by running `bundle exec rake test`.
-* Do not change rakefile, version, or history.
-* Open a pull request, following [this template](https://gist.github.com/Lordnibbler/11002759).
-
-## Security Guidelines
-
-If you believe you have discovered a security vulnerability in this gem, please report it
-by mail to the maintainer: sixto.martin.garcia+security@gmail.com
-
-### Security Warning
-
-Some tools may incorrectly report ruby-saml is a potential security vulnerability.
-ruby-saml depends on Nokogiri, and it's possible to use Nokogiri in a dangerous way
-(by enabling its DTDLOAD option and disabling its NONET option).
-This dangerous Nokogiri configuration, which is sometimes used by other components,
-can create an XML External Entity (XXE) vulnerability if the XML data is not trusted.
-However, ruby-saml never enables this dangerous Nokogiri configuration;
-ruby-saml never enables DTDLOAD, and it never disables NONET.
-
-The RubySaml::IdpMetadataParser class does not validate in any way the URL
-that is introduced in order to be parsed.
-
-Usually the same administrator that handles the Service Provider also sets the URL to
-the IdP, which should be a trusted resource.
-
-But there are other scenarios, like a SAAS app where the administrator of the app
-delegates this functionality to other users. In this case, extra precaution should
-be taken in order to validate such URL inputs and avoid attacks like SSRF.
-
 ## Getting Started
 
-In order to use Ruby SAML you will need to install the gem (either manually or using Bundler),
-and require the library in your Ruby application:
-
-Using `Gemfile`
-
-```ruby
-# latest stable
-gem 'ruby-saml', '~> 1.11.0'
-
-# or track master for bleeding-edge
-gem 'ruby-saml', :github => 'saml-toolkit/ruby-saml'
-```
-
-Using RubyGems
+You may install Ruby SAML from the command line:
 
 ```sh
 gem install ruby-saml
 ```
 
-You may require the entire Ruby SAML gem:
+or in your project `Gemfile`:
 
 ```ruby
-require 'ruby_saml'
+gem 'ruby-saml', '~> 2.0.0'
 ```
-
-or just the required components individually:
-
-```ruby
-require 'ruby_saml/authrequest'
-```
-
-### Installation on Ruby 1.8.7
-
-This gem uses Nokogiri as a dependency, which dropped support for Ruby 1.8.x in Nokogiri 1.6.
-When installing this gem on Ruby 1.8.7, you will need to make sure a version of Nokogiri
-prior to 1.6 is installed or specified if it hasn't been already.
-
-Using `Gemfile`
-
-```ruby
-gem 'nokogiri', '~> 1.5.10'
-```
-
-Using RubyGems
-
-```sh
-gem install nokogiri --version '~> 1.5.10'
-````
 
 ### Configuring Logging
 
-When troubleshooting SAML integration issues, you will find it extremely helpful to examine the
-output of this gem's business logic. By default, log messages are emitted to RAILS_DEFAULT_LOGGER
-when the gem is used in a Rails context, and to STDOUT when the gem is used outside of Rails.
-
-To override the default behavior and control the destination of log messages, provide
-a ruby Logger object to the gem's logging singleton:
+Ruby SAML provides verbose logs which are useful to troubleshooting SAML integration issues.
+By default, log messages are emitted to Rails' logger if using Rails, otherwise to `STDOUT`.
+You may manually set your own logger as follows:
 
 ```ruby
 RubySaml::Logging.logger = Logger.new('/var/log/ruby-saml.log')
@@ -317,8 +257,8 @@ add the IdP X.509 public certificates which were published in the IdP metadata.
 
 ```ruby
 {
-  :signing => [],
-  :encryption => []
+  signing: [],
+  encryption []
 }
 ```
 
@@ -905,11 +845,18 @@ end
 
 ## Clock Drift
 
-Server clocks tend to drift naturally. If during validation of the response you get the error "Current time is earlier than NotBefore condition", this may be due to clock differences between your system and that of the Identity Provider.
+Server clocks tend to drift naturally. If during validation of the response you get the error
+"Current time is earlier than NotBefore condition", this may be due to clock differences between
+your system and that of the Identity Provider.
 
-First, ensure that both systems synchronize their clocks, using for example the industry standard [Network Time Protocol (NTP)](http://en.wikipedia.org/wiki/Network_Time_Protocol).
+First, ensure that both systems synchronize their clocks, using for example the industry standard
+[Network Time Protocol (NTP)](http://en.wikipedia.org/wiki/Network_Time_Protocol).
 
-Even then you may experience intermittent issues, as the clock of the Identity Provider may drift slightly ahead of your system clocks. To allow for a small amount of clock drift, you can initialize the response by passing in an option named `:allowed_clock_drift`. Its value must be given in a number (and/or fraction) of seconds. The value given is added to the current time at which the response is validated before it's tested against the `NotBefore` assertion. For example:
+Even then you may experience intermittent issues, as the clock of the Identity Provider may drift
+slightly ahead of your system clocks. To allow for a small amount of clock drift, you can initialize
+the response by passing in an option named `:allowed_clock_drift`. Its value must be given in a number
+(and/or fraction) of seconds. The value given is added to the current time at which the response
+is validated before it's tested against the `NotBefore` assertion. For example:
 
 ```ruby
 response = RubySaml::Response.new(params[:SAMLResponse], :allowed_clock_drift => 1.second)
@@ -978,6 +925,15 @@ end
 # Output XML with custom metadata
 MyMetadata.new.generate(settings)
 ```
+
+## Adding Features, Pull Requests
+
+* Fork the repository
+* Make your feature addition or bug fix
+* Add tests for your new features. This is important so we don't break any features in a future version unintentionally.
+* Ensure all tests pass by running `bundle exec rake test`.
+* Do not change rakefile, version, or history.
+* Open a pull request, following [this template](https://gist.github.com/Lordnibbler/11002759).
 
 ## Attribution
 
