@@ -2,6 +2,8 @@
 
 ## Updating from 1.17.x to 2.0.0
 
+**IMPORTANT: Please read this section carefully as it contains breaking changes!**
+
 ### Before upgrading
 
 Before attempting to upgrade to `2.0.0`:
@@ -47,6 +49,24 @@ settings.idp_cert_fingerprint_algorithm = RubySaml::XML::Document::SHA1
 settings.security[:digest_method] = RubySaml::XML::Document::SHA1
 settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
 ```
+
+### Removal of embed_sign Setting
+
+The deprecated `settings.security[:embed_sign]` parameter has been removed. If you were using it, please instead switch
+to using both the `settings.idp_sso_service_binding` and `settings.idp_slo_service_binding` parameters as show below.
+(This new syntax is supported on version 1.13.0 and later.)
+
+```ruby
+# Replace settings.security[:embed_sign] = true with
+settings.idp_sso_service_binding = :post
+settings.idp_slo_service_binding = :post
+
+# Replace settings.security[:embed_sign] = false with
+settings.idp_sso_service_binding = :redirect
+settings.idp_slo_service_binding = :redirect
+```
+
+For clarity, the default value of both parameters is `:redirect` if they are not set.
 
 ## Updating from 1.12.x to 1.13.0
 

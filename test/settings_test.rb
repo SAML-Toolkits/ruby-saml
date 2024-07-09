@@ -55,30 +55,6 @@ class SettingsTest < Minitest::Test
       end
     end
 
-    it "idp_sso/slo_service_binding should fallback to :embed_sign inferred value" do
-      accessors = [:idp_sso_service_binding, :idp_slo_service_binding]
-
-      accessors.each do |accessor|
-        @settings.security[:embed_sign] = true
-
-        value = Kernel.rand.to_s
-        @settings.send("#{accessor}=".to_sym, value)
-        assert_equal value, @settings.send(accessor)
-
-        @settings.send("#{accessor}=".to_sym, :redirect)
-        assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", @settings.send(accessor)
-
-        @settings.send("#{accessor}=".to_sym, :post)
-        assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST", @settings.send(accessor)
-
-        @settings.send("#{accessor}=".to_sym, nil)
-        assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST", @settings.send(accessor)
-
-        @settings.security[:embed_sign] = false
-        assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", @settings.send(accessor)
-      end
-    end
-
     it "create settings from hash" do
       config = {
           :assertion_consumer_service_url => "http://app.muda.no/sso",
@@ -117,13 +93,11 @@ class SettingsTest < Minitest::Test
     it "does not modify default security settings" do
       settings = RubySaml::Settings.new
       settings.security[:authn_requests_signed] = true
-      settings.security[:embed_sign] = true
       settings.security[:digest_method] = RubySaml::XML::Document::SHA512
       settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA512
 
       new_settings = RubySaml::Settings.new
       assert_equal new_settings.security[:authn_requests_signed], false
-      assert_equal new_settings.security[:embed_sign], false
       assert_equal new_settings.security[:digest_method], RubySaml::XML::Document::SHA256
       assert_equal new_settings.security[:signature_method], RubySaml::XML::Document::RSA_SHA256
     end

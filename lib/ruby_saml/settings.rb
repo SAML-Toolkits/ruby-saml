@@ -93,7 +93,7 @@ module RubySaml
     # @return [String] IdP Single Sign On Service Binding
     #
     def idp_sso_service_binding
-      @idp_sso_service_binding || idp_binding_from_embed_sign
+      @idp_sso_service_binding || Utils::BINDINGS[:redirect]
     end
 
     # Setter for IdP Single Sign On Service Binding
@@ -106,7 +106,7 @@ module RubySaml
     # @return [String] IdP Single Logout Service Binding
     #
     def idp_slo_service_binding
-      @idp_slo_service_binding || idp_binding_from_embed_sign
+      @idp_slo_service_binding || Utils::BINDINGS[:redirect]
     end
 
     # Setter for IdP Single Logout Service Binding
@@ -264,10 +264,6 @@ module RubySaml
       node[0] if node
     end
 
-    def idp_binding_from_embed_sign
-      security[:embed_sign] ? Utils::BINDINGS[:post] : Utils::BINDINGS[:redirect]
-    end
-
     def get_binding(value)
       return unless value
 
@@ -291,7 +287,6 @@ module RubySaml
         want_assertions_encrypted: false,
         want_name_id: false,
         metadata_signed: false,
-        embed_sign: false, # Deprecated
         digest_method: RubySaml::XML::Document::SHA256,
         signature_method: RubySaml::XML::Document::RSA_SHA256,
         check_idp_cert_expiration: false,

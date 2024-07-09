@@ -347,67 +347,6 @@ class SloLogoutresponseTest < Minitest::Test
       end
     end
 
-    describe "DEPRECATED: signing with HTTP-POST binding via :embed_sign" do
-      before do
-        settings.compress_response = false
-        settings.security[:logout_responses_signed] = true
-        settings.security[:embed_sign] = true
-      end
-
-      it "doesn't sign through create_xml_document" do
-        unauth_res = RubySaml::SloLogoutresponse.new
-        inflated = unauth_res.create_xml_document(settings).to_s
-
-        refute_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], inflated
-        refute_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], inflated
-        refute_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmlenc#sha256'/>], inflated
-      end
-
-      it "sign unsigned request" do
-        unauth_res = RubySaml::SloLogoutresponse.new
-        unauth_res_doc = unauth_res.create_xml_document(settings)
-        inflated = unauth_res_doc.to_s
-
-        refute_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], inflated
-        refute_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], inflated
-        refute_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmlenc#sha256'/>], inflated
-
-        inflated = unauth_res.sign_document(unauth_res_doc, settings).to_s
-
-        assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], inflated
-        assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], inflated
-        assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmlenc#sha256'/>], inflated
-      end
-    end
-
-    describe "DEPRECATED: signing with HTTP-Redirect binding via :embed_sign" do
-      let(:cert) { OpenSSL::X509::Certificate.new(ruby_saml_cert_text) }
-
-      before do
-        settings.compress_response = false
-        settings.security[:logout_responses_signed] = true
-        settings.security[:embed_sign] = false
-      end
-
-      it "create a signature parameter with RSA_SHA1 and validate it" do
-        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
-
-        params = RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message", :RelayState => 'http://example.com')
-        assert params['SAMLResponse']
-        assert params[:RelayState]
-        assert params['Signature']
-        assert_equal params['SigAlg'], RubySaml::XML::Document::RSA_SHA1
-
-        query_string = "SAMLResponse=#{CGI.escape(params['SAMLResponse'])}"
-        query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
-        query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
-
-        signature_algorithm = RubySaml::XML::BaseDocument.new.algorithm(params['SigAlg'])
-        assert_equal signature_algorithm, OpenSSL::Digest::SHA1
-        assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
-      end
-    end
-
     describe "#manipulate response_id" do
       it "be able to modify the response id" do
         logoutresponse = RubySaml::SloLogoutresponse.new
