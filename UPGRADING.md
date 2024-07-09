@@ -80,6 +80,18 @@ The SAML SP request/response message compression behavior is now controlled auto
 "compression" is used to make redirect URLs which contain SAML messages be shorter. For POST messages,
 compression may be achieved by enabling `Content-Encoding: gzip` on your webserver.
 
+## Settings deprecations
+
+The following parameters in `RubySaml::Settings` are deprecated and will be removed in RubySaml 2.1.0:
+
+- `#issuer` is deprecated and replaced 1:1 by `#sp_entity_id`
+- `#idp_sso_target_url` is deprecated and replaced 1:1 by `#idp_sso_service_url`
+- `#idp_slo_target_url` is deprecated and replaced 1:1 by `#idp_slo_service_url`
+- `#assertion_consumer_logout_service_url` is deprecated and replaced 1:1 by `#single_logout_service_url`
+- `#assertion_consumer_logout_service_binding` is deprecated and replaced 1:1 by `#single_logout_service_binding`
+- `#certificate_new` is deprecated and replaced by `#sp_cert_multi`. Refer to documentation as `#sp_cert_multi`
+  has a different value type than `#certificate_new`.
+
 ## Updating from 1.12.x to 1.13.0
 
 Version `1.13.0` adds `settings.idp_sso_service_binding` and `settings.idp_slo_service_binding`, and

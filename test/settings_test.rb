@@ -35,8 +35,10 @@ class SettingsTest < Minitest::Test
 
     it "should provide getters and settings for binding parameters" do
       accessors = [
-        :protocol_binding, :assertion_consumer_service_binding,
-        :single_logout_service_binding, :assertion_consumer_logout_service_binding
+        :protocol_binding,
+        :assertion_consumer_service_binding,
+        :single_logout_service_binding,
+        :assertion_consumer_logout_service_binding
       ]
 
       accessors.each do |accessor|
