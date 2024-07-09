@@ -27,7 +27,8 @@ codebase for `RubySaml::XML::` and replace it as appropriate. In addition, you m
 `require 'xml_security'` with `require 'ruby_saml/xml'`.
 
 For backward compatibility, the alias `XMLSecurity = RubySaml::XML` has been set, so `RubySaml::XML::` will still work
-as before. This alias will be removed in RubySaml version `2.1.0`.
+as before. In addition, a shim file has been added so that `require 'xml_security'` continues to work.
+These aliases will be removed in RubySaml version `2.1.0`.
 
 ### Security: Change default hashing algorithm to SHA-256 (was SHA-1)
 

@@ -1,5 +1,5 @@
 require_relative 'test_helper'
-require 'ruby_saml/xml'
+require 'xml_security'
 
 class XmlSecurityAliasTest < Minitest::Test
 

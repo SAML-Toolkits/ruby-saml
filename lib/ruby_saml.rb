@@ -19,6 +19,5 @@ require 'ruby_saml/idp_metadata_parser'
 require 'ruby_saml/utils'
 require 'ruby_saml/version'
 
-# @deprecated These aliases add compatibility with v1.x and will be removed in v2.1.0
+# @deprecated This alias adds compatibility with v1.x and will be removed in v2.1.0
 OneLogin = Object
-XMLSecurity = RubySaml::XML
