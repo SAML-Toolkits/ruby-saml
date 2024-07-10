@@ -636,10 +636,10 @@ module RubySaml
         return append_error(error_msg)
       end
 
-      return true if settings.assertion_consumer_service_url.nil? || settings.assertion_consumer_service_url.empty?
+      return true if settings.sp_assertion_consumer_service_url.nil? || settings.sp_assertion_consumer_service_url.empty?
 
-      unless RubySaml::Utils.uri_match?(destination, settings.assertion_consumer_service_url)
-        error_msg = "The response was received at #{destination} instead of #{settings.assertion_consumer_service_url}"
+      unless RubySaml::Utils.uri_match?(destination, settings.sp_assertion_consumer_service_url)
+        error_msg = "The response was received at #{destination} instead of #{settings.sp_assertion_consumer_service_url}"
         return append_error(error_msg)
       end
 
@@ -778,7 +778,7 @@ module RubySaml
         next if (attrs.include? "InResponseTo" and attrs['InResponseTo'] != in_response_to) ||
                 (attrs.include? "NotBefore" and now < (parse_time(confirmation_data_node, "NotBefore") - allowed_clock_drift)) ||
                 (attrs.include? "NotOnOrAfter" and now >= (parse_time(confirmation_data_node, "NotOnOrAfter") + allowed_clock_drift)) ||
-                (attrs.include? "Recipient" and !options[:skip_recipient_check] and settings and attrs['Recipient'] != settings.assertion_consumer_service_url)
+                (attrs.include? "Recipient" and !options[:skip_recipient_check] and settings and attrs['Recipient'] != settings.sp_assertion_consumer_service_url)
 
         valid_subject_confirmation = true
         break

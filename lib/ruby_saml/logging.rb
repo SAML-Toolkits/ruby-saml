@@ -24,7 +24,7 @@ module RubySaml
     end
 
     def deprecate(message)
-      warn("[DEPRECATION] RubySaml: #{message}")
+      warn("[RubySaml] DEPRECATION: #{message}")
     end
 
     def enabled?

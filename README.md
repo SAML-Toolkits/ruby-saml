@@ -191,7 +191,7 @@ If you don't know what expect, always use the former (set the settings on initia
 def saml_settings
   settings = RubySaml::Settings.new
 
-  settings.assertion_consumer_service_url = "http://#{request.host}/saml/consume"
+  settings.sp_assertion_consumer_service_url = "http://#{request.host}/saml/consume"
   settings.sp_entity_id                   = "http://#{request.host}/saml/metadata"
   settings.idp_entity_id                  = "https://app.onelogin.com/saml/metadata/#{OneLoginAppId}"
   settings.idp_sso_service_url            = "https://app.onelogin.com/trust/saml2/http-post/sso/#{OneLoginAppId}"
@@ -211,8 +211,8 @@ def saml_settings
   ]
 
   # Optional bindings (defaults to Redirect for logout POST for ACS)
-  settings.single_logout_service_binding      = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" # or :post, :redirect
-  settings.assertion_consumer_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" # or :post, :redirect
+  settings.sp_slo_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" # or :post, :redirect
+  settings.sp_assertion_consumer_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" # or :post, :redirect
 
   settings
 end
@@ -263,11 +263,11 @@ class SamlController < ApplicationController
   def saml_settings
     settings = RubySaml::Settings.new
 
-    settings.assertion_consumer_service_url = "http://#{request.host}/saml/consume"
-    settings.sp_entity_id                   = "http://#{request.host}/saml/metadata"
-    settings.idp_sso_service_url             = "https://app.onelogin.com/saml/signon/#{OneLoginAppId}"
-    settings.idp_cert_fingerprint           = OneLoginAppCertFingerPrint
-    settings.name_identifier_format         = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+    settings.sp_assertion_consumer_service_url = "http://#{request.host}/saml/consume"
+    settings.sp_entity_id           = "http://#{request.host}/saml/metadata"
+    settings.idp_sso_service_url    = "https://app.onelogin.com/saml/signon/#{OneLoginAppId}"
+    settings.idp_cert_fingerprint   = OneLoginAppCertFingerPrint
+    settings.name_identifier_format = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
 
     # Optional for most SAML IdPs
     settings.authn_context = "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport"
@@ -338,9 +338,9 @@ def saml_settings
   # Returns RubySaml::Settings pre-populated with IdP metadata
   settings = idp_metadata_parser.parse_remote("https://example.com/auth/saml2/idp/metadata")
 
-  settings.assertion_consumer_service_url = "http://#{request.host}/saml/consume"
-  settings.sp_entity_id                   = "http://#{request.host}/saml/metadata"
-  settings.name_identifier_format         = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+  settings.sp_assertion_consumer_service_url = "http://#{request.host}/saml/consume"
+  settings.sp_entity_id = "http://#{request.host}/saml/metadata"
+  settings.name_identifier_format = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
   # Optional for most SAML IdPs
   settings.authn_context = "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport"
 
@@ -622,8 +622,8 @@ Ruby SAML supports the following functionality:
 In order to use functions 1-3 above, you must first define your SP public certificate and private key:
 
 ```ruby
-  settings.certificate = "CERTIFICATE TEXT WITH BEGIN/END HEADER AND FOOTER"
-  settings.private_key = "PRIVATE KEY TEXT WITH BEGIN/END HEADER AND FOOTER"
+  settings.sp_cert = "CERTIFICATE TEXT WITH BEGIN/END HEADER AND FOOTER"
+  settings.sp_private_key = "PRIVATE KEY TEXT WITH BEGIN/END HEADER AND FOOTER"
 ```
 
 Note that the same certificate (and its associated private key) are used to perform
@@ -642,8 +642,8 @@ You may also globally set the SP signature and digest method, to be used in SP s
 You may add a `<ds:Signature>` digital signature element to your SP Metadata XML using the following setting:
 
 ```ruby
-  settings.certificate = "CERTIFICATE TEXT WITH BEGIN/END HEADER AND FOOTER"
-  settings.private_key = "PRIVATE KEY TEXT WITH BEGIN/END HEADER AND FOOTER"
+  settings.sp_cert = "CERTIFICATE TEXT WITH BEGIN/END HEADER AND FOOTER"
+  settings.sp_private_key = "PRIVATE KEY TEXT WITH BEGIN/END HEADER AND FOOTER"
 
   settings.security[:metadata_signed] = true # Enable signature on Metadata
 ```
@@ -658,8 +658,8 @@ To enable, please first set your certificate and private key. This will add `<md
 to your SP Metadata XML, to be read by the IdP.
 
 ```ruby
-  settings.certificate = "CERTIFICATE TEXT WITH BEGIN/END HEADER AND FOOTER"
-  settings.private_key = "PRIVATE KEY TEXT WITH BEGIN/END HEADER AND FOOTER"
+  settings.sp_cert = "CERTIFICATE TEXT WITH BEGIN/END HEADER AND FOOTER"
+  settings.sp_private_key = "PRIVATE KEY TEXT WITH BEGIN/END HEADER AND FOOTER"
 ```
 
 Next, you may specify the specific SP SAML messages you would like to sign:
@@ -684,8 +684,8 @@ You may enable EncryptedAssertion as follows. This will add `<md:KeyDescriptor u
 SP Metadata XML, to be read by the IdP.
 
 ```ruby
-  settings.certificate = "CERTIFICATE TEXT WITH BEGIN/END HEADER AND FOOTER"
-  settings.private_key = "PRIVATE KEY TEXT WITH BEGIN/END HEADER AND FOOTER"
+  settings.sp_cert = "CERTIFICATE TEXT WITH BEGIN/END HEADER AND FOOTER"
+  settings.sp_private_key = "PRIVATE KEY TEXT WITH BEGIN/END HEADER AND FOOTER"
 
   settings.security[:want_assertions_encrypted] = true # Invalidate SAML messages without an EncryptedAssertion
 ```

@@ -15,7 +15,7 @@ def valid_logout_response_document(opts = {})
         xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\"
         ID=\"#{random_id}\" Version=\"2.0\"
         IssueInstant=\"#{opts[:issue_instant]}\"
-        Destination=\"#{opts[:settings].single_logout_service_url}\"
+        Destination=\"#{opts[:settings].sp_slo_service_url}\"
         InResponseTo=\"#{opts[:uuid]}\">
       <saml:Issuer xmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\">#{opts[:settings].issuer}</saml:Issuer>
       <samlp:Status xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\">
@@ -33,7 +33,7 @@ def unsuccessful_logout_response_document(opts = {})
         xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\"
         ID=\"#{random_id}\" Version=\"2.0\"
         IssueInstant=\"#{opts[:issue_instant]}\"
-        Destination=\"#{opts[:settings].single_logout_service_url}\"
+        Destination=\"#{opts[:settings].sp_slo_service_url}\"
         InResponseTo=\"#{opts[:uuid]}\">
       <saml:Issuer xmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\">#{opts[:settings].issuer}</saml:Issuer>
       <samlp:Status xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\">
@@ -51,7 +51,7 @@ def unsuccessful_logout_response_with_message_document(opts = {})
         xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\"
         ID=\"#{random_id}\" Version=\"2.0\"
         IssueInstant=\"#{opts[:issue_instant]}\"
-        Destination=\"#{opts[:settings].single_logout_service_url}\"
+        Destination=\"#{opts[:settings].sp_slo_service_url}\"
         InResponseTo=\"#{opts[:uuid]}\">
       <saml:Issuer xmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\">#{opts[:settings].issuer}</saml:Issuer>
       <samlp:Status xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\">
@@ -73,8 +73,8 @@ end
 def settings
   @settings ||= RubySaml::Settings.new(
       {
-          :assertion_consumer_service_url => "http://app.muda.no/sso/consume",
-          :single_logout_service_url => "http://app.muda.no/sso/consume_logout",
+          :sp_assertion_consumer_service_url => "http://app.muda.no/sso/consume",
+          :sp_slo_service_url => "http://app.muda.no/sso/consume_logout",
           :issuer => "http://app.muda.no",
           :sp_name_qualifier => "http://sso.muda.no",
           :idp_sso_service_url => "http://sso.muda.no/sso",

@@ -14,7 +14,7 @@ class MetadataTest < Minitest::Test
     before do
       settings.sp_entity_id = "https://example.com"
       settings.name_identifier_format = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
-      settings.assertion_consumer_service_url = "https://foo.example/saml/consume"
+      settings.sp_assertion_consumer_service_url = "https://foo.example/saml/consume"
     end
 
     it "generates Pretty Print Service Provider Metadata" do
@@ -38,8 +38,8 @@ class MetadataTest < Minitest::Test
     end
 
     it "generates Service Provider Metadata" do
-      settings.single_logout_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
-      settings.single_logout_service_url = "https://foo.example/saml/sls"
+      settings.sp_slo_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+      settings.sp_slo_service_url = "https://foo.example/saml/sls"
       xml_metadata = RubySaml::Metadata.new.generate(settings, false)
 
       start = "<?xml version='1.0' encoding='UTF-8'?><md:EntityDescriptor"
@@ -120,7 +120,7 @@ class MetadataTest < Minitest::Test
       let(:cert)  { OpenSSL::X509::Certificate.new(Base64.decode64(cert_nodes[0].text)) }
 
       before do
-        settings.certificate = ruby_saml_cert_text
+        settings.sp_cert = ruby_saml_cert_text
       end
 
       it "generates Service Provider Metadata with X509Certificate for sign" do
@@ -179,7 +179,7 @@ class MetadataTest < Minitest::Test
       end
 
       before do
-        settings.certificate = ruby_saml_cert_text
+        settings.sp_cert = ruby_saml_cert_text
         settings.certificate_new = ruby_saml_cert_text2
       end
 
@@ -235,9 +235,9 @@ class MetadataTest < Minitest::Test
           valid_pair = CertificateHelper.generate_pair_hash
           early_pair = CertificateHelper.generate_pair_hash(not_before: Time.now + 60)
           expired_pair = CertificateHelper.generate_pair_hash(not_after: Time.now - 60)
-          settings.certificate = nil
+          settings.sp_cert = nil
           settings.certificate_new = nil
-          settings.private_key = nil
+          settings.sp_private_key = nil
           settings.sp_cert_multi = {
             signing: [valid_pair, early_pair, expired_pair],
             encryption: [valid_pair, early_pair, expired_pair]
@@ -331,8 +331,8 @@ class MetadataTest < Minitest::Test
     describe "when the settings indicate to sign (embedded) metadata" do
       before do
         settings.security[:metadata_signed] = true
-        settings.certificate = ruby_saml_cert_text
-        settings.private_key = ruby_saml_key_text
+        settings.sp_cert = ruby_saml_cert_text
+        settings.sp_private_key = ruby_saml_key_text
       end
 
       it "creates a signed metadata" do

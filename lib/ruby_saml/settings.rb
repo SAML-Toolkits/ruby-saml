@@ -42,12 +42,16 @@ module RubySaml
     attr_accessor :idp_attribute_names
     attr_accessor :idp_name_qualifier
     attr_accessor :valid_until
+
     # SP Data
     attr_accessor :sp_entity_id
-    attr_accessor :assertion_consumer_service_url
-    attr_reader   :assertion_consumer_service_binding
-    attr_accessor :single_logout_service_url
-    attr_reader   :single_logout_service_binding
+    attr_accessor :sp_assertion_consumer_service_url
+    attr_reader   :sp_assertion_consumer_service_binding
+    attr_accessor :sp_slo_service_url
+    attr_reader   :sp_slo_service_binding
+    attr_accessor :sp_cert
+    attr_accessor :sp_cert_multi
+    attr_accessor :sp_private_key
     attr_accessor :sp_name_qualifier
     attr_accessor :name_identifier_format
     attr_accessor :name_identifier_value
@@ -59,14 +63,12 @@ module RubySaml
     attr_reader   :protocol_binding
     attr_accessor :attributes_index
     attr_accessor :force_authn
-    attr_accessor :certificate
-    attr_accessor :private_key
-    attr_accessor :sp_cert_multi
     attr_accessor :authn_context
     attr_accessor :authn_context_comparison
     attr_accessor :authn_context_decl_ref
     attr_reader :attribute_consuming_service
-    # Work-flow
+
+    # Workflow
     attr_accessor :security
     attr_accessor :soft
 
@@ -106,8 +108,8 @@ module RubySaml
     # Setter for SP Assertion Consumer Service Binding
     # @param value [String, Symbol].
     #
-    def assertion_consumer_service_binding=(value)
-      @assertion_consumer_service_binding = get_binding(value)
+    def sp_assertion_consumer_service_binding=(value)
+      @sp_assertion_consumer_service_binding = get_binding(value)
     end
 
     # Setter for Single Logout Service Binding.
@@ -115,8 +117,8 @@ module RubySaml
     # (Currently we only support "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect")
     # @param value [String, Symbol]
     #
-    def single_logout_service_binding=(value)
-      @single_logout_service_binding = get_binding(value)
+    def sp_slo_service_binding=(value)
+      @sp_slo_service_binding = get_binding(value)
     end
 
     # Calculates the fingerprint of the IdP x509 certificate.
@@ -224,8 +226,8 @@ module RubySaml
     end
 
     DEFAULTS = {
-      assertion_consumer_service_binding: Utils::BINDINGS[:post],
-      single_logout_service_binding: Utils::BINDINGS[:redirect],
+      sp_assertion_consumer_service_binding: Utils::BINDINGS[:post],
+      sp_slo_service_binding: Utils::BINDINGS[:redirect],
       idp_cert_fingerprint_algorithm: RubySaml::XML::Document::SHA256,
       message_max_bytesize: 250_000,
       soft: true,
@@ -249,55 +251,61 @@ module RubySaml
 
     {
       issuer: :sp_entity_id,
+      certificate: :sp_cert,
+      private_key: :sp_private_key,
       idp_sso_target_url: :idp_sso_service_url,
       idp_slo_target_url: :idp_slo_service_url,
-      assertion_consumer_logout_service_url: :single_logout_service_url,
-      assertion_consumer_logout_service_binding: :single_logout_service_binding
+      assertion_consumer_service_url: :sp_assertion_consumer_service_url,
+      assertion_consumer_service_binding: :sp_assertion_consumer_service_binding,
+      assertion_consumer_logout_service_url: :sp_slo_service_url,
+      assertion_consumer_logout_service_binding: :sp_slo_service_binding,
+      single_logout_service_url: :sp_slo_service_url,
+      single_logout_service_binding: :sp_slo_service_binding
     }.each do |old_param, new_param|
-      # @deprecated Will be removed in v2.1.0
+      # @deprecated Will raise NotImplementedError in v3.0.0
       define_method(old_param) do
         replaced_deprecation(old_param, new_param)
         send(new_param)
       end
 
-      # @deprecated Will be removed in v2.1.0
+      # @deprecated Will raise NotImplementedError in v3.0.0
       define_method(:"#{old_param}=") do |value|
         replaced_deprecation(old_param, new_param)
         send(:"#{new_param}=", value)
       end
     end
 
-    # @deprecated Will be removed in v2.1.0
+    # @deprecated Will raise NotImplementedError in v2.1.0
     def certificate_new
       certificate_new_deprecation
       @certificate_new
     end
 
-    # @deprecated Will be removed in v2.1.0
+    # @deprecated Will raise NotImplementedError in v2.1.0
     def certificate_new=(value)
       certificate_new_deprecation
       @certificate_new = value
     end
 
-    # @deprecated Will be removed in v2.1.0
+    # @deprecated Will raise NotImplementedError in v2.1.0
     def compress_request
       compress_deprecation('compress_request', 'idp_sso_service_binding')
       defined?(@compress_request) ? @compress_request : true
     end
 
-    # @deprecated Will be removed in v2.1.0
+    # @deprecated Will raise NotImplementedError in v2.1.0
     def compress_request=(value)
       compress_deprecation('compress_request', 'idp_sso_service_binding')
       @compress_request = value
     end
 
-    # @deprecated Will be removed in v2.1.0
+    # @deprecated Will raise NotImplementedError in v2.1.0
     def compress_response
       compress_deprecation('compress_response', 'idp_slo_service_binding')
       defined?(@compress_response) ? @compress_response : true
     end
 
-    # @deprecated Will be removed in v2.1.0
+    # @deprecated Will raise NotImplementedError in v2.1.0
     def compress_response=(value)
       compress_deprecation('compress_response', 'idp_slo_service_binding')
       @compress_response = value
@@ -307,8 +315,8 @@ module RubySaml
 
     # @deprecated Will be removed in v2.1.0
     def replaced_deprecation(old_param, new_param)
-      Logging.deprecate "`RubySaml::Settings##{old_param}` is deprecated and will be removed in RubySaml 2.1.0. " \
-                        "Please set the same value to `RubySaml::Settings##{new_param}` instead."
+      Logging.deprecate "`RubySaml::Settings##{old_param}` is deprecated and has been renamed to `#{new_param}`. " \
+                        "Please replace it 1-for-1 in your code. `#{old_param}` will be removed in RubySaml 3.0.0."
     end
 
     # @deprecated Will be removed in v2.1.0

@@ -77,11 +77,11 @@ module RubySaml
     end
 
     def add_sp_service_elements(sp_sso, settings)
-      if settings.single_logout_service_url
+      if settings.sp_slo_service_url
         sp_sso.add_element "md:SingleLogoutService", {
-            "Binding" => settings.single_logout_service_binding,
-            "Location" => settings.single_logout_service_url,
-            "ResponseLocation" => settings.single_logout_service_url
+            "Binding" => settings.sp_slo_service_binding,
+            "Location" => settings.sp_slo_service_url,
+            "ResponseLocation" => settings.sp_slo_service_url
         }
       end
 
@@ -90,10 +90,10 @@ module RubySaml
         nameid.text = settings.name_identifier_format
       end
 
-      if settings.assertion_consumer_service_url
+      if settings.sp_assertion_consumer_service_url
         sp_sso.add_element "md:AssertionConsumerService", {
-            "Binding" => settings.assertion_consumer_service_binding,
-            "Location" => settings.assertion_consumer_service_url,
+            "Binding" => settings.sp_assertion_consumer_service_binding,
+            "Location" => settings.sp_assertion_consumer_service_url,
             "isDefault" => true,
             "index" => 0
         }
