@@ -10,6 +10,7 @@
 * [#695](https://github.com/SAML-Toolkits/ruby-saml/pull/695) Deprecate `settings.compress_request` and `settings.compess_response` parameters.
 * [#690](https://github.com/SAML-Toolkits/ruby-saml/pull/690) Remove deprecated `settings.security[:embed_sign]` parameter.
 * [#697](https://github.com/SAML-Toolkits/ruby-saml/pull/697) Add deprecation for various parameters in `RubySaml::Settings`.
+* [#709](https://github.com/SAML-Toolkits/ruby-saml/pull/709) Allow passing in `Net::HTTP` `:open_timeout`, `:read_timeout`, and `:max_retries` settings to `IdpMetadataParser#parse_remote`.
 
 ### 1.17.0
 * [#687](https://github.com/SAML-Toolkits/ruby-saml/pull/687) Add CI coverage for Ruby 3.3 and Windows.

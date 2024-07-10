@@ -329,11 +329,73 @@ class IdpMetadataParserTest < Minitest::Test
       assert_equal OpenSSL::SSL::VERIFY_PEER, @http.verify_mode
     end
 
-    it "accept self signed certificate if insturcted" do
+    it "accept self signed certificate if instructed" do
       idp_metadata_parser = RubySaml::IdpMetadataParser.new
       idp_metadata_parser.parse_remote(@url, false)
 
       assert_equal OpenSSL::SSL::VERIFY_NONE, @http.verify_mode
+    end
+
+    it 'allows setting HTTP options on the request' do
+      refute_equal 2, @http.open_timeout
+      refute_equal 3, @http.read_timeout
+      refute_equal 4, @http.max_retries
+
+      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata_parser.parse_remote(@url, true, open_timeout: 2, read_timeout: 3, max_retries: 4)
+
+      assert_equal 2, @http.open_timeout
+      assert_equal 3, @http.read_timeout
+      assert_equal 4, @http.max_retries
+    end
+  end
+
+  describe "download and parse IdP descriptor file into an Array" do
+    before do
+      mock_response = MockSuccessResponse.new
+      mock_response.body = idp_metadata_descriptor
+      @url = "https://example.com"
+      uri = URI(@url)
+
+      @http = Net::HTTP.new(uri.host, uri.port)
+      Net::HTTP.expects(:new).returns(@http)
+      @http.expects(:request).returns(mock_response)
+    end
+
+    it "extract settings from remote xml" do
+      idp_metadata_parser = RubySaml::IdpMetadataParser.new
+      parsed_metadata = idp_metadata_parser.parse_remote_to_array(@url).first
+
+      assert_equal "https://hello.example.com/access/saml/idp.xml", parsed_metadata[:idp_entity_id]
+      assert_equal "https://hello.example.com/access/saml/login", parsed_metadata[:idp_sso_service_url]
+      assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", parsed_metadata[:idp_sso_service_binding]
+      assert_equal "C4:C6:BD:41:EC:AD:57:97:CE:7B:7D:80:06:C3:E4:30:53:29:02:0B:DD:2D:47:02:9E:BD:85:AD:93:02:45:21", parsed_metadata[:idp_cert_fingerprint]
+      assert_equal "https://hello.example.com/access/saml/logout", parsed_metadata[:idp_slo_service_url]
+      assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", parsed_metadata[:idp_slo_service_binding]
+      assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified", parsed_metadata[:name_identifier_format]
+      assert_equal ["AuthToken", "SSOStartPage"], parsed_metadata[:idp_attribute_names]
+      assert_equal '2014-04-17T18:02:33.910Z', parsed_metadata[:valid_until]
+      assert_equal OpenSSL::SSL::VERIFY_PEER, @http.verify_mode
+    end
+
+    it "accept self signed certificate if instructed" do
+      idp_metadata_parser = RubySaml::IdpMetadataParser.new
+      idp_metadata_parser.parse_remote_to_array(@url, false)
+
+      assert_equal OpenSSL::SSL::VERIFY_NONE, @http.verify_mode
+    end
+
+    it 'allows setting HTTP options on the request' do
+      refute_equal 2, @http.open_timeout
+      refute_equal 3, @http.read_timeout
+      refute_equal 4, @http.max_retries
+
+      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata_parser.parse_remote_to_array(@url, true, open_timeout: 2, read_timeout: 3, max_retries: 4)
+
+      assert_equal 2, @http.open_timeout
+      assert_equal 3, @http.read_timeout
+      assert_equal 4, @http.max_retries
     end
   end
 
@@ -365,11 +427,24 @@ class IdpMetadataParserTest < Minitest::Test
       assert_equal OpenSSL::SSL::VERIFY_PEER, @http.verify_mode
     end
 
-    it "accept self signed certificate if insturcted" do
+    it "accept self signed certificate if instructed" do
       idp_metadata_parser = RubySaml::IdpMetadataParser.new
       idp_metadata_parser.parse_remote_to_hash(@url, false)
 
       assert_equal OpenSSL::SSL::VERIFY_NONE, @http.verify_mode
+    end
+
+    it 'allows setting HTTP options on the request' do
+      refute_equal 2, @http.open_timeout
+      refute_equal 3, @http.read_timeout
+      refute_equal 4, @http.max_retries
+
+      idp_metadata_parser = OneLogin::RubySaml::IdpMetadataParser.new
+      idp_metadata_parser.parse_remote_to_hash(@url, true, open_timeout: 2, read_timeout: 3, max_retries: 4)
+
+      assert_equal 2, @http.open_timeout
+      assert_equal 3, @http.read_timeout
+      assert_equal 4, @http.max_retries
     end
   end
 

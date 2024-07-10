@@ -61,12 +61,15 @@ module RubySaml
     # @option options [String, Array<String>, nil] :sso_binding an ordered list of bindings to detect the single signon URL. The first binding in the list that is included in the metadata will be used.
     # @option options [String, Array<String>, nil] :slo_binding an ordered list of bindings to detect the single logout URL. The first binding in the list that is included in the metadata will be used.
     # @option options [String, Array<String>, nil] :name_id_format an ordered list of NameIDFormats to detect a desired value. The first NameIDFormat in the list that is included in the metadata will be used.
+    # @option options [Numeric, nil] :open_timeout Number of seconds to wait for the connection to open. See Net::HTTP#open_timeout for more info. Default is the Net::HTTP default.
+    # @option options [Numeric, nil] :read_timeout Number of seconds to wait for one block to be read. See Net::HTTP#read_timeout for more info. Default is the Net::HTTP default.
+    # @option options [Integer, nil] :max_retries Maximum number of times to retry the request on certain errors. See Net::HTTP#max_retries= for more info. Default is the Net::HTTP default.
     #
     # @return [RubySaml::Settings]
     #
     # @raise [HttpError] Failure to fetch remote IdP metadata
     def parse_remote(url, validate_cert = true, options = {})
-      idp_metadata = get_idp_metadata(url, validate_cert)
+      idp_metadata = get_idp_metadata(url, validate_cert, options)
       parse(idp_metadata, options)
     end
 
@@ -80,6 +83,9 @@ module RubySaml
     # @option options [String, Array<String>, nil] :sso_binding an ordered list of bindings to detect the single signon URL. The first binding in the list that is included in the metadata will be used.
     # @option options [String, Array<String>, nil] :slo_binding an ordered list of bindings to detect the single logout URL. The first binding in the list that is included in the metadata will be used.
     # @option options [String, Array<String>, nil] :name_id_format an ordered list of NameIDFormats to detect a desired value. The first NameIDFormat in the list that is included in the metadata will be used.
+    # @option options [Numeric, nil] :open_timeout Number of seconds to wait for the connection to open. See Net::HTTP#open_timeout for more info. Default is the Net::HTTP default.
+    # @option options [Numeric, nil] :read_timeout Number of seconds to wait for one block to be read. See Net::HTTP#read_timeout for more info. Default is the Net::HTTP default.
+    # @option options [Integer, nil] :max_retries Maximum number of times to retry the request on certain errors. See Net::HTTP#max_retries= for more info. Default is the Net::HTTP default.
     #
     # @return [Hash]
     #
@@ -98,12 +104,15 @@ module RubySaml
     # @option options [String, Array<String>, nil] :sso_binding an ordered list of bindings to detect the single signon URL. The first binding in the list that is included in the metadata will be used.
     # @option options [String, Array<String>, nil] :slo_binding an ordered list of bindings to detect the single logout URL. The first binding in the list that is included in the metadata will be used.
     # @option options [String, Array<String>, nil] :name_id_format an ordered list of NameIDFormats to detect a desired value. The first NameIDFormat in the list that is included in the metadata will be used.
+    # @option options [Numeric, nil] :open_timeout Number of seconds to wait for the connection to open. See Net::HTTP#open_timeout for more info. Default is the Net::HTTP default.
+    # @option options [Numeric, nil] :read_timeout Number of seconds to wait for one block to be read. See Net::HTTP#read_timeout for more info. Default is the Net::HTTP default.
+    # @option options [Integer, nil] :max_retries Maximum number of times to retry the request on certain errors. See Net::HTTP#max_retries= for more info. Default is the Net::HTTP default.
     #
     # @return [Array<Hash>]
     #
     # @raise [HttpError] Failure to fetch remote IdP metadata
     def parse_remote_to_array(url, validate_cert = true, options = {})
-      idp_metadata = get_idp_metadata(url, validate_cert)
+      idp_metadata = get_idp_metadata(url, validate_cert, options)
       parse_to_array(idp_metadata, options)
     end
 
@@ -188,9 +197,13 @@ module RubySaml
     # Retrieve the remote IdP metadata from the URL or a cached copy.
     # @param url [String] Url where the XML of the Identity Provider Metadata is published.
     # @param validate_cert [Boolean] If true and the URL is HTTPs, the cert of the domain is checked.
+    # @param options [Hash] Options used for requesting the remote URL
+    # @option options [Numeric, nil] :open_timeout Number of seconds to wait for the connection to open. See Net::HTTP#open_timeout for more info. Default is the Net::HTTP default.
+    # @option options [Numeric, nil] :read_timeout Number of seconds to wait for one block to be read. See Net::HTTP#read_timeout for more info. Default is the Net::HTTP default.
+    # @option options [Integer, nil] :max_retries Maximum number of times to retry the request on certain errors. See Net::HTTP#max_retries= for more info. Default is the Net::HTTP default.
     # @return [REXML::document] Parsed XML IdP metadata
     # @raise [HttpError] Failure to fetch remote IdP metadata
-    def get_idp_metadata(url, validate_cert)
+    def get_idp_metadata(url, validate_cert, options = {})
       uri = URI.parse(url)
       raise ArgumentError.new("url must begin with http or https") unless /^https?/.match?(uri.scheme)
       http = Net::HTTP.new(uri.host, uri.port)
@@ -200,6 +213,10 @@ module RubySaml
         # Most IdPs will probably use self signed certs
         http.verify_mode = validate_cert ? OpenSSL::SSL::VERIFY_PEER : OpenSSL::SSL::VERIFY_NONE
       end
+
+      http.open_timeout = options[:open_timeout] if options[:open_timeout]
+      http.read_timeout = options[:read_timeout] if options[:read_timeout]
+      http.max_retries = options[:max_retries] if options[:max_retries]
 
       get = Net::HTTP::Get.new(uri.request_uri)
       get.basic_auth uri.user, uri.password if uri.user
