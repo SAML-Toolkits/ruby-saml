@@ -12,8 +12,8 @@ class SloLogoutresponseTest < Minitest::Test
       settings.idp_entity_id = 'https://app.onelogin.com/saml/metadata/SOMEACCOUNT'
       settings.idp_slo_service_url = "http://unauth.com/logout"
       settings.name_identifier_value = "f00f00"
-      settings.certificate = ruby_saml_cert_text
-      settings.private_key = ruby_saml_key_text
+      settings.sp_cert = ruby_saml_cert_text
+      settings.sp_private_key = ruby_saml_key_text
       logout_request.settings = settings
     end
 
@@ -176,8 +176,8 @@ class SloLogoutresponseTest < Minitest::Test
       end
 
       it "create a signed logout response using the first certificate and key" do
-        settings.certificate = nil
-        settings.private_key = nil
+        settings.sp_cert = nil
+        settings.sp_private_key = nil
         settings.sp_cert_multi = {
           signing: [
             { certificate: ruby_saml_cert_text, private_key: ruby_saml_key_text },
@@ -195,8 +195,8 @@ class SloLogoutresponseTest < Minitest::Test
       end
 
       it "create a signed logout response using the first valid certificate and key when :check_sp_cert_expiration is true" do
-        settings.certificate = nil
-        settings.private_key = nil
+        settings.sp_cert = nil
+        settings.sp_private_key = nil
         settings.security[:check_sp_cert_expiration] = true
         settings.sp_cert_multi = {
           signing: [
@@ -310,8 +310,8 @@ class SloLogoutresponseTest < Minitest::Test
 
       it "create a signature parameter using the first certificate and key" do
         settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
-        settings.certificate = nil
-        settings.private_key = nil
+        settings.sp_cert = nil
+        settings.sp_private_key = nil
         settings.sp_cert_multi = {
           signing: [
             { certificate: ruby_saml_cert_text, private_key: ruby_saml_key_text },

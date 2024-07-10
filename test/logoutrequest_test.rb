@@ -114,8 +114,8 @@ class RequestTest < Minitest::Test
         settings.security[:logout_requests_signed] = true
         settings.idp_slo_service_binding = :post
         settings.idp_sso_service_binding = :redirect
-        settings.certificate = ruby_saml_cert_text
-        settings.private_key = ruby_saml_key_text
+        settings.sp_cert = ruby_saml_cert_text
+        settings.sp_private_key = ruby_saml_key_text
       end
 
       it "doesn't sign through create_xml_document" do
@@ -185,8 +185,8 @@ class RequestTest < Minitest::Test
       end
 
       it "create a signed logout request using the first certificate and key" do
-        settings.certificate = nil
-        settings.private_key = nil
+        settings.sp_cert = nil
+        settings.sp_private_key = nil
         settings.sp_cert_multi = {
           signing: [
             { certificate: ruby_saml_cert_text, private_key: ruby_saml_key_text },
@@ -203,8 +203,8 @@ class RequestTest < Minitest::Test
       end
 
       it "create a signed logout request using the first valid certificate and key when :check_sp_cert_expiration is true" do
-        settings.certificate = nil
-        settings.private_key = nil
+        settings.sp_cert = nil
+        settings.sp_private_key = nil
         settings.security[:check_sp_cert_expiration] = true
         settings.sp_cert_multi = {
           signing: [
@@ -238,8 +238,8 @@ class RequestTest < Minitest::Test
         settings.security[:logout_requests_signed] = true
         settings.idp_slo_service_binding = :redirect
         settings.idp_sso_service_binding = :post
-        settings.certificate = ruby_saml_cert_text
-        settings.private_key = ruby_saml_key_text
+        settings.sp_cert = ruby_saml_cert_text
+        settings.sp_private_key = ruby_saml_key_text
       end
 
       it "create a signature parameter with RSA_SHA1 / SHA1 and validate it" do
@@ -310,8 +310,8 @@ class RequestTest < Minitest::Test
 
       it "create a signature parameter using the first certificate and key" do
         settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
-        settings.certificate = nil
-        settings.private_key = nil
+        settings.sp_cert = nil
+        settings.sp_private_key = nil
         settings.sp_cert_multi = {
           signing: [
             { certificate: ruby_saml_cert_text, private_key: ruby_saml_key_text },
