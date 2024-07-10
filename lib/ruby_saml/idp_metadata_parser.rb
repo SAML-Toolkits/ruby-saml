@@ -8,7 +8,6 @@ require "rexml/xpath"
 
 # Only supports SAML 2.0
 module RubySaml
-  include REXML
 
   # Auxiliary class to retrieve and parse the Identity Provider Metadata
   #

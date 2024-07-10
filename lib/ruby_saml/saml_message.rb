@@ -15,7 +15,6 @@ module RubySaml
   # SAML2 Message
   #
   class SamlMessage
-    include REXML
 
     ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion"
     PROTOCOL  = "urn:oasis:names:tc:SAML:2.0:protocol"
