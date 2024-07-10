@@ -10,7 +10,7 @@ require 'digest/sha2'
 module RubySaml
   module XML
     class BaseDocument < REXML::Document
-      REXML::Document.entity_expansion_limit = 0
+      REXML::Security.entity_expansion_limit = 0
 
       C14N = 'http://www.w3.org/2001/10/xml-exc-c14n#'
       DSIG = 'http://www.w3.org/2000/09/xmldsig#'
