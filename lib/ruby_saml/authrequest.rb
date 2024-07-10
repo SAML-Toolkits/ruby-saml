@@ -9,7 +9,6 @@ require "ruby_saml/setting_error"
 
 # Only supports SAML 2.0
 module RubySaml
-  include REXML
 
   # SAML2 Authentication. AuthNRequest (SSO SP initiated, Builder)
   #
