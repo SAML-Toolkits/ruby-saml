@@ -3,7 +3,7 @@ require_relative 'test_helper'
 require 'ruby_saml/authrequest'
 require 'ruby_saml/setting_error'
 
-class RequestTest < Minitest::Test
+class AuthrequestTest < Minitest::Test
 
   describe "Authrequest" do
     let(:settings) { RubySaml::Settings.new }
@@ -27,8 +27,6 @@ class RequestTest < Minitest::Test
     end
 
     it "create the deflated SAMLRequest URL parameter including the Destination" do
-      skip "This test fails on this specific JRuby version" if defined?(JRUBY_VERSION) && JRUBY_VERSION == "9.2.17.0"
-
       auth_url = RubySaml::Authrequest.new.create(settings)
       payload  = CGI.unescape(auth_url.split("=").last)
       decoded  = Base64.decode64(payload)
@@ -240,159 +238,6 @@ class RequestTest < Minitest::Test
       assert_match(/<saml:AuthnContextDeclRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport<\/saml:AuthnContextDeclRef>/, auth_doc.to_s)
     end
 
-    describe "#create_params signing with HTTP-POST binding" do
-      before do
-        settings.idp_sso_service_url = "http://example.com?field=value"
-        settings.idp_sso_service_binding = :post
-        settings.security[:authn_requests_signed] = true
-        settings.certificate = ruby_saml_cert_text
-        settings.private_key = ruby_saml_key_text
-      end
-
-      it "create a signed request" do
-        params = RubySaml::Authrequest.new.create_params(settings)
-        request_xml = Base64.decode64(params["SAMLRequest"])
-        assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], request_xml
-        assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], request_xml
-      end
-
-      it "create a signed request with 256 digest and signature methods" do
-        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA256
-        settings.security[:digest_method] = RubySaml::XML::Document::SHA512
-
-        params = RubySaml::Authrequest.new.create_params(settings)
-
-        request_xml = Base64.decode64(params["SAMLRequest"])
-        assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], request_xml
-        assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], request_xml
-        assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmlenc#sha512'/>], request_xml
-      end
-
-      it "creates a signed request using the first certificate and key" do
-        settings.certificate = nil
-        settings.private_key = nil
-        settings.sp_cert_multi = {
-          signing: [
-            { certificate: ruby_saml_cert_text, private_key: ruby_saml_key_text },
-            CertificateHelper.generate_pair_hash
-          ]
-        }
-
-        params = RubySaml::Authrequest.new.create_params(settings)
-
-        request_xml = Base64.decode64(params["SAMLRequest"])
-        assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], request_xml
-        assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], request_xml
-      end
-
-      it "creates a signed request using the first valid certificate and key when :check_sp_cert_expiration is true" do
-        settings.certificate = nil
-        settings.private_key = nil
-        settings.security[:check_sp_cert_expiration] = true
-        settings.sp_cert_multi = {
-          signing: [
-            { certificate: ruby_saml_cert_text, private_key: ruby_saml_key_text },
-            CertificateHelper.generate_pair_hash
-          ]
-        }
-
-        params = RubySaml::Authrequest.new.create_params(settings)
-
-        request_xml = Base64.decode64(params["SAMLRequest"])
-        assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>], request_xml
-        assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], request_xml
-      end
-
-      it "raises error when no valid certs and :check_sp_cert_expiration is true" do
-        settings.security[:check_sp_cert_expiration] = true
-
-        assert_raises(RubySaml::ValidationError, 'The SP certificate expired.') do
-          RubySaml::Authrequest.new.create_params(settings)
-        end
-      end
-    end
-
-    describe "#create_params signing with HTTP-Redirect binding" do
-      let(:cert) { OpenSSL::X509::Certificate.new(ruby_saml_cert_text) }
-
-      before do
-        settings.idp_sso_service_url = "http://example.com?field=value"
-        settings.idp_sso_service_binding = :redirect
-        settings.assertion_consumer_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST-SimpleSign"
-        settings.security[:authn_requests_signed] = true
-        settings.certificate = ruby_saml_cert_text
-        settings.private_key = ruby_saml_key_text
-      end
-
-      it "create a signature parameter with RSA_SHA1 and validate it" do
-        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
-
-        params = RubySaml::Authrequest.new.create_params(settings, :RelayState => 'http://example.com')
-        assert params['SAMLRequest']
-        assert params[:RelayState]
-        assert params['Signature']
-        assert_equal params['SigAlg'], RubySaml::XML::Document::RSA_SHA1
-
-        query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
-        query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
-        query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
-
-        signature_algorithm = RubySaml::XML::BaseDocument.new.algorithm(params['SigAlg'])
-        assert_equal signature_algorithm, OpenSSL::Digest::SHA1
-        assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
-      end
-
-      it "create a signature parameter with RSA_SHA256 and validate it" do
-        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA256
-
-        params = RubySaml::Authrequest.new.create_params(settings, :RelayState => 'http://example.com')
-        assert params['Signature']
-        assert_equal params['SigAlg'], RubySaml::XML::Document::RSA_SHA256
-
-        query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
-        query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
-        query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
-
-        signature_algorithm = RubySaml::XML::BaseDocument.new.algorithm(params['SigAlg'])
-        assert_equal signature_algorithm, OpenSSL::Digest::SHA256
-        assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
-      end
-
-      it "create a signature parameter using the first certificate and key" do
-        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
-        settings.certificate = nil
-        settings.private_key = nil
-        settings.sp_cert_multi = {
-          signing: [
-            { certificate: ruby_saml_cert_text, private_key: ruby_saml_key_text },
-            CertificateHelper.generate_pair_hash
-          ]
-        }
-
-        params = RubySaml::Authrequest.new.create_params(settings, :RelayState => 'http://example.com')
-        assert params['SAMLRequest']
-        assert params[:RelayState]
-        assert params['Signature']
-        assert_equal params['SigAlg'], RubySaml::XML::Document::RSA_SHA1
-
-        query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
-        query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
-        query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
-
-        signature_algorithm = RubySaml::XML::BaseDocument.new.algorithm(params['SigAlg'])
-        assert_equal signature_algorithm, OpenSSL::Digest::SHA1
-        assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
-      end
-
-      it "raises error when no valid certs and :check_sp_cert_expiration is true" do
-        settings.security[:check_sp_cert_expiration] = true
-
-        assert_raises(RubySaml::ValidationError, 'The SP certificate expired.') do
-          RubySaml::Authrequest.new.create_params(settings, :RelayState => 'http://example.com')
-        end
-      end
-    end
-
     it "create the saml:AuthnContextClassRef element correctly" do
       settings.authn_context = 'secure/name/password/uri'
       auth_doc = RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
@@ -435,6 +280,198 @@ class RequestTest < Minitest::Test
         authnrequest.uuid = "new_uuid"
         assert_equal authnrequest.request_id, authnrequest.uuid
         assert_equal "new_uuid", authnrequest.request_id
+      end
+    end
+
+    each_signature_algorithm do |sp_key_algo, sp_hash_algo|
+      describe "#create_params signing with HTTP-POST binding" do
+        before do
+          settings.idp_sso_service_url = "http://example.com?field=value"
+          settings.idp_sso_service_binding = :post
+          settings.security[:authn_requests_signed] = true
+          settings.certificate, settings.private_key = CertificateHelper.generate_pem_array(sp_key_algo)
+          settings.security[:signature_method] = signature_method(sp_key_algo, sp_hash_algo)
+          settings.security[:digest_method] = digest_method(sp_hash_algo)
+        end
+
+        it "create a signed request" do
+          params = RubySaml::Authrequest.new.create_params(settings)
+          request_xml = Base64.decode64(params["SAMLRequest"])
+
+          assert_match(signature_value_matcher, request_xml)
+          assert_match(signature_method_matcher(sp_key_algo, sp_hash_algo), request_xml)
+          assert_match(digest_method_matcher(sp_hash_algo), request_xml)
+        end
+
+        unless sp_hash_algo == :sha256
+          it 'using mixed signature and digest methods (signature SHA256)' do
+            # RSA is ignored here; only the hash sp_key_algo is used
+            settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA256
+            params = RubySaml::Authrequest.new.create_params(settings)
+            request_xml = Base64.decode64(params["SAMLRequest"])
+
+            assert_match(signature_value_matcher, request_xml)
+            assert_match(signature_method_matcher(sp_key_algo, :sha256), request_xml)
+            assert_match(digest_method_matcher(sp_hash_algo), request_xml)
+          end
+
+          it 'using mixed signature and digest methods (digest SHA256)' do
+            settings.security[:digest_method] = RubySaml::XML::Document::SHA256
+            params = RubySaml::Authrequest.new.create_params(settings)
+            request_xml = Base64.decode64(params["SAMLRequest"])
+
+            assert_match(signature_value_matcher, request_xml)
+            assert_match(signature_method_matcher(sp_key_algo, sp_hash_algo), request_xml)
+            assert_match(digest_method_matcher(:sha256), request_xml)
+          end
+        end
+
+        it "creates a signed request using the first certificate and key" do
+          settings.certificate = nil
+          settings.private_key = nil
+          settings.sp_cert_multi = {
+            signing: [
+              CertificateHelper.generate_pem_hash(sp_key_algo),
+              CertificateHelper.generate_pem_hash
+            ]
+          }
+          params = RubySaml::Authrequest.new.create_params(settings)
+          request_xml = Base64.decode64(params["SAMLRequest"])
+
+          assert_match(signature_value_matcher, request_xml)
+          assert_match(signature_method_matcher(sp_key_algo, sp_hash_algo), request_xml)
+          assert_match(digest_method_matcher(sp_hash_algo), request_xml)
+        end
+
+        it "creates a signed request using the first valid certificate and key when :check_sp_cert_expiration is true" do
+          settings.certificate = nil
+          settings.private_key = nil
+          settings.security[:check_sp_cert_expiration] = true
+          settings.sp_cert_multi = {
+            signing: [
+              CertificateHelper.generate_pem_hash(sp_key_algo),
+              CertificateHelper.generate_pem_hash
+            ]
+          }
+          params = RubySaml::Authrequest.new.create_params(settings)
+          request_xml = Base64.decode64(params["SAMLRequest"])
+
+          assert_match(signature_value_matcher, request_xml)
+          assert_match(signature_method_matcher(sp_key_algo, sp_hash_algo), request_xml)
+          assert_match(digest_method_matcher(sp_hash_algo), request_xml)
+        end
+
+        it "raises error when no valid certs and :check_sp_cert_expiration is true" do
+          settings.certificate, settings.private_key = CertificateHelper.generate_pem_array(sp_key_algo, not_after: Time.now - 60)
+          settings.security[:check_sp_cert_expiration] = true
+
+          assert_raises(RubySaml::ValidationError, 'The SP certificate expired.') do
+            RubySaml::Authrequest.new.create_params(settings)
+          end
+        end
+      end
+    end
+
+    each_signature_algorithm do |sp_key_algo, sp_hash_algo|
+      describe "#create_params signing with HTTP-Redirect binding" do
+        let(:cert) { OpenSSL::X509::Certificate.new(ruby_saml_cert_text) }
+
+        before do
+          settings.idp_sso_service_url = "http://example.com?field=value"
+          settings.idp_sso_service_binding = :redirect
+          settings.assertion_consumer_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST-SimpleSign"
+          settings.security[:authn_requests_signed] = true
+          @cert, @pkey = CertificateHelper.generate_pair(sp_key_algo)
+          settings.certificate, settings.private_key = [@cert, @pkey].map(&:to_pem)
+          settings.security[:signature_method] = signature_method(sp_key_algo, sp_hash_algo)
+          settings.security[:digest_method] = digest_method(sp_hash_algo)
+        end
+
+        it "create a signature parameter and validate it" do
+          params = RubySaml::Authrequest.new.create_params(settings, :RelayState => 'http://example.com')
+
+          assert params['SAMLRequest']
+          assert params[:RelayState]
+          assert params['Signature']
+          assert_equal params['SigAlg'], signature_method(sp_key_algo, sp_hash_algo)
+
+          query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
+          query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
+          query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
+
+          assert @cert.public_key.verify(RubySaml::XML::Crypto.hash_algorithm(params['SigAlg']).new, Base64.decode64(params['Signature']), query_string)
+        end
+
+        unless sp_hash_algo == :sha256
+          it 'using mixed signature and digest methods (signature SHA256)' do
+            # RSA is ignored here; only the hash sp_key_algo is used
+            settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA256
+            params = RubySaml::Authrequest.new.create_params(settings, :RelayState => 'http://example.com')
+
+            assert params['SAMLRequest']
+            assert params[:RelayState]
+            assert params['Signature']
+            assert_equal params['SigAlg'], signature_method(sp_key_algo, :sha256)
+
+            query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
+            query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
+            query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
+
+            assert @cert.public_key.verify(RubySaml::XML::Crypto.hash_algorithm(params['SigAlg']).new, Base64.decode64(params['Signature']), query_string)
+          end
+
+          it 'using mixed signature and digest methods (digest SHA256)' do
+            settings.security[:digest_method] = RubySaml::XML::Document::SHA256
+            params = RubySaml::Authrequest.new.create_params(settings, :RelayState => 'http://example.com')
+
+            assert params['SAMLRequest']
+            assert params[:RelayState]
+            assert params['Signature']
+            assert_equal params['SigAlg'], signature_method(sp_key_algo, sp_hash_algo)
+
+            query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
+            query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
+            query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
+
+            assert @cert.public_key.verify(RubySaml::XML::Crypto.hash_algorithm(params['SigAlg']).new, Base64.decode64(params['Signature']), query_string)
+          end
+        end
+
+        it "create a signature parameter using the first certificate and key" do
+          settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
+          settings.certificate = nil
+          settings.private_key = nil
+          cert, pkey = CertificateHelper.generate_pair(sp_key_algo)
+          settings.sp_cert_multi = {
+            signing: [
+              { certificate: cert.to_pem, private_key: pkey.to_pem },
+              CertificateHelper.generate_pem_hash
+            ]
+          }
+
+          params = RubySaml::Authrequest.new.create_params(settings, :RelayState => 'http://example.com')
+          assert params['SAMLRequest']
+          assert params[:RelayState]
+          assert params['Signature']
+          assert_equal params['SigAlg'], signature_method(sp_key_algo, :sha1)
+
+          query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
+          query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
+          query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
+
+          signature_algorithm = RubySaml::XML::Crypto.hash_algorithm(params['SigAlg'])
+          assert_equal signature_algorithm, OpenSSL::Digest::SHA1
+          assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
+        end
+
+        it "raises error when no valid certs and :check_sp_cert_expiration is true" do
+          settings.certificate, settings.private_key = CertificateHelper.generate_pem_array(sp_key_algo, not_after: Time.now - 60)
+          settings.security[:check_sp_cert_expiration] = true
+
+          assert_raises(RubySaml::ValidationError, 'The SP certificate expired.') do
+            RubySaml::Authrequest.new.create_params(settings, :RelayState => 'http://example.com')
+          end
+        end
       end
     end
   end

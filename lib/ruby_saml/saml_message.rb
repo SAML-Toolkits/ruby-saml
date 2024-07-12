@@ -133,11 +133,7 @@ module RubySaml
     # @return [String] The encoded string
     #
     def encode(string)
-      if Base64.respond_to?(:strict_encode64)
-        Base64.strict_encode64(string)
-      else
-        Base64.encode64(string).gsub(/\n/, "")
-      end
+      Base64.strict_encode64(string)
     end
 
     # Check if a string is base64 encoded

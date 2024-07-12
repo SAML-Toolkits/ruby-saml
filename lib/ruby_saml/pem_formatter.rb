@@ -106,7 +106,7 @@ module RubySaml
 
     # Returns a regexp which can be used to loosely match unformatted PEM(s) in a string.
     def pem_scan_regexp(label = nil)
-      base64 = '[A-Za-z\d+/\s]*[A-Za-z\d+]+[A-Za-z\d+/\s]*=?\s*=?\s*'
+      base64 = '[A-Za-z\d+/\s]*[A-Za-z\d+][A-Za-z\d+/\s]*=?\s*=?\s*'
       /#{pem_scan_header('BEGIN', label)}#{base64}#{pem_scan_header('END', label)}/m
     end
 

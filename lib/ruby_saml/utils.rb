@@ -124,14 +124,21 @@ module RubySaml
       OpenSSL::X509::Certificate.new(pem)
     end
 
-    # Given a private key string, return an OpenSSL::PKey::RSA object.
+    # Given a private key string, return an OpenSSL::PKey::PKey object.
     #
     # @param pem [String] The original private key.
-    # @return [OpenSSL::PKey::RSA] The private key object.
+    # @return [OpenSSL::PKey::PKey] The private key object.
     def build_private_key_object(pem)
       return unless (pem = PemFormatter.format_private_key(pem, multi: false))
 
-      OpenSSL::PKey::RSA.new(pem)
+      error = nil
+      private_key_classes(pem).each do |key_class|
+        return key_class.new(pem)
+      rescue OpenSSL::PKey::PKeyError => e
+        error ||= e
+      end
+
+      raise error
     end
 
     # Build the Query String signature that will be used in the HTTP-Redirect binding
@@ -212,8 +219,8 @@ module RubySaml
     # @return [Boolean] True if the Signature is valid, False otherwise
     #
     def verify_signature(params)
-      cert, sig_alg, signature, query_string = %i[cert sig_alg signature query_string].map { |k| params[k]}
-      signature_algorithm = RubySaml::XML::BaseDocument.new.algorithm(sig_alg)
+      cert, sig_alg, signature, query_string = params.values_at(:cert, :sig_alg, :signature, :query_string)
+      signature_algorithm = RubySaml::XML::Crypto.hash_algorithm(sig_alg)
       cert.public_key.verify(signature_algorithm.new, Base64.decode64(signature), query_string)
     end
 
@@ -243,10 +250,14 @@ module RubySaml
     # Obtains the decrypted string from an Encrypted node element in XML,
     # given multiple private keys to try.
     # @param encrypted_node [REXML::Element] The Encrypted element
-    # @param private_keys [Array<OpenSSL::PKey::RSA>] The Service provider private key
+    # @param private_keys [Array<OpenSSL::PKey::RSA>] The SP private key
     # @return [String] The decrypted data
     def decrypt_multi(encrypted_node, private_keys)
       raise ArgumentError.new('private_keys must be specified') if !private_keys || private_keys.empty?
+
+      if private_keys.none?(OpenSSL::PKey::RSA)
+        raise ArgumentError.new('private_keys must be OpenSSL::PKey::RSA keys')
+      end
 
       error = nil
       private_keys.each do |key|
@@ -260,7 +271,7 @@ module RubySaml
 
     # Obtains the decrypted string from an Encrypted node element in XML
     # @param encrypted_node [REXML::Element] The Encrypted element
-    # @param private_key [OpenSSL::PKey::RSA] The Service provider private key
+    # @param private_key [OpenSSL::PKey::RSA] The SP private key
     # @return [String] The decrypted data
     def decrypt_data(encrypted_node, private_key)
       encrypt_data = REXML::XPath.first(
@@ -286,7 +297,7 @@ module RubySaml
 
     # Obtains the symmetric key from the EncryptedData element
     # @param encrypt_data [REXML::Element]     The EncryptedData element
-    # @param private_key [OpenSSL::PKey::RSA] The Service provider private key
+    # @param private_key [OpenSSL::PKey::RSA] The SP private key
     # @return [String] The symmetric key
     def retrieve_symmetric_key(encrypt_data, private_key)
       encrypted_key = REXML::XPath.first(
@@ -409,6 +420,17 @@ module RubySaml
     # passed, nil will be returned.
     def element_text(element)
       element.texts.map(&:value).join if element
+    end
+
+    # Given a private key PEM string, return an array of OpenSSL::PKey::PKey classes
+    # that can be used to parse it, with the most likely match first.
+    def private_key_classes(pem)
+      priority = case pem.match(/(RSA|ECDSA|EC|DSA) PRIVATE KEY/)&.[](1)
+                 when 'RSA' then OpenSSL::PKey::RSA
+                 when 'DSA' then OpenSSL::PKey::DSA
+                 when 'ECDSA', 'EC' then OpenSSL::PKey::EC
+                 end
+      Array(priority) | [OpenSSL::PKey::RSA, OpenSSL::PKey::DSA, OpenSSL::PKey::EC]
     end
   end
 end

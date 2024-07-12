@@ -100,8 +100,8 @@ class SettingsTest < Minitest::Test
 
       new_settings = RubySaml::Settings.new
       assert_equal new_settings.security[:authn_requests_signed], false
-      assert_equal new_settings.security[:digest_method], RubySaml::XML::Document::SHA256
-      assert_equal new_settings.security[:signature_method], RubySaml::XML::Document::RSA_SHA256
+      assert_equal new_settings.get_sp_digest_method, RubySaml::XML::Document::SHA256
+      assert_equal new_settings.get_sp_signature_method, RubySaml::XML::Document::RSA_SHA256
     end
 
     it "overrides only provided security attributes passing a second parameter" do
@@ -308,80 +308,111 @@ class SettingsTest < Minitest::Test
 
     describe "#get_sp_cert" do
       it "returns nil when the cert is an empty string" do
-        @settings.certificate = ""
+        @settings.certificate = ''
+
         assert_nil @settings.get_sp_cert
       end
 
       it "returns nil when the cert is nil" do
         @settings.certificate = nil
+
         assert_nil @settings.get_sp_cert
       end
 
       it "returns the certificate when it is valid" do
         @settings.certificate = ruby_saml_cert_text
+
         assert @settings.get_sp_cert.kind_of? OpenSSL::X509::Certificate
       end
 
       it "raises when the certificate is not valid" do
         # formatted but invalid cert
         @settings.certificate = read_certificate("formatted_certificate")
+
         assert_raises(OpenSSL::X509::CertificateError) { @settings.get_sp_cert }
       end
 
       it "raises an error if SP certificate expired and check_sp_cert_expiration enabled" do
         @settings.certificate = ruby_saml_cert_text
         @settings.security[:check_sp_cert_expiration] = true
+
         assert_raises(RubySaml::ValidationError) { @settings.get_sp_cert }
+      end
+
+      each_key_algorithm do |sp_cert_algo|
+        it "allows a certificate with a #{sp_cert_algo.upcase} private key" do
+          @settings.certificate, _= CertificateHelper.generate_cert(sp_cert_algo).to_pem
+
+          assert @settings.get_sp_cert.kind_of? OpenSSL::X509::Certificate
+        end
       end
     end
 
     describe "#get_sp_cert_new" do
       it "returns nil when the cert is an empty string" do
-        @settings.certificate_new = ""
+        @settings.certificate_new = ''
+
         assert_nil @settings.get_sp_cert_new
       end
 
       it "returns nil when the cert is nil" do
         @settings.certificate_new = nil
+
         assert_nil @settings.get_sp_cert_new
       end
 
       it "returns the certificate when it is valid" do
         @settings.certificate_new = ruby_saml_cert_text
+
         assert @settings.get_sp_cert_new.kind_of? OpenSSL::X509::Certificate
       end
 
-      it "raises when the certificate is not valid" do
-        # formatted but invalid cert
+      it "raises when the certificate is formatted but invalid" do
         @settings.certificate_new = read_certificate("formatted_certificate")
-        assert_raises(OpenSSL::X509::CertificateError) {
-          @settings.get_sp_cert_new
-        }
+
+        assert_raises(OpenSSL::X509::CertificateError) { @settings.get_sp_cert_new }
+      end
+
+      each_key_algorithm do |sp_cert_algo|
+        it "allows a certificate with a #{sp_cert_algo.upcase} private key" do
+          @settings.certificate_new = CertificateHelper.generate_cert(sp_cert_algo).to_pem
+
+          assert @settings.get_sp_cert_new.kind_of? OpenSSL::X509::Certificate
+        end
       end
     end
 
     describe "#get_sp_key" do
       it "returns nil when the private key is an empty string" do
-        @settings.private_key = ""
+        @settings.private_key = ''
+
         assert_nil @settings.get_sp_key
       end
 
       it "returns nil when the private key is nil" do
         @settings.private_key = nil
+
         assert_nil @settings.get_sp_key
       end
 
       it "returns the private key when it is valid" do
         @settings.private_key = ruby_saml_key_text
+
         assert @settings.get_sp_key.kind_of? OpenSSL::PKey::RSA
       end
 
-      it "raises when the private key is not valid" do
-        # formatted but invalid rsa private key
+      it "raises when the private key is formatted but invalid" do
         @settings.private_key = read_certificate("formatted_rsa_private_key")
-        assert_raises(OpenSSL::PKey::RSAError) {
-          @settings.get_sp_key
-        }
+
+        assert_raises(OpenSSL::PKey::RSAError) { @settings.get_sp_key }
+      end
+
+      each_key_algorithm do |sp_cert_algo|
+        it "allows a #{sp_cert_algo.upcase} private key" do
+          @settings.private_key = CertificateHelper.generate_private_key(sp_cert_algo).to_pem
+
+          assert @settings.get_sp_key.kind_of? expected_key_class(sp_cert_algo)
+        end
       end
     end
 
@@ -420,7 +451,7 @@ class SettingsTest < Minitest::Test
       let(:cert_text2) { ruby_saml_cert2.to_pem }
       let(:cert_text3) { CertificateHelper.generate_cert.to_pem }
       let(:key_text1)  { ruby_saml_key_text }
-      let(:key_text2)  { CertificateHelper.generate_key.to_pem }
+      let(:key_text2)  { CertificateHelper.generate_private_key.to_pem }
 
       it "returns certs for single case" do
         @settings.certificate = cert_text1
@@ -457,8 +488,31 @@ class SettingsTest < Minitest::Test
         expected_signing = [[cert_text1, key_text1], [cert_text2, key_text1]]
         expected_encryption = [[cert_text2, key_text1], [cert_text3, key_text2]]
         assert_equal [:signing, :encryption], actual.keys
-        assert_equal expected_signing, actual[:signing].map {|ary| ary.map(&:to_pem) }
-        assert_equal expected_encryption, actual[:encryption].map {|ary| ary.map(&:to_pem) }
+        assert_equal expected_signing, actual[:signing].map { |ary| ary.map(&:to_pem) }
+        assert_equal expected_encryption, actual[:encryption].map { |ary| ary.map(&:to_pem) }
+      end
+
+      # TODO: :encryption should validate only RSA keys are used
+      each_key_algorithm do |sp_cert_algo|
+        it "sp_cert_multi allows #{sp_cert_algo.upcase} certs and private keys" do
+          @cert1, @pkey = CertificateHelper.generate_pair(sp_cert_algo)
+          @cert2 = CertificateHelper.generate_cert(@pkey)
+          @settings.sp_cert_multi = {
+            signing: [{ certificate: @cert1.to_pem, private_key: @pkey.to_pem },
+                      { certificate: @cert2.to_pem, private_key: @pkey.to_pem },
+                      { certificate: cert_text1, private_key: key_text1 }],
+            encryption: [{ certificate: @cert1.to_pem, private_key: @pkey.to_pem },
+                         { certificate: @cert2.to_pem, private_key: @pkey.to_pem },
+                         { certificate: cert_text2, private_key: key_text2 }]
+          }
+
+          actual = @settings.get_sp_certs
+          expected_signing = @settings.sp_cert_multi[:signing].map { |pair| pair.values }
+          expected_encryption = @settings.sp_cert_multi[:encryption].map { |pair| pair.values }
+          assert_equal [:signing, :encryption], actual.keys
+          assert_equal expected_signing, actual[:signing].map { |ary| ary.map(&:to_pem) }
+          assert_equal expected_encryption, actual[:encryption].map { |ary| ary.map(&:to_pem) }
+        end
       end
 
       it "sp_cert_multi allows sending only signing" do
@@ -570,9 +624,9 @@ class SettingsTest < Minitest::Test
     end
 
     describe "#get_sp_certs" do
-      let(:valid_pair) { CertificateHelper.generate_pair_hash }
-      let(:early_pair) { CertificateHelper.generate_pair_hash(not_before: Time.now + 60) }
-      let(:expired_pair) { CertificateHelper.generate_pair_hash(not_after: Time.now - 60) }
+      let(:valid_pair) { CertificateHelper.generate_pem_hash }
+      let(:early_pair) { CertificateHelper.generate_pem_hash(not_before: Time.now + 60) }
+      let(:expired_pair) { CertificateHelper.generate_pem_hash(not_after: Time.now - 60) }
 
       it "returns all certs when check_sp_cert_expiration is false" do
         @settings.security = { check_sp_cert_expiration: false }
@@ -623,9 +677,9 @@ class SettingsTest < Minitest::Test
     end
 
     describe "#get_sp_signing_pair and #get_sp_signing_key" do
-      let(:valid_pair) { CertificateHelper.generate_pair_hash }
-      let(:early_pair) { CertificateHelper.generate_pair_hash(not_before: Time.now + 60) }
-      let(:expired)  { CertificateHelper.generate_pair_hash(not_after: Time.now - 60) }
+      let(:valid_pair) { CertificateHelper.generate_pem_hash }
+      let(:early_pair) { CertificateHelper.generate_pem_hash(not_before: Time.now + 60) }
+      let(:expired)  { CertificateHelper.generate_pem_hash(not_after: Time.now - 60) }
 
       it "returns nil when no signing pairs are present" do
         @settings.sp_cert_multi = { signing: [] }
@@ -665,9 +719,9 @@ class SettingsTest < Minitest::Test
     end
 
     describe "#get_sp_decryption_keys" do
-      let(:valid_pair) { CertificateHelper.generate_pair_hash }
-      let(:early_pair) { CertificateHelper.generate_pair_hash(not_before: Time.now + 60) }
-      let(:expired_pair) { CertificateHelper.generate_pair_hash(not_after: Time.now - 60) }
+      let(:valid_pair) { CertificateHelper.generate_pem_hash }
+      let(:early_pair) { CertificateHelper.generate_pem_hash(not_before: Time.now + 60) }
+      let(:expired_pair) { CertificateHelper.generate_pem_hash(not_after: Time.now - 60) }
 
       it "returns an empty array when no decryption pairs are present" do
         @settings.sp_cert_multi = { encryption: [] }
@@ -709,6 +763,161 @@ class SettingsTest < Minitest::Test
         actual_keys = @settings.get_sp_decryption_keys.map(&:to_pem)
 
         assert_equal expected_keys, actual_keys
+      end
+    end
+
+    describe '#get_sp_signature_method' do
+      describe 'assumes RSA when sp_cert is nil' do
+        before do
+          @settings.certificate = nil
+          @settings.private_key = nil
+        end
+
+        it 'uses RSA SHA256 by default' do
+          assert_equal RubySaml::XML::Document::SHA256, @settings.get_sp_digest_method
+        end
+
+        it 'can be set as a full string' do
+          @settings.security[:signature_method] = RubySaml::XML::Document::DSA_SHA1
+
+          assert_equal RubySaml::XML::Document::DSA_SHA1, @settings.get_sp_signature_method
+        end
+
+        it 'can be set as a short string' do
+          @settings.security[:signature_method] = 'EC SHA512'
+
+          assert_equal RubySaml::XML::Crypto::ECDSA_SHA512, @settings.get_sp_signature_method
+        end
+
+        it 'can be set as a symbol' do
+          @settings.security[:signature_method] = :ecdsa_sha384
+
+          assert_equal RubySaml::XML::Crypto::ECDSA_SHA384, @settings.get_sp_signature_method
+        end
+
+        it 'can be set as a hash algo full string' do
+          @settings.security[:signature_method] = RubySaml::XML::Crypto::SHA1
+
+          assert_equal RubySaml::XML::Crypto::RSA_SHA1, @settings.get_sp_signature_method
+        end
+
+        it 'can be set as a hash algo short string' do
+          @settings.security[:signature_method] = 'SHA512'
+
+          assert_equal RubySaml::XML::Crypto::RSA_SHA512, @settings.get_sp_signature_method
+        end
+
+        it 'can be set as a hash algo symbol' do
+          @settings.security[:signature_method] = :sha384
+
+          assert_equal RubySaml::XML::Crypto::RSA_SHA384, @settings.get_sp_signature_method
+        end
+
+        it 'raises error when digest method is invalid' do
+          @settings.security[:signature_method] = 'RSA_SHA999'
+
+          assert_raises(ArgumentError, 'Unsupported signature method: RSA_SHA999') do
+            @settings.get_sp_signature_method
+          end
+        end
+      end
+
+      each_key_algorithm do |sp_key_algo|
+        describe 'when sp_cert is set' do
+          before { @settings.certificate, @settings.private_key = CertificateHelper.generate_pem_array(sp_key_algo) }
+
+          it "uses #{sp_key_algo} SHA256 by default" do
+            assert_equal signature_method(sp_key_algo, :sha256), @settings.get_sp_signature_method
+          end
+
+          it 'can be set as a full string' do
+            @settings.security[:signature_method] = RubySaml::XML::Document::SHA1
+
+            assert_equal signature_method(sp_key_algo, :sha1), @settings.get_sp_signature_method
+          end
+
+          it 'can be set as a short string' do
+            @settings.security[:signature_method] = 'EC SHA512'
+
+            if sp_key_algo == :dsa
+              assert_raises(ArgumentError, 'Unsupported signature method for DSA key: SHA512') { @settings.get_sp_signature_method }
+            else
+              assert_equal signature_method(sp_key_algo, :sha512), @settings.get_sp_signature_method
+            end
+          end
+
+          it 'can be set as a symbol' do
+            @settings.security[:signature_method] = :ecdsa_sha384
+
+            if sp_key_algo == :dsa
+              assert_raises(ArgumentError, 'Unsupported signature method for DSA key: SHA512') { @settings.get_sp_signature_method }
+            else
+              assert_equal signature_method(sp_key_algo, :sha384), @settings.get_sp_signature_method
+            end
+          end
+
+          it 'can be set as a hash algo full string' do
+            @settings.security[:signature_method] = RubySaml::XML::Crypto::DSA_SHA1
+
+            assert_equal signature_method(sp_key_algo, :sha1), @settings.get_sp_signature_method
+          end
+
+          it 'can be set as a hash algo short string' do
+            @settings.security[:signature_method] = 'SHA512'
+
+            if sp_key_algo == :dsa
+              assert_raises(ArgumentError, 'Unsupported signature method for DSA key: SHA512') { @settings.get_sp_signature_method }
+            else
+              assert_equal signature_method(sp_key_algo, :sha512), @settings.get_sp_signature_method
+            end
+          end
+
+          it 'can be set as a hash algo symbol' do
+            @settings.security[:signature_method] = :sha1
+
+            assert_equal signature_method(sp_key_algo, :sha1), @settings.get_sp_signature_method
+          end
+
+          it 'raises error when digest method is invalid' do
+            @settings.security[:signature_method] = 'RSA_SHA999'
+
+            assert_raises(ArgumentError, "Unsupported signature method for #{sp_key_algo.to_s.upcase} key: RSA_SHA999") do
+              @settings.get_sp_signature_method
+            end
+          end
+        end
+      end
+    end
+
+    describe '#get_sp_digest_method' do
+      it 'uses SHA256 by default' do
+        assert_equal RubySaml::XML::Crypto::SHA256, @settings.get_sp_digest_method
+      end
+
+      it 'can be set as full string' do
+        @settings.security[:digest_method] = RubySaml::XML::Document::SHA224
+
+        assert_equal RubySaml::XML::Crypto::SHA224, @settings.get_sp_digest_method
+      end
+
+      it 'can be set as short string' do
+        @settings.security[:digest_method] = 'SHA512'
+
+        assert_equal RubySaml::XML::Crypto::SHA512, @settings.get_sp_digest_method
+      end
+
+      it 'can be set as symbol' do
+        @settings.security[:digest_method] = :sha384
+
+        assert_equal RubySaml::XML::Crypto::SHA384, @settings.get_sp_digest_method
+      end
+
+      it 'raises error when digest method is invalid' do
+        @settings.security[:digest_method] = 'SHA999'
+
+        assert_raises(ArgumentError, 'Unsupported digest method: SHA999') do
+          @settings.get_sp_digest_method
+        end
       end
     end
   end
