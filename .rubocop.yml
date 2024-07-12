@@ -16,6 +16,9 @@ AllCops:
     - 'tmp/**/*'
     - 'vendor/**/*'
 
+Style/ModuleFunction:
+  EnforcedStyle: extend_self
+
 Style/NumericPredicate:
   EnforcedStyle: comparison
 
