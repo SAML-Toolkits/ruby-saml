@@ -142,7 +142,7 @@ module RubySaml
       cert, private_key = settings.get_sp_signing_pair
       return unless private_key && cert
 
-      meta_doc.sign_document(private_key, cert, settings.security[:signature_method], settings.security[:digest_method])
+      meta_doc.sign_document(private_key, cert, settings.get_sp_signature_method, settings.get_sp_digest_method)
     end
 
     def output_xml(meta_doc, pretty_print)

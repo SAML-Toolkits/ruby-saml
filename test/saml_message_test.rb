@@ -3,7 +3,6 @@ require_relative 'test_helper'
 class RubySamlTest < Minitest::Test
 
   describe "SamlMessage" do
-
     let(:settings) { RubySaml::Settings.new }
     let(:saml_message) { RubySaml::SamlMessage.new }
     let(:response_document) { read_response("response_unsigned_xml_base64") }

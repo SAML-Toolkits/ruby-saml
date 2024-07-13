@@ -163,8 +163,8 @@ class IdpMetadataParserTest < Minitest::Test
         }
       })
       assert_equal "C4:C6:BD:41:EC:AD:57:97:CE:7B:7D:80:06:C3:E4:30:53:29:02:0B:DD:2D:47:02:9E:BD:85:AD:93:02:45:21", settings.idp_cert_fingerprint
-      assert_equal RubySaml::XML::Document::SHA256, settings.security[:digest_method]
-      assert_equal RubySaml::XML::Document::RSA_SHA256, settings.security[:signature_method]
+      assert_equal RubySaml::XML::Document::SHA256, settings.get_sp_digest_method
+      assert_equal RubySaml::XML::Document::RSA_SHA256, settings.get_sp_signature_method
     end
 
     it "merges results into given settings object" do
@@ -176,8 +176,8 @@ class IdpMetadataParserTest < Minitest::Test
       RubySaml::IdpMetadataParser.new.parse(idp_metadata_descriptor, :settings => settings)
 
       assert_equal "C4:C6:BD:41:EC:AD:57:97:CE:7B:7D:80:06:C3:E4:30:53:29:02:0B:DD:2D:47:02:9E:BD:85:AD:93:02:45:21", settings.idp_cert_fingerprint
-      assert_equal RubySaml::XML::Document::SHA256, settings.security[:digest_method]
-      assert_equal RubySaml::XML::Document::RSA_SHA256, settings.security[:signature_method]
+      assert_equal RubySaml::XML::Document::SHA256, settings.get_sp_digest_method
+      assert_equal RubySaml::XML::Document::RSA_SHA256, settings.get_sp_signature_method
     end
   end
 

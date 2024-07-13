@@ -398,7 +398,7 @@ module RubySaml
 
           cert = OpenSSL::X509::Certificate.new(Base64.decode64(certificate))
 
-          fingerprint_alg = RubySaml::XML::BaseDocument.new.algorithm(fingerprint_algorithm).new
+          fingerprint_alg = RubySaml::XML::Crypto.hash_algorithm(fingerprint_algorithm).new
           fingerprint_alg.hexdigest(cert.to_der).upcase.scan(/../).join(":")
         end
       end
