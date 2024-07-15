@@ -29,6 +29,14 @@ TEST_LOGGER = Logger.new(StringIO.new)
 RubySaml::Logging.logger = TEST_LOGGER
 
 class Minitest::Test
+  def jruby?
+    defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby'
+  end
+
+  def truffleruby?
+    defined?(RUBY_ENGINE) && RUBY_ENGINE == 'truffleruby'
+  end
+
   def fixture(document, base64 = true)
     response = Dir.glob(File.join(File.dirname(__FILE__), "responses", "#{document}*")).first
     if base64 && response =~ /\.xml$/

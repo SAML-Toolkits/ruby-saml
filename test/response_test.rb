@@ -1160,7 +1160,7 @@ class RubySamlTest < Minitest::Test
 
       it "optionally allows for clock drift on NotOnOrAfter" do
         # Java Floats behave differently than MRI
-        java = defined?(RUBY_ENGINE) && %w[jruby truffleruby].include?(RUBY_ENGINE)
+        java = jruby? || truffleruby?
 
         settings.soft = true
 
@@ -1461,14 +1461,19 @@ class RubySamlTest < Minitest::Test
         end
       end
 
-      it 'raise if an encrypted assertion is found and the sp private key is wrong' do
+      it 'raise if an encrypted assertion is found and the SP private key does not match cert' do
         settings.certificate = ruby_saml_cert_text
-        wrong_private_key = ruby_saml_key_text.sub!('A', 'B')
+        wrong_private_key = ruby_saml_key_text.sub!('Z', 'X')
         settings.private_key = wrong_private_key
 
-        error_msg = "Neither PUB key nor PRIV key: nested asn1 error"
-        assert_raises(OpenSSL::PKey::RSAError, error_msg) do
-          RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)
+        error, msg = if jruby?
+                       [Java::JavaLang::IllegalStateException, 'RSA engine faulty decryption/signing detected']
+                     else
+                       [OpenSSL::PKey::RSAError, 'Neither PUB key nor PRIV key: nested asn1 error']
+                     end
+
+        assert_raises(error, msg) do
+          RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, settings: settings)
         end
       end
 
