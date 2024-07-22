@@ -495,7 +495,7 @@ class IdpMetadataParserTest < Minitest::Test
     end
 
     it "raise due no IDPSSODescriptor element" do
-        assert_raises(ArgumentError) { @idp_metadata_parser.parse(@idp_metadata) }
+        assert_raises(OneLogin::RubySaml::SettingError) { @idp_metadata_parser.parse(@idp_metadata) }
     end
   end
 

@@ -3,6 +3,7 @@ require "net/http"
 require "net/https"
 require "rexml/document"
 require "rexml/xpath"
+require "onelogin/ruby-saml/setting_error"
 
 # Only supports SAML 2.0
 module OneLogin
@@ -180,7 +181,7 @@ module OneLogin
 
         idpsso_descriptors = self.class.get_idps(@document, options[:entity_id])
         if !idpsso_descriptors.any?
-          raise ArgumentError.new("idp_metadata must contain an IDPSSODescriptor element")
+          raise SettingError.new("idp_metadata must contain an IDPSSODescriptor element")
         end
 
         idpsso_descriptors.map {|id| IdpMetadata.new(id, id.parent.attributes["entityID"])}
