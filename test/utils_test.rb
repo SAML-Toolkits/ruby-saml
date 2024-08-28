@@ -225,7 +225,7 @@ class UtilsTest < Minitest::Test
 
   describe ".status_error_msg" do
     it "returns a error msg with status_code and status message" do
-      error_msg = "The status code of the Logout Response was not Success"
+      error_msg = String.new("The status code of the Logout Response was not Success")
       status_code = "urn:oasis:names:tc:SAML:2.0:status:Requester"
       status_message = "The request could not be performed due to an error on the part of the requester."
       status_error_msg = OneLogin::RubySaml::Utils.status_error_msg(error_msg, status_code, status_message)
@@ -233,7 +233,7 @@ class UtilsTest < Minitest::Test
     end
 
     it "returns a error msg with status_code" do
-      error_msg = "The status code of the Logout Response was not Success"
+      error_msg = String.new("The status code of the Logout Response was not Success")
       status_code = "urn:oasis:names:tc:SAML:2.0:status:Requester"
       status_error_msg = OneLogin::RubySaml::Utils.status_error_msg(error_msg, status_code)
       assert_equal "The status code of the Logout Response was not Success, was Requester", status_error_msg

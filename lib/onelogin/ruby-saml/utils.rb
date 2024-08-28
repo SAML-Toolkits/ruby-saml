@@ -32,7 +32,7 @@ module OneLogin
           (\d+)W                    # 8: Weeks
         )
       $)x.freeze
-      UUID_PREFIX = '_'
+      UUID_PREFIX = String.new('_')
 
       # Checks if the x509 cert provided is expired.
       #

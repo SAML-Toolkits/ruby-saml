@@ -412,7 +412,7 @@ module OneLogin
       def validate_success_status
         return true if success?
 
-        error_msg = 'The status code of the Response was not Success'
+        error_msg = String.new('The status code of the Response was not Success')
         status_error_msg = OneLogin::RubySaml::Utils.status_error_msg(error_msg, status_code, status_message)
         append_error(status_error_msg)
       end
