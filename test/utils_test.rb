@@ -360,11 +360,11 @@ class UtilsTest < Minitest::Test
     end
 
     it 'successfully decrypts with the first private key' do
-      assert_match /\A<saml:Assertion/, OneLogin::RubySaml::Utils.decrypt_multi(encrypted, [private_key])
+      assert_match %r{\A<saml:Assertion}, OneLogin::RubySaml::Utils.decrypt_multi(encrypted, [private_key])
     end
 
     it 'successfully decrypts with a subsequent private key' do
-      assert_match /\A<saml:Assertion/, OneLogin::RubySaml::Utils.decrypt_multi(encrypted, [invalid_key1, private_key])
+      assert_match %r{\A<saml:Assertion}, OneLogin::RubySaml::Utils.decrypt_multi(encrypted, [invalid_key1, private_key])
     end
 
     it 'raises an error when there is only one key and it fails to decrypt' do
