@@ -239,8 +239,8 @@ class XmlTest < Minitest::Test
         settings.protocol_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
         settings.idp_slo_service_url = "https://idp.example.com/slo",
         settings.sp_entity_id = "https://sp.example.com/saml2"
-        settings.assertion_consumer_service_url = "https://sp.example.com/acs"
-        settings.single_logout_service_url = "https://sp.example.com/sls"
+        settings.sp_assertion_consumer_service_url = "https://sp.example.com/acs"
+        settings.sp_slo_service_url = "https://sp.example.com/sls"
       end
 
       it "sign an AuthNRequest" do

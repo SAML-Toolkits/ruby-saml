@@ -245,8 +245,8 @@ class RequestTest < Minitest::Test
         settings.idp_sso_service_url = "http://example.com?field=value"
         settings.idp_sso_service_binding = :post
         settings.security[:authn_requests_signed] = true
-        settings.certificate = ruby_saml_cert_text
-        settings.private_key = ruby_saml_key_text
+        settings.sp_cert = ruby_saml_cert_text
+        settings.sp_private_key = ruby_saml_key_text
       end
 
       it "create a signed request" do
@@ -269,8 +269,8 @@ class RequestTest < Minitest::Test
       end
 
       it "creates a signed request using the first certificate and key" do
-        settings.certificate = nil
-        settings.private_key = nil
+        settings.sp_cert = nil
+        settings.sp_private_key = nil
         settings.sp_cert_multi = {
           signing: [
             { certificate: ruby_saml_cert_text, private_key: ruby_saml_key_text },
@@ -286,8 +286,8 @@ class RequestTest < Minitest::Test
       end
 
       it "creates a signed request using the first valid certificate and key when :check_sp_cert_expiration is true" do
-        settings.certificate = nil
-        settings.private_key = nil
+        settings.sp_cert = nil
+        settings.sp_private_key = nil
         settings.security[:check_sp_cert_expiration] = true
         settings.sp_cert_multi = {
           signing: [
@@ -318,10 +318,10 @@ class RequestTest < Minitest::Test
       before do
         settings.idp_sso_service_url = "http://example.com?field=value"
         settings.idp_sso_service_binding = :redirect
-        settings.assertion_consumer_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST-SimpleSign"
+        settings.sp_assertion_consumer_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST-SimpleSign"
         settings.security[:authn_requests_signed] = true
-        settings.certificate = ruby_saml_cert_text
-        settings.private_key = ruby_saml_key_text
+        settings.sp_cert = ruby_saml_cert_text
+        settings.sp_private_key = ruby_saml_key_text
       end
 
       it "create a signature parameter with RSA_SHA1 and validate it" do
@@ -360,8 +360,8 @@ class RequestTest < Minitest::Test
 
       it "create a signature parameter using the first certificate and key" do
         settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
-        settings.certificate = nil
-        settings.private_key = nil
+        settings.sp_cert = nil
+        settings.sp_private_key = nil
         settings.sp_cert_multi = {
           signing: [
             { certificate: ruby_saml_cert_text, private_key: ruby_saml_key_text },

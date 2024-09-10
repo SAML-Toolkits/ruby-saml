@@ -58,5 +58,13 @@ class LoggingTest < Minitest::Test
         RubySaml::Logging.info('sup?')
       end
     end
+
+    describe "#deprecate" do
+      it "logs a warning message" do
+        RubySaml::Logging.logger.expects(:warn).with('[RubySaml] DEPRECATION: hi mom')
+
+        RubySaml::Logging.deprecate('hi mom')
+      end
+    end
   end
 end

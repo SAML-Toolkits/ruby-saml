@@ -25,7 +25,7 @@ class OneloginAliasTest < Minitest::Test
       before do
         settings.sp_entity_id = "https://example.com"
         settings.name_identifier_format = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
-        settings.assertion_consumer_service_url = "https://foo.example/saml/consume"
+        settings.sp_assertion_consumer_service_url = "https://foo.example/saml/consume"
       end
 
       it "generates Pretty Print Service Provider Metadata" do

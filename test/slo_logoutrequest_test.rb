@@ -56,8 +56,8 @@ class RubySamlTest < Minitest::Test
       it "collect errors when collect_errors=true" do
         settings.idp_entity_id = 'http://idp.example.com/invalid'
         settings.security[:logout_requests_signed] = true
-        settings.certificate = ruby_saml_cert_text
-        settings.private_key = ruby_saml_key_text
+        settings.sp_cert = ruby_saml_cert_text
+        settings.sp_private_key = ruby_saml_key_text
         settings.idp_cert = ruby_saml_cert_text
         settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
         params = {}
@@ -96,7 +96,7 @@ class RubySamlTest < Minitest::Test
       end
 
       it "extract the value of the name id element inside an EncryptedId" do
-        settings.private_key = ruby_saml_key_text
+        settings.sp_private_key = ruby_saml_key_text
         logout_request_encrypted_nameid.settings = settings
         assert_equal "someone@example.org", logout_request_encrypted_nameid.nameid
       end
@@ -116,7 +116,7 @@ class RubySamlTest < Minitest::Test
       end
 
       it "extract the format attribute of the name id element" do
-        settings.private_key = ruby_saml_key_text
+        settings.sp_private_key = ruby_saml_key_text
         logout_request_encrypted_nameid.settings = settings
         assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress", logout_request_encrypted_nameid.nameid_format
       end
@@ -300,8 +300,8 @@ class RubySamlTest < Minitest::Test
     describe "#validate_signature" do
       before do
         settings.security[:logout_requests_signed] = true
-        settings.certificate = ruby_saml_cert_text
-        settings.private_key = ruby_saml_key_text
+        settings.sp_cert = ruby_saml_cert_text
+        settings.sp_private_key = ruby_saml_key_text
         settings.idp_cert = ruby_saml_cert_text
       end
 
@@ -502,8 +502,8 @@ class RubySamlTest < Minitest::Test
 
     describe "#validate_signature with multiple idp certs" do
       before do
-        settings.certificate = ruby_saml_cert_text
-        settings.private_key = ruby_saml_key_text
+        settings.sp_cert = ruby_saml_cert_text
+        settings.sp_private_key = ruby_saml_key_text
         settings.idp_cert = nil
         settings.security[:logout_requests_signed] = true
         settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1

@@ -122,8 +122,8 @@ module RubySaml
       root.attributes['ForceAuthn'] = settings.force_authn unless settings.force_authn.nil?
 
       # Conditionally defined elements based on settings
-      unless settings.assertion_consumer_service_url.nil?
-        root.attributes["AssertionConsumerServiceURL"] = settings.assertion_consumer_service_url
+      unless settings.sp_assertion_consumer_service_url.nil?
+        root.attributes["AssertionConsumerServiceURL"] = settings.sp_assertion_consumer_service_url
       end
 
       unless settings.sp_entity_id.nil?

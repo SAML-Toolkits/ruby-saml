@@ -14,7 +14,7 @@ class SettingsTest < Minitest::Test
       accessors = [
         :idp_entity_id, :idp_sso_target_url, :idp_sso_service_url, :idp_slo_target_url, :idp_slo_service_url, :valid_until,
         :idp_cert, :idp_cert_fingerprint, :idp_cert_fingerprint_algorithm, :idp_cert_multi,
-        :idp_attribute_names, :issuer, :assertion_consumer_service_url, :single_logout_service_url,
+        :idp_attribute_names, :issuer, :sp_assertion_consumer_service_url, :sp_slo_service_url,
         :sp_name_qualifier, :name_identifier_format, :name_identifier_value, :name_identifier_value_requested,
         :sessionindex, :attributes_index, :passive, :force_authn,
         :double_quote_xml_attribute_values, :message_max_bytesize,
@@ -36,8 +36,8 @@ class SettingsTest < Minitest::Test
     it "should provide getters and settings for binding parameters" do
       accessors = [
         :protocol_binding,
-        :assertion_consumer_service_binding,
-        :single_logout_service_binding,
+        :sp_assertion_consumer_service_binding,
+        :sp_slo_service_binding,
         :assertion_consumer_logout_service_binding
       ]
 
@@ -59,7 +59,7 @@ class SettingsTest < Minitest::Test
 
     it "create settings from hash" do
       config = {
-          :assertion_consumer_service_url => "http://app.muda.no/sso",
+          :sp_assertion_consumer_service_url => "http://app.muda.no/sso",
           :issuer => "http://muda.no",
           :sp_name_qualifier => "http://sso.muda.no",
           :idp_sso_service_url => "http://sso.muda.no/sso",
@@ -132,21 +132,21 @@ class SettingsTest < Minitest::Test
       assert_nil @settings.security[:digest_method]
     end
 
-    describe "#single_logout_service_url" do
-      it "when single_logout_service_url is nil but assertion_consumer_logout_service_url returns its value" do
-        @settings.single_logout_service_url = nil
+    describe "#sp_slo_service_url" do
+      it "when sp_slo_service_url is nil but assertion_consumer_logout_service_url returns its value" do
+        @settings.sp_slo_service_url = nil
         @settings.assertion_consumer_logout_service_url = "http://app.muda.no/sls"
 
-        assert_equal "http://app.muda.no/sls", @settings.single_logout_service_url
+        assert_equal "http://app.muda.no/sls", @settings.sp_slo_service_url
       end
     end
 
-    describe "#single_logout_service_binding" do
-      it "when single_logout_service_binding is nil but assertion_consumer_logout_service_binding returns its value" do
-        @settings.single_logout_service_binding = nil
+    describe "#sp_slo_service_binding" do
+      it "when sp_slo_service_binding is nil but assertion_consumer_logout_service_binding returns its value" do
+        @settings.sp_slo_service_binding = nil
         @settings.assertion_consumer_logout_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
 
-        assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", @settings.single_logout_service_binding
+        assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", @settings.sp_slo_service_binding
       end
     end
 
@@ -308,28 +308,28 @@ class SettingsTest < Minitest::Test
 
     describe "#get_sp_cert" do
       it "returns nil when the cert is an empty string" do
-        @settings.certificate = ""
+        @settings.sp_cert = ""
         assert_nil @settings.get_sp_cert
       end
 
       it "returns nil when the cert is nil" do
-        @settings.certificate = nil
+        @settings.sp_cert = nil
         assert_nil @settings.get_sp_cert
       end
 
       it "returns the certificate when it is valid" do
-        @settings.certificate = ruby_saml_cert_text
+        @settings.sp_cert = ruby_saml_cert_text
         assert @settings.get_sp_cert.kind_of? OpenSSL::X509::Certificate
       end
 
       it "raises when the certificate is not valid" do
         # formatted but invalid cert
-        @settings.certificate = read_certificate("formatted_certificate")
+        @settings.sp_cert = read_certificate("formatted_certificate")
         assert_raises(OpenSSL::X509::CertificateError) { @settings.get_sp_cert }
       end
 
       it "raises an error if SP certificate expired and check_sp_cert_expiration enabled" do
-        @settings.certificate = ruby_saml_cert_text
+        @settings.sp_cert = ruby_saml_cert_text
         @settings.security[:check_sp_cert_expiration] = true
         assert_raises(RubySaml::ValidationError) { @settings.get_sp_cert }
       end
@@ -362,23 +362,23 @@ class SettingsTest < Minitest::Test
 
     describe "#get_sp_key" do
       it "returns nil when the private key is an empty string" do
-        @settings.private_key = ""
+        @settings.sp_private_key = ""
         assert_nil @settings.get_sp_key
       end
 
       it "returns nil when the private key is nil" do
-        @settings.private_key = nil
+        @settings.sp_private_key = nil
         assert_nil @settings.get_sp_key
       end
 
       it "returns the private key when it is valid" do
-        @settings.private_key = ruby_saml_key_text
+        @settings.sp_private_key = ruby_saml_key_text
         assert @settings.get_sp_key.kind_of? OpenSSL::PKey::RSA
       end
 
       it "raises when the private key is not valid" do
         # formatted but invalid rsa private key
-        @settings.private_key = read_certificate("formatted_rsa_private_key")
+        @settings.sp_private_key = read_certificate("formatted_rsa_private_key")
         assert_raises(OpenSSL::PKey::RSAError) {
           @settings.get_sp_key
         }
@@ -423,8 +423,8 @@ class SettingsTest < Minitest::Test
       let(:key_text2)  { CertificateHelper.generate_key.to_pem }
 
       it "returns certs for single case" do
-        @settings.certificate = cert_text1
-        @settings.private_key = key_text1
+        @settings.sp_cert = cert_text1
+        @settings.sp_private_key = key_text1
 
         actual = @settings.get_sp_certs
         expected = [[cert_text1, key_text1]]
@@ -434,9 +434,9 @@ class SettingsTest < Minitest::Test
       end
 
       it "returns certs for single case with new cert" do
-        @settings.certificate = cert_text1
+        @settings.sp_cert = cert_text1
         @settings.certificate_new = cert_text2
-        @settings.private_key = key_text1
+        @settings.sp_private_key = key_text1
 
         actual = @settings.get_sp_certs
         expected = [[cert_text1, key_text1], [cert_text2, key_text1]]
@@ -540,7 +540,7 @@ class SettingsTest < Minitest::Test
 
       it "raises error when both sp_cert_multi and certificate are specified" do
         @settings.sp_cert_multi = { signing: [{ certificate: cert_text1, private_key: key_text1 }] }
-        @settings.certificate = cert_text1
+        @settings.sp_cert = cert_text1
 
         error_message = 'Cannot specify both sp_cert_multi and certificate, certificate_new, private_key parameters'
         assert_raises ArgumentError, error_message do
@@ -560,7 +560,7 @@ class SettingsTest < Minitest::Test
 
       it "raises error when both sp_cert_multi and private_key are specified" do
         @settings.sp_cert_multi = { signing: [{ certificate: cert_text1, private_key: key_text1 }] }
-        @settings.private_key = key_text1
+        @settings.sp_private_key = key_text1
 
         error_message = 'Cannot specify both sp_cert_multi and certificate, certificate_new, private_key parameters'
         assert_raises ArgumentError, error_message do

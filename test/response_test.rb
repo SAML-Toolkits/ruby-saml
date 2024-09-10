@@ -462,7 +462,7 @@ class RubySamlTest < Minitest::Test
 
         it "return true when a nil URI is given in the ds:Reference" do
           settings.idp_cert = ruby_saml_cert_text
-          settings.assertion_consumer_service_url = "http://localhost:9001/v1/users/authorize/saml"
+          settings.sp_assertion_consumer_service_url = "http://localhost:9001/v1/users/authorize/saml"
           response_without_reference_uri.settings = settings
           response_without_reference_uri.stubs(:conditions).returns(nil)
           response_without_reference_uri.is_valid?
@@ -522,9 +522,9 @@ class RubySamlTest < Minitest::Test
 
       it "return false when the destination of the SAML Response does not match the assertion consumer service url" do
         response.settings = settings
-        response.settings.assertion_consumer_service_url = 'invalid_acs'
+        response.settings.sp_assertion_consumer_service_url = 'invalid_acs'
         assert !response.send(:validate_destination)
-        assert_includes response.errors, "The response was received at #{response.destination} instead of #{response.settings.assertion_consumer_service_url}"
+        assert_includes response.errors, "The response was received at #{response.destination} instead of #{response.settings.sp_assertion_consumer_service_url}"
       end
 
       it "return false when the destination of the SAML Response is empty" do
@@ -541,30 +541,30 @@ class RubySamlTest < Minitest::Test
 
       it "returns true on a case insensitive match on the domain" do
         response_valid_signed_without_x509certificate.settings = settings
-        response_valid_signed_without_x509certificate.settings.assertion_consumer_service_url = 'http://APP.muDa.no/sso/consume'
+        response_valid_signed_without_x509certificate.settings.sp_assertion_consumer_service_url = 'http://APP.muDa.no/sso/consume'
         assert response_valid_signed_without_x509certificate.send(:validate_destination)
         assert_empty response_valid_signed_without_x509certificate.errors
       end
 
       it "returns true on a case insensitive match on the scheme" do
         response_valid_signed_without_x509certificate.settings = settings
-        response_valid_signed_without_x509certificate.settings.assertion_consumer_service_url = 'HTTP://app.muda.no/sso/consume'
+        response_valid_signed_without_x509certificate.settings.sp_assertion_consumer_service_url = 'HTTP://app.muda.no/sso/consume'
         assert response_valid_signed_without_x509certificate.send(:validate_destination)
         assert_empty response_valid_signed_without_x509certificate.errors
       end
 
       it "returns false on a case insenstive match on the path" do
         response_valid_signed_without_x509certificate.settings = settings
-        response_valid_signed_without_x509certificate.settings.assertion_consumer_service_url = 'http://app.muda.no/SSO/consume'
+        response_valid_signed_without_x509certificate.settings.sp_assertion_consumer_service_url = 'http://app.muda.no/SSO/consume'
         assert !response_valid_signed_without_x509certificate.send(:validate_destination)
-        assert_includes response_valid_signed_without_x509certificate.errors, "The response was received at #{response_valid_signed_without_x509certificate.destination} instead of #{response_valid_signed_without_x509certificate.settings.assertion_consumer_service_url}"
+        assert_includes response_valid_signed_without_x509certificate.errors, "The response was received at #{response_valid_signed_without_x509certificate.destination} instead of #{response_valid_signed_without_x509certificate.settings.sp_assertion_consumer_service_url}"
       end
 
       it "returns true if it can't parse out a full URI." do
         response_valid_signed_without_x509certificate.settings = settings
-        response_valid_signed_without_x509certificate.settings.assertion_consumer_service_url = 'presenter'
+        response_valid_signed_without_x509certificate.settings.sp_assertion_consumer_service_url = 'presenter'
         assert !response_valid_signed_without_x509certificate.send(:validate_destination)
-        assert_includes response_valid_signed_without_x509certificate.errors, "The response was received at #{response_valid_signed_without_x509certificate.destination} instead of #{response_valid_signed_without_x509certificate.settings.assertion_consumer_service_url}"
+        assert_includes response_valid_signed_without_x509certificate.errors, "The response was received at #{response_valid_signed_without_x509certificate.destination} instead of #{response_valid_signed_without_x509certificate.settings.sp_assertion_consumer_service_url}"
       end
     end
 
@@ -764,7 +764,7 @@ class RubySamlTest < Minitest::Test
     describe "#validate_subject_confirmation" do
       it "return true when valid subject confirmation" do
         response_valid_signed.settings = settings
-        response_valid_signed.settings.assertion_consumer_service_url = 'recipient'
+        response_valid_signed.settings.sp_assertion_consumer_service_url = 'recipient'
         assert response_valid_signed.send(:validate_subject_confirmation)
         assert_empty response_valid_signed.errors
       end
@@ -801,7 +801,7 @@ class RubySamlTest < Minitest::Test
 
       it "return true when valid subject confirmation recipient" do
         response_valid_signed.settings = settings
-        response_valid_signed.settings.assertion_consumer_service_url = 'recipient'
+        response_valid_signed.settings.sp_assertion_consumer_service_url = 'recipient'
         assert response_valid_signed.send(:validate_subject_confirmation)
         assert_empty response_valid_signed.errors
         assert_empty response_valid_signed.errors
@@ -809,14 +809,14 @@ class RubySamlTest < Minitest::Test
 
       it "return false when invalid subject confirmation recipient" do
         response_valid_signed.settings = settings
-        response_valid_signed.settings.assertion_consumer_service_url = 'not-the-recipient'
+        response_valid_signed.settings.sp_assertion_consumer_service_url = 'not-the-recipient'
         assert !response_valid_signed.send(:validate_subject_confirmation)
         assert_includes response_valid_signed.errors, "A valid SubjectConfirmation was not found on this Response"
       end
 
       it "return false when invalid subject confirmation recipient, but skipping the check(default)" do
         response_valid_signed_without_recipient.settings = settings
-        response_valid_signed_without_recipient.settings.assertion_consumer_service_url = 'not-the-recipient'
+        response_valid_signed_without_recipient.settings.sp_assertion_consumer_service_url = 'not-the-recipient'
         assert response_valid_signed_without_recipient.send(:validate_subject_confirmation)
         assert_empty response_valid_signed_without_recipient.errors
       end
@@ -826,7 +826,7 @@ class RubySamlTest < Minitest::Test
         opts[:skip_subject_confirmation] = true
         response_with_skip = RubySaml::Response.new(response_document_valid_signed, opts)
         response_with_skip.settings = settings
-        response_with_skip.settings.assertion_consumer_service_url = 'recipient'
+        response_with_skip.settings.sp_assertion_consumer_service_url = 'recipient'
         Time.expects(:now).times(0) # ensures the test isn't run and thus Time.now.utc is never called within the test
         assert response_with_skip.send(:validate_subject_confirmation)
         assert_empty response_with_skip.errors
@@ -1224,7 +1224,7 @@ class RubySamlTest < Minitest::Test
 
       describe "#encrypted attributes" do
         it "raise error when the assertion contains encrypted attributes but no private key to decrypt" do
-          settings.private_key = nil
+          settings.sp_private_key = nil
           response_encrypted_attrs.settings = settings
           assert_raises(RubySaml::ValidationError, "An EncryptedAttribute found and no SP private key found on the settings to decrypt it") do
             response_encrypted_attrs.attributes
@@ -1232,8 +1232,8 @@ class RubySamlTest < Minitest::Test
         end
 
         it "extract attributes when the assertion contains encrypted attributes and the private key is provided" do
-          settings.certificate = ruby_saml_cert_text
-          settings.private_key = ruby_saml_key_text
+          settings.sp_cert = ruby_saml_cert_text
+          settings.sp_private_key = ruby_saml_key_text
           response_encrypted_attrs.settings = settings
           attributes = response_encrypted_attrs.attributes
           assert_equal "test", attributes[:uid]
@@ -1387,7 +1387,7 @@ class RubySamlTest < Minitest::Test
         document.sign_document(private_key, cert)
 
         signed_response = RubySaml::Response.new(document.to_s)
-        settings.assertion_consumer_service_url = "http://recipient"
+        settings.sp_assertion_consumer_service_url = "http://recipient"
         settings.idp_cert = ruby_saml_cert_text
         signed_response.settings = settings
         Timecop.freeze(Time.parse("2015-03-18T04:50:24Z")) do
@@ -1433,7 +1433,7 @@ class RubySamlTest < Minitest::Test
       end
 
       it 'is possible when encryptID inside the assertion and settings has the private key' do
-        settings.private_key = ruby_saml_key_text
+        settings.sp_private_key = ruby_saml_key_text
         response_encrypted_nameid.settings = settings
         assert_equal "test@onelogin.com", response_encrypted_nameid.nameid
         assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress", response_encrypted_nameid.name_id_format
@@ -1453,8 +1453,8 @@ class RubySamlTest < Minitest::Test
           RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)
         end
 
-        settings.certificate = ruby_saml_cert_text
-        settings.private_key = ruby_saml_key_text
+        settings.sp_cert = ruby_saml_cert_text
+        settings.sp_private_key = ruby_saml_key_text
         assert_raises(RubySaml::ValidationError, error_msg) do
           response3 = RubySaml::Response.new(signed_message_encrypted_unsigned_assertion)
           response3.settings
@@ -1462,9 +1462,9 @@ class RubySamlTest < Minitest::Test
       end
 
       it 'raise if an encrypted assertion is found and the sp private key is wrong' do
-        settings.certificate = ruby_saml_cert_text
+        settings.sp_cert = ruby_saml_cert_text
         wrong_private_key = ruby_saml_key_text.sub!('A', 'B')
-        settings.private_key = wrong_private_key
+        settings.sp_private_key = wrong_private_key
 
         error_msg = "Neither PUB key nor PRIV key: nested asn1 error"
         assert_raises(OpenSSL::PKey::RSAError, error_msg) do
@@ -1473,8 +1473,8 @@ class RubySamlTest < Minitest::Test
       end
 
       it 'return true if an encrypted assertion is found and settings initialized with private_key' do
-        settings.certificate = ruby_saml_cert_text
-        settings.private_key = ruby_saml_key_text
+        settings.sp_cert = ruby_saml_cert_text
+        settings.sp_private_key = ruby_saml_key_text
         response = RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)
         assert response.decrypted_document
 
@@ -1499,9 +1499,9 @@ class RubySamlTest < Minitest::Test
       before do
         settings.idp_cert_fingerprint = '55:FD:5F:3F:43:5A:AC:E6:79:89:BF:25:48:81:A1:C4:F3:37:3B:CB:1B:4D:68:A0:3E:A5:C9:FF:61:48:01:3F'
         settings.sp_entity_id = 'http://rubysaml.com:3000/saml/metadata'
-        settings.assertion_consumer_service_url = 'http://rubysaml.com:3000/saml/acs'
-        settings.certificate = ruby_saml_cert_text
-        settings.private_key = ruby_saml_key_text
+        settings.sp_assertion_consumer_service_url = 'http://rubysaml.com:3000/saml/acs'
+        settings.sp_cert = ruby_saml_cert_text
+        settings.sp_private_key = ruby_saml_key_text
       end
 
       it 'is possible when signed_message_encrypted_unsigned_assertion' do
@@ -1545,7 +1545,7 @@ class RubySamlTest < Minitest::Test
 
     describe "#decrypt_assertion" do
       before do
-        settings.private_key = ruby_saml_key_text
+        settings.sp_private_key = ruby_saml_key_text
       end
 
       describe "check right settings" do
@@ -1558,7 +1558,7 @@ class RubySamlTest < Minitest::Test
             "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
             { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
           )
-          response.settings.private_key = nil
+          response.settings.sp_private_key = nil
 
           error_msg = "An EncryptedAssertion found and no SP private key found on the settings to decrypt it"
           assert_raises(RubySaml::ValidationError, error_msg) do
@@ -1567,7 +1567,7 @@ class RubySamlTest < Minitest::Test
         end
 
         it "is not possible to decrypt the assertion if private key has expired and :check_sp_expiration is true" do
-          settings.certificate = ruby_saml_cert_text
+          settings.sp_cert = ruby_saml_cert_text
           settings.security[:check_sp_cert_expiration] = true
           assert_raises(RubySaml::ValidationError, "The SP certificate expired.") do
             RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)
@@ -1594,7 +1594,7 @@ class RubySamlTest < Minitest::Test
         end
 
         it "is possible to decrypt the assertion with one invalid and one valid private key" do
-          settings.private_key = nil
+          settings.sp_private_key = nil
           settings.sp_cert_multi = {
             encryption: [
               CertificateHelper.generate_pair_hash,
@@ -1614,7 +1614,7 @@ class RubySamlTest < Minitest::Test
         end
 
         it "is possible to decrypt the assertion if private key provided and EncryptedKey RetrievalMethod presents in response" do
-          settings.private_key = ruby_saml_key_text
+          settings.sp_private_key = ruby_saml_key_text
           resp = read_response('response_with_retrieval_method.xml')
           response = RubySaml::Response.new(resp, :settings => settings)
 
@@ -1744,7 +1744,7 @@ class RubySamlTest < Minitest::Test
 
     describe "signature wrapping attack with encrypted assertion" do
       it "should not be valid" do
-        settings.private_key = ruby_saml_key_text
+        settings.sp_private_key = ruby_saml_key_text
         signature_wrapping_attack = read_invalid_response("encrypted_new_attack.xml.base64")
         response_wrapped = RubySaml::Response.new(signature_wrapping_attack, :settings => settings)
         response_wrapped.stubs(:conditions).returns(nil)

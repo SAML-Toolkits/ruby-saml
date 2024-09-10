@@ -50,7 +50,7 @@ settings.security[:digest_method] = RubySaml::XML::Document::SHA1
 settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
 ```
 
-### Removal of embed_sign Setting
+### Removal of security[:embed_sign] setting
 
 The deprecated `settings.security[:embed_sign]` parameter has been removed. If you were using it, please instead switch
 to using both the `settings.idp_sso_service_binding` and `settings.idp_slo_service_binding` parameters as show below.
@@ -68,10 +68,10 @@ settings.idp_slo_service_binding = :redirect
 
 For clarity, the default value of both parameters is `:redirect` if they are not set.
 
-### Deprecation of Compression Settings
+### Deprecation of compression settings
 
 The `settings.compress_request` and `settings.compress_response` parameters have been deprecated
-and are no longer functional. They will be removed in RubySaml 2.1.0. Please remove `compress_request`
+and are no longer functional. **They will be removed in RubySaml 2.1.0.** Please remove `compress_request`
 and `compress_response` everywhere within your project code.
 
 The SAML SP request/response message compression behavior is now controlled automatically by the
@@ -80,17 +80,47 @@ The SAML SP request/response message compression behavior is now controlled auto
 "compression" is used to make redirect URLs which contain SAML messages be shorter. For POST messages,
 compression may be achieved by enabling `Content-Encoding: gzip` on your webserver.
 
-## Settings deprecations
+### Deprecation of certificate_new setting
 
-The following parameters in `RubySaml::Settings` are deprecated and will be removed in RubySaml 2.1.0:
+The `settings.certificate_new` parameter has been deprecated in favor of `settings.sp_cert_multi`,
+and **will be removed in RubySaml 2.1.0.** If you are using `certificate_new` you
+will need to replace **all** of the `certificate`, `certificate_new`, and `private_key` params
+with `sp_cert_multi` as shown below:
 
-- `#issuer` is deprecated and replaced 1:1 by `#sp_entity_id`
-- `#idp_sso_target_url` is deprecated and replaced 1:1 by `#idp_sso_service_url`
-- `#idp_slo_target_url` is deprecated and replaced 1:1 by `#idp_slo_service_url`
-- `#assertion_consumer_logout_service_url` is deprecated and replaced 1:1 by `#single_logout_service_url`
-- `#assertion_consumer_logout_service_binding` is deprecated and replaced 1:1 by `#single_logout_service_binding`
-- `#certificate_new` is deprecated and replaced by `#sp_cert_multi`. Refer to documentation as `#sp_cert_multi`
-  has a different value type than `#certificate_new`.
+```ruby
+settings.sp_cert_multi = {
+  signing: [
+    { certificate: (certificate), private_key: (private_key) },
+    { certificate: (certificate_new), private_key: (private_key) }
+  ],
+  encryption: [
+    { certificate: (certificate), private_key: (private_key) },
+    { certificate: (certificate_new), private_key: (private_key) }
+  ],
+}
+```
+
+## Settings parameter deprecations
+
+The following parameters in `RubySaml::Settings` are deprecated and replaced 1-for-1 with new parameters.
+The new names clarify which parameters belong to the SP and which to the IdP.
+Until RubySaml 3.0.0, using the old method will raise a deprecation warning but otherwise function as an alias
+to the new parameter. Beginning in **RubySaml 3.0.0**, using the old method will raise a `NotImplemented` error.
+Aside from the name change, there are no changes to the usage or functionality of these parameters.
+
+| Old Parameter                               | New Parameter                           |
+|---------------------------------------------|-----------------------------------------|
+| `issuer`                                    | `sp_entity_id`                          |
+| `certificate`                               | `sp_cert`                               |
+| `private_key`                               | `sp_private_key`                        |
+| `assertion_consumer_service_url`            | `sp_assertion_consumer_service_url`     |
+| `assertion_consumer_service_binding`        | `sp_assertion_consumer_service_binding` |
+| `assertion_consumer_logout_service_url`     | `sp_slo_service_url`                    |
+| `single_logout_service_url`                 | `sp_slo_service_url`                    |
+| `assertion_consumer_logout_service_binding` | `sp_slo_service_binding`                |
+| `single_logout_service_binding`             | `sp_slo_service_binding`                |
+| `idp_sso_target_url`                        | `idp_sso_service_url`                   |
+| `idp_slo_target_url`                        | `idp_slo_service_url`                   |
 
 ## Updating from 1.12.x to 1.13.0
 
@@ -189,7 +219,7 @@ other SAML implementations.
 ## Upgrading from 1.4.2 to 1.4.3
 
 Version `1.4.3` introduces Recipient validation of SubjectConfirmation elements.
-The 'Recipient' value is compared with the settings.assertion_consumer_service_url
+The 'Recipient' value is compared with the settings.sp_assertion_consumer_service_url
 value.
 
 If you want to skip that validation, add the :skip_recipient_check option to the
