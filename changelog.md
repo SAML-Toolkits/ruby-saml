@@ -1,5 +1,8 @@
 # RubySaml Changelog
 
+### 1.12.3 (Sep 10, 2024)
+* Fix for critical vulnerability CVE-2024-45409: SAML authentication bypass via Incorrect XPath selector
+
 ### 1.12.2 (Apr 08, 2022)
 * [575](https://github.com/onelogin/ruby-saml/pull/575) Fix SloLogoutresponse bug on LogoutRequest
 
