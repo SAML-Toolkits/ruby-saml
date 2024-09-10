@@ -129,17 +129,35 @@ module RubySaml
         canon_string = noko_signed_info_element.canonicalize(canon_algorithm)
         noko_sig_element.remove
 
+        # get signed info
+        signed_info_element = REXML::XPath.first(
+          sig_element,
+          './ds:SignedInfo',
+          { 'ds' => RubySaml::XML::Crypto::DSIG }
+        )
+
         # get inclusive namespaces
         inclusive_namespaces = extract_inclusive_namespaces
 
         # check digests
-        ref = REXML::XPath.first(sig_element, '//ds:Reference', { 'ds' => RubySaml::XML::Crypto::DSIG })
+        ref = REXML::XPath.first(
+          signed_info_element,
+          './ds:Reference',
+          { 'ds' => RubySaml::XML::Crypto::DSIG }
+        )
 
-        hashed_element = document.at_xpath('//*[@ID=$id]', nil, { 'id' => extract_signed_element_id })
+        reference_nodes = document.xpath('//*[@ID=$id]', nil, { 'id' => extract_signed_element_id })
+
+        # ensure no elements with same ID to prevent signature wrapping attack.
+        if reference_nodes.length > 1
+          return append_error('Digest Mismatch', soft)
+        end
+
+        hashed_element = reference_nodes[0]
 
         canon_algorithm = RubySaml::XML::Crypto.canon_algorithm(REXML::XPath.first(
-          ref,
-          '//ds:CanonicalizationMethod',
+          signed_info_element,
+          './ds:CanonicalizationMethod',
           { 'ds' => RubySaml::XML::Crypto::DSIG }
         ))
 
@@ -149,13 +167,13 @@ module RubySaml
 
         digest_algorithm = RubySaml::XML::Crypto.hash_algorithm(REXML::XPath.first(
           ref,
-          '//ds:DigestMethod',
+          './ds:DigestMethod',
           { 'ds' => RubySaml::XML::Crypto::DSIG }
         ))
         hash = digest_algorithm.digest(canon_hashed_element)
         encoded_digest_value = REXML::XPath.first(
           ref,
-          '//ds:DigestValue',
+          './ds:DigestValue',
           { 'ds' => RubySaml::XML::Crypto::DSIG }
         )
         digest_value = Base64.decode64(RubySaml::Utils.element_text(encoded_digest_value))
@@ -184,7 +202,7 @@ module RubySaml
       def process_transforms(ref, canon_algorithm)
         transforms = REXML::XPath.match(
           ref,
-          '//ds:Transforms/ds:Transform',
+          './ds:Transforms/ds:Transform',
           { 'ds' => RubySaml::XML::Crypto::DSIG }
         )
 
