@@ -1,6 +1,7 @@
 # Ruby SAML Changelog
 
-### 1.17.0
+### 1.17.0  (Sep 10, 2024)
+* Fix for critical vulnerability CVE-2024-45409: SAML authentication bypass via Incorrect XPath selector
 * [#687](https://github.com/SAML-Toolkits/ruby-saml/pull/687) Add CI coverage for Ruby 3.3 and Windows.
 * [#673](https://github.com/SAML-Toolkits/ruby-saml/pull/673) Add `Settings#sp_cert_multi` paramter to facilitate SP certificate and key rotation.
 * [#673](https://github.com/SAML-Toolkits/ruby-saml/pull/673) Support multiple simultaneous SP decryption keys via `Settings#sp_cert_multi` parameter.
@@ -38,6 +39,9 @@
 * [#607](https://github.com/onelogin/ruby-saml/pull/607) Clean up
 * Add warning about the use of IdpMetadataParser class and SSRF
 * CI: Migrate from Travis to Github Actions
+
+### 1.12.3  (Sep 10, 2024)
+* Fix for critical vulnerability CVE-2024-45409: SAML authentication bypass via Incorrect XPath selector
 
 ### 1.12.2 (Apr 08, 2021)
 * [#575](https://github.com/onelogin/ruby-saml/pull/575) Fix SloLogoutresponse bug on LogoutRequest

@@ -316,6 +316,7 @@ module XMLSecurity
         "./ds:SignedInfo",
         { "ds" => DSIG }
       )
+
       # get inclusive namespaces
       inclusive_namespaces = extract_inclusive_namespaces
 
@@ -325,7 +326,7 @@ module XMLSecurity
       reference_nodes = document.xpath("//*[@ID=$id]", nil, { 'id' => extract_signed_element_id })
 
       if reference_nodes.length > 1 # ensures no elements with same ID to prevent signature wrapping attack.
-        return append_error("Digest Mismatch", soft)
+        return append_error("Digest mismatch. Duplicated ID found", soft)
       end
 
       hashed_element = reference_nodes[0]
