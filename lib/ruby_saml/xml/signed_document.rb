@@ -150,7 +150,7 @@ module RubySaml
 
         # ensure no elements with same ID to prevent signature wrapping attack.
         if reference_nodes.length > 1
-          return append_error('Digest Mismatch', soft)
+          return append_error('Digest mismatch. Duplicated ID found', soft)
         end
 
         hashed_element = reference_nodes[0]
