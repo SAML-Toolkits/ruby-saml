@@ -1,7 +1,6 @@
 # Ruby SAML Changelog
 
 ### 2.0.0
-* [#718](https://github.com/SAML-Toolkits/ruby-saml/pull/718/) Add support to retrieve from SAMLResponse the AuthnInstant and AuthnContextClassRef values
 * [#685](https://github.com/SAML-Toolkits/ruby-saml/pull/685) Remove `OneLogin` namespace. The root namespace of the gem is now `RubySaml`.
 * [#685](https://github.com/SAML-Toolkits/ruby-saml/pull/685) Create namespace alias `OneLogin = Object` for backward compatibility, to be removed in version `2.1.0`.
 * [#685](https://github.com/SAML-Toolkits/ruby-saml/pull/685) Change directly structure from `lib/onelogin/ruby-saml` to `lib/ruby_saml`.
@@ -12,6 +11,8 @@
 * [#690](https://github.com/SAML-Toolkits/ruby-saml/pull/690) Remove deprecated `settings.security[:embed_sign]` parameter.
 * [#697](https://github.com/SAML-Toolkits/ruby-saml/pull/697) Add deprecation for various parameters in `RubySaml::Settings`.
 * [#709](https://github.com/SAML-Toolkits/ruby-saml/pull/709) Allow passing in `Net::HTTP` `:open_timeout`, `:read_timeout`, and `:max_retries` settings to `IdpMetadataParser#parse_remote`.
+* [#715](https://github.com/SAML-Toolkits/ruby-saml/pull/715) Fix typo in error when SPNameQualifier value does not match the SP entityID.
+* [#718](https://github.com/SAML-Toolkits/ruby-saml/pull/718/) Add support to retrieve from SAMLResponse the AuthnInstant and AuthnContextClassRef values
 * [#711](https://github.com/SAML-Toolkits/ruby-saml/pull/711) Standardize how RubySaml reads and formats certificate and private_key PEM values, including the `RubySaml::Util#format_cert` and `#format_private_key` methods.
 
 ### 1.17.0
