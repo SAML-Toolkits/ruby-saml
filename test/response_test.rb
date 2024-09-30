@@ -1026,7 +1026,7 @@ class RubySamlTest < Minitest::Test
         settings.sp_entity_id = 'sp_entity_id'
         response_wrong_spnamequalifier.settings = settings
         assert !response_wrong_spnamequalifier.send(:validate_name_id)
-        assert_includes response_wrong_spnamequalifier.errors, "The SPNameQualifier value mistmatch the SP entityID value."
+        assert_includes response_wrong_spnamequalifier.errors, 'SPNameQualifier value does not match the SP entityID value.'
       end
 
       it "return true when no nameid element but not required by settings" do
@@ -1354,6 +1354,27 @@ class RubySamlTest < Minitest::Test
       it "return nil when the value of the SessionNotOnOrAfter is not set" do
         assert_nil response_without_attributes.session_expires_at
       end
+    end
+
+    # Gets the AuthnInstant from the AuthnStatement.
+    # Could be used to require re-authentication if a long time has passed
+    # since the last user authentication.
+    # @return [String] AuthnInstant value
+    #
+    def authn_instant
+      @authn_instant ||= begin
+        node = xpath_first_from_signed_assertion('/a:AuthnStatement')
+        node.nil? ? nil : node.attributes['AuthnInstant']
+      end
+    end
+
+    # Gets the AuthnContextClassRef from the AuthnStatement
+    # Could be used to require re-authentication if the assertion
+    # did not met the requested authentication context class.
+    # @return [String] AuthnContextClassRef value
+    #
+    def authn_context_class_ref
+      @authn_context_class_ref ||= Utils.element_text(xpath_first_from_signed_assertion('/a:AuthnStatement/a:AuthnContext/a:AuthnContextClassRef'))
     end
 
     describe "#success" do

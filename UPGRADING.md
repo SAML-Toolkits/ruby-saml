@@ -103,13 +103,15 @@ The following parameters in `RubySaml::Settings` are deprecated and will be remo
 
 ### Minor changes to Util#format_cert and #format_private_key
 
+
 Version `2.0.0` standardizes how RubySaml reads and formats certificate and private key
 PEM strings. In general, version `2.0.0` is more permissive than `1.x`, and the changes
 are not anticipated to affect most users. Please note the change affects parameters
 such `#idp_cert` and `#certificate`, as well as the `RubySaml::Util#format_cert`
 and `#format_private_key` methods. Specifically:
 
-| # | Input value                                          | RubySaml 2.0.0                                          | RubySaml 1.17.x           |
+
+| # | Input value                                          | RubySaml 2.0.0                                          | RubySaml 1.x              |
 |---|------------------------------------------------------|---------------------------------------------------------|---------------------------|
 | 1 | Input contains a bad (e.g. non-base64) PEM           | Skip PEM formatting                                     | Return a bad PEM          |
 | 2 | Input contains `\r` character(s)                     | Strip out all `\r` character(s) and format as PEM       | Skip PEM formatting       |
