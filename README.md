@@ -7,6 +7,9 @@
 Ruby SAML minor and tiny versions may introduce breaking changes. Please read
 [UPGRADING.md](UPGRADING.md) for guidance on upgrading to new Ruby SAML versions.
 
+**There is a critical vulnerability affecting ruby-saml < 1.17.0 (CVE-2024-45409).
+Make sure you are using an updated version. (1.12.3 is safe)**
+
 ## Overview
 
 The Ruby SAML library is for implementing the client side of a SAML authorization,

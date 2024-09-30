@@ -1027,7 +1027,7 @@ class RubySamlTest < Minitest::Test
         settings.sp_entity_id = 'sp_entity_id'
         response_wrong_spnamequalifier.settings = settings
         assert !response_wrong_spnamequalifier.send(:validate_name_id)
-        assert_includes response_wrong_spnamequalifier.errors, "The SPNameQualifier value mistmatch the SP entityID value."
+        assert_includes response_wrong_spnamequalifier.errors, "SPNameQualifier value does not match the SP entityID value."
       end
 
       it "return true when no nameid element but not required by settings" do
@@ -1354,6 +1354,18 @@ class RubySamlTest < Minitest::Test
 
       it "return nil when the value of the SessionNotOnOrAfter is not set" do
         assert_nil response_without_attributes.session_expires_at
+      end
+    end
+
+    describe "#authn_instant" do
+      it "extract the value of the AuthnInstant attribute" do
+        assert_equal "2010-11-18T21:57:37Z", response.authn_instant
+      end
+    end
+
+    describe "#authn_context_class_ref" do
+      it "extract the value of the AuthnContextClassRef attribute" do
+        assert_equal "urn:oasis:names:tc:SAML:2.0:ac:classes:Password", response.authn_context_class_ref
       end
     end
 

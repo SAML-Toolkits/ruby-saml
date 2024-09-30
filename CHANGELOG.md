@@ -12,7 +12,13 @@
 * [#697](https://github.com/SAML-Toolkits/ruby-saml/pull/697) Add deprecation for various parameters in `RubySaml::Settings`.
 * [#709](https://github.com/SAML-Toolkits/ruby-saml/pull/709) Allow passing in `Net::HTTP` `:open_timeout`, `:read_timeout`, and `:max_retries` settings to `IdpMetadataParser#parse_remote`.
 
-### 1.17.0
+### 1.18.0  (???)
+* [#718](https://github.com/SAML-Toolkits/ruby-saml/pull/718) Add support to retrieve from SAMLResponse the AuthnInstant and AuthnContextClassRef values
+* [#720](https://github.com/SAML-Toolkits/ruby-saml/pull/720) Fix ambiguous regex warnings
+* [#715](https://github.com/SAML-Toolkits/ruby-saml/pull/715) Fix typo in SPNameQualifier error text
+
+### 1.17.0  (Sep 10, 2024)
+* Fix for critical vulnerability CVE-2024-45409: SAML authentication bypass via Incorrect XPath selector
 * [#687](https://github.com/SAML-Toolkits/ruby-saml/pull/687) Add CI coverage for Ruby 3.3 and Windows.
 * [#673](https://github.com/SAML-Toolkits/ruby-saml/pull/673) Add `Settings#sp_cert_multi` paramter to facilitate SP certificate and key rotation.
 * [#673](https://github.com/SAML-Toolkits/ruby-saml/pull/673) Support multiple simultaneous SP decryption keys via `Settings#sp_cert_multi` parameter.
@@ -27,7 +33,7 @@
 
 ### 1.15.0 (Jan 04, 2023)
 * [#650](https://github.com/SAML-Toolkits/ruby-saml/pull/650) Replace strip! by strip on compute_digest method
-* [#638](https://github.com/SAML-Toolkits/ruby-saml/pull/638) Fix dateTime format for the validUntil attribute of the generated metadata 
+* [#638](https://github.com/SAML-Toolkits/ruby-saml/pull/638) Fix dateTime format for the validUntil attribute of the generated metadata
 * [#576](https://github.com/SAML-Toolkits/ruby-saml/pull/576) Support `Settings#idp_cert_multi` with string keys
 * [#567](https://github.com/SAML-Toolkits/ruby-saml/pull/567) Improve Code quality
 * Add info about new repo, new maintainer, new security contact
@@ -52,6 +58,9 @@
 * Add warning about the use of IdpMetadataParser class and SSRF
 * CI: Migrate from Travis to Github Actions
 
+### 1.12.3  (Sep 10, 2024)
+* Fix for critical vulnerability CVE-2024-45409: SAML authentication bypass via Incorrect XPath selector
+
 ### 1.12.2 (Apr 08, 2021)
 * [#575](https://github.com/SAML-Toolkits/ruby-saml/pull/575) Fix SloLogoutresponse bug on LogoutRequest
 
@@ -61,7 +70,7 @@
 
 ### 1.12.0 (Feb 18, 2021)
 * Support AES-128-GCM, AES-192-GCM, and AES-256-GCM encryptions
-* Parse & return SLO ResponseLocation in IDPMetadataParser & Settings 
+* Parse & return SLO ResponseLocation in IDPMetadataParser & Settings
 * Adding idp_sso_service_url and idp_slo_service_url settings
 * [#536](https://github.com/SAML-Toolkits/ruby-saml/pull/536) Adding feth method to be able retrieve attributes based on regex
 * Reduce size of built gem by excluding the test folder
@@ -179,19 +188,17 @@
   * Require Issuer element. (Must match IdP EntityID).
   * Destination value can't be blank (if present must match ACS URL).
   * Check that the EncryptedAssertion element only contains 1 Assertion element.
-
 * [#335](https://github.com/SAML-Toolkits/ruby-saml/pull/335) Explicitly parse as XML and fix setting of Nokogiri options.
 * [#345](https://github.com/SAML-Toolkits/ruby-saml/pull/345)Support multiple settings.auth_context
 * More tests to prevent XML Signature Wrapping
 * [#342](https://github.com/SAML-Toolkits/ruby-saml/pull/342) Correct the usage of Mutex
 * [352](https://github.com/SAML-Toolkits/ruby-saml/pull/352) Support multiple AttributeStatement tags
 
-
 ### 1.3.1 (July 10, 2016)
 * Fix response_test.rb of gem 1.3.0
 * Add reference to Security Guidelines
 * Update License
-* [#334](https://github.com/SAML-Toolkits/ruby-saml/pull/334) Keep API backward-compatibility on IdpMetadataParser fingerprint method. 
+* [#334](https://github.com/SAML-Toolkits/ruby-saml/pull/334) Keep API backward-compatibility on IdpMetadataParser fingerprint method.
 
 ### 1.3.0 (June 24, 2016)
 * [Security Fix](https://github.com/SAML-Toolkits/ruby-saml/commit/a571f52171e6bfd87db59822d1d9e8c38fb3b995) Add extra validations to prevent Signature wrapping attacks
@@ -209,7 +216,7 @@
 * [#316](https://github.com/SAML-Toolkits/ruby-saml/pull/316) Fix Misspelling of transation_id to transaction_id
 * [#321](https://github.com/SAML-Toolkits/ruby-saml/pull/321) Support Attribute Names on IDPSSODescriptor parser
 * Changes on empty URI of Signature reference management
-* [#320](https://github.com/SAML-Toolkits/ruby-saml/pull/320) Dont mutate document to fix lack of reference URI 
+* [#320](https://github.com/SAML-Toolkits/ruby-saml/pull/320) Dont mutate document to fix lack of reference URI
 * [#306](https://github.com/SAML-Toolkits/ruby-saml/pull/306) Support WantAssertionsSigned
 
 ### 1.1.2 (February 15, 2016)
@@ -226,9 +233,9 @@
 * [#270](https://github.com/SAML-Toolkits/ruby-saml/pull/270) Allow SAML elements to come from any namespace (at decryption process)
 * [#261](https://github.com/SAML-Toolkits/ruby-saml/pull/261) Allow validate_subject_confirmation Response validation to be skipped
 * [#258](https://github.com/SAML-Toolkits/ruby-saml/pull/258) Fix allowed_clock_drift on the validate_session_expiration test
-* [#256](https://github.com/SAML-Toolkits/ruby-saml/pull/256) Separate the create_authentication_xml_doc in two methods. 
+* [#256](https://github.com/SAML-Toolkits/ruby-saml/pull/256) Separate the create_authentication_xml_doc in two methods.
 * [#255](https://github.com/SAML-Toolkits/ruby-saml/pull/255) Refactor validate signature.
-* [#254](https://github.com/SAML-Toolkits/ruby-saml/pull/254) Handle empty URI references 
+* [#254](https://github.com/SAML-Toolkits/ruby-saml/pull/254) Handle empty URI references
 * [#251](https://github.com/SAML-Toolkits/ruby-saml/pull/251) Support qualified and unqualified NameID in attributes
 * [#234](https://github.com/SAML-Toolkits/ruby-saml/pull/234) Add explicit support for JRuby
 
@@ -236,7 +243,7 @@
 * [#247](https://github.com/SAML-Toolkits/ruby-saml/pull/247) Avoid entity expansion (XEE attacks)
 * [#246](https://github.com/SAML-Toolkits/ruby-saml/pull/246) Fix bug generating Logout Response (issuer was at wrong order)
 * [#243](https://github.com/SAML-Toolkits/ruby-saml/issues/243) and [#244](https://github.com/SAML-Toolkits/ruby-saml/issues/244) Fix metadata builder errors. Fix metadata xsd.
-* [#241](https://github.com/SAML-Toolkits/ruby-saml/pull/241) Add decrypt support (EncryptID and EncryptedAssertion). Improve compatibility with namespaces. 
+* [#241](https://github.com/SAML-Toolkits/ruby-saml/pull/241) Add decrypt support (EncryptID and EncryptedAssertion). Improve compatibility with namespaces.
 * [#240](https://github.com/SAML-Toolkits/ruby-saml/pull/240) and [#238](https://github.com/SAML-Toolkits/ruby-saml/pull/238) Improve test coverage and refactor.
 * [#239](https://github.com/SAML-Toolkits/ruby-saml/pull/239) Improve security: Add more validations to SAMLResponse, LogoutRequest and LogoutResponse. Refactor code and improve tests coverage.
 * [#237](https://github.com/SAML-Toolkits/ruby-saml/pull/237) Don't pretty print metadata by default.
@@ -298,7 +305,6 @@
 
 * [#111](https://github.com/SAML-Toolkits/ruby-saml/pull/111) `Onelogin::` is `OneLogin::`
 * [#108](https://github.com/SAML-Toolkits/ruby-saml/pull/108) Change namespacing from `Onelogin::Saml` to `Onelogin::Rubysaml`
-
 
 ### 0.7.3 (Feb 20, 2014)
 Updated gem dependencies to be compatible with Ruby 1.8.7-p374 and 1.9.3-p448. Removed unnecessary `canonix` gem dependency.
