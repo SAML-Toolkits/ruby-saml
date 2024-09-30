@@ -1160,7 +1160,7 @@ class RubySamlTest < Minitest::Test
 
       it "optionally allows for clock drift on NotOnOrAfter" do
         # Java Floats behave differently than MRI
-        java = defined?(RUBY_ENGINE) && %w[jruby truffleruby].include?(RUBY_ENGINE)
+        java = jruby? || truffleruby?
 
         settings.soft = true
 
@@ -1357,6 +1357,27 @@ class RubySamlTest < Minitest::Test
       end
     end
 
+    # Gets the AuthnInstant from the AuthnStatement.
+    # Could be used to require re-authentication if a long time has passed
+    # since the last user authentication.
+    # @return [String] AuthnInstant value
+    #
+    def authn_instant
+      @authn_instant ||= begin
+        node = xpath_first_from_signed_assertion('/a:AuthnStatement')
+        node.nil? ? nil : node.attributes['AuthnInstant']
+      end
+    end
+
+    # Gets the AuthnContextClassRef from the AuthnStatement
+    # Could be used to require re-authentication if the assertion
+    # did not met the requested authentication context class.
+    # @return [String] AuthnContextClassRef value
+    #
+    def authn_context_class_ref
+      @authn_context_class_ref ||= Utils.element_text(xpath_first_from_signed_assertion('/a:AuthnStatement/a:AuthnContext/a:AuthnContextClassRef'))
+    end
+
     describe "#success" do
       it "find a status code that says success" do
         response.success?
@@ -1461,14 +1482,19 @@ class RubySamlTest < Minitest::Test
         end
       end
 
-      it 'raise if an encrypted assertion is found and the sp private key is wrong' do
+      it 'raise if an encrypted assertion is found and the SP private key does not match cert' do
         settings.certificate = ruby_saml_cert_text
-        wrong_private_key = ruby_saml_key_text.sub!('A', 'B')
+        wrong_private_key = ruby_saml_key_text.sub!('Z', 'X')
         settings.private_key = wrong_private_key
 
-        error_msg = "Neither PUB key nor PRIV key: nested asn1 error"
-        assert_raises(OpenSSL::PKey::RSAError, error_msg) do
-          RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)
+        error, msg = if jruby?
+                       [Java::JavaLang::IllegalStateException, 'RSA engine faulty decryption/signing detected']
+                     else
+                       [OpenSSL::PKey::RSAError, 'Neither PUB key nor PRIV key: nested asn1 error']
+                     end
+
+        assert_raises(error, msg) do
+          RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, settings: settings)
         end
       end
 

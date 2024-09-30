@@ -129,17 +129,30 @@ module RubySaml
         canon_string = noko_signed_info_element.canonicalize(canon_algorithm)
         noko_sig_element.remove
 
+        # get signed info
+        signed_info_element = REXML::XPath.first(
+          sig_element,
+          "./ds:SignedInfo",
+          { "ds" => DSIG }
+        )
+
         # get inclusive namespaces
         inclusive_namespaces = extract_inclusive_namespaces
 
         # check digests
-        ref = REXML::XPath.first(sig_element, '//ds:Reference', {'ds'=>DSIG})
+        ref = REXML::XPath.first(signed_info_element, "./ds:Reference", {"ds"=>DSIG})
 
-        hashed_element = document.at_xpath('//*[@ID=$id]', nil, { 'id' => extract_signed_element_id })
+        reference_nodes = document.xpath("//*[@ID=$id]", nil, { 'id' => extract_signed_element_id })
+
+        if reference_nodes.length > 1 # ensures no elements with same ID to prevent signature wrapping attack.
+          return append_error("Digest mismatch. Duplicated ID found", soft)
+        end
+
+        hashed_element = reference_nodes[0]
 
         canon_algorithm = canon_algorithm REXML::XPath.first(
-          ref,
-          '//ds:CanonicalizationMethod',
+          signed_info_element,
+          './ds:CanonicalizationMethod',
           { 'ds' => DSIG }
         )
 
@@ -155,7 +168,7 @@ module RubySaml
         hash = digest_algorithm.digest(canon_hashed_element)
         encoded_digest_value = REXML::XPath.first(
           ref,
-          '//ds:DigestValue',
+          './ds:DigestValue',
           { 'ds' => DSIG }
         )
         digest_value = Base64.decode64(RubySaml::Utils.element_text(encoded_digest_value))
@@ -181,7 +194,7 @@ module RubySaml
       def process_transforms(ref, canon_algorithm)
         transforms = REXML::XPath.match(
           ref,
-          '//ds:Transforms/ds:Transform',
+          './ds:Transforms/ds:Transform',
           { 'ds' => DSIG }
         )
 
