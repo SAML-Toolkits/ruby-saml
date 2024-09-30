@@ -44,8 +44,8 @@ class UtilsTest < Minitest::Test
     let(:formatted_chained_certificate) {read_certificate("formatted_chained_certificate")}
 
     it "returns empty string when the cert is an empty string" do
-      cert = ""
-      assert_equal "", RubySaml::Utils.format_cert(cert)
+      cert = ''
+      assert_equal '', RubySaml::Utils.format_cert(cert)
     end
 
     it "returns nil when the cert is nil" do
@@ -67,7 +67,7 @@ class UtilsTest < Minitest::Test
       assert_equal formatted_certificate, RubySaml::Utils.format_cert(invalid_certificate2)
     end
 
-    it "returns the cert when it's encoded" do
+    it "returns the original cert when it's encoded" do
       encoded_certificate = read_certificate("certificate.der")
       assert_equal encoded_certificate, RubySaml::Utils.format_cert(encoded_certificate)
     end
@@ -93,8 +93,8 @@ class UtilsTest < Minitest::Test
     end
 
     it "returns empty string when the private key is an empty string" do
-      private_key = ""
-      assert_equal "", RubySaml::Utils.format_private_key(private_key)
+      private_key = ''
+      assert_equal '', RubySaml::Utils.format_private_key(private_key)
     end
 
     it "returns nil when the private key is nil" do
