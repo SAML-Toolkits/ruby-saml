@@ -1,5 +1,10 @@
 # Ruby SAML Changelog
 
+### 1.18.0  (???)
+* [#718](https://github.com/SAML-Toolkits/ruby-saml/pull/718/) Add support to retrieve from SAMLResponse the AuthnInstant and AuthnContextClassRef values
+* [#720](https://github.com/SAML-Toolkits/ruby-saml/pull/720) Fix ambiguous regex warnings
+* [#715](https://github.com/SAML-Toolkits/ruby-saml/pull/715) Fix typo in SPNameQualifier error text
+
 ### 1.17.0  (Sep 10, 2024)
 * Fix for critical vulnerability CVE-2024-45409: SAML authentication bypass via Incorrect XPath selector
 * [#687](https://github.com/SAML-Toolkits/ruby-saml/pull/687) Add CI coverage for Ruby 3.3 and Windows.
@@ -15,7 +20,7 @@
 
 ### 1.15.0 (Jan 04, 2023)
 * [#650](https://github.com/SAML-Toolkits/ruby-saml/pull/650) Replace strip! by strip on compute_digest method
-* [#638](https://github.com/SAML-Toolkits/ruby-saml/pull/638) Fix dateTime format for the validUntil attribute of the generated metadata 
+* [#638](https://github.com/SAML-Toolkits/ruby-saml/pull/638) Fix dateTime format for the validUntil attribute of the generated metadata
 * [#576](https://github.com/SAML-Toolkits/ruby-saml/pull/576) Support `Settings#idp_cert_multi` with string keys
 * [#567](https://github.com/SAML-Toolkits/ruby-saml/pull/567) Improve Code quality
 * Add info about new repo, new maintainer, new security contact
@@ -52,7 +57,7 @@
 
 ### 1.12.0 (Feb 18, 2021)
 * Support AES-128-GCM, AES-192-GCM, and AES-256-GCM encryptions
-* Parse & return SLO ResponseLocation in IDPMetadataParser & Settings 
+* Parse & return SLO ResponseLocation in IDPMetadataParser & Settings
 * Adding idp_sso_service_url and idp_slo_service_url settings
 * [#536](https://github.com/onelogin/ruby-saml/pull/536) Adding feth method to be able retrieve attributes based on regex
 * Reduce size of built gem by excluding the test folder
@@ -184,7 +189,7 @@
 * Fix response_test.rb of gem 1.3.0
 * Add reference to Security Guidelines
 * Update License
-* [#334](https://github.com/onelogin/ruby-saml/pull/334) Keep API backward-compatibility on IdpMetadataParser fingerprint method. 
+* [#334](https://github.com/onelogin/ruby-saml/pull/334) Keep API backward-compatibility on IdpMetadataParser fingerprint method.
 
 ### 1.3.0 (June 24, 2016)
 * [Security Fix](https://github.com/onelogin/ruby-saml/commit/a571f52171e6bfd87db59822d1d9e8c38fb3b995) Add extra validations to prevent Signature wrapping attacks
@@ -202,7 +207,7 @@
 * [#316](https://github.com/onelogin/ruby-saml/pull/316) Fix Misspelling of transation_id to transaction_id
 * [#321](https://github.com/onelogin/ruby-saml/pull/321) Support Attribute Names on IDPSSODescriptor parser
 * Changes on empty URI of Signature reference management
-* [#320](https://github.com/onelogin/ruby-saml/pull/320) Dont mutate document to fix lack of reference URI 
+* [#320](https://github.com/onelogin/ruby-saml/pull/320) Dont mutate document to fix lack of reference URI
 * [#306](https://github.com/onelogin/ruby-saml/pull/306) Support WantAssertionsSigned
 
 ### 1.1.2 (February 15, 2016)
@@ -219,9 +224,9 @@
 * [#270](https://github.com/onelogin/ruby-saml/pull/270) Allow SAML elements to come from any namespace (at decryption process)
 * [#261](https://github.com/onelogin/ruby-saml/pull/261) Allow validate_subject_confirmation Response validation to be skipped
 * [#258](https://github.com/onelogin/ruby-saml/pull/258) Fix allowed_clock_drift on the validate_session_expiration test
-* [#256](https://github.com/onelogin/ruby-saml/pull/256) Separate the create_authentication_xml_doc in two methods. 
+* [#256](https://github.com/onelogin/ruby-saml/pull/256) Separate the create_authentication_xml_doc in two methods.
 * [#255](https://github.com/onelogin/ruby-saml/pull/255) Refactor validate signature.
-* [#254](https://github.com/onelogin/ruby-saml/pull/254) Handle empty URI references 
+* [#254](https://github.com/onelogin/ruby-saml/pull/254) Handle empty URI references
 * [#251](https://github.com/onelogin/ruby-saml/pull/251) Support qualified and unqualified NameID in attributes
 * [#234](https://github.com/onelogin/ruby-saml/pull/234) Add explicit support for JRuby
 
@@ -229,7 +234,7 @@
 * [#247](https://github.com/onelogin/ruby-saml/pull/247) Avoid entity expansion (XEE attacks)
 * [#246](https://github.com/onelogin/ruby-saml/pull/246) Fix bug generating Logout Response (issuer was at wrong order)
 * [#243](https://github.com/onelogin/ruby-saml/issues/243) and [#244](https://github.com/onelogin/ruby-saml/issues/244) Fix metadata builder errors. Fix metadata xsd.
-* [#241](https://github.com/onelogin/ruby-saml/pull/241) Add decrypt support (EncryptID and EncryptedAssertion). Improve compatibility with namespaces. 
+* [#241](https://github.com/onelogin/ruby-saml/pull/241) Add decrypt support (EncryptID and EncryptedAssertion). Improve compatibility with namespaces.
 * [#240](https://github.com/onelogin/ruby-saml/pull/240) and [#238](https://github.com/onelogin/ruby-saml/pull/238) Improve test coverage and refactor.
 * [#239](https://github.com/onelogin/ruby-saml/pull/239) Improve security: Add more validations to SAMLResponse, LogoutRequest and LogoutResponse. Refactor code and improve tests coverage.
 * [#237](https://github.com/onelogin/ruby-saml/pull/237) Don't pretty print metadata by default.
