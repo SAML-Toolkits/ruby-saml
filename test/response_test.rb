@@ -1356,25 +1356,16 @@ class RubySamlTest < Minitest::Test
       end
     end
 
-    # Gets the AuthnInstant from the AuthnStatement.
-    # Could be used to require re-authentication if a long time has passed
-    # since the last user authentication.
-    # @return [String] AuthnInstant value
-    #
-    def authn_instant
-      @authn_instant ||= begin
-        node = xpath_first_from_signed_assertion('/a:AuthnStatement')
-        node.nil? ? nil : node.attributes['AuthnInstant']
+    describe "#authn_instant" do
+      it "extract the value of the AuthnInstant attribute" do
+        assert_equal "2010-11-18T21:57:37Z", response.authn_instant
       end
     end
 
-    # Gets the AuthnContextClassRef from the AuthnStatement
-    # Could be used to require re-authentication if the assertion
-    # did not met the requested authentication context class.
-    # @return [String] AuthnContextClassRef value
-    #
-    def authn_context_class_ref
-      @authn_context_class_ref ||= Utils.element_text(xpath_first_from_signed_assertion('/a:AuthnStatement/a:AuthnContext/a:AuthnContextClassRef'))
+    describe "#authn_context_class_ref" do
+      it "extract the value of the AuthnContextClassRef attribute" do
+        assert_equal "urn:oasis:names:tc:SAML:2.0:ac:classes:Password", response.authn_context_class_ref
+      end
     end
 
     describe "#success" do

@@ -7,6 +7,9 @@
 Ruby SAML minor and tiny versions may introduce breaking changes. Please read
 [UPGRADING.md](UPGRADING.md) for guidance on upgrading to new Ruby SAML versions.
 
+**There is a critical vulnerability affecting ruby-saml < 1.17.0 (CVE-2024-45409).
+Make sure you are using an updated version. (1.12.3 is safe)**
+
 ## Overview
 
 The Ruby SAML library is for implementing the client side of a SAML authorization,
@@ -983,14 +986,3 @@ end
 # Output XML with custom metadata
 MyMetadata.new.generate(settings)
 ```
-
-## Attribution
-
-Portions of the code in `RubySaml::XML` namespace is adapted from earlier work
-copyrighted by either Oracle and/or Todd W. Saxton. The original code was distributed
-under the Common Development and Distribution License (CDDL) 1.0. This code is planned to
-be written entirely in future versions.
-
-## License
-
-Ruby SAML is made available under the MIT License. Refer to [LICENSE](LICENSE).
