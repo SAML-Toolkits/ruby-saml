@@ -1027,7 +1027,7 @@ class RubySamlTest < Minitest::Test
         settings.sp_entity_id = 'sp_entity_id'
         response_wrong_spnamequalifier.settings = settings
         assert !response_wrong_spnamequalifier.send(:validate_name_id)
-        assert_includes response_wrong_spnamequalifier.errors, "The SPNameQualifier value mistmatch the SP entityID value."
+        assert_includes response_wrong_spnamequalifier.errors, "SPNameQualifier value does not match the SP entityID value."
       end
 
       it "return true when no nameid element but not required by settings" do
