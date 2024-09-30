@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<samlp:Response xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" ID="_6b02a2b5-496b-4acc-a3c5-c86d0e9a3825" Version="2.0" IssueInstant="2012-04-04T07:33:10.921Z" Destination="https://example.com/endpoint">
+  <saml:Issuer xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">idp.example.com</saml:Issuer>
+  <samlp:Status>
+    <samlp:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success"/>
+  </samlp:Status>
+  <saml:Assertion xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" Version="2.0" ID="_cc084213-c9df-45ef-87a0-263f4da4f79b" IssueInstant="2012-04-04T07:33:10.923Z">
+    <saml:Issuer>idp.myexample.org</saml:Issuer>
+    <saml:Subject>
+      <saml:NameID NameQualifier="idp.example.com" Format="urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress">someone@example.org</saml:NameID>
+      <saml:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer">
+        <saml:SubjectConfirmationData Recipient="https://example.com/endpoint" InResponseTo="_f7201940-6055-012f-3bc1-782bcb13c426"/>
+      </saml:SubjectConfirmation>
+    </saml:Subject>
+    <saml:Conditions NotBefore="2012-04-04T07:28:11.442Z" NotOnOrAfter="2012-04-04T07:38:11.442Z">
+      <saml:AudienceRestriction>
+        <saml:Audience>example.com</saml:Audience>
+      </saml:AudienceRestriction>
+    </saml:Conditions>
+    <saml:AuthnStatement AuthnInstant="2012-04-04T07:33:11.442Z">
+      <saml:AuthnContext>
+        <saml:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport</saml:AuthnContextClassRef>
+      </saml:AuthnContext>
+    </saml:AuthnStatement>
+  </saml:Assertion>
+</samlp:Response>

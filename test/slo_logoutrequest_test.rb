@@ -29,7 +29,7 @@ class RubySamlTest < Minitest::Test
     describe "#is_valid?" do
       it "return false when logout request is initialized with blank data" do
         logout_request_blank = RubySaml::SloLogoutrequest.new('')
-        assert !logout_request_blank.is_valid?
+        refute logout_request_blank.is_valid?
         assert_includes logout_request_blank.errors, 'Blank logout request'
       end
 
@@ -40,9 +40,9 @@ class RubySamlTest < Minitest::Test
       end
 
       it "should be idempotent when the logout request is initialized with invalid data" do
-        assert !invalid_logout_request.is_valid?
+        refute invalid_logout_request.is_valid?
         assert_equal ['Invalid SAML Logout Request. Not match the saml-schema-protocol-2.0.xsd'], invalid_logout_request.errors
-        assert !invalid_logout_request.is_valid?
+        refute invalid_logout_request.is_valid?
         assert_equal ['Invalid SAML Logout Request. Not match the saml-schema-protocol-2.0.xsd'], invalid_logout_request.errors
       end
 
@@ -72,7 +72,7 @@ class RubySamlTest < Minitest::Test
         logout_request_sign_test.settings = settings
 
         collect_errors = true
-        assert !logout_request_sign_test.is_valid?(collect_errors)
+        refute logout_request_sign_test.is_valid?(collect_errors)
         assert_includes logout_request_sign_test.errors,  "Invalid Signature on Logout Request"
         assert_includes logout_request_sign_test.errors,  "Doesn't match the issuer, expected: <http://idp.example.com/invalid>, but was: <https://app.onelogin.com/saml/metadata/SOMEACCOUNT>"
       end
@@ -162,7 +162,7 @@ class RubySamlTest < Minitest::Test
 
       it "return false when there is an invalid ID in the logout request" do
         logout_request_blank = RubySaml::SloLogoutrequest.new('')
-        assert !logout_request_blank.send(:validate_id)
+        refute logout_request_blank.send(:validate_id)
         assert_includes logout_request_blank.errors, "Missing ID attribute on Logout Request"
       end
     end
@@ -174,7 +174,7 @@ class RubySamlTest < Minitest::Test
 
       it "return false when the logout request is not SAML 2.0 Version" do
         logout_request_blank = RubySaml::SloLogoutrequest.new('')
-        assert !logout_request_blank.send(:validate_version)
+        refute logout_request_blank.send(:validate_version)
         assert_includes logout_request_blank.errors, "Unsupported SAML version"
       end
     end
@@ -194,7 +194,7 @@ class RubySamlTest < Minitest::Test
       it "return false when the logout request has an invalid NotOnOrAfter" do
         Timecop.freeze Time.parse('2014-07-17T01:01:49Z') do
           logout_request.document.root.attributes['NotOnOrAfter'] = '2014-07-17T01:01:48Z'
-          assert !logout_request.send(:validate_not_on_or_after)
+          refute logout_request.send(:validate_not_on_or_after)
           assert_match(/Current time is on or after NotOnOrAfter/, logout_request.errors[0])
         end
       end
@@ -211,7 +211,7 @@ class RubySamlTest < Minitest::Test
 
       it "optionally allows for clock drift" do
         # Java Floats behave differently than MRI
-        java = defined?(RUBY_ENGINE) && %w[jruby truffleruby].include?(RUBY_ENGINE)
+        java = jruby? || truffleruby?
 
         logout_request.soft = true
         logout_request.document.root.attributes['NotOnOrAfter'] = '2011-06-14T18:31:01.516Z'
@@ -219,13 +219,13 @@ class RubySamlTest < Minitest::Test
         # The NotBefore condition in the document is 2011-06-1418:31:01.516Z
         Timecop.freeze(Time.parse("2011-06-14T18:31:02Z")) do
           logout_request.options[:allowed_clock_drift] = 0.483
-          assert !logout_request.send(:validate_not_on_or_after)
+          refute logout_request.send(:validate_not_on_or_after)
 
           logout_request.options[:allowed_clock_drift] = java ? 0.485 : 0.484
           assert logout_request.send(:validate_not_on_or_after)
 
           logout_request.options[:allowed_clock_drift] = '0.483'
-          assert !logout_request.send(:validate_not_on_or_after)
+          refute logout_request.send(:validate_not_on_or_after)
 
           logout_request.options[:allowed_clock_drift] = java ? '0.485' : '0.484'
           assert logout_request.send(:validate_not_on_or_after)
@@ -244,7 +244,7 @@ class RubySamlTest < Minitest::Test
       it "return false when invalid logout request xml" do
         logout_request_blank = RubySaml::SloLogoutrequest.new('')
         logout_request_blank.soft = true
-        assert !logout_request_blank.send(:validate_request_state)
+        refute logout_request_blank.send(:validate_request_state)
         assert_includes logout_request_blank.errors, "Blank logout request"
       end
 
@@ -264,7 +264,7 @@ class RubySamlTest < Minitest::Test
       end
 
       it "return false when encountering a Logout Request bad formatted" do
-        assert !invalid_logout_request.send(:validate_structure)
+        refute invalid_logout_request.send(:validate_structure)
         assert_includes invalid_logout_request.errors, "Invalid SAML Logout Request. Not match the saml-schema-protocol-2.0.xsd"
       end
 
@@ -284,7 +284,7 @@ class RubySamlTest < Minitest::Test
 
       it "return false when the issuer of the Logout Request does not match the IdP entityId" do
         logout_request.settings.idp_entity_id = 'http://idp.example.com/invalid'
-        assert !logout_request.send(:validate_issuer)
+        refute logout_request.send(:validate_issuer)
         assert_includes logout_request.errors, "Doesn't match the issuer, expected: <#{logout_request.settings.idp_entity_id}>, but was: <https://app.onelogin.com/saml/metadata/SOMEACCOUNT>"
       end
 
@@ -297,263 +297,259 @@ class RubySamlTest < Minitest::Test
       end
     end
 
-    describe "#validate_signature" do
-      before do
-        settings.security[:logout_requests_signed] = true
-        settings.certificate = ruby_saml_cert_text
-        settings.private_key = ruby_saml_key_text
-        settings.idp_cert = ruby_saml_cert_text
-      end
+    each_signature_algorithm do |idp_key_algo, idp_hash_algo|
+      describe "#validate_signature" do
+        before do
+          @cert, @pkey = CertificateHelper.generate_pair(idp_key_algo)
+          settings.idp_cert = @cert.to_pem
 
-      it "return true when no idp_cert is provided and option :relax_signature_validation is present" do
-        settings.idp_cert = nil
-        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
-        params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
-        params['RelayState'] = params[:RelayState]
-        options = {}
-        options[:get_params] = params
-        options[:relax_signature_validation] = true
-        logout_request_sign_test = RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
-        logout_request_sign_test.settings = settings
-        assert logout_request_sign_test.send(:validate_signature)
-      end
-
-      it "return false when no idp_cert is provided and no option :relax_signature_validation is present" do
-        settings.idp_cert = nil
-        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
-        params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
-        params['RelayState'] = params[:RelayState]
-        options = {}
-        options[:get_params] = params
-        logout_request_sign_test = RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
-        logout_request_sign_test.settings = settings
-        assert !logout_request_sign_test.send(:validate_signature)
-      end
-
-      it "return true when valid RSA_SHA1 Signature" do
-        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
-        params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
-        params['RelayState'] = params[:RelayState]
-        options = {}
-        options[:get_params] = params
-        logout_request_sign_test = RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
-        logout_request_sign_test.settings = settings
-        assert logout_request_sign_test.send(:validate_signature)
-      end
-
-      it "return true when valid RSA_SHA256 Signature" do
-        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA256
-        params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
-        options = {}
-        options[:get_params] = params
-        logout_request_sign_test = RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
-        params['RelayState'] = params[:RelayState]
-        logout_request_sign_test.settings = settings
-        assert logout_request_sign_test.send(:validate_signature)
-      end
-
-      it "return false when invalid RSA_SHA1 Signature" do
-        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
-        params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
-        params['RelayState'] = 'http://invalid.example.com'
-        params[:RelayState] = params['RelayState']
-        options = {}
-        options[:get_params] = params
-
-        logout_request_sign_test = RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
-        logout_request_sign_test.settings = settings
-        assert !logout_request_sign_test.send(:validate_signature)
-      end
-
-      it "raise when invalid RSA_SHA1 Signature" do
-        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
-        settings.soft = false
-        params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
-        params['RelayState'] = 'http://invalid.example.com'
-        params[:RelayState] = params['RelayState']
-        options = {}
-        options[:get_params] = params
-        options[:settings] = settings
-
-        logout_request_sign_test = RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
-        assert_raises(RubySaml::ValidationError, "Invalid Signature on Logout Request") do
-          logout_request_sign_test.send(:validate_signature)
-        end
-      end
-
-      it "raise when get_params encoding differs from what this library generates" do
-        # Use Logoutrequest only to build the SAMLRequest parameter.
-        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
-        settings.soft = false
-        params = RubySaml::Logoutrequest.new.create_params(settings, "RelayState" => "http://example.com")
-        # Assemble query string.
-        query = RubySaml::Utils.build_query(
-          :type => 'SAMLRequest',
-          :data => params['SAMLRequest'],
-          :relay_state => params['RelayState'],
-          :sig_alg => params['SigAlg']
-        )
-        # Modify the query string so that it encodes the same values,
-        # but with different percent-encoding. Sanity-check that they
-        # really are equialent before moving on.
-        original_query = query.dup
-        query.gsub!("example", "ex%61mple")
-        refute_equal(query, original_query)
-        assert_equal(CGI.unescape(query), CGI.unescape(original_query))
-        # Make normalised signature based on our modified params.
-        sign_algorithm = RubySaml::XML::BaseDocument.new.algorithm(settings.security[:signature_method])
-        signature = settings.get_sp_signing_key.sign(sign_algorithm.new, query)
-        params['Signature'] = Base64.encode64(signature).gsub(/\n/, "")
-        # Construct SloLogoutrequest and ask it to validate the signature.
-        # It will do it incorrectly, because it will compute it based on re-encoded
-        # query parameters, rather than their original encodings.
-        options = {}
-        options[:get_params] = params
-        options[:settings] = settings
-        logout_request_sign_test = RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
-        assert_raises(RubySaml::ValidationError, "Invalid Signature on Logout Request") do
-          logout_request_sign_test.send(:validate_signature)
-        end
-      end
-
-      it "return true even if raw_get_params encoding differs from what this library generates" do
-        # Use Logoutrequest only to build the SAMLRequest parameter.
-        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
-        settings.soft = false
-        params = RubySaml::Logoutrequest.new.create_params(settings, "RelayState" => "http://example.com")
-        # Assemble query string.
-        query = RubySaml::Utils.build_query(
-          :type => 'SAMLRequest',
-          :data => params['SAMLRequest'],
-          :relay_state => params['RelayState'],
-          :sig_alg => params['SigAlg']
-        )
-        # Modify the query string so that it encodes the same values,
-        # but with different percent-encoding. Sanity-check that they
-        # really are equialent before moving on.
-        original_query = query.dup
-        query.gsub!("example", "ex%61mple")
-        refute_equal(query, original_query)
-        assert_equal(CGI.unescape(query), CGI.unescape(original_query))
-        # Make normalised signature based on our modified params.
-        sign_algorithm = RubySaml::XML::BaseDocument.new.algorithm(settings.security[:signature_method])
-        signature = settings.get_sp_signing_key.sign(sign_algorithm.new, query)
-        params['Signature'] = Base64.encode64(signature).gsub(/\n/, "")
-        # Construct SloLogoutrequest and ask it to validate the signature.
-        # Provide the altered parameter in its raw URI-encoded form,
-        # so that we don't have to guess the value that contributed to the signature.
-        options = {}
-        options[:get_params] = params
-        options[:get_params].delete("RelayState")
-        options[:raw_get_params] = {
-          "RelayState" => "http%3A%2F%2Fex%61mple.com",
-        }
-        options[:settings] = settings
-        logout_request_sign_test = RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
-        assert logout_request_sign_test.send(:validate_signature)
-      end
-
-      it "handles Azure AD downcased request encoding" do
-        # Use Logoutrequest only to build the SAMLRequest parameter.
-        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA256
-        settings.soft = false
-
-        # Creating the query manually to tweak it later instead of using
-        # RubySaml::Utils.build_query
-        request_doc = RubySaml::Logoutrequest.new.create_logout_request_xml_doc(settings)
-        request = Zlib::Deflate.deflate(request_doc.to_s, 9)[2..-5]
-        base64_request = Base64.encode64(request).gsub(/\n/, "")
-        # The original request received from Azure AD comes with downcased
-        # encoded characters, like %2f instead of %2F, and the signature they
-        # send is based on this base64 request.
-        params = {
-          'SAMLRequest' => downcased_escape(base64_request),
-          'SigAlg' => downcased_escape(settings.security[:signature_method]),
-        }
-        # Assemble query string.
-        query = "SAMLRequest=#{params['SAMLRequest']}&SigAlg=#{params['SigAlg']}"
-        # Make normalised signature based on our modified params.
-        sign_algorithm = RubySaml::XML::BaseDocument.new.algorithm(
-          settings.security[:signature_method]
-        )
-        signature = settings.get_sp_signing_key.sign(sign_algorithm.new, query)
-        params['Signature'] = downcased_escape(Base64.encode64(signature).gsub(/\n/, ""))
-
-        # Then parameters are usually unescaped, like we manage them in rails
-        params = params.map { |k, v| [k, CGI.unescape(v)] }.to_h
-        # Construct SloLogoutrequest and ask it to validate the signature.
-        # It will fail because the signature is based on the downcased request
-        logout_request_downcased_test = RubySaml::SloLogoutrequest.new(
-          params['SAMLRequest'], get_params: params, settings: settings,
-        )
-        assert_raises(RubySaml::ValidationError, "Invalid Signature on Logout Request") do
-          logout_request_downcased_test.send(:validate_signature)
+          # These SP settings are added in order to create dummy params which
+          # have the correct IdP signature. They do NOT normally affect IdP logic.
+          settings.certificate = @cert.to_pem
+          settings.private_key = @pkey.to_pem
+          settings.security[:logout_requests_signed] = true
+          settings.security[:signature_method] = signature_method(idp_key_algo, idp_hash_algo)
         end
 
-        # For this case, the parameters will be forced to be downcased after
-        # being escaped with :lowercase_url_encoding security option
-        settings.security[:lowercase_url_encoding] = true
-        logout_request_force_downcasing_test = RubySaml::SloLogoutrequest.new(
-          params['SAMLRequest'], get_params: params, settings: settings
-        )
-        assert logout_request_force_downcasing_test.send(:validate_signature)
-      end
-    end
+        it "return true when no idp_cert is provided and option :relax_signature_validation is present" do
+          settings.idp_cert = nil
+          params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
+          params['RelayState'] = params[:RelayState]
+          options = {}
+          options[:get_params] = params
+          options[:relax_signature_validation] = true
+          logout_request_sign_test = RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
+          logout_request_sign_test.settings = settings
 
-    describe "#validate_signature with multiple idp certs" do
-      before do
-        settings.certificate = ruby_saml_cert_text
-        settings.private_key = ruby_saml_key_text
-        settings.idp_cert = nil
-        settings.security[:logout_requests_signed] = true
-        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
-      end
+          assert logout_request_sign_test.send(:validate_signature)
+        end
 
-      it "return true when at least a idp_cert is valid" do
-        params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
-        params['RelayState'] = params[:RelayState]
-        options = {}
-        options[:get_params] = params
-        logout_request_sign_test = RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
-        settings.idp_cert_multi = {
-          :signing => [ruby_saml_cert_text2, ruby_saml_cert_text],
-          :encryption => []
-        }
-        logout_request_sign_test.settings = settings
-        assert logout_request_sign_test.send(:validate_signature)
-      end
+        it "return false when no idp_cert is provided and no option :relax_signature_validation is present" do
+          settings.idp_cert = nil
+          params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
+          params['RelayState'] = params[:RelayState]
+          options = {}
+          options[:get_params] = params
+          logout_request_sign_test = RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
+          logout_request_sign_test.settings = settings
 
-      it "return false when cert expired and check_idp_cert_expiration expired" do
-        params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
-        params['RelayState'] = params[:RelayState]
-        options = {}
-        options[:get_params] = params
-        settings.security[:check_idp_cert_expiration] = true
-        logout_request_sign_test = RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
-        settings.idp_cert = nil
-        settings.idp_cert_multi = {
-          :signing => [ruby_saml_cert_text],
-          :encryption => []
-        }
-        logout_request_sign_test.settings = settings
-        assert !logout_request_sign_test.send(:validate_signature)
-        assert_includes logout_request_sign_test.errors, "IdP x509 certificate expired"
-      end
+          refute logout_request_sign_test.send(:validate_signature)
+        end
 
-      it "return false when none cert on idp_cert_multi is valid" do
-        params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
-        params['RelayState'] = params[:RelayState]
-        options = {}
-        options[:get_params] = params
-        logout_request_sign_test = RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
-        settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
-        settings.idp_cert_multi = {
-          :signing => [ruby_saml_cert_text2, ruby_saml_cert_text2],
-          :encryption => []
-        }
-        logout_request_sign_test.settings = settings
-        assert !logout_request_sign_test.send(:validate_signature)
-        assert_includes logout_request_sign_test.errors, "Invalid Signature on Logout Request"
+        it "return true when valid RSA_SHA1 Signature" do
+          params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
+          params['RelayState'] = params[:RelayState]
+          options = {}
+          options[:get_params] = params
+          logout_request_sign_test = RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
+          logout_request_sign_test.settings = settings
+
+          assert logout_request_sign_test.send(:validate_signature)
+        end
+
+        it "return false when invalid signature" do
+          params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
+          params['RelayState'] = 'http://invalid.example.com'
+          params[:RelayState] = params['RelayState']
+          options = {}
+          options[:get_params] = params
+          logout_request_sign_test = RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
+          logout_request_sign_test.settings = settings
+
+          refute logout_request_sign_test.send(:validate_signature)
+        end
+
+        it "raise when invalid signature" do
+          settings.soft = false
+          params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
+          params['RelayState'] = 'http://invalid.example.com'
+          params[:RelayState] = params['RelayState']
+          options = {}
+          options[:get_params] = params
+          options[:settings] = settings
+          logout_request_sign_test = RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
+
+          assert_raises(RubySaml::ValidationError, "Invalid Signature on Logout Request") do
+            logout_request_sign_test.send(:validate_signature)
+          end
+        end
+
+        it "raise when get_params encoding differs from what this library generates" do
+          settings.soft = false
+          params = RubySaml::Logoutrequest.new.create_params(settings, "RelayState" => "http://example.com")
+          query = RubySaml::Utils.build_query(
+            :type => 'SAMLRequest',
+            :data => params['SAMLRequest'],
+            :relay_state => params['RelayState'],
+            :sig_alg => params['SigAlg']
+          )
+
+          # Modify the query string so that it encodes the same values,
+          # but with different percent-encoding. Sanity-check that they
+          # really are equialent before moving on.
+          original_query = query.dup
+          query.gsub!("example", "ex%61mple")
+
+          refute_equal(query, original_query)
+          assert_equal(CGI.unescape(query), CGI.unescape(original_query))
+
+          # Make normalised signature based on our modified params.
+          sign_algorithm = RubySaml::XML::Crypto.hash_algorithm(settings.get_sp_signature_method)
+          signature = settings.get_sp_signing_key.sign(sign_algorithm.new, query)
+
+          params['Signature'] = Base64.encode64(signature).gsub(/\n/, "")
+          # Construct SloLogoutrequest and ask it to validate the signature.
+          # It will do it incorrectly, because it will compute it based on re-encoded
+          # query parameters, rather than their original encodings.
+          options = {}
+          options[:get_params] = params
+          options[:settings] = settings
+          logout_request_sign_test = RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
+
+          assert_raises(RubySaml::ValidationError, "Invalid Signature on Logout Request") do
+            logout_request_sign_test.send(:validate_signature)
+          end
+        end
+
+        it "return true even if raw_get_params encoding differs from what this library generates" do
+          settings.soft = false
+          params = RubySaml::Logoutrequest.new.create_params(settings, "RelayState" => "http://example.com")
+          query = RubySaml::Utils.build_query(
+            :type => 'SAMLRequest',
+            :data => params['SAMLRequest'],
+            :relay_state => params['RelayState'],
+            :sig_alg => params['SigAlg']
+          )
+
+          # Modify the query string so that it encodes the same values,
+          # but with different percent-encoding. Sanity-check that they
+          # really are equialent before moving on.
+          original_query = query.dup
+          query.gsub!("example", "ex%61mple")
+
+          refute_equal(query, original_query)
+          assert_equal(CGI.unescape(query), CGI.unescape(original_query))
+
+          # Make normalised signature based on our modified params.
+          sign_algorithm = RubySaml::XML::Crypto.hash_algorithm(settings.get_sp_signature_method)
+          signature = settings.get_sp_signing_key.sign(sign_algorithm.new, query)
+          params['Signature'] = Base64.encode64(signature).gsub(/\n/, "")
+
+          # Construct SloLogoutrequest and ask it to validate the signature.
+          # Provide the altered parameter in its raw URI-encoded form,
+          # so that we don't have to guess the value that contributed to the signature.
+          options = {}
+          options[:get_params] = params
+          options[:get_params].delete("RelayState")
+          options[:raw_get_params] = { "RelayState" => "http%3A%2F%2Fex%61mple.com" }
+          options[:settings] = settings
+          logout_request_sign_test = RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
+
+          assert logout_request_sign_test.send(:validate_signature)
+        end
+
+        it "handles Azure AD downcased request encoding" do
+          settings.soft = false
+
+          # Creating the query manually to tweak it later instead of using
+          # RubySaml::Utils.build_query
+          request_doc = RubySaml::Logoutrequest.new.create_logout_request_xml_doc(settings)
+          request = Zlib::Deflate.deflate(request_doc.to_s, 9)[2..-5]
+          base64_request = Base64.encode64(request).gsub(/\n/, "")
+          # The original request received from Azure AD comes with downcased
+          # encoded characters, like %2f instead of %2F, and the signature they
+          # send is based on this base64 request.
+          params = {
+            'SAMLRequest' => downcased_escape(base64_request),
+            'SigAlg' => downcased_escape(settings.get_sp_signature_method),
+          }
+          query = "SAMLRequest=#{params['SAMLRequest']}&SigAlg=#{params['SigAlg']}"
+          # Make normalised signature based on our modified params.
+          sign_algorithm = RubySaml::XML::Crypto.hash_algorithm(settings.get_sp_signature_method)
+          signature = settings.get_sp_signing_key.sign(sign_algorithm.new, query)
+          params['Signature'] = downcased_escape(Base64.encode64(signature).gsub(/\n/, ""))
+
+          # Then parameters are usually unescaped, like we manage them in rails
+          params = params.map { |k, v| [k, CGI.unescape(v)] }.to_h
+          # Construct SloLogoutrequest and ask it to validate the signature.
+          # It will fail because the signature is based on the downcased request
+          logout_request_downcased_test = RubySaml::SloLogoutrequest.new(
+            params['SAMLRequest'], get_params: params, settings: settings,
+          )
+          assert_raises(RubySaml::ValidationError, "Invalid Signature on Logout Request") do
+            logout_request_downcased_test.send(:validate_signature)
+          end
+
+          # For this case, the parameters will be forced to be downcased after
+          # being escaped with :lowercase_url_encoding security option
+          settings.security[:lowercase_url_encoding] = true
+          logout_request_force_downcasing_test = RubySaml::SloLogoutrequest.new(
+            params['SAMLRequest'], get_params: params, settings: settings
+          )
+          assert logout_request_force_downcasing_test.send(:validate_signature)
+        end
+
+        describe "with multiple idp certs" do
+          before do
+            settings.idp_cert = nil
+          end
+
+          it "return true when at least a idp_cert is valid" do
+            settings.idp_cert_multi = {
+              :signing => [@cert.to_pem, ruby_saml_cert_text],
+              :encryption => []
+            }
+            params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
+            params['RelayState'] = params[:RelayState]
+            options = {}
+            options[:get_params] = params
+            logout_request_sign_test = RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
+            logout_request_sign_test.settings = settings
+
+            assert logout_request_sign_test.send(:validate_signature)
+          end
+
+          it "return false when cert expired and check_idp_cert_expiration expired" do
+            settings.security[:check_idp_cert_expiration] = true
+            settings.idp_cert = nil
+            settings.idp_cert_multi = {
+              :signing => [ruby_saml_cert_text],
+              :encryption => []
+            }
+
+            # These SP settings are for dummy params generation.
+            settings.certificate = ruby_saml_cert_text
+            settings.private_key = ruby_saml_key_text
+
+            params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
+            params['RelayState'] = params[:RelayState]
+            options = {}
+            options[:get_params] = params
+            logout_request_sign_test = RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
+            logout_request_sign_test.settings = settings
+
+            refute logout_request_sign_test.send(:validate_signature)
+            assert_includes logout_request_sign_test.errors, "IdP x509 certificate expired"
+          end
+
+          it "return false when none cert on idp_cert_multi is valid" do
+            settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
+            settings.idp_cert_multi = {
+              :signing => [ruby_saml_cert_text2, ruby_saml_cert_text2],
+              :encryption => []
+            }
+
+            params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
+            params['RelayState'] = params[:RelayState]
+            options = {}
+            options[:get_params] = params
+            logout_request_sign_test = RubySaml::SloLogoutrequest.new(params['SAMLRequest'], options)
+            logout_request_sign_test.settings = settings
+
+            refute logout_request_sign_test.send(:validate_signature)
+            assert_includes logout_request_sign_test.errors, "Invalid Signature on Logout Request"
+          end
+        end
       end
     end
   end

@@ -1,13 +1,16 @@
 # frozen_string_literal: true
 
 require 'securerandom'
-require "openssl"
+require 'openssl'
+require 'ruby_saml/pem_formatter'
 
 module RubySaml
 
   # SAML2 Auxiliary class
   #
-  class Utils
+  module Utils
+    extend self
+
     BINDINGS = { post: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
                  redirect: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" }.freeze
     DSIG = "http://www.w3.org/2000/09/xmldsig#"
@@ -33,9 +36,8 @@ module RubySaml
     #
     # @param cert [OpenSSL::X509::Certificate|String] The x509 certificate.
     # @return [true|false] Whether the certificate is expired.
-    def self.is_cert_expired(cert)
-      cert = OpenSSL::X509::Certificate.new(cert) if cert.is_a?(String)
-
+    def is_cert_expired(cert)
+      cert = build_cert_object(cert) if cert.is_a?(String)
       cert.not_after < Time.now
     end
 
@@ -43,8 +45,8 @@ module RubySaml
     #
     # @param cert [OpenSSL::X509::Certificate|String] The x509 certificate.
     # @return [true|false] Whether the certificate is currently active.
-    def self.is_cert_active(cert)
-      cert = OpenSSL::X509::Certificate.new(cert) if cert.is_a?(String)
+    def is_cert_active(cert)
+      cert = build_cert_object(cert) if cert.is_a?(String)
       now = Time.now
       cert.not_before <= now && cert.not_after >= now
     end
@@ -58,7 +60,7 @@ module RubySaml
     #
     # @return [Integer] The new timestamp, after the duration is applied.
     #
-    def self.parse_duration(duration, timestamp=Time.now.utc)
+    def parse_duration(duration, timestamp=Time.now.utc)
       matches = duration.match(DURATION_FORMAT)
 
       if matches.nil?
@@ -84,77 +86,59 @@ module RubySaml
       datetime.to_time.utc.to_i + (durHours * 3600) + (durMinutes * 60) + durSeconds
     end
 
-    # Return a properly formatted x509 certificate
+    # Formats one or multiple X.509 certificate(s) to canonical RFC 7468 PEM format.
     #
-    # @param cert [String] The original certificate
-    # @return [String] The formatted certificate
+    # @note Unlike `PemFormatter#format_cert`, this method returns the original
+    # input string if the input cannot be parsed.
     #
-    def self.format_cert(cert)
-      # don't try to format an encoded certificate or if is empty or nil
-      if cert.respond_to?(:ascii_only?)
-        return cert if cert.nil? || cert.empty? || !cert.ascii_only?
-      elsif cert.nil? || cert.empty? || cert.match(/\x0d/)
-        return cert
-      end
-
-      if cert.scan(/BEGIN CERTIFICATE/).length > 1
-        formatted_cert = []
-        cert.scan(/-{5}BEGIN CERTIFICATE-{5}[\n\r]?.*?-{5}END CERTIFICATE-{5}[\n\r]?/m) do |c|
-          formatted_cert << format_cert(c)
-        end
-        formatted_cert.join("\n")
-      else
-        cert = cert.gsub(/-{5}\s?(BEGIN|END) CERTIFICATE\s?-{5}/, "")
-        cert = cert.gsub(/\r/, "")
-        cert = cert.gsub(/\n/, "")
-        cert = cert.gsub(/\s/, "")
-        cert = cert.scan(/.{1,64}/)
-        cert = cert.join("\n")
-        "-----BEGIN CERTIFICATE-----\n#{cert}\n-----END CERTIFICATE-----"
-      end
+    # @param cert [String] The original certificate(s).
+    # @param multi [true|false] Whether to return multiple keys delimited by newline.
+    #   Default true for compatibility with legacy behavior (i.e. to parse cert chains).
+    # @return [String] The formatted certificate(s). For legacy compatibility reasons,
+    #   this method returns the original string if the input cannot be parsed.
+    def format_cert(cert, multi: true)
+      PemFormatter.format_cert(cert, multi: multi) || cert
     end
 
-    # Return a properly formatted private key
+    # Formats one or multiple private key(s) to canonical RFC 7468 PEM format.
     #
-    # @param key [String] The original private key
-    # @return [String] The formatted private key
+    # @note Unlike `PemFormatter#format_private_key`, this method returns the
+    # original input string if the input cannot be parsed.
     #
-    def self.format_private_key(key)
-      # don't try to format an encoded private key or if is empty
-      return key if key.nil? || key.empty? || key.match(/\x0d/)
-
-      # is this an rsa key?
-      rsa_key = key.match("RSA PRIVATE KEY")
-      key = key.gsub(/-{5}\s?(BEGIN|END)( RSA)? PRIVATE KEY\s?-{5}/, "")
-      key = key.gsub(/\n/, "")
-      key = key.gsub(/\r/, "")
-      key = key.gsub(/\s/, "")
-      key = key.scan(/.{1,64}/)
-      key = key.join("\n")
-      key_label = rsa_key ? "RSA PRIVATE KEY" : "PRIVATE KEY"
-      "-----BEGIN #{key_label}-----\n#{key}\n-----END #{key_label}-----"
+    # @param key [String] The original private key(s)
+    # @param multi [true|false] Whether to return multiple keys delimited by newline.
+    #   Default false for compatibility with legacy behavior.
+    # @return [String] The formatted private key(s). For legacy compatibility reasons,
+    #   this method returns the original string if the input cannot be parsed.
+    def format_private_key(key, multi: false)
+      PemFormatter.format_private_key(key, multi: multi) || key
     end
 
     # Given a certificate string, return an OpenSSL::X509::Certificate object.
     #
-    # @param cert [String] The original certificate
+    # @param pem [String] The original certificate
     # @return [OpenSSL::X509::Certificate] The certificate object
-    #
-    def self.build_cert_object(cert)
-      return nil if cert.nil? || cert.empty?
+    def build_cert_object(pem)
+      return unless (pem = PemFormatter.format_cert(pem, multi: false))
 
-      OpenSSL::X509::Certificate.new(format_cert(cert))
+      OpenSSL::X509::Certificate.new(pem)
     end
 
-    # Given a private key string, return an OpenSSL::PKey::RSA object.
+    # Given a private key string, return an OpenSSL::PKey::PKey object.
     #
-    # @param cert [String] The original private key
-    # @return [OpenSSL::PKey::RSA] The private key object
-    #
-    def self.build_private_key_object(private_key)
-      return nil if private_key.nil? || private_key.empty?
+    # @param pem [String] The original private key.
+    # @return [OpenSSL::PKey::PKey] The private key object.
+    def build_private_key_object(pem)
+      return unless (pem = PemFormatter.format_private_key(pem, multi: false))
 
-      OpenSSL::PKey::RSA.new(format_private_key(private_key))
+      error = nil
+      private_key_classes(pem).each do |key_class|
+        return key_class.new(pem)
+      rescue OpenSSL::PKey::PKeyError => e
+        error ||= e
+      end
+
+      raise error
     end
 
     # Build the Query String signature that will be used in the HTTP-Redirect binding
@@ -166,8 +150,8 @@ module RubySaml
     # @option params [String] :sig_alg The SigAlg parameter
     # @return [String] The Query String
     #
-    def self.build_query(params)
-      type, data, relay_state, sig_alg = %i[type data relay_state sig_alg].map { |k| params[k]}
+    def build_query(params)
+      type, data, relay_state, sig_alg = params.values_at(:type, :data, :relay_state, :sig_alg)
 
       url_string = +"#{type}=#{CGI.escape(data)}"
       url_string << "&RelayState=#{CGI.escape(relay_state)}" if relay_state
@@ -183,8 +167,8 @@ module RubySaml
     # @option params [String] :raw_sig_alg URI-encoded SigAlg parameter, as sent by IDP
     # @return [String] The Query String
     #
-    def self.build_query_from_raw_parts(params)
-      type, raw_data, raw_relay_state, raw_sig_alg = %i[type raw_data raw_relay_state raw_sig_alg].map { |k| params[k]}
+    def build_query_from_raw_parts(params)
+      type, raw_data, raw_relay_state, raw_sig_alg = params.values_at(:type, :raw_data, :raw_relay_state, :raw_sig_alg)
 
       url_string = +"#{type}=#{raw_data}"
       url_string << "&RelayState=#{raw_relay_state}" if raw_relay_state
@@ -199,7 +183,7 @@ module RubySaml
     # @param lowercase_url_encoding [bool] Lowercase URL Encoding  (For ADFS urlencode compatiblity)
     # @return [Hash] New raw parameters
     #
-    def self.prepare_raw_get_params(rawparams, params, lowercase_url_encoding=false)
+    def prepare_raw_get_params(rawparams, params, lowercase_url_encoding=false)
       rawparams ||= {}
 
       if rawparams['SAMLRequest'].nil? && !params['SAMLRequest'].nil?
@@ -218,7 +202,7 @@ module RubySaml
       rawparams
     end
 
-    def self.escape_request_param(param, lowercase_url_encoding)
+    def escape_request_param(param, lowercase_url_encoding)
       CGI.escape(param).tap do |escaped|
         next unless lowercase_url_encoding
 
@@ -234,9 +218,9 @@ module RubySaml
     # @option params [String] query_string The full GET Query String to be compared
     # @return [Boolean] True if the Signature is valid, False otherwise
     #
-    def self.verify_signature(params)
-      cert, sig_alg, signature, query_string = %i[cert sig_alg signature query_string].map { |k| params[k]}
-      signature_algorithm = RubySaml::XML::BaseDocument.new.algorithm(sig_alg)
+    def verify_signature(params)
+      cert, sig_alg, signature, query_string = params.values_at(:cert, :sig_alg, :signature, :query_string)
+      signature_algorithm = RubySaml::XML::Crypto.hash_algorithm(sig_alg)
       cert.public_key.verify(signature_algorithm.new, Base64.decode64(signature), query_string)
     end
 
@@ -244,7 +228,7 @@ module RubySaml
     # @param status_code [String] StatusCode value
     # @param status_message [Strig] StatusMessage value
     # @return [String] The status error message
-    def self.status_error_msg(error_msg, raw_status_code = nil, status_message = nil)
+    def status_error_msg(error_msg, raw_status_code = nil, status_message = nil)
       unless raw_status_code.nil?
         if raw_status_code.include?("|")
           status_codes = raw_status_code.split(' | ')
@@ -266,18 +250,20 @@ module RubySaml
     # Obtains the decrypted string from an Encrypted node element in XML,
     # given multiple private keys to try.
     # @param encrypted_node [REXML::Element] The Encrypted element
-    # @param private_keys [Array<OpenSSL::PKey::RSA>] The Service provider private key
+    # @param private_keys [Array<OpenSSL::PKey::RSA>] The SP private key
     # @return [String] The decrypted data
-    def self.decrypt_multi(encrypted_node, private_keys)
+    def decrypt_multi(encrypted_node, private_keys)
       raise ArgumentError.new('private_keys must be specified') if !private_keys || private_keys.empty?
+
+      if private_keys.none?(OpenSSL::PKey::RSA)
+        raise ArgumentError.new('private_keys must be OpenSSL::PKey::RSA keys')
+      end
 
       error = nil
       private_keys.each do |key|
-        begin
-          return decrypt_data(encrypted_node, key)
-        rescue OpenSSL::PKey::PKeyError => e
-          error ||= e
-        end
+        return decrypt_data(encrypted_node, key)
+      rescue OpenSSL::PKey::PKeyError => e
+        error ||= e
       end
 
       raise(error) if error
@@ -285,9 +271,9 @@ module RubySaml
 
     # Obtains the decrypted string from an Encrypted node element in XML
     # @param encrypted_node [REXML::Element] The Encrypted element
-    # @param private_key [OpenSSL::PKey::RSA] The Service provider private key
+    # @param private_key [OpenSSL::PKey::RSA] The SP private key
     # @return [String] The decrypted data
-    def self.decrypt_data(encrypted_node, private_key)
+    def decrypt_data(encrypted_node, private_key)
       encrypt_data = REXML::XPath.first(
         encrypted_node,
         "./xenc:EncryptedData",
@@ -311,9 +297,9 @@ module RubySaml
 
     # Obtains the symmetric key from the EncryptedData element
     # @param encrypt_data [REXML::Element]     The EncryptedData element
-    # @param private_key [OpenSSL::PKey::RSA] The Service provider private key
+    # @param private_key [OpenSSL::PKey::RSA] The SP private key
     # @return [String] The symmetric key
-    def self.retrieve_symmetric_key(encrypt_data, private_key)
+    def retrieve_symmetric_key(encrypt_data, private_key)
       encrypted_key = REXML::XPath.first(
         encrypt_data,
         "./ds:KeyInfo/xenc:EncryptedKey | ./KeyInfo/xenc:EncryptedKey | //xenc:EncryptedKey[@Id=$id]",
@@ -339,7 +325,7 @@ module RubySaml
       retrieve_plaintext(cipher_text, private_key, algorithm)
     end
 
-    def self.retrieve_symetric_key_reference(encrypt_data)
+    def retrieve_symetric_key_reference(encrypt_data)
       REXML::XPath.first(
         encrypt_data,
         "substring-after(./ds:KeyInfo/ds:RetrievalMethod/@URI, '#')",
@@ -352,7 +338,7 @@ module RubySaml
     # @param symmetric_key [String] The symmetric key used to encrypt the text
     # @param algorithm [String]     The encrypted algorithm
     # @return [String] The deciphered text
-    def self.retrieve_plaintext(cipher_text, symmetric_key, algorithm)
+    def retrieve_plaintext(cipher_text, symmetric_key, algorithm)
       case algorithm
       when 'http://www.w3.org/2001/04/xmlenc#tripledes-cbc' then cipher = OpenSSL::Cipher.new('DES-EDE3-CBC').decrypt
       when 'http://www.w3.org/2001/04/xmlenc#aes128-cbc' then cipher = OpenSSL::Cipher.new('AES-128-CBC').decrypt
@@ -394,11 +380,11 @@ module RubySaml
       end
     end
 
-    def self.set_prefix(value)
+    def set_prefix(value)
       UUID_PREFIX.replace value
     end
 
-    def self.uuid
+    def uuid
       "#{UUID_PREFIX}#{SecureRandom.uuid}"
     end
 
@@ -407,7 +393,7 @@ module RubySaml
     # RFC for URIs.  If Rails can not parse the string in to URL pieces, return a boolean match of the
     # two strings.  This maintains the previous functionality.
     # @return [Boolean]
-    def self.uri_match?(destination_url, settings_url)
+    def uri_match?(destination_url, settings_url)
       dest_uri = URI.parse(destination_url)
       acs_uri = URI.parse(settings_url)
 
@@ -425,15 +411,26 @@ module RubySaml
 
     # If Rails' URI.parse can't match to valid URL, default back to the original matching service.
     # @return [Boolean]
-    def self.original_uri_match?(destination_url, settings_url)
+    def original_uri_match?(destination_url, settings_url)
       destination_url == settings_url
     end
 
     # Given a REXML::Element instance, return the concatenation of all child text nodes. Assumes
     # that there all children other than text nodes can be ignored (e.g. comments). If nil is
     # passed, nil will be returned.
-    def self.element_text(element)
+    def element_text(element)
       element.texts.map(&:value).join if element
+    end
+
+    # Given a private key PEM string, return an array of OpenSSL::PKey::PKey classes
+    # that can be used to parse it, with the most likely match first.
+    def private_key_classes(pem)
+      priority = case pem.match(/(RSA|ECDSA|EC|DSA) PRIVATE KEY/)&.[](1)
+                 when 'RSA' then OpenSSL::PKey::RSA
+                 when 'DSA' then OpenSSL::PKey::DSA
+                 when 'ECDSA', 'EC' then OpenSSL::PKey::EC
+                 end
+      Array(priority) | [OpenSSL::PKey::RSA, OpenSSL::PKey::DSA, OpenSSL::PKey::EC]
     end
   end
 end

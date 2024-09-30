@@ -16,6 +16,7 @@ require 'ruby_saml/http_error'
 require 'ruby_saml/validation_error'
 require 'ruby_saml/metadata'
 require 'ruby_saml/idp_metadata_parser'
+require 'ruby_saml/pem_formatter'
 require 'ruby_saml/utils'
 require 'ruby_saml/version'
 

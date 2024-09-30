@@ -86,48 +86,48 @@ class XmlTest < Minitest::Test
   describe "#canon_algorithm" do
     it "C14N_EXCLUSIVE_1_0" do
       canon_algorithm = Nokogiri::XML::XML_C14N_EXCLUSIVE_1_0
-      assert_equal canon_algorithm, RubySaml::XML::BaseDocument.new.canon_algorithm("http://www.w3.org/2001/10/xml-exc-c14n#")
-      assert_equal canon_algorithm, RubySaml::XML::BaseDocument.new.canon_algorithm("http://www.w3.org/2001/10/xml-exc-c14n#WithComments")
-      assert_equal canon_algorithm, RubySaml::XML::BaseDocument.new.canon_algorithm("other")
+      assert_equal canon_algorithm, RubySaml::XML::Crypto.canon_algorithm("http://www.w3.org/2001/10/xml-exc-c14n#")
+      assert_equal canon_algorithm, RubySaml::XML::Crypto.canon_algorithm("http://www.w3.org/2001/10/xml-exc-c14n#WithComments")
+      assert_equal canon_algorithm, RubySaml::XML::Crypto.canon_algorithm("other")
     end
 
     it "C14N_1_0" do
       canon_algorithm = Nokogiri::XML::XML_C14N_1_0
-      assert_equal canon_algorithm, RubySaml::XML::BaseDocument.new.canon_algorithm("http://www.w3.org/TR/2001/REC-xml-c14n-20010315")
-      assert_equal canon_algorithm, RubySaml::XML::BaseDocument.new.canon_algorithm("http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments")
+      assert_equal canon_algorithm, RubySaml::XML::Crypto.canon_algorithm("http://www.w3.org/TR/2001/REC-xml-c14n-20010315")
+      assert_equal canon_algorithm, RubySaml::XML::Crypto.canon_algorithm("http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments")
     end
 
     it "XML_C14N_1_1" do
       canon_algorithm = Nokogiri::XML::XML_C14N_1_1
-      assert_equal canon_algorithm, RubySaml::XML::BaseDocument.new.canon_algorithm("http://www.w3.org/2006/12/xml-c14n11")
-      assert_equal canon_algorithm, RubySaml::XML::BaseDocument.new.canon_algorithm("http://www.w3.org/2006/12/xml-c14n11#WithComments")
+      assert_equal canon_algorithm, RubySaml::XML::Crypto.canon_algorithm("http://www.w3.org/2006/12/xml-c14n11")
+      assert_equal canon_algorithm, RubySaml::XML::Crypto.canon_algorithm("http://www.w3.org/2006/12/xml-c14n11#WithComments")
     end
   end
 
   describe "#algorithm" do
     it "SHA1" do
       alg = OpenSSL::Digest::SHA1
-      assert_equal alg, RubySaml::XML::BaseDocument.new.algorithm("http://www.w3.org/2000/09/xmldsig#rsa-sha1")
-      assert_equal alg, RubySaml::XML::BaseDocument.new.algorithm("http://www.w3.org/2000/09/xmldsig#sha1")
+      assert_equal alg, RubySaml::XML::Crypto.hash_algorithm("http://www.w3.org/2000/09/xmldsig#rsa-sha1")
+      assert_equal alg, RubySaml::XML::Crypto.hash_algorithm("http://www.w3.org/2000/09/xmldsig#sha1")
     end
 
     it "SHA256" do
       alg = OpenSSL::Digest::SHA256
-      assert_equal alg, RubySaml::XML::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#rsa-sha256")
-      assert_equal alg, RubySaml::XML::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#sha256")
-      assert_equal alg, RubySaml::XML::BaseDocument.new.algorithm("other")
+      assert_equal alg, RubySaml::XML::Crypto.hash_algorithm("http://www.w3.org/2001/04/xmldsig-more#rsa-sha256")
+      assert_equal alg, RubySaml::XML::Crypto.hash_algorithm("http://www.w3.org/2001/04/xmldsig-more#sha256")
+      assert_equal alg, RubySaml::XML::Crypto.hash_algorithm("other")
     end
 
     it "SHA384" do
       alg = OpenSSL::Digest::SHA384
-      assert_equal alg, RubySaml::XML::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#rsa-sha384")
-      assert_equal alg, RubySaml::XML::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#sha384")
+      assert_equal alg, RubySaml::XML::Crypto.hash_algorithm("http://www.w3.org/2001/04/xmldsig-more#rsa-sha384")
+      assert_equal alg, RubySaml::XML::Crypto.hash_algorithm("http://www.w3.org/2001/04/xmldsig-more#sha384")
     end
 
     it "SHA512" do
       alg = OpenSSL::Digest::SHA512
-      assert_equal alg, RubySaml::XML::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#rsa-sha512")
-      assert_equal alg, RubySaml::XML::BaseDocument.new.algorithm("http://www.w3.org/2001/04/xmldsig-more#sha512")
+      assert_equal alg, RubySaml::XML::Crypto.hash_algorithm("http://www.w3.org/2001/04/xmldsig-more#rsa-sha512")
+      assert_equal alg, RubySaml::XML::Crypto.hash_algorithm("http://www.w3.org/2001/04/xmldsig-more#sha512")
     end
   end
 
@@ -157,7 +157,7 @@ class XmlTest < Minitest::Test
       sha384_fingerprint = "98:FE:17:90:31:E7:68:18:8A:65:4D:DA:F5:76:E2:09:97:BE:8B:E3:7E:AA:8D:63:64:7C:0C:38:23:9A:AC:A2:EC:CE:48:A6:74:4D:E0:4C:50:80:40:B4:8D:55:14:14"
 
       assert !response_fingerprint_test.document.validate_document(sha384_fingerprint)
-      assert response_fingerprint_test.document.validate_document(sha384_fingerprint, true, fingerprint_alg: RubySaml::XML::Document::SHA384)
+      assert response_fingerprint_test.document.validate_document(sha384_fingerprint, true, :fingerprint_alg => RubySaml::XML::Document::SHA384)
     end
 
     it "validate using SHA512" do
@@ -191,7 +191,7 @@ class XmlTest < Minitest::Test
     end
   end
 
-  describe "XmlSecurity::SignedDocument" do
+  describe "RubySaml::XML::SignedDocument" do
 
     describe "#extract_inclusive_namespaces" do
       it "support explicit namespace resolution for exclusive canonicalization" do
@@ -417,7 +417,7 @@ class XmlTest < Minitest::Test
             assert document.validate_document_with_cert(idp_cert), 'Document should be valid'
           end
         end
-        
+
         describe 'when response has no cert but you have local cert' do
           let(:document) { RubySaml::Response.new(response_document_valid_signed_without_x509certificate).document }
           let(:idp_cert) { OpenSSL::X509::Certificate.new(ruby_saml_cert_text) }

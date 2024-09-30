@@ -825,7 +825,7 @@ module RubySaml
         end
 
         if !(settings.sp_entity_id.nil? || settings.sp_entity_id.empty? || name_id_spnamequalifier.nil? || name_id_spnamequalifier.empty?) && (name_id_spnamequalifier != settings.sp_entity_id)
-          return append_error("SPNameQualifier value does not match the SP entityID value.")
+          return append_error('SPNameQualifier value does not match the SP entityID value.')
         end
       end
 
@@ -882,8 +882,8 @@ module RubySaml
 
         if fingerprint && doc.validate_document(fingerprint, @soft, opts)
           if settings.security[:check_idp_cert_expiration] && RubySaml::Utils.is_cert_expired(idp_cert)
-              error_msg = "IdP x509 certificate expired"
-              return append_error(error_msg)
+            error_msg = "IdP x509 certificate expired"
+            return append_error(error_msg)
           end
         else
           return append_error(error_msg)
