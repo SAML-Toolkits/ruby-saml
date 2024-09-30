@@ -1357,6 +1357,18 @@ class RubySamlTest < Minitest::Test
       end
     end
 
+    describe "#authn_instant" do
+      it "extract the value of the AuthnInstant attribute" do
+        assert_equal "2010-11-18T21:57:37Z", response.authn_instant
+      end
+    end
+
+    describe "#authn_context_class_ref" do
+      it "extract the value of the AuthnContextClassRef attribute" do
+        assert_equal "urn:oasis:names:tc:SAML:2.0:ac:classes:Password", response.authn_context_class_ref
+      end
+    end
+
     describe "#success" do
       it "find a status code that says success" do
         response.success?
