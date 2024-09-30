@@ -5,7 +5,6 @@ require 'ruby_saml/response'
 class RubySamlTest < Minitest::Test
 
   describe "Response" do
-
     let(:settings) { RubySaml::Settings.new }
     let(:response) { RubySaml::Response.new(response_document_without_recipient) }
     let(:response_without_attributes) { RubySaml::Response.new(response_document_without_attributes) }
@@ -1521,7 +1520,6 @@ class RubySamlTest < Minitest::Test
     end
 
     describe "retrieve nameID and attributes from encrypted assertion" do
-
       before do
         settings.idp_cert_fingerprint = '55:FD:5F:3F:43:5A:AC:E6:79:89:BF:25:48:81:A1:C4:F3:37:3B:CB:1B:4D:68:A0:3E:A5:C9:FF:61:48:01:3F'
         settings.sp_entity_id = 'http://rubysaml.com:3000/saml/metadata'
@@ -1623,7 +1621,7 @@ class RubySamlTest < Minitest::Test
           settings.private_key = nil
           settings.sp_cert_multi = {
             encryption: [
-              CertificateHelper.generate_pair_hash,
+              CertificateHelper.generate_pem_hash,
               { certificate: ruby_saml_cert_text, private_key: ruby_saml_key_text }
             ]
           }
@@ -1746,8 +1744,8 @@ class RubySamlTest < Minitest::Test
         assert_equal response_double_statuscode.status_code, 'urn:oasis:names:tc:SAML:2.0:status:Requester | urn:oasis:names:tc:SAML:2.0:status:UnsupportedBinding'
       end
     end
-    describe "test qualified name id in attributes" do
 
+    describe "test qualified name id in attributes" do
       it "parsed the nameid" do
         response = RubySaml::Response.new(read_response("signed_nameid_in_atts.xml"), :settings => settings)
         response.settings.idp_cert_fingerprint = 'c51985d947f1be57082025050846eb27f6cab783'
@@ -1758,7 +1756,6 @@ class RubySamlTest < Minitest::Test
     end
 
     describe "test unqualified name id in attributes" do
-
       it "parsed the nameid" do
         response = RubySaml::Response.new(read_response("signed_unqual_nameid_in_atts.xml"), :settings => settings)
         response.settings.idp_cert_fingerprint = 'c51985d947f1be57082025050846eb27f6cab783'
@@ -1802,6 +1799,89 @@ class RubySamlTest < Minitest::Test
         response_wrapped.stubs(:validate_subject_confirmation).returns(true)
         assert !response_wrapped.is_valid?
         assert_includes response_wrapped.errors, "SAML Response must contain 1 assertion"
+      end
+    end
+
+    each_signature_algorithm do |idp_key_algo, idp_hash_algo|
+      describe "#validate_signature" do
+        let(:xml_signed) do
+          RubySaml::XML::Document.new(read_response('response_unsigned2.xml'))
+                                 .sign_document(@pkey, @cert, signature_method(idp_key_algo, idp_hash_algo), digest_method(idp_hash_algo))
+                                 .to_s
+        end
+
+        before do
+          settings.soft = true
+          settings.idp_sso_service_url = "http://example.com?field=value"
+          @cert, @pkey = CertificateHelper.generate_pair(idp_key_algo)
+          settings.idp_cert = @cert.to_pem
+        end
+
+        it "return true when valid signature" do
+          options = {}
+          options[:settings] = settings
+          response_sign_test = RubySaml::Response.new(xml_signed, options)
+
+          assert response_sign_test.send(:validate_signature)
+        end
+
+        it "return false when no idp_cert is provided and no option :relax_signature_validation is present" do
+          settings.idp_cert = nil
+          options = {}
+          options[:settings] = settings
+          response_sign_test = RubySaml::Response.new(xml_signed, options)
+
+          refute response_sign_test.send(:validate_signature)
+        end
+
+        it "return false when invalid signature" do
+          options = {}
+          options[:settings] = settings
+          response = RubySaml::Response.new(xml_signed.gsub('SignatureValue>', 'SignatureValue>Foobar'), options)
+
+          refute response.send(:validate_signature)
+        end
+
+        it "raise when invalid signature" do
+          settings.soft = false
+          options = {}
+          options[:settings] = settings
+          response = RubySaml::Response.new(xml_signed.gsub('SignatureValue>', 'SignatureValue>Foobar'), options)
+
+          assert_raises(RubySaml::ValidationError) { response.send(:validate_signature) }
+          assert response.errors.include? "Key validation error"
+        end
+
+        describe "with multitple idp certs" do
+          before do
+            settings.idp_cert = nil
+          end
+
+          it "return true when at least a idp_cert is valid" do
+            options = {}
+            options[:settings] = settings
+            settings.idp_cert_multi = {
+              :signing => [@cert.to_pem, ruby_saml_cert_text],
+              :encryption => []
+            }
+            response_sign_test = RubySaml::Response.new(xml_signed, options)
+
+            assert response_sign_test.send(:validate_signature)
+          end
+
+          it "return false when none cert on idp_cert_multi is valid" do
+            options = {}
+            options[:settings] = settings
+            settings.idp_cert_multi = {
+              :signing => [ruby_saml_cert_text2, ruby_saml_cert_text2],
+              :encryption => []
+            }
+            response_sign_test = RubySaml::Response.new(xml_signed, options)
+
+            refute response_sign_test.send(:validate_signature)
+            assert_includes response_sign_test.errors, 'Invalid Signature on SAML Response'
+          end
+        end
       end
     end
   end

@@ -46,6 +46,73 @@ class Minitest::Test
     end
   end
 
+  def self.each_key_algorithm(&block)
+    key_algorithms.each do |algorithm|
+      describe "#{algorithm.upcase} algorithm" do
+        block.call(algorithm)
+      end
+    end
+  end
+
+  def self.each_signature_algorithm(&block)
+    key_algorithms.each do |key_algorithm|
+      hash_algorithms(key_algorithm).each do |hash_algorithm|
+        describe "#{key_algorithm.upcase} #{hash_algorithm.upcase} algorithm" do
+          block.call(key_algorithm, hash_algorithm)
+        end
+      end
+    end
+  end
+
+  def self.key_algorithms
+    algorithms = %i[rsa dsa]
+
+    # JRuby does not support ECDSA due to a known issue:
+    # https://github.com/jruby/jruby-openssl/issues/257
+    algorithms << :ecdsa unless jruby?
+    algorithms
+  end
+
+  def self.hash_algorithms(key_algorithm = :rsa)
+    if key_algorithm == :dsa
+      jruby? ? %i[sha256] : %i[sha1 sha256]
+    else
+      %i[sha1 sha224 sha256 sha384 sha512]
+    end
+  end
+
+  def expected_key_class(algorithm)
+    case algorithm
+    when :dsa
+      OpenSSL::PKey::DSA
+    when :ec, :ecdsa
+      OpenSSL::PKey::EC
+    else
+      OpenSSL::PKey::RSA
+    end
+  end
+
+  def signature_method(algorithm, digest = :sha256)
+    algorithm = :ecdsa if algorithm == :ec
+    RubySaml::XML::Crypto.const_get("#{algorithm}_#{digest}".upcase)
+  end
+
+  def digest_method(digest = :sha256)
+    RubySaml::XML::Crypto.const_get(digest.upcase)
+  end
+
+  def signature_value_matcher
+    %r{<ds:SignatureValue>([a-zA-Z0-9/+]+=?=?)</ds:SignatureValue>}
+  end
+
+  def signature_method_matcher(algorithm = :rsa, digest = :sha256)
+    %r{<ds:SignatureMethod Algorithm='#{Regexp.escape(signature_method(algorithm, digest))}'/>}
+  end
+
+  def digest_method_matcher(digest = :sha256)
+    %r{<ds:DigestMethod Algorithm='#{digest_method(digest)}'/>}
+  end
+
   def read_response(response)
     File.read(File.join(File.dirname(__FILE__), "responses", response))
   end
@@ -370,5 +437,54 @@ class Minitest::Test
   # Allows to emulate Azure AD request behavior
   def downcased_escape(str)
     CGI.escape(str).gsub(/%[A-Fa-f0-9]{2}/) { |match| match.downcase }
+  end
+
+  def encrypt_xml(assertion_xml, private_key)
+    # Generate a symmetric key (AES-256)
+    cipher = OpenSSL::Cipher.new('aes-256-cbc')
+    cipher.encrypt
+    symmetric_key = cipher.random_key
+    public_key = private_key.is_a?(OpenSSL::PKey::EC) ? private_key : private_key.public_key
+
+    # Encrypt the symmetric key with the RSA public key
+    encrypted_symmetric_key = Base64.encode64(public_key.public_encrypt(symmetric_key))
+
+    # Encrypt the assertion XML with the symmetric key
+    cipher.key = symmetric_key
+    iv = cipher.random_iv
+    cipher.iv = iv
+    encrypted_assertion = cipher.update(assertion_xml) + cipher.final
+
+    # Base64 encode the encrypted assertion and IV
+    encrypted_assertion_base64 = Base64.encode64(encrypted_assertion)
+    iv_base64 = Base64.encode64(iv)
+
+    # Build the EncryptedAssertion XML
+    encrypted_assertion_xml = <<-XML
+      <EncryptedAssertion xmlns="urn:oasis:names:tc:SAML:2.0:assertion">
+        <xenc:EncryptedData xmlns:xenc="http://www.w3.org/2001/04/xmlenc#">
+          <xenc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes256-cbc"/>
+          <KeyInfo xmlns="http://www.w3.org/2000/09/xmldsig#">
+            <xenc:EncryptedKey>
+              <xenc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#rsa-1_5"/>
+              <xenc:CipherData>
+                <xenc:CipherValue>#{encrypted_symmetric_key}</xenc:CipherValue>
+              </xenc:CipherData>
+            </xenc:EncryptedKey>
+          </KeyInfo>
+          <xenc:CipherData>
+            <xenc:CipherValue>#{encrypted_assertion_base64}</xenc:CipherValue>
+          </xenc:CipherData>
+        </xenc:EncryptedData>
+        <xenc:EncryptionProperties>
+          <xenc:EncryptionProperty Target="#encryptedData">
+            <xenc:CipherReference URI="#encryptedData"/>
+            <xenc:CipherValue>#{iv_base64}</xenc:CipherValue>
+          </xenc:EncryptionProperty>
+        </xenc:EncryptionProperties>
+      </EncryptedAssertion>
+    XML
+
+    encrypted_assertion_xml
   end
 end

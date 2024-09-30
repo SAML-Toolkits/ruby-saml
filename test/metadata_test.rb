@@ -232,9 +232,9 @@ class MetadataTest < Minitest::Test
         before do
           settings.security[:want_assertions_encrypted] = true
           settings.security[:check_sp_cert_expiration] = true
-          valid_pair = CertificateHelper.generate_pair_hash
-          early_pair = CertificateHelper.generate_pair_hash(not_before: Time.now + 60)
-          expired_pair = CertificateHelper.generate_pair_hash(not_after: Time.now - 60)
+          valid_pair = CertificateHelper.generate_pem_hash
+          early_pair = CertificateHelper.generate_pem_hash(not_before: Time.now + 60)
+          expired_pair = CertificateHelper.generate_pem_hash(not_after: Time.now - 60)
           settings.certificate = nil
           settings.certificate_new = nil
           settings.private_key = nil
@@ -331,79 +331,108 @@ class MetadataTest < Minitest::Test
     describe "when the settings indicate to sign (embedded) metadata" do
       before do
         settings.security[:metadata_signed] = true
-        settings.certificate = ruby_saml_cert_text
-        settings.private_key = ruby_saml_key_text
       end
 
-      it "creates a signed metadata" do
-        assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>]m, xml_text
-        assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], xml_text
-        assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmlenc#sha256'/>], xml_text
-
+      it "uses RSA SHA256 by default" do
+        @cert, @pkey = CertificateHelper.generate_pair(:rsa)
+        settings.certificate, settings.private_key = [@cert, @pkey].map(&:to_pem)
+        @fingerprint = OpenSSL::Digest.new('SHA256', @cert.to_der).to_s
         signed_metadata = RubySaml::XML::SignedDocument.new(xml_text)
-        assert signed_metadata.validate_document(ruby_saml_cert_fingerprint, false)
 
-        assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
+        assert_match(signature_value_matcher, xml_text)
+        assert_match(signature_method_matcher(:rsa, :sha256), xml_text)
+        assert_match(digest_method_matcher(:sha256), xml_text)
+        assert(signed_metadata.validate_document(@fingerprint, false))
+        assert(validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd"))
       end
 
-      describe "when digest and signature methods are specified" do
-        before do
-          settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA256
-          settings.security[:digest_method] = RubySaml::XML::Document::SHA512
-        end
+      each_signature_algorithm do |sp_key_algo, sp_hash_algo|
+        describe "specifying algo" do
+          before do
+            @cert, @pkey = CertificateHelper.generate_pair(sp_key_algo)
+            settings.certificate, settings.private_key = [@cert, @pkey].map(&:to_pem)
+            @fingerprint = OpenSSL::Digest.new('SHA256', @cert.to_der).to_s
+            settings.security[:signature_method] = signature_method(sp_key_algo, sp_hash_algo)
+            settings.security[:digest_method] = digest_method(sp_hash_algo)
+          end
 
-        it "creates a signed metadata with specified digest and signature methods" do
-          assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>]m, xml_text
-          assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], xml_text
-          assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmlenc#sha512'/>], xml_text
+          it "creates a signed metadata" do
+            signed_metadata = RubySaml::XML::SignedDocument.new(xml_text)
 
-          signed_metadata = RubySaml::XML::SignedDocument.new(xml_text)
-          assert signed_metadata.validate_document(ruby_saml_cert_fingerprint, false)
+            assert_match(signature_value_matcher, xml_text)
+            assert_match(signature_method_matcher(sp_key_algo, sp_hash_algo), xml_text)
+            assert_match(digest_method_matcher(sp_hash_algo), xml_text)
 
-          assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
-        end
-      end
+            assert signed_metadata.validate_document(@fingerprint, false)
+            assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
+          end
 
-      describe "when custom metadata elements have been inserted" do
-        let(:xml_text) { subclass.new.generate(settings, false) }
-        let(:subclass) do
-          Class.new(RubySaml::Metadata) do
-            def add_extras(root, _settings)
-              idp = REXML::Element.new("md:IDPSSODescriptor")
-              idp.attributes['protocolSupportEnumeration'] = 'urn:oasis:names:tc:SAML:2.0:protocol'
+          unless sp_hash_algo == :sha256
+            it 'using mixed signature and digest methods (signature SHA256)' do
+              # RSA is ignored here; only the hash sp_key_algo is used
+              settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA256
+              signed_metadata = RubySaml::XML::SignedDocument.new(xml_text)
 
-              nid = REXML::Element.new("md:NameIDFormat")
-              nid.text = 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress'
-              idp.add_element(nid)
+              assert_match(signature_value_matcher, xml_text)
+              assert_match(signature_method_matcher(sp_key_algo, :sha256), xml_text)
+              assert_match(digest_method_matcher(sp_hash_algo), xml_text)
+              assert(signed_metadata.validate_document(@fingerprint, false))
+              assert(validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd"))
+            end
 
-              sso = REXML::Element.new("md:SingleSignOnService")
-              sso.attributes['Binding'] = 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'
-              sso.attributes['Location'] = 'https://foobar.com/sso'
-              idp.add_element(sso)
-              root.insert_before(root.children[0], idp)
+            it 'using mixed signature and digest methods (digest SHA256)' do
+              settings.security[:digest_method] = RubySaml::XML::Document::SHA256
+              signed_metadata = RubySaml::XML::SignedDocument.new(xml_text)
 
-              org = REXML::Element.new("md:Organization")
-              org.add_element("md:OrganizationName", 'xml:lang' => "en-US").text = 'ACME Inc.'
-              org.add_element("md:OrganizationDisplayName", 'xml:lang' => "en-US").text = 'ACME'
-              org.add_element("md:OrganizationURL", 'xml:lang' => "en-US").text = 'https://www.acme.com'
-              root.insert_after(root.children[3], org)
+              assert_match(signature_value_matcher, xml_text)
+              assert_match(signature_method_matcher(sp_key_algo, sp_hash_algo), xml_text)
+              assert_match(digest_method_matcher(:sha256), xml_text)
+              assert(signed_metadata.validate_document(@fingerprint, false))
+              assert(validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd"))
             end
           end
-        end
 
-        it "inserts signature as the first child of root element" do
-          first_child = xml_doc.root.children[0]
-          assert_equal first_child.prefix, 'ds'
-          assert_equal first_child.name, 'Signature'
+          describe "when custom metadata elements have been inserted" do
+            let(:xml_text) { subclass.new.generate(settings, false) }
+            let(:subclass) do
+              Class.new(RubySaml::Metadata) do
+                def add_extras(root, _settings)
+                  idp = REXML::Element.new("md:IDPSSODescriptor")
+                  idp.attributes['protocolSupportEnumeration'] = 'urn:oasis:names:tc:SAML:2.0:protocol'
 
-          assert_match %r[<ds:SignatureValue>([a-zA-Z0-9/+=]+)</ds:SignatureValue>]m, xml_text
-          assert_match %r[<ds:SignatureMethod Algorithm='http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'/>], xml_text
-          assert_match %r[<ds:DigestMethod Algorithm='http://www.w3.org/2001/04/xmlenc#sha256'/>], xml_text
+                  nid = REXML::Element.new("md:NameIDFormat")
+                  nid.text = 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress'
+                  idp.add_element(nid)
 
-          signed_metadata = RubySaml::XML::SignedDocument.new(xml_text)
-          assert signed_metadata.validate_document(ruby_saml_cert_fingerprint, false)
+                  sso = REXML::Element.new("md:SingleSignOnService")
+                  sso.attributes['Binding'] = 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'
+                  sso.attributes['Location'] = 'https://foobar.com/sso'
+                  idp.add_element(sso)
+                  root.insert_before(root.children[0], idp)
 
-          assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
+                  org = REXML::Element.new("md:Organization")
+                  org.add_element("md:OrganizationName", 'xml:lang' => "en-US").text = 'ACME Inc.'
+                  org.add_element("md:OrganizationDisplayName", 'xml:lang' => "en-US").text = 'ACME'
+                  org.add_element("md:OrganizationURL", 'xml:lang' => "en-US").text = 'https://www.acme.com'
+                  root.insert_after(root.children[3], org)
+                end
+              end
+            end
+
+            it "inserts signature as the first child of root element" do
+              xml_text = subclass.new.generate(settings, false)
+              first_child = xml_doc.root.children[0]
+              signed_metadata = RubySaml::XML::SignedDocument.new(xml_text)
+
+              assert_equal first_child.prefix, 'ds'
+              assert_equal first_child.name, 'Signature'
+              assert_match(signature_value_matcher, xml_text)
+              assert_match(signature_method_matcher(sp_key_algo, sp_hash_algo), xml_text)
+              assert_match(digest_method_matcher(sp_hash_algo), xml_text)
+              assert signed_metadata.validate_document(@fingerprint, false)
+              assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
+            end
+          end
         end
       end
     end

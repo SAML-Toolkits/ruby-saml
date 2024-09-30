@@ -176,7 +176,7 @@ In the above there are a few assumptions, one being that `response.nameid` is an
 This is all handled with how you specify the settings that are in play via the `saml_settings` method.
 That could be implemented along the lines of this:
 
-```
+```ruby
 response = RubySaml::Response.new(params[:SAMLResponse])
 response.settings = saml_settings
 ```
@@ -758,6 +758,11 @@ Note the following:
 - If `:check_sp_cert_expiration` is true, the generated SP metadata XML will not include
   inactive/expired certificates. This avoids validation errors when the IdP reads the SP
   metadata.
+
+#### Key Algorithm Support
+
+Ruby SAML supports RSA, DSA, and ECDSA keys for both SP and IdP certificates.
+JRuby cannot support ECDSA due to a [known issue](https://github.com/jruby/jruby-openssl/issues/257).
 
 #### Audience Validation
 

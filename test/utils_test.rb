@@ -40,8 +40,8 @@ class UtilsTest < Minitest::Test
   end
 
   describe ".format_cert" do
-    let(:formatted_certificate) {read_certificate("formatted_certificate")}
-    let(:formatted_chained_certificate) {read_certificate("formatted_chained_certificate")}
+    let(:formatted_certificate) { read_certificate("formatted_certificate") }
+    let(:formatted_chained_certificate) { read_certificate("formatted_chained_certificate") }
 
     it "returns empty string when the cert is an empty string" do
       cert = ''
@@ -148,9 +148,12 @@ class UtilsTest < Minitest::Test
   end
 
   describe '.build_cert_object' do
-    it 'returns a certificate object for valid certificate string' do
-      cert_object = RubySaml::Utils.build_cert_object(ruby_saml_cert_text)
-      assert_instance_of OpenSSL::X509::Certificate, cert_object
+    each_key_algorithm do |algorithm|
+      it 'returns a certificate object for valid certificate string' do
+        pem = CertificateHelper.generate_cert(algorithm).to_pem
+        cert_object = RubySaml::Utils.build_cert_object(pem)
+        assert_instance_of OpenSSL::X509::Certificate, cert_object
+      end
     end
 
     it 'returns nil for nil certificate string' do
@@ -169,9 +172,12 @@ class UtilsTest < Minitest::Test
   end
 
   describe '.build_private_key_object' do
-    it 'returns a private key object for valid private key string' do
-      private_key_object = RubySaml::Utils.build_private_key_object(ruby_saml_key_text)
-      assert_instance_of OpenSSL::PKey::RSA, private_key_object
+    each_key_algorithm do |algorithm|
+      it 'returns a private key object for valid private key string' do
+        pem = CertificateHelper.generate_private_key(algorithm).to_pem
+        private_key_object = RubySaml::Utils.build_private_key_object(pem)
+        assert_instance_of(expected_key_class(algorithm), private_key_object)
+      end
     end
 
     it 'returns nil for nil private key string' do
@@ -344,8 +350,8 @@ class UtilsTest < Minitest::Test
 
   describe '.decrypt_multi' do
     let(:private_key) { ruby_saml_key }
-    let(:invalid_key1) { CertificateHelper.generate_key }
-    let(:invalid_key2) { CertificateHelper.generate_key }
+    let(:invalid_key1) { CertificateHelper.generate_private_key }
+    let(:invalid_key2) { CertificateHelper.generate_private_key }
     let(:settings) { RubySaml::Settings.new(:private_key => private_key.to_pem) }
     let(:response) { RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings) }
     let(:encrypted) do
@@ -385,6 +391,18 @@ class UtilsTest < Minitest::Test
     it 'raises an error when private keys is nil' do
       assert_raises ArgumentError do
         RubySaml::Utils.decrypt_multi(encrypted, [])
+      end
+    end
+
+    %i[ecdsa dsa].each do |sp_key_algo|
+      describe "#{sp_key_algo.upcase} private key" do
+        let(:non_rsa_key) { CertificateHelper.generate_private_key(sp_key_algo) }
+
+        it 'raises unsupported error' do
+          assert_raises(ArgumentError, 'private_keys must be OpenSSL::PKey::RSA keys') do
+            RubySaml::Utils.decrypt_multi(encrypted, [non_rsa_key])
+          end
+        end
       end
     end
   end
