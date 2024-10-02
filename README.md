@@ -55,12 +55,18 @@ ruby-saml never enables DTDLOAD, and it never disables NONET.
 The OneLogin::RubySaml::IdpMetadataParser class does not validate in any way the URL
 that is introduced in order to be parsed.
 
-Usually the same administrator that handles the Service Provider also sets the URL to
+Usually, the same administrator that handles the Service Provider also sets the URL to
 the IdP, which should be a trusted resource.
 
 But there are other scenarios, like a SAAS app where the administrator of the app
-delegates this functionality to other users. In this case, extra precaution should
+delegates this functionality to other users. In this case, extra precautions should
 be taken in order to validate such URL inputs and avoid attacks like SSRF.
+
+### Sponsors
+
+Thanks to the following sponsors for their support:
+
+[<img alt="84codes" src="https://avatars.githubusercontent.com/u/5353257" width="50px">](https://www.84codes.com)
 
 ## Getting Started
 
@@ -71,7 +77,7 @@ Using `Gemfile`
 
 ```ruby
 # latest stable
-gem 'ruby-saml', '~> 1.11.0'
+gem 'ruby-saml', '~> 1.17.0'
 
 # or track master for bleeding-edge
 gem 'ruby-saml', :github => 'saml-toolkit/ruby-saml'
