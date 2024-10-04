@@ -373,13 +373,18 @@ module RubySaml
 
     # Validate certificate, certificate_new, private_key, and sp_cert_multi params.
     def validate_sp_certs_params!
-      multi    = sp_cert_multi   && !sp_cert_multi.empty?
-      cert     = certificate     && !certificate.empty?
-      cert_new = certificate_new && !certificate_new.empty?
-      pk       = private_key     && !private_key.empty?
-      if multi && (cert || cert_new || pk)
+      has_multi = sp_cert_multi && !sp_cert_multi.empty?
+      has_pk = private_key && !private_key.empty?
+      if has_multi && (has_cert?(certificate) || has_cert?(certificate_new) || has_pk)
         raise ArgumentError.new("Cannot specify both sp_cert_multi and certificate, certificate_new, private_key parameters")
       end
+    end
+
+    # Check if a certificate is present.
+    def has_cert?(cert)
+      return true if cert.is_a?(OpenSSL::X509::Certificate)
+
+      cert && !cert.empty?
     end
 
     # Get certs from certificate, certificate_new, and private_key parameters.
@@ -387,14 +392,14 @@ module RubySaml
       certs = { :signing => [], :encryption => [] }
 
       sp_key = RubySaml::Utils.build_private_key_object(private_key)
-      cert = RubySaml::Utils.build_cert_object(certificate)
+      cert = build_cert_object(certificate)
       if cert || sp_key
         ary = [cert, sp_key].freeze
         certs[:signing] << ary
         certs[:encryption] << ary
       end
 
-      cert_new = RubySaml::Utils.build_cert_object(certificate_new)
+      cert_new = build_cert_object(certificate_new)
       if cert_new
         ary = [cert_new, sp_key].freeze
         certs[:signing] << ary
@@ -429,7 +434,7 @@ module RubySaml
           end
 
           certs[type] << [
-            RubySaml::Utils.build_cert_object(cert),
+            build_cert_object(cert),
             RubySaml::Utils.build_private_key_object(key)
           ].freeze
         end
@@ -437,6 +442,12 @@ module RubySaml
 
       certs.each { |_, ary| ary.freeze }
       certs
+    end
+
+    def build_cert_object(cert)
+      return cert if cert.is_a?(OpenSSL::X509::Certificate)
+
+      OneLogin::RubySaml::Utils.build_cert_object(cert)
     end
   end
 end
