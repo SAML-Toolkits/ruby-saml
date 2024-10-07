@@ -825,7 +825,7 @@ module RubySaml
         end
 
         if !(settings.sp_entity_id.nil? || settings.sp_entity_id.empty? || name_id_spnamequalifier.nil? || name_id_spnamequalifier.empty?) && (name_id_spnamequalifier != settings.sp_entity_id)
-            return append_error('SPNameQualifier value does not match the SP entityID value.')
+          return append_error('SPNameQualifier value does not match the SP entityID value.')
         end
       end
 

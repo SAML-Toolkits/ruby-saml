@@ -15,7 +15,13 @@
 * [#718](https://github.com/SAML-Toolkits/ruby-saml/pull/718/) Add support to retrieve from SAMLResponse the AuthnInstant and AuthnContextClassRef values
 * [#711](https://github.com/SAML-Toolkits/ruby-saml/pull/711) Standardize how RubySaml reads and formats certificate and private_key PEM values, including the `RubySaml::Util#format_cert` and `#format_private_key` methods.
 
-### 1.17.0
+### 1.18.0  (???)
+* [#718](https://github.com/SAML-Toolkits/ruby-saml/pull/718) Add support to retrieve from SAMLResponse the AuthnInstant and AuthnContextClassRef values
+* [#720](https://github.com/SAML-Toolkits/ruby-saml/pull/720) Fix ambiguous regex warnings
+* [#715](https://github.com/SAML-Toolkits/ruby-saml/pull/715) Fix typo in SPNameQualifier error text
+
+### 1.17.0  (Sep 10, 2024)
+* Fix for critical vulnerability CVE-2024-45409: SAML authentication bypass via Incorrect XPath selector
 * [#687](https://github.com/SAML-Toolkits/ruby-saml/pull/687) Add CI coverage for Ruby 3.3 and Windows.
 * [#673](https://github.com/SAML-Toolkits/ruby-saml/pull/673) Add `Settings#sp_cert_multi` paramter to facilitate SP certificate and key rotation.
 * [#673](https://github.com/SAML-Toolkits/ruby-saml/pull/673) Support multiple simultaneous SP decryption keys via `Settings#sp_cert_multi` parameter.
@@ -54,6 +60,9 @@
 * [#607](https://github.com/SAML-Toolkits/ruby-saml/pull/607) Clean up
 * Add warning about the use of IdpMetadataParser class and SSRF
 * CI: Migrate from Travis to Github Actions
+
+### 1.12.3  (Sep 10, 2024)
+* Fix for critical vulnerability CVE-2024-45409: SAML authentication bypass via Incorrect XPath selector
 
 ### 1.12.2 (Apr 08, 2021)
 * [#575](https://github.com/SAML-Toolkits/ruby-saml/pull/575) Fix SloLogoutresponse bug on LogoutRequest
@@ -182,13 +191,11 @@
   * Require Issuer element. (Must match IdP EntityID).
   * Destination value can't be blank (if present must match ACS URL).
   * Check that the EncryptedAssertion element only contains 1 Assertion element.
-
 * [#335](https://github.com/SAML-Toolkits/ruby-saml/pull/335) Explicitly parse as XML and fix setting of Nokogiri options.
 * [#345](https://github.com/SAML-Toolkits/ruby-saml/pull/345)Support multiple settings.auth_context
 * More tests to prevent XML Signature Wrapping
 * [#342](https://github.com/SAML-Toolkits/ruby-saml/pull/342) Correct the usage of Mutex
 * [352](https://github.com/SAML-Toolkits/ruby-saml/pull/352) Support multiple AttributeStatement tags
-
 
 ### 1.3.1 (July 10, 2016)
 * Fix response_test.rb of gem 1.3.0
@@ -301,7 +308,6 @@
 
 * [#111](https://github.com/SAML-Toolkits/ruby-saml/pull/111) `Onelogin::` is `OneLogin::`
 * [#108](https://github.com/SAML-Toolkits/ruby-saml/pull/108) Change namespacing from `Onelogin::Saml` to `Onelogin::Rubysaml`
-
 
 ### 0.7.3 (Feb 20, 2014)
 Updated gem dependencies to be compatible with Ruby 1.8.7-p374 and 1.9.3-p448. Removed unnecessary `canonix` gem dependency.

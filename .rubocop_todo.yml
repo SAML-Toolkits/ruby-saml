@@ -86,7 +86,7 @@ Layout/FirstHashElementIndentation:
     - 'lib/ruby_saml/authrequest.rb'
     - 'lib/ruby_saml/metadata.rb'
 
-# Offense count: 4
+# Offense count: 3
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: Width, AllowedPatterns.
 Layout/IndentationWidth:
