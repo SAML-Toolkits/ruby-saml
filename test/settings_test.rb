@@ -515,6 +515,47 @@ class SettingsTest < Minitest::Test
         end
       end
 
+      it "handles OpenSSL::X509::Certificate objects for single case" do
+        @settings.certificate = OpenSSL::X509::Certificate.new(cert_text1)
+        @settings.private_key = key_text1
+
+        actual = @settings.get_sp_certs
+        expected = [[cert_text1, key_text1]]
+        assert_equal [:signing, :encryption], actual.keys
+        assert_equal expected, actual[:signing].map {|ary| ary.map(&:to_pem) }
+        assert_equal expected, actual[:encryption].map {|ary| ary.map(&:to_pem) }
+      end
+
+      it "handles OpenSSL::X509::Certificate objects for single case with new cert" do
+        @settings.certificate = cert_text1
+        @settings.certificate_new = OpenSSL::X509::Certificate.new(cert_text2)
+        @settings.private_key = key_text1
+
+        actual = @settings.get_sp_certs
+        expected = [[cert_text1, key_text1], [cert_text2, key_text1]]
+        assert_equal [:signing, :encryption], actual.keys
+        assert_equal expected, actual[:signing].map {|ary| ary.map(&:to_pem) }
+        assert_equal expected, actual[:encryption].map {|ary| ary.map(&:to_pem) }
+      end
+
+      it "handles OpenSSL::X509::Certificate objects for multi case" do
+        x509_certificate1 = OpenSSL::X509::Certificate.new(cert_text1)
+        x509_certificate2 = OpenSSL::X509::Certificate.new(cert_text2)
+        @settings.sp_cert_multi = {
+          signing: [{ certificate: x509_certificate1, private_key: key_text1 },
+                    { certificate: cert_text2, private_key: key_text1 }],
+          encryption: [{ certificate: x509_certificate2, private_key: key_text1 },
+                       { certificate: cert_text3, private_key: key_text2 }]
+        }
+
+        actual = @settings.get_sp_certs
+        expected_signing = [[cert_text1, key_text1], [cert_text2, key_text1]]
+        expected_encryption = [[cert_text2, key_text1], [cert_text3, key_text2]]
+        assert_equal [:signing, :encryption], actual.keys
+        assert_equal expected_signing, actual[:signing].map {|ary| ary.map(&:to_pem) }
+        assert_equal expected_encryption, actual[:encryption].map {|ary| ary.map(&:to_pem) }
+      end
+
       it "sp_cert_multi allows sending only signing" do
         @settings.sp_cert_multi = {
           signing: [{ certificate: cert_text1, private_key: key_text1 },

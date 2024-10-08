@@ -373,13 +373,18 @@ module RubySaml
 
     # Validate certificate, certificate_new, private_key, and sp_cert_multi params.
     def validate_sp_certs_params!
-      multi    = sp_cert_multi   && !sp_cert_multi.empty?
-      cert     = certificate     && !certificate.empty?
-      cert_new = certificate_new && !certificate_new.empty?
-      pk       = private_key     && !private_key.empty?
-      if multi && (cert || cert_new || pk)
+      has_multi = sp_cert_multi && !sp_cert_multi.empty?
+      has_pk = private_key && !private_key.empty?
+      if has_multi && (cert?(certificate) || cert?(certificate_new) || has_pk)
         raise ArgumentError.new("Cannot specify both sp_cert_multi and certificate, certificate_new, private_key parameters")
       end
+    end
+
+    # Check if a certificate is present.
+    def cert?(cert)
+      return true if cert.is_a?(OpenSSL::X509::Certificate)
+
+      cert && !cert.empty?
     end
 
     # Get certs from certificate, certificate_new, and private_key parameters.
