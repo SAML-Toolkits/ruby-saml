@@ -156,6 +156,11 @@ class UtilsTest < Minitest::Test
       end
     end
 
+    it 'returns the original certificate when an OpenSSL::X509::Certificate is given' do
+      certificate = OpenSSL::X509::Certificate.new
+      assert_same certificate, RubySaml::Utils.build_cert_object(certificate)
+    end
+
     it 'returns nil for nil certificate string' do
       assert_nil RubySaml::Utils.build_cert_object(nil)
     end
@@ -177,6 +182,13 @@ class UtilsTest < Minitest::Test
         pem = CertificateHelper.generate_private_key(algorithm).to_pem
         private_key_object = RubySaml::Utils.build_private_key_object(pem)
         assert_instance_of(expected_key_class(algorithm), private_key_object)
+      end
+    end
+
+    [OpenSSL::PKey::RSA, OpenSSL::PKey::DSA, OpenSSL::PKey::EC].each do |key_class|
+      it 'returns the original private key when an instance of OpenSSL::PKey::PKey is given' do
+        private_key = key_class.new
+        assert_same private_key, RubySaml::Utils.build_private_key_object(private_key)
       end
     end
 

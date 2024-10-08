@@ -119,6 +119,7 @@ module RubySaml
     # @param pem [String] The original certificate
     # @return [OpenSSL::X509::Certificate] The certificate object
     def build_cert_object(pem)
+      return pem if pem.is_a?(OpenSSL::X509::Certificate)
       return unless (pem = PemFormatter.format_cert(pem, multi: false))
 
       OpenSSL::X509::Certificate.new(pem)
@@ -129,6 +130,7 @@ module RubySaml
     # @param pem [String] The original private key.
     # @return [OpenSSL::PKey::PKey] The private key object.
     def build_private_key_object(pem)
+      return pem if pem.is_a?(OpenSSL::PKey::PKey)
       return unless (pem = PemFormatter.format_private_key(pem, multi: false))
 
       error = nil

@@ -392,14 +392,14 @@ module RubySaml
       certs = { :signing => [], :encryption => [] }
 
       sp_key = RubySaml::Utils.build_private_key_object(private_key)
-      cert = build_cert_object(certificate)
+      cert = RubySaml::Utils.build_cert_object(certificate)
       if cert || sp_key
         ary = [cert, sp_key].freeze
         certs[:signing] << ary
         certs[:encryption] << ary
       end
 
-      cert_new = build_cert_object(certificate_new)
+      cert_new = RubySaml::Utils.build_cert_object(certificate_new)
       if cert_new
         ary = [cert_new, sp_key].freeze
         certs[:signing] << ary
@@ -434,7 +434,7 @@ module RubySaml
           end
 
           certs[type] << [
-            build_cert_object(cert),
+            RubySaml::Utils.build_cert_object(cert),
             RubySaml::Utils.build_private_key_object(key)
           ].freeze
         end
@@ -442,12 +442,6 @@ module RubySaml
 
       certs.each { |_, ary| ary.freeze }
       certs
-    end
-
-    def build_cert_object(cert)
-      return cert if cert.is_a?(OpenSSL::X509::Certificate)
-
-      OneLogin::RubySaml::Utils.build_cert_object(cert)
     end
   end
 end
