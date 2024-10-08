@@ -374,10 +374,14 @@ module RubySaml
     # Validate certificate, certificate_new, private_key, and sp_cert_multi params.
     def validate_sp_certs_params!
       has_multi = sp_cert_multi && !sp_cert_multi.empty?
-      has_pk = private_key && !private_key.empty?
-      if has_multi && (cert?(certificate) || cert?(certificate_new) || has_pk)
+      if has_multi && (cert?(certificate) || cert?(certificate_new) || pk?)
         raise ArgumentError.new("Cannot specify both sp_cert_multi and certificate, certificate_new, private_key parameters")
       end
+    end
+
+    # Check if private key exists and is not empty
+    def pk?
+      private_key && !private_key.empty?
     end
 
     # Check if a certificate is present.
@@ -392,14 +396,14 @@ module RubySaml
       certs = { :signing => [], :encryption => [] }
 
       sp_key = RubySaml::Utils.build_private_key_object(private_key)
-      cert = build_cert_object(certificate)
+      cert = RubySaml::Utils.build_cert_object(certificate)
       if cert || sp_key
         ary = [cert, sp_key].freeze
         certs[:signing] << ary
         certs[:encryption] << ary
       end
 
-      cert_new = build_cert_object(certificate_new)
+      cert_new = RubySaml::Utils.build_cert_object(certificate_new)
       if cert_new
         ary = [cert_new, sp_key].freeze
         certs[:signing] << ary
@@ -434,7 +438,7 @@ module RubySaml
           end
 
           certs[type] << [
-            build_cert_object(cert),
+            RubySaml::Utils.build_cert_object(cert),
             RubySaml::Utils.build_private_key_object(key)
           ].freeze
         end
@@ -442,12 +446,6 @@ module RubySaml
 
       certs.each { |_, ary| ary.freeze }
       certs
-    end
-
-    def build_cert_object(cert)
-      return cert if cert.is_a?(OpenSSL::X509::Certificate)
-
-      OneLogin::RubySaml::Utils.build_cert_object(cert)
     end
   end
 end
