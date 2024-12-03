@@ -380,6 +380,18 @@ module OneLogin
           cipher.padding, cipher.key, cipher.iv = 0, symmetric_key, cipher_text[0..iv_len-1]
           assertion_plaintext = cipher.update(data)
           assertion_plaintext << cipher.final
+
+          padding_size = assertion_plaintext.bytes[-1]
+
+          # If the padding is not within the bounds of the block size, the padding cannot be removed. If the padding is
+          # larger than the block size, then the padding was created incorrectly.
+          # This ISO 10126 padding is described at https://www.w3.org/TR/xmlenc-core1/#sec-Padding.
+          if padding_size <= cipher.block_size && padding_size <= assertion_plaintext.bytesize
+            assertion_plaintext = assertion_plaintext.byteslice(0, assertion_plaintext.bytesize - padding_size)
+          else
+            raise StandardError.new("Invalid ciphertext padding.")
+          end
+
         elsif auth_cipher
           iv_len, text_len, tag_len = auth_cipher.iv_len, cipher_text.length, 16
           data = cipher_text[iv_len..text_len-1-tag_len]

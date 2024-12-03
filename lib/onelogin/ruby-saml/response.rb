@@ -1029,7 +1029,7 @@ module OneLogin
       # @return [REXML::Document] The decrypted EncryptedAssertion element
       #
       def decrypt_assertion(encrypted_assertion_node)
-        decrypt_element(encrypted_assertion_node, /(.*<\/(\w+:)?Assertion>)/m)
+        decrypt_element(encrypted_assertion_node)
       end
 
       # Decrypts an EncryptedID element
@@ -1037,7 +1037,7 @@ module OneLogin
       # @return [REXML::Document] The decrypted EncrypedtID element
       #
       def decrypt_nameid(encrypted_id_node)
-        decrypt_element(encrypted_id_node, /(.*<\/(\w+:)?NameID>)/m)
+        decrypt_element(encrypted_id_node)
       end
 
       # Decrypts an EncryptedAttribute element
@@ -1045,7 +1045,7 @@ module OneLogin
       # @return [REXML::Document] The decrypted EncryptedAttribute element
       #
       def decrypt_attribute(encrypted_attribute_node)
-        decrypt_element(encrypted_attribute_node, /(.*<\/(\w+:)?Attribute>)/m)
+        decrypt_element(encrypted_attribute_node)
       end
 
       # Decrypt an element
@@ -1053,7 +1053,7 @@ module OneLogin
       # @param regexp [Regexp] The regular expression to extract the decrypted data
       # @return [REXML::Document] The decrypted element
       #
-      def decrypt_element(encrypt_node, regexp)
+      def decrypt_element(encrypt_node)
         if settings.nil? || settings.get_sp_decryption_keys.empty?
           raise ValidationError.new('An ' + encrypt_node.name + ' found and no SP private key found on the settings to decrypt it')
         end
@@ -1065,10 +1065,6 @@ module OneLogin
         end
 
         elem_plaintext = OneLogin::RubySaml::Utils.decrypt_multi(encrypt_node, settings.get_sp_decryption_keys)
-
-        # If we get some problematic noise in the plaintext after decrypting.
-        # This quick regexp parse will grab only the Element and discard the noise.
-        elem_plaintext = elem_plaintext.match(regexp)[0]
 
         # To avoid namespace errors if saml namespace is not defined
         # create a parent node first with the namespace defined
