@@ -386,7 +386,7 @@ module OneLogin
           # If the padding is not within the bounds of the block size, the padding cannot be removed. If the padding is
           # larger than the block size, then the padding was created incorrectly.
           # This ISO 10126 padding is described at https://www.w3.org/TR/xmlenc-core1/#sec-Padding.
-          if padding_size <= cipher.block_size && padding_size <= assertion_plaintext.bytesize
+          if !padding_size.nil? && padding_size <= cipher.block_size && padding_size <= assertion_plaintext.bytesize
             assertion_plaintext = assertion_plaintext.byteslice(0, assertion_plaintext.bytesize - padding_size)
           else
             raise StandardError.new("Invalid ciphertext padding.")
