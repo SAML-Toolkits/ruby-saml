@@ -64,7 +64,7 @@ module OneLogin
         request_doc = create_authentication_xml_doc(settings)
         request_doc.context[:attribute_quote] = :quote if settings.double_quote_xml_attribute_values
 
-        request = +""
+        request = "".dup
         request_doc.write(request)
 
         Logging.debug "Created AuthnRequest: #{request}"
