@@ -963,6 +963,12 @@ end
 
 The `attribute_value` option additionally accepts an array of possible values.
 
+## SP Request UUIDs
+
+By default, Ruby SAML will generate UUIDs for SP requests prefixed with the `_` character,
+for example `"_ea8b5fdf-0a71-4bef-9f87-5406ee746f5b"`. To override this behavior,
+you may set `settings.sp_uuid_prefix` to a string of your choice, or `false` to use no prefix.
+
 ## Custom Metadata Fields
 
 Some IdPs may require to add SPs to add additional fields (Organization, ContactPerson, etc.)

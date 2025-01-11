@@ -8,7 +8,7 @@ module RubySaml
 
   # SAML2 Auxiliary class
   #
-  module Utils
+  module Utils # rubocop:disable Metrics/ModuleLength
     extend self
 
     BINDINGS = { post: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
