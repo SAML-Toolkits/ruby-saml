@@ -15,19 +15,8 @@ module RubySaml
   class Authrequest < SamlMessage
 
     # AuthNRequest ID
-    attr_accessor :uuid
-
-    # Initializes the AuthNRequest. An Authrequest Object that is an extension of the SamlMessage class.
-    # Asigns an ID, a random uuid.
-    #
-    def initialize
-      @uuid = RubySaml::Utils.uuid
-      super()
-    end
-
-    def request_id
-      @uuid
-    end
+    attr_reader :uuid
+    alias_method :request_id, :uuid
 
     # Creates the AuthNRequest string.
     # @param settings [RubySaml::Settings|nil] Toolkit settings
@@ -35,6 +24,7 @@ module RubySaml
     # @return [String] AuthNRequest string that includes the SAMLRequest
     #
     def create(settings, params = {})
+      @uuid = RubySaml::Utils.generate_uuid(settings.sp_uuid_prefix)
       params = create_params(settings, params)
       params_prefix = /\?/.match?(settings.idp_sso_service_url) ? '&' : '?'
       saml_request = CGI.escape(params.delete("SAMLRequest"))

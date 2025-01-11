@@ -14,19 +14,8 @@ module RubySaml
   class SloLogoutresponse < SamlMessage
 
     # Logout Response ID
-    attr_accessor :uuid
-
-    # Initializes the Logout Response. A SloLogoutresponse Object that is an extension of the SamlMessage class.
-    # Asigns an ID, a random uuid.
-    #
-    def initialize
-      @uuid = RubySaml::Utils.uuid
-      super()
-    end
-
-    def response_id
-      @uuid
-    end
+    attr_reader :uuid
+    alias_method :request_id, :uuid
 
     # Creates the Logout Response string.
     # @param settings [RubySaml::Settings|nil] Toolkit settings
@@ -37,6 +26,7 @@ module RubySaml
     # @return [String] Logout Request string that includes the SAMLRequest
     #
     def create(settings, request_id = nil, logout_message = nil, params = {}, logout_status_code = nil)
+      @uuid = RubySaml::Utils.generate_uuid(settings.sp_uuid_prefix)
       params = create_params(settings, request_id, logout_message, params, logout_status_code)
       params_prefix = /\?/.match?(settings.idp_slo_service_url) ? '&' : '?'
       url = settings.idp_slo_response_service_url || settings.idp_slo_service_url

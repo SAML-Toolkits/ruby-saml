@@ -48,6 +48,7 @@ module RubySaml
     attr_reader   :assertion_consumer_service_binding
     attr_accessor :single_logout_service_url
     attr_reader   :single_logout_service_binding
+    attr_accessor :sp_uuid_prefix
     attr_accessor :sp_name_qualifier
     attr_accessor :name_identifier_format
     attr_accessor :name_identifier_value

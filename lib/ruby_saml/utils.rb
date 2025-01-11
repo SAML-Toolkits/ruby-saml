@@ -30,7 +30,10 @@ module RubySaml
         (\d+)W                    # 8: Weeks
       )
     $/x
-    UUID_PREFIX = +'_'
+    UUID_DEFAULT_PREFIX = '_'
+
+    # @deprecated Use UUID_DEFAULT_PREFIX instead.
+    UUID_PREFIX = UUID_DEFAULT_PREFIX.dup
 
     # Checks if the x509 cert provided is expired.
     #
@@ -380,13 +383,20 @@ module RubySaml
       end
     end
 
-    def set_prefix(value)
-      UUID_PREFIX.replace value
+    def set_prefix(_value)
+      raise NoMethodError.new('RubySaml::Util.set_prefix has been removed. Please use RubySaml::Settings#uuid_prefix instead.')
     end
 
-    def uuid
-      "#{UUID_PREFIX}#{SecureRandom.uuid}"
+    # Generates a UUID with a prefix.
+    #
+    # @param prefix [String|false|nil] An explicit prefix override.
+    #   Using nil will use the default prefix, and false will use no prefix.
+    # @return [String] The generated UUID.
+    def generate_uuid(prefix = nil)
+      prefix = prefix.is_a?(FalseClass) ? nil : prefix || UUID_DEFAULT_PREFIX
+      "#{prefix}#{SecureRandom.uuid}"
     end
+    alias_method :uuid, :generate_uuid
 
     # Given two strings, attempt to match them as URIs using Rails' parse method.  If they can be parsed,
     # then the fully-qualified domain name and the host should performa a case-insensitive match, per the
