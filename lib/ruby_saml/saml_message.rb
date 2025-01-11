@@ -50,7 +50,7 @@ module RubySaml
     #
     def valid_saml?(document, soft = true)
       begin
-        xml = document.is_a?(Nokogiri::XML::Document) ? document : Nokogiri::XML(document.to_s)
+        xml = RubySaml::Utils.nokogiri_xml(document)
       rescue StandardError => error
         return false if soft
         raise ValidationError.new("XML load failed: #{error.message}")

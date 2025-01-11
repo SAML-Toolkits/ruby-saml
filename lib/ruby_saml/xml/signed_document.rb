@@ -78,9 +78,7 @@ module RubySaml
       end
 
       def validate_signature(base64_cert, soft = true)
-        document = Nokogiri::XML(to_s) do |config|
-          config.options = RubySaml::XML::BaseDocument::NOKOGIRI_OPTIONS
-        end
+        document = RubySaml::Utils.nokogiri_xml(to_s)
 
         # get signature node
         sig_element = document.at_xpath('//ds:Signature', 'ds' => RubySaml::XML::Crypto::DSIG)

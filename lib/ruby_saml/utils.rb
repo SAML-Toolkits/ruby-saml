@@ -13,6 +13,7 @@ module RubySaml
 
     BINDINGS = { post: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
                  redirect: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" }.freeze
+    NOKOGIRI_OPTIONS = Nokogiri::XML::ParseOptions::STRICT | Nokogiri::XML::ParseOptions::NONET
     DSIG = "http://www.w3.org/2000/09/xmldsig#"
     XENC = "http://www.w3.org/2001/04/xmlenc#"
     DURATION_FORMAT = /^
@@ -31,6 +32,17 @@ module RubySaml
       )
     $/x
     UUID_PREFIX = +'_'
+
+    def nokogiri_xml(*args)
+      if args.first.is_a?(Nokogiri::Xml::Document)
+        args.first
+      elsif args.any?
+        args[0] = args[0]&.to_s
+        Nokogiri::XML(*args) { |config| config.options = NOKOGIRI_OPTIONS }
+      else
+        Nokogiri::XML::Document.new { |config| config.options = NOKOGIRI_OPTIONS }
+      end
+    end
 
     # Checks if the x509 cert provided is expired.
     #

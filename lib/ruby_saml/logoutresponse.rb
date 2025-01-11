@@ -44,7 +44,7 @@ module RubySaml
 
       @options = options
       @response = decode_raw_saml(response, settings)
-      @document = RubySaml::XML::SignedDocument.new(@response)
+      @document = RubySaml::Utils.nokogiri_xml(@response)
       super()
     end
 

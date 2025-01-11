@@ -64,7 +64,8 @@ module RubySaml
       end
 
       @response = decode_raw_saml(response, settings)
-      @document = RubySaml::XML::SignedDocument.new(@response, @errors)
+      @document = RubySaml::Utils.nokogiri_xml(@response)
+      @validator = RubySaml::SignedDocumentValidator.new(@document, @errors)
 
       if assertion_encrypted?
         @decrypted_document = generate_decrypted_document
@@ -844,7 +845,7 @@ module RubySaml
     end
 
     # Generates the decrypted_document
-    # @return [RubySaml::XML::SignedDocument] The SAML Response with the assertion decrypted
+    # @return [Nokogiri::XML::Document] The SAML Response with the assertion decrypted
     #
     def generate_decrypted_document
       if settings.nil? || settings.get_sp_decryption_keys.empty?
@@ -857,14 +858,14 @@ module RubySaml
     end
 
     # Obtains a SAML Response with the EncryptedAssertion element decrypted
-    # @param document_copy [RubySaml::XML::SignedDocument] A copy of the original SAML Response with the encrypted assertion
-    # @return [RubySaml::XML::SignedDocument] The SAML Response with the assertion decrypted
+    # @param document_copy [Nokogiri::XML::Document] A copy of the original SAML Response with the encrypted assertion
+    # @return [Nokogiri::XML::Document] The SAML Response with the assertion decrypted
     #
     def decrypt_assertion_from_document(document_copy)
       encrypted_assertion_node = document_copy.at_xpath("(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)", "p" => PROTOCOL, "a" => ASSERTION)
       decrypted_assertion = decrypt_assertion(encrypted_assertion_node)
       encrypted_assertion_node.replace(decrypted_assertion)
-      RubySaml::XML::SignedDocument.new(document_copy.to_s)
+      RubySaml::Utils.nokogiri_xml(document_copy.to_s)
     end
 
     # Decrypts an EncryptedAssertion element
