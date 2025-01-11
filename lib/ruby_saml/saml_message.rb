@@ -19,7 +19,7 @@ module RubySaml
     ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion"
     PROTOCOL  = "urn:oasis:names:tc:SAML:2.0:protocol"
 
-    BASE64_FORMAT = %r(\A([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?\Z)
+    BASE64_FORMAT = %r{\A([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?\Z}
     @@mutex = Mutex.new
 
     # @return [Nokogiri::XML::Schema] Gets the schema object of the SAML 2.0 Protocol schema
@@ -74,10 +74,12 @@ module RubySaml
         raise ValidationError.new("XML load failed: #{error.message}")
       end
 
-      SamlMessage.schema.validate(xml).map do |schema_error|
+      SamlMessage.schema.validate(xml).each do |schema_error|
         return false if soft
         raise ValidationError.new("#{schema_error.message}\n\n#{xml}")
       end
+
+      true
     end
 
     private
@@ -89,9 +91,9 @@ module RubySaml
     def decode_raw_saml(saml, settings = nil)
       return saml unless base64_encoded?(saml)
 
-      settings = RubySaml::Settings.new if settings.nil?
+      settings ||= RubySaml::Settings.new
       if saml.bytesize > settings.message_max_bytesize
-        raise ValidationError.new("Encoded SAML Message exceeds " + settings.message_max_bytesize.to_s + " bytes, so was rejected")
+        raise ValidationError.new("Encoded SAML Message exceeds #{settings.message_max_bytesize} bytes, so was rejected")
       end
 
       decoded = decode(saml)
@@ -157,7 +159,7 @@ module RubySaml
     # @return [String] The deflated string
     #
     def deflate(inflated)
-      Zlib::Deflate.deflate(inflated, 9)[2..-5]
+      Zlib::Deflate.deflate(inflated, Zlib::BEST_COMPRESSION)[2..-5]
     end
   end
 end
