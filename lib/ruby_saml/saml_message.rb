@@ -4,8 +4,6 @@ require 'cgi'
 require 'zlib'
 require 'base64'
 require 'nokogiri'
-require 'rexml/document'
-require 'rexml/xpath'
 require 'ruby_saml/error_handling'
 require 'ruby_saml/logging'
 
@@ -19,7 +17,7 @@ module RubySaml
     ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion"
     PROTOCOL  = "urn:oasis:names:tc:SAML:2.0:protocol"
 
-    BASE64_FORMAT = %r(\A([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?\Z)
+    BASE64_FORMAT = %r{\A([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?\Z}
     @@mutex = Mutex.new
 
     # @return [Nokogiri::XML::Schema] Gets the schema object of the SAML 2.0 Protocol schema
@@ -35,49 +33,35 @@ module RubySaml
     # @return [String|nil] Gets the Version attribute from the SAML Message if exists.
     #
     def version(document)
-      @version ||= begin
-        node = REXML::XPath.first(
-          document,
-          "/p:AuthnRequest | /p:Response | /p:LogoutResponse | /p:LogoutRequest",
-          { "p" => PROTOCOL }
-        )
-        node.nil? ? nil : node.attributes['Version']
-      end
+      @version ||= document.at_xpath("/p:AuthnRequest | /p:Response | /p:LogoutResponse | /p:LogoutRequest", "p" => PROTOCOL)&.[]('Version')
     end
 
     # @return [String|nil] Gets the ID attribute from the SAML Message if exists.
     #
     def id(document)
-      @id ||= begin
-        node = REXML::XPath.first(
-          document,
-          "/p:AuthnRequest | /p:Response | /p:LogoutResponse | /p:LogoutRequest",
-          { "p" => PROTOCOL }
-        )
-        node.nil? ? nil : node.attributes['ID']
-      end
+      @id ||= document.at_xpath("/p:AuthnRequest | /p:Response | /p:LogoutResponse | /p:LogoutRequest", "p" => PROTOCOL)&.[]('ID')
     end
 
     # Validates the SAML Message against the specified schema.
-    # @param document [REXML::Document] The message that will be validated
+    # @param document [Nokogiri::XML::Document|String] The message that will be validated
     # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the message is invalid or not)
     # @return [Boolean] True if the XML is valid, otherwise False, if soft=True
     # @raise [ValidationError] if soft == false and validation fails
     #
     def valid_saml?(document, soft = true)
       begin
-        xml = Nokogiri::XML(document.to_s) do |config|
-          config.options = RubySaml::XML::BaseDocument::NOKOGIRI_OPTIONS
-        end
+        xml = document.is_a?(Nokogiri::XML::Document) ? document : Nokogiri::XML(document.to_s)
       rescue StandardError => error
         return false if soft
         raise ValidationError.new("XML load failed: #{error.message}")
       end
 
-      SamlMessage.schema.validate(xml).map do |schema_error|
+      SamlMessage.schema.validate(xml).each do |schema_error|
         return false if soft
         raise ValidationError.new("#{schema_error.message}\n\n#{xml}")
       end
+
+      true
     end
 
     private
@@ -89,9 +73,9 @@ module RubySaml
     def decode_raw_saml(saml, settings = nil)
       return saml unless base64_encoded?(saml)
 
-      settings = RubySaml::Settings.new if settings.nil?
+      settings ||= RubySaml::Settings.new
       if saml.bytesize > settings.message_max_bytesize
-        raise ValidationError.new("Encoded SAML Message exceeds " + settings.message_max_bytesize.to_s + " bytes, so was rejected")
+        raise ValidationError.new("Encoded SAML Message exceeds #{settings.message_max_bytesize} bytes, so was rejected")
       end
 
       decoded = decode(saml)
@@ -157,7 +141,7 @@ module RubySaml
     # @return [String] The deflated string
     #
     def deflate(inflated)
-      Zlib::Deflate.deflate(inflated, 9)[2..-5]
+      Zlib::Deflate.deflate(inflated, Zlib::BEST_COMPRESSION)[2..-5]
     end
   end
 end

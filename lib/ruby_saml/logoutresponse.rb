@@ -63,47 +63,23 @@ module RubySaml
     # @return [String|nil] Gets the InResponseTo attribute from the Logout Response if exists.
     #
     def in_response_to
-      @in_response_to ||= begin
-        node = REXML::XPath.first(
-          document,
-          "/p:LogoutResponse",
-          { "p" => PROTOCOL }
-        )
-        node.nil? ? nil : node.attributes['InResponseTo']
-      end
+      @in_response_to ||= document.at_xpath("/p:LogoutResponse", "p" => PROTOCOL)&.[]('InResponseTo')
     end
 
     # @return [String] Gets the Issuer from the Logout Response.
     #
     def issuer
-      @issuer ||= begin
-        node = REXML::XPath.first(
-          document,
-          "/p:LogoutResponse/a:Issuer",
-          { "p" => PROTOCOL, "a" => ASSERTION }
-        )
-        Utils.element_text(node)
-      end
+      @issuer ||= document.at_xpath("/p:LogoutResponse/a:Issuer", "p" => PROTOCOL, "a" => ASSERTION)&.content
     end
 
     # @return [String] Gets the StatusCode from a Logout Response.
     #
     def status_code
-      @status_code ||= begin
-        node = REXML::XPath.first(document, "/p:LogoutResponse/p:Status/p:StatusCode", { "p" => PROTOCOL })
-        node.nil? ? nil : node.attributes["Value"]
-      end
+      @status_code ||= document.at_xpath("/p:LogoutResponse/p:Status/p:StatusCode", "p" => PROTOCOL)&.[]("Value")
     end
 
     def status_message
-      @status_message ||= begin
-        node = REXML::XPath.first(
-          document,
-          "/p:LogoutResponse/p:Status/p:StatusMessage",
-          { "p" => PROTOCOL }
-        )
-        Utils.element_text(node)
-      end
+      @status_message ||= document.at_xpath("/p:LogoutResponse/p:Status/p:StatusMessage", "p" => PROTOCOL)&.content
     end
 
     # Aux function to validate the Logout Response
@@ -271,6 +247,5 @@ module RubySaml
       end
       true
     end
-
   end
 end

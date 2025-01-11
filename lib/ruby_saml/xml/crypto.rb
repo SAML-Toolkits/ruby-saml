@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require 'rexml/element'
 require 'openssl'
 require 'nokogiri'
 require 'digest/sha1'
@@ -85,8 +84,8 @@ module RubySaml
       private
 
       def get_algorithm_attr(element)
-        if element.is_a?(REXML::Element)
-          element.attribute('Algorithm').value
+        if element.is_a?(Nokogiri::XML::Node)
+          element['Algorithm']
         elsif element
           element
         end

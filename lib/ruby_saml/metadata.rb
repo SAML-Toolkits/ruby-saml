@@ -21,7 +21,7 @@ module RubySaml
     # @return [String] XML Metadata of the Service Provider
     #
     def generate(settings, pretty_print=false, valid_until=nil, cache_duration=nil)
-      meta_doc = RubySaml::XML::Document.new
+      meta_doc = Nokogiri::XML::Document.new
       add_xml_declaration(meta_doc)
       root = add_root_element(meta_doc, settings, valid_until, cache_duration)
       sp_sso = add_sp_sso_element(root, settings)
@@ -35,32 +35,37 @@ module RubySaml
     protected
 
     def add_xml_declaration(meta_doc)
-      meta_doc << REXML::XMLDecl.new('1.0', 'UTF-8')
+      meta_doc.create_internal_subset('xml', nil, nil)
     end
 
     def add_root_element(meta_doc, settings, valid_until, cache_duration)
       namespaces = {
-          "xmlns:md" => "urn:oasis:names:tc:SAML:2.0:metadata"
+        "xmlns:md" => "urn:oasis:names:tc:SAML:2.0:metadata"
       }
 
       if settings.attribute_consuming_service.configured?
         namespaces["xmlns:saml"] = "urn:oasis:names:tc:SAML:2.0:assertion"
       end
 
-      root = meta_doc.add_element("md:EntityDescriptor", namespaces)
-      root.attributes["ID"] = RubySaml::Utils.uuid
-      root.attributes["entityID"] = settings.sp_entity_id if settings.sp_entity_id
-      root.attributes["validUntil"] = valid_until.utc.strftime('%Y-%m-%dT%H:%M:%SZ') if valid_until
-      root.attributes["cacheDuration"] = "PT#{cache_duration}S" if cache_duration
+      root = Nokogiri::XML::Node.new("md:EntityDescriptor", meta_doc)
+      root["ID"] = RubySaml::Utils.uuid
+      root["entityID"] = settings.sp_entity_id if settings.sp_entity_id
+      root["validUntil"] = valid_until.utc.strftime('%Y-%m-%dT%H:%M:%SZ') if valid_until
+      root["cacheDuration"] = "PT#{cache_duration}S" if cache_duration
+
+      namespaces.each { |k, v| root.add_namespace(k, v) }
+      meta_doc.root = root
+
       root
     end
 
     def add_sp_sso_element(root, settings)
-      root.add_element "md:SPSSODescriptor", {
-          "protocolSupportEnumeration" => "urn:oasis:names:tc:SAML:2.0:protocol",
-          "AuthnRequestsSigned" => settings.security[:authn_requests_signed],
-          "WantAssertionsSigned" => settings.security[:want_assertions_signed]
-      }
+      sp_sso = Nokogiri::XML::Node.new("md:SPSSODescriptor", root)
+      sp_sso["protocolSupportEnumeration"] = "urn:oasis:names:tc:SAML:2.0:protocol"
+      sp_sso["AuthnRequestsSigned"] = settings.security[:authn_requests_signed].to_s
+      sp_sso["WantAssertionsSigned"] = settings.security[:want_assertions_signed].to_s
+      root.add_child(sp_sso)
+      sp_sso
     end
 
     # Add KeyDescriptor elements for SP certificates.
@@ -78,55 +83,56 @@ module RubySaml
 
     def add_sp_service_elements(sp_sso, settings)
       if settings.single_logout_service_url
-        sp_sso.add_element "md:SingleLogoutService", {
-            "Binding" => settings.single_logout_service_binding,
-            "Location" => settings.single_logout_service_url,
-            "ResponseLocation" => settings.single_logout_service_url
-        }
+        logout_service = Nokogiri::XML::Node.new("md:SingleLogoutService", sp_sso)
+        logout_service["Binding"] = settings.single_logout_service_binding
+        logout_service["Location"] = settings.single_logout_service_url
+        logout_service["ResponseLocation"] = settings.single_logout_service_url
+        sp_sso.add_child(logout_service)
       end
 
       if settings.name_identifier_format
-        nameid = sp_sso.add_element "md:NameIDFormat"
-        nameid.text = settings.name_identifier_format
+        nameid = Nokogiri::XML::Node.new("md:NameIDFormat", sp_sso)
+        nameid.content = settings.name_identifier_format
+        sp_sso.add_child(nameid)
       end
 
       if settings.assertion_consumer_service_url
-        sp_sso.add_element "md:AssertionConsumerService", {
-            "Binding" => settings.assertion_consumer_service_binding,
-            "Location" => settings.assertion_consumer_service_url,
-            "isDefault" => true,
-            "index" => 0
-        }
+        acs = Nokogiri::XML::Node.new("md:AssertionConsumerService", sp_sso)
+        acs["Binding"] = settings.assertion_consumer_service_binding
+        acs["Location"] = settings.assertion_consumer_service_url
+        acs["isDefault"] = "true"
+        acs["index"] = "0"
+        sp_sso.add_child(acs)
       end
 
       if settings.attribute_consuming_service.configured?
-        sp_acs = sp_sso.add_element "md:AttributeConsumingService", {
-          "isDefault" => "true",
-          "index" => settings.attribute_consuming_service.index
-        }
-        srv_name = sp_acs.add_element "md:ServiceName", {
-          "xml:lang" => "en"
-        }
-        srv_name.text = settings.attribute_consuming_service.name
+        sp_acs = Nokogiri::XML::Node.new("md:AttributeConsumingService", sp_sso)
+        sp_acs["isDefault"] = "true"
+        sp_acs["index"] = settings.attribute_consuming_service.index.to_s
+        sp_sso.add_child(sp_acs)
+
+        srv_name = Nokogiri::XML::Node.new("md:ServiceName", sp_acs)
+        srv_name["xml:lang"] = "en"
+        srv_name.content = settings.attribute_consuming_service.name
+        sp_acs.add_child(srv_name)
+
         settings.attribute_consuming_service.attributes.each do |attribute|
-          sp_req_attr = sp_acs.add_element "md:RequestedAttribute", {
-            "NameFormat" => attribute[:name_format],
-            "Name" => attribute[:name],
-            "FriendlyName" => attribute[:friendly_name],
-            "isRequired" => attribute[:is_required] || false
-          }
+          sp_req_attr = Nokogiri::XML::Node.new("md:RequestedAttribute", sp_acs)
+          sp_req_attr["NameFormat"] = attribute[:name_format]
+          sp_req_attr["Name"] = attribute[:name]
+          sp_req_attr["FriendlyName"] = attribute[:friendly_name]
+          sp_req_attr["isRequired"] = attribute[:is_required].to_s
+          sp_acs.add_child(sp_req_attr)
+
           next if attribute[:attribute_value].nil?
 
           Array(attribute[:attribute_value]).each do |value|
-            sp_attr_val = sp_req_attr.add_element "saml:AttributeValue"
-            sp_attr_val.text = value.to_s
+            sp_attr_val = Nokogiri::XML::Node.new("saml:AttributeValue", sp_req_attr)
+            sp_attr_val.content = value.to_s
+            sp_req_attr.add_child(sp_attr_val)
           end
         end
       end
-
-      # With OpenSSO, it might be required to also include
-      #  <md:RoleDescriptor xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:query="urn:oasis:names:tc:SAML:metadata:ext:query" xsi:type="query:AttributeQueryDescriptorType" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol"/>
-      #  <md:XACMLAuthzDecisionQueryDescriptor WantAssertionsSigned="false" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol"/>
 
       sp_sso
     end
@@ -146,28 +152,33 @@ module RubySaml
     end
 
     def output_xml(meta_doc, pretty_print)
-      ret = +''
-
-      # pretty print the XML so IdP administrators can easily see what the SP supports
       if pretty_print
-        meta_doc.write(ret, 1)
+        meta_doc.to_xml(indent: 2)
       else
-        ret = meta_doc.to_s
+        meta_doc.to_xml
       end
-
-      ret
     end
 
     private
 
     def add_sp_cert_element(sp_sso, cert, use)
       return unless cert
-      cert_text = Base64.encode64(cert.to_der).gsub("\n", '')
-      kd = sp_sso.add_element "md:KeyDescriptor", { "use" => use.to_s }
-      ki = kd.add_element "ds:KeyInfo", { "xmlns:ds" => "http://www.w3.org/2000/09/xmldsig#" }
-      xd = ki.add_element "ds:X509Data"
-      xc = xd.add_element "ds:X509Certificate"
-      xc.text = cert_text
+
+      cert_text = Base64.encode64(cert.to_der).delete("\n")
+      kd = Nokogiri::XML::Node.new("md:KeyDescriptor", sp_sso)
+      kd["use"] = use.to_s
+      sp_sso.add_child(kd)
+
+      ki = Nokogiri::XML::Node.new("ds:KeyInfo", kd)
+      ki.add_namespace("ds", "http://www.w3.org/2000/09/xmldsig#")
+      kd.add_child(ki)
+
+      xd = Nokogiri::XML::Node.new("ds:X509Data", ki)
+      ki.add_child(xd)
+
+      xc = Nokogiri::XML::Node.new("ds:X509Certificate", xd)
+      xc.content = cert_text
+      xd.add_child(xc)
     end
   end
 end
