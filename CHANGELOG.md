@@ -14,6 +14,8 @@
 * [#715](https://github.com/SAML-Toolkits/ruby-saml/pull/715) Fix typo in error when SPNameQualifier value does not match the SP entityID.
 * [#718](https://github.com/SAML-Toolkits/ruby-saml/pull/718/) Add support to retrieve from SAMLResponse the AuthnInstant and AuthnContextClassRef values
 * [#711](https://github.com/SAML-Toolkits/ruby-saml/pull/711) Standardize how RubySaml reads and formats certificate and private_key PEM values, including the `RubySaml::Util#format_cert` and `#format_private_key` methods.
+* [#732](https://github.com/SAML-Toolkits/ruby-saml/pull/732) Return original certificate and private key objects from `RubySaml::Utils` build functions.
+* [#732](https://github.com/SAML-Toolkits/ruby-saml/pull/732) Allow SP `certificate`, `certificate_new`, and `private_key` settings to be `OpenSSL::X509::Certificate` and `OpenSSL::PKey::PKey` objects respectively.
 
 ### 1.18.0  (???)
 * [#718](https://github.com/SAML-Toolkits/ruby-saml/pull/718) Add support to retrieve from SAMLResponse the AuthnInstant and AuthnContextClassRef values
