@@ -95,12 +95,12 @@ module RubySaml
     # @return [REXML::Document] The decrypted EncrypedtID element
     #
     def decrypt_nameid(encrypted_id_node)
-
       if settings.nil? || settings.get_sp_decryption_keys.empty?
-        raise ValidationError.new('An ' + encrypted_id_node.name + ' found and no SP private key found on the settings to decrypt it')
+        raise ValidationError.new("An #{encrypted_id_node.name} found and no SP private key found on the settings to decrypt it")
       end
 
       elem_plaintext = RubySaml::Utils.decrypt_multi(encrypted_id_node, settings.get_sp_decryption_keys)
+
       # If we get some problematic noise in the plaintext after decrypting.
       # This quick regexp parse will grab only the Element and discard the noise.
       elem_plaintext = elem_plaintext.match(/(.*<\/(\w+:)?NameID>)/m)[0]
@@ -135,16 +135,17 @@ module RubySaml
     # @return [Time|nil] Gets the NotOnOrAfter Attribute value if exists.
     #
     def not_on_or_after
-      @not_on_or_after ||= begin
-        node = REXML::XPath.first(
-          document,
-          "/p:LogoutRequest",
-          { "p" => PROTOCOL }
-        )
-        if node && node.attributes["NotOnOrAfter"]
-          Time.parse(node.attributes["NotOnOrAfter"])
-        end
-      end
+      return @not_on_or_after if defined?(@not_on_or_after)
+
+      node = REXML::XPath.first(
+        document,
+        "/p:LogoutRequest",
+        { "p" => PROTOCOL }
+      )
+
+      @not_on_or_after = if (value = node&.attributes&.[]("NotOnOrAfter"))
+                           Time.parse(value)
+                         end
     end
 
     # @return [Array] Gets the SessionIndex if exists (Supported multiple values). Empty Array if none found
