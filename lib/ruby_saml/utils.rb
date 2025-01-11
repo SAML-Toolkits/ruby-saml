@@ -37,7 +37,7 @@ module RubySaml
     # @param cert [OpenSSL::X509::Certificate|String] The x509 certificate.
     # @return [true|false] Whether the certificate is expired.
     def is_cert_expired(cert)
-      cert = build_cert_object(cert) if cert.is_a?(String)
+      cert = build_cert_object(cert)
       cert.not_after < Time.now
     end
 
@@ -46,7 +46,7 @@ module RubySaml
     # @param cert [OpenSSL::X509::Certificate|String] The x509 certificate.
     # @return [true|false] Whether the certificate is currently active.
     def is_cert_active(cert)
-      cert = build_cert_object(cert) if cert.is_a?(String)
+      cert = build_cert_object(cert)
       now = Time.now
       cert.not_before <= now && cert.not_after >= now
     end
