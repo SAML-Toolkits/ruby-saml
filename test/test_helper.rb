@@ -418,11 +418,7 @@ class Minitest::Test
               Nokogiri::XML::Schema(File.read(schema))
             end
 
-      xml = if document.is_a? Nokogiri::XML::Document
-              document
-            else
-              Nokogiri::XML(document) { |c| c.strict }
-            end
+      xml = RubySaml::Utils.nokogiri_xml(document)
 
       result = xsd.validate(xml)
 

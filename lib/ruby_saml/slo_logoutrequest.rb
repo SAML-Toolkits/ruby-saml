@@ -43,7 +43,7 @@ module RubySaml
       end
 
       @request = decode_raw_saml(request, settings)
-      @document = REXML::Document.new(@request)
+      @document = Nokogiri::XML(@request) { |config| config.strict.nonet }
       super()
     end
 
@@ -70,10 +70,7 @@ module RubySaml
     # @return [String] Gets the NameID Format of the Logout Request.
     #
     def name_id_format
-      @name_id_format ||=
-        if name_id_node && name_id_node.attribute("Format")
-          name_id_node.attribute("Format").value
-        end
+      @name_id_format ||= name_id_node&.attr("Format")
     end
 
     alias_method :nameid_format, :name_id_format
@@ -81,26 +78,26 @@ module RubySaml
     def name_id_node
       @name_id_node ||=
         begin
-          encrypted_node = REXML::XPath.first(document, "/p:LogoutRequest/a:EncryptedID", { "p" => PROTOCOL, "a" => ASSERTION })
+          encrypted_node = document.at_xpath("/p:LogoutRequest/a:EncryptedID", "p" => PROTOCOL, "a" => ASSERTION)
           if encrypted_node
-            node = decrypt_nameid(encrypted_node)
+            decrypt_nameid(encrypted_node)
           else
-            node = REXML::XPath.first(document, "/p:LogoutRequest/a:NameID", { "p" => PROTOCOL, "a" => ASSERTION })
+            document.at_xpath("/p:LogoutRequest/a:NameID", "p" => PROTOCOL, "a" => ASSERTION)
           end
         end
     end
 
     # Decrypts an EncryptedID element
-    # @param encrypted_id_node [REXML::Element] The EncryptedID element
-    # @return [REXML::Document] The decrypted EncrypedtID element
+    # @param encrypted_id_node [Nokogiri::XML::Element] The EncryptedID element
+    # @return [Nokogiri::XML::Node] The decrypted EncryptedID element
     #
     def decrypt_nameid(encrypted_id_node)
-
       if settings.nil? || settings.get_sp_decryption_keys.empty?
-        raise ValidationError.new('An ' + encrypted_id_node.name + ' found and no SP private key found on the settings to decrypt it')
+        raise ValidationError.new("An #{encrypted_id_node.name} found and no SP private key found on the settings to decrypt it")
       end
 
       elem_plaintext = RubySaml::Utils.decrypt_multi(encrypted_id_node, settings.get_sp_decryption_keys)
+
       # If we get some problematic noise in the plaintext after decrypting.
       # This quick regexp parse will grab only the Element and discard the noise.
       elem_plaintext = elem_plaintext.match(/(.*<\/(\w+:)?NameID>)/m)[0]
@@ -108,9 +105,7 @@ module RubySaml
       # To avoid namespace errors if saml namespace is not defined
       # create a parent node first with the namespace defined
       node_header = '<node xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">'
-      elem_plaintext = node_header + elem_plaintext + '</node>'
-      doc = REXML::Document.new(elem_plaintext)
-      doc.root[0]
+      Nokogiri::XML("#{node_header}#{elem_plaintext}</node>").root.children.first
     end
 
     # @return [String|nil] Gets the ID attribute from the Logout Request. if exists.
@@ -122,27 +117,17 @@ module RubySaml
     # @return [String] Gets the Issuer from the Logout Request.
     #
     def issuer
-      @issuer ||= begin
-        node = REXML::XPath.first(
-          document,
-          "/p:LogoutRequest/a:Issuer",
-          { "p" => PROTOCOL, "a" => ASSERTION }
-        )
-        Utils.element_text(node)
-      end
+      @issuer ||= Utils.element_text(document.at_xpath("/p:LogoutRequest/a:Issuer", "p" => PROTOCOL, "a" => ASSERTION))
     end
 
     # @return [Time|nil] Gets the NotOnOrAfter Attribute value if exists.
     #
     def not_on_or_after
       @not_on_or_after ||= begin
-        node = REXML::XPath.first(
-          document,
-          "/p:LogoutRequest",
-          { "p" => PROTOCOL }
-        )
-        if node && node.attributes["NotOnOrAfter"]
-          Time.parse(node.attributes["NotOnOrAfter"])
+        node = document.at_xpath("/p:LogoutRequest", "p" => PROTOCOL)
+
+        if (value = node&.[]("NotOnOrAfter"))
+          Time.parse(value)
         end
       end
     end
@@ -150,13 +135,7 @@ module RubySaml
     # @return [Array] Gets the SessionIndex if exists (Supported multiple values). Empty Array if none found
     #
     def session_indexes
-      nodes = REXML::XPath.match(
-        document,
-        "/p:LogoutRequest/p:SessionIndex",
-        { "p" => PROTOCOL }
-      )
-
-      nodes.map { |node| Utils.element_text(node) }
+      document.xpath("/p:LogoutRequest/p:SessionIndex", "p" => PROTOCOL).map { |node| Utils.element_text(node) }
     end
 
     private

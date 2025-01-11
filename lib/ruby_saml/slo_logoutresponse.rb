@@ -118,7 +118,7 @@ module RubySaml
     def create_xml_document(settings, request_id = nil, logout_message = nil, status_code = nil)
       time = Time.now.utc.strftime('%Y-%m-%dT%H:%M:%SZ')
 
-      response_doc = RubySaml::XML::Document.new
+      response_doc = RubySaml::Utils.nokogiri_xml
       response_doc.uuid = uuid
 
       destination = settings.idp_slo_response_service_url || settings.idp_slo_service_url
