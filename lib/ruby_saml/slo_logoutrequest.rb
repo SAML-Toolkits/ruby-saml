@@ -135,17 +135,17 @@ module RubySaml
     # @return [Time|nil] Gets the NotOnOrAfter Attribute value if exists.
     #
     def not_on_or_after
-      return @not_on_or_after if defined?(@not_on_or_after)
+      @not_on_or_after ||= begin
+        node = REXML::XPath.first(
+          document,
+          "/p:LogoutRequest",
+          { "p" => PROTOCOL }
+        )
 
-      node = REXML::XPath.first(
-        document,
-        "/p:LogoutRequest",
-        { "p" => PROTOCOL }
-      )
-
-      @not_on_or_after = if (value = node&.attributes&.[]("NotOnOrAfter"))
-                           Time.parse(value)
-                         end
+        if (value = node&.attributes&.[]("NotOnOrAfter"))
+          Time.parse(value)
+        end
+      end
     end
 
     # @return [Array] Gets the SessionIndex if exists (Supported multiple values). Empty Array if none found
