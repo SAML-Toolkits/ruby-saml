@@ -993,7 +993,7 @@ class SettingsTest < Minitest::Test
       end
     end
 
-    describe '.cert?' do
+    describe '#cert?' do
       it 'returns true for a valid OpenSSL::X509::Certificate object' do
         cert = CertificateHelper.generate_cert
         assert @settings.send(:cert?, cert)
@@ -1015,7 +1015,7 @@ class SettingsTest < Minitest::Test
       end
     end
 
-    describe '.private_key?' do
+    describe '#private_key?' do
       it 'returns true for a valid OpenSSL::PKey::PKey object' do
         private_key = CertificateHelper.generate_private_key
         assert @settings.send(:private_key?, private_key)
