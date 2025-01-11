@@ -441,7 +441,7 @@ class UtilsTest < Minitest::Test
       end
     end
 
-    describe 'time argument specified' do
+    describe 'time argument specified as Time' do
       let(:now) { Time.at(10000) }
 
       it 'returns true for expired certificate' do
@@ -472,6 +472,20 @@ class UtilsTest < Minitest::Test
       it 'returns false for active certificate string' do
         valid_cert_string = CertificateHelper.generate_cert(not_before: now - 60, not_after: now + 60).to_pem
         refute RubySaml::Utils.is_cert_expired(valid_cert_string, now)
+      end
+    end
+
+    describe 'time argument specified as Integer' do
+      let(:int) { 10000 }
+
+      it 'returns true for expired certificate' do
+        expired_cert = CertificateHelper.generate_cert(not_after: Time.at(int) - 60)
+        assert RubySaml::Utils.is_cert_expired(expired_cert, int)
+      end
+
+      it 'returns false for not-started certificate' do
+        not_started_cert = CertificateHelper.generate_cert(not_before: Time.at(int) + 60)
+        refute RubySaml::Utils.is_cert_active(not_started_cert, int)
       end
     end
   end
@@ -510,7 +524,7 @@ class UtilsTest < Minitest::Test
       end
     end
 
-    describe 'time argument specified' do
+    describe 'time argument specified as Time' do
       let(:now) { Time.at(10000) }
 
       it 'returns true for active certificate' do
@@ -541,6 +555,20 @@ class UtilsTest < Minitest::Test
       it 'returns false for expired certificate string' do
         expired_cert_string = CertificateHelper.generate_cert(not_after: now - 60).to_pem
         refute RubySaml::Utils.is_cert_active(expired_cert_string, now)
+      end
+    end
+
+    describe 'time argument specified as Integer' do
+      let(:int) { 10000 }
+
+      it 'returns true for active certificate' do
+        valid_cert = CertificateHelper.generate_cert(not_before: Time.at(int) - 60, not_after: Time.at(int) + 60)
+        assert RubySaml::Utils.is_cert_active(valid_cert, int)
+      end
+
+      it 'returns false for expired certificate' do
+        expired_cert = CertificateHelper.generate_cert(not_after: Time.at(int) - 60)
+        refute RubySaml::Utils.is_cert_active(expired_cert, int)
       end
     end
   end

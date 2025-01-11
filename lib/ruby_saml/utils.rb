@@ -38,6 +38,7 @@ module RubySaml
     # @param now [Time|Integer] The time to compare.
     # @return [true|false] Whether the certificate is expired.
     def is_cert_expired(cert, now = Time.now)
+      now = Time.at(now) if now.is_a?(Integer)
       cert = build_cert_object(cert) if cert.is_a?(String)
       cert.not_after < now
     end
@@ -48,6 +49,7 @@ module RubySaml
     # @param now [Time|Integer] The time to compare.
     # @return [true|false] Whether the certificate is currently active.
     def is_cert_active(cert, now = Time.now)
+      now = Time.at(now) if now.is_a?(Integer)
       cert = build_cert_object(cert) if cert.is_a?(String)
       cert.not_before <= now && cert.not_after >= now
     end
