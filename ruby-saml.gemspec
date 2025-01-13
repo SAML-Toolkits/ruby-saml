@@ -59,6 +59,12 @@ Gem::Specification.new do |s|
     s.add_runtime_dependency('rexml')
   end
 
+  if RUBY_VERSION >= '3.4.0'
+    s.add_runtime_dependency("logger")
+    s.add_runtime_dependency("base64")
+    s.add_runtime_dependency('mutex_m')
+  end
+
   s.add_development_dependency('simplecov', '<0.22.0')
   if RUBY_VERSION < '2.4.1'
     s.add_development_dependency('simplecov-lcov', '<0.8.0')
