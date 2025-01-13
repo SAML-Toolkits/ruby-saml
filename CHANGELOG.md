@@ -13,9 +13,10 @@
 * [#709](https://github.com/SAML-Toolkits/ruby-saml/pull/709) Allow passing in `Net::HTTP` `:open_timeout`, `:read_timeout`, and `:max_retries` settings to `IdpMetadataParser#parse_remote`.
 * [#715](https://github.com/SAML-Toolkits/ruby-saml/pull/715) Fix typo in error when SPNameQualifier value does not match the SP entityID.
 * [#718](https://github.com/SAML-Toolkits/ruby-saml/pull/718) Add support to retrieve from SAMLResponse the AuthnInstant and AuthnContextClassRef values
-* [#711](https://github.com/SAML-Toolkits/ruby-saml/pull/711) Standardize how RubySaml reads and formats certificate and private_key PEM values, including the `RubySaml::Util#format_cert` and `#format_private_key` methods.
+* [#711](https://github.com/SAML-Toolkits/ruby-saml/pull/711) Standardize how RubySaml reads and formats certificate and private_key PEM values, including the `RubySaml::Utils#format_cert` and `#format_private_key` methods.
 * [#733](https://github.com/SAML-Toolkits/ruby-saml/pull/733) Allow `RubySaml::Utils.is_cert_expired` and `is_cert_active` to accept an optional time argument.
 * [#731](https://github.com/SAML-Toolkits/ruby-saml/pull/731) Add CI coverage for Ruby 3.4. Remove CI coverage for Ruby 1.x and 2.x.
+* [#735](https://github.com/SAML-Toolkits/ruby-saml/pull/735) Add `Settings#sp_uuid_prefix` and deprecate `Utils#set_prefix`.
 
 ### 1.18.0  (???)
 * [#718](https://github.com/SAML-Toolkits/ruby-saml/pull/718) Add support to retrieve from SAMLResponse the AuthnInstant and AuthnContextClassRef values

@@ -33,6 +33,7 @@ module RubySaml
     UUID_DEFAULT_PREFIX = '_'
 
     # @deprecated Use UUID_DEFAULT_PREFIX instead.
+    # This constant is intentionally unfrozen for backwards compatibility.
     UUID_PREFIX = UUID_DEFAULT_PREFIX.dup
 
     # Checks if the x509 cert provided is expired.

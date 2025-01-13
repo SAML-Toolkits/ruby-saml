@@ -25,7 +25,7 @@ module RubySaml
     # @return [String] Logout Request string that includes the SAMLRequest
     #
     def create(settings, request_id = nil, logout_message = nil, params = {}, logout_status_code = nil)
-      @uuid = RubySaml::Utils.generate_uuid(settings.sp_uuid_prefix)
+      assign_uuid(settings)
       params = create_params(settings, request_id, logout_message, params, logout_status_code)
       params_prefix = /\?/.match?(settings.idp_slo_service_url) ? '&' : '?'
       url = settings.idp_slo_response_service_url || settings.idp_slo_service_url
@@ -106,6 +106,7 @@ module RubySaml
 
     def create_xml_document(settings, request_id = nil, logout_message = nil, status_code = nil)
       time = Time.now.utc.strftime('%Y-%m-%dT%H:%M:%SZ')
+      assign_uuid(settings)
 
       response_doc = RubySaml::XML::Document.new
       response_doc.uuid = uuid
@@ -148,6 +149,10 @@ module RubySaml
       end
 
       document
+    end
+
+    def assign_uuid(settings)
+      @uuid ||= RubySaml::Utils.generate_uuid(settings.sp_uuid_prefix)
     end
   end
 end
