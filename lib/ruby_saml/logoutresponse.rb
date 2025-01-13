@@ -271,6 +271,5 @@ module RubySaml
       end
       true
     end
-
   end
 end

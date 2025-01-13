@@ -2,7 +2,6 @@
 
 require "ruby_saml/xml"
 require "ruby_saml/attributes"
-
 require "time"
 require "nokogiri"
 
@@ -166,16 +165,16 @@ module RubySaml
               raise ValidationError.new("Found an Attribute element with duplicated Name")
             end
 
-            values = node.elements.collect  do |e|
+            values = node.elements.map do |e|
               if e.elements.nil? || e.elements.empty?
                 # SAMLCore requires that nil AttributeValues MUST contain xsi:nil XML attribute set to "true" or "1"
                 # otherwise the value is to be regarded as empty.
                 %w[true 1].include?(e.attributes['xsi:nil']) ? nil : Utils.element_text(e)
-              # explicitly support saml2:NameID with saml2:NameQualifier if supplied in attributes
-              # this is useful for allowing eduPersonTargetedId to be passed as an opaque identifier to use to
-              # identify the subject in an SP rather than email or other less opaque attributes
-              # NameQualifier, if present is prefixed with a "/" to the value
               else
+                # Explicitly support saml2:NameID with saml2:NameQualifier if supplied in attributes
+                # this is useful for allowing eduPersonTargetedId to be passed as an opaque identifier to use to
+                # identify the subject in an SP rather than email or other less opaque attributes
+                # NameQualifier, if present is prefixed with a "/" to the value
                 REXML::XPath.match(e,'a:NameID', { "a" => ASSERTION }).collect do |n|
                   base_path = n.attributes['NameQualifier'] ? "#{n.attributes['NameQualifier']}/" : ''
                   "#{base_path}#{Utils.element_text(n)}"
@@ -186,6 +185,7 @@ module RubySaml
             attributes.add(name, values.flatten)
           end
         end
+
         attributes
       end
     end
@@ -594,7 +594,7 @@ module RubySaml
         signed_elements << signed_element
       end
 
-      unless signature_nodes.length < 3 && !signed_elements.empty?
+      unless signature_nodes.size < 3 && !signed_elements.empty?
         return append_error("Found an unexpected number of Signature Element. SAML Response rejected")
       end
 
@@ -619,10 +619,10 @@ module RubySaml
       append_error(error_msg)
     end
 
-    # Validates the Audience, (If the Audience match the Service Provider EntityID)
+    # Validates the Audience, (If the Audience matches the Service Provider EntityID)
     # If the response was initialized with the :skip_audience option, this validation is skipped,
     # If fails, the error is added to the errors array
-    # @return [Boolean] True if there is an Audience Element that match the Service Provider EntityID, otherwise False if soft=True
+    # @return [Boolean] True if there is an Audience Element that matches the Service Provider EntityID, otherwise False if soft=True
     # @raise [ValidationError] if soft == false and validation fails
     #
     def validate_audience
@@ -726,7 +726,7 @@ module RubySaml
 
     # Validates the Issuer (Of the SAML Response and the SAML Assertion)
     # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the response is invalid or not)
-    # @return [Boolean] True if the Issuer matchs the IdP entityId, otherwise False if soft=True
+    # @return [Boolean] True if the Issuer matches the IdP entityId, otherwise False if soft=True
     # @raise [ValidationError] if soft == false and validation fails
     #
     def validate_issuer
@@ -863,9 +863,9 @@ module RubySaml
 
       if sig_elements.size != 1
         if sig_elements.empty?
-           append_error("Signed element id ##{doc.signed_element_id} is not found")
+          append_error("Signed element id ##{doc.signed_element_id} is not found")
         else
-           append_error("Signed element id ##{doc.signed_element_id} is found more than once")
+          append_error("Signed element id ##{doc.signed_element_id} is found more than once")
         end
         return append_error(error_msg)
       end
@@ -874,16 +874,16 @@ module RubySaml
 
       idp_certs = settings.get_idp_cert_multi
       if idp_certs.nil? || idp_certs[:signing].empty?
-        opts = {}
-        opts[:fingerprint_alg] = settings.idp_cert_fingerprint_algorithm
         idp_cert = settings.get_idp_cert
         fingerprint = settings.get_fingerprint
-        opts[:cert] = idp_cert
+        opts = {
+          cert: idp_cert,
+          fingerprint_alg: settings.idp_cert_fingerprint_algorithm
+        }
 
         if fingerprint && doc.validate_document(fingerprint, @soft, opts)
           if settings.security[:check_idp_cert_expiration] && RubySaml::Utils.is_cert_expired(idp_cert)
-            error_msg = "IdP x509 certificate expired"
-            return append_error(error_msg)
+            return append_error("IdP x509 certificate expired")
           end
         else
           return append_error(error_msg)
@@ -894,18 +894,20 @@ module RubySaml
         idp_certs[:signing].each do |idp_cert|
           valid = doc.validate_document_with_cert(idp_cert, true)
           next unless valid
+
           if settings.security[:check_idp_cert_expiration] && RubySaml::Utils.is_cert_expired(idp_cert)
-              expired = true
+            expired = true
           end
 
           # At least one certificate is valid, restore the old accumulated errors
           @errors = old_errors
           break
         end
+
         if expired
-          error_msg = "IdP x509 certificate expired"
-          return append_error(error_msg)
+          return append_error("IdP x509 certificate expired")
         end
+
         unless valid
           # Remove duplicated errors
           @errors = @errors.uniq
@@ -933,7 +935,7 @@ module RubySaml
     # @param subelt [String] The XPath pattern
     # @return [REXML::Element | nil] If any matches, return the Element
     #
-    def xpath_first_from_signed_assertion(subelt=nil)
+    def xpath_first_from_signed_assertion(subelt = nil)
       doc = decrypted_document.nil? ? document : decrypted_document
       node = REXML::XPath.first(
           doc,
@@ -1035,14 +1037,14 @@ module RubySaml
     #
     def decrypt_element(encrypt_node, regexp)
       if settings.nil? || settings.get_sp_decryption_keys.empty?
-        raise ValidationError.new('An ' + encrypt_node.name + ' found and no SP private key found on the settings to decrypt it')
+        raise ValidationError.new("An #{encrypt_node.name} found and no SP private key found on the settings to decrypt it.")
       end
 
-      if encrypt_node.name == 'EncryptedAttribute'
-        node_header = '<node xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'
-      else
-        node_header = '<node xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">'
-      end
+      node_header = if encrypt_node.name == 'EncryptedAttribute'
+                      '<node xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'
+                    else
+                      '<node xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">'
+                    end
 
       elem_plaintext = RubySaml::Utils.decrypt_multi(encrypt_node, settings.get_sp_decryption_keys)
 
@@ -1063,8 +1065,9 @@ module RubySaml
     # @return [Time|nil] The parsed value
     #
     def parse_time(node, attribute)
-      return unless node && node.attributes[attribute]
-      Time.parse(node.attributes[attribute])
+      return unless (value = node&.attributes&.[](attribute))
+
+      Time.parse(value)
     end
   end
 end
