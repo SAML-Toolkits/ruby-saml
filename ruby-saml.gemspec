@@ -57,6 +57,11 @@ Gem::Specification.new do |s|
   else
     s.add_runtime_dependency('nokogiri', '>= 1.13.10')
     s.add_runtime_dependency('rexml')
+  end
+
+  if RUBY_VERSION >= '3.4.0'
+    s.add_runtime_dependency("logger")
+    s.add_runtime_dependency("base64")
     s.add_runtime_dependency('mutex_m')
   end
 
