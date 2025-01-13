@@ -384,14 +384,12 @@ module OneLogin
         # @return [String|nil] the fingerpint of the X509Certificate if it exists
         #
         def fingerprint(certificate, fingerprint_algorithm = XMLSecurity::Document::SHA1)
-          @fingerprint ||= begin
-            return unless certificate
+          return unless certificate
 
-            cert = OpenSSL::X509::Certificate.new(Base64.decode64(certificate))
+          cert = OpenSSL::X509::Certificate.new(Base64.decode64(certificate))
 
-            fingerprint_alg = XMLSecurity::BaseDocument.new.algorithm(fingerprint_algorithm).new
-            fingerprint_alg.hexdigest(cert.to_der).upcase.scan(/../).join(":")
-          end
+          fingerprint_alg = XMLSecurity::BaseDocument.new.algorithm(fingerprint_algorithm).new
+          fingerprint_alg.hexdigest(cert.to_der).upcase.scan(/../).join(":")
         end
 
         # @return [Array] the names of all SAML attributes if any exist
