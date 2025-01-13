@@ -8,7 +8,7 @@ module RubySaml
 
   # SAML2 Auxiliary class
   #
-  module Utils
+  module Utils # rubocop:disable Metrics/ModuleLength
     extend self
 
     BINDINGS = { post: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
@@ -35,32 +35,32 @@ module RubySaml
     # Checks if the x509 cert provided is expired.
     #
     # @param cert [OpenSSL::X509::Certificate|String] The x509 certificate.
+    # @param now [Time|Integer] The time to compare.
     # @return [true|false] Whether the certificate is expired.
-    def is_cert_expired(cert)
+    def is_cert_expired(cert, now = Time.now)
+      now = Time.at(now) if now.is_a?(Integer)
       cert = build_cert_object(cert) if cert.is_a?(String)
-      cert.not_after < Time.now
+      cert.not_after < now
     end
 
     # Checks if the x509 cert provided has both started and has not expired.
     #
     # @param cert [OpenSSL::X509::Certificate|String] The x509 certificate.
+    # @param now [Time|Integer] The time to compare.
     # @return [true|false] Whether the certificate is currently active.
-    def is_cert_active(cert)
+    def is_cert_active(cert, now = Time.now)
+      now = Time.at(now) if now.is_a?(Integer)
       cert = build_cert_object(cert) if cert.is_a?(String)
-      now = Time.now
       cert.not_before <= now && cert.not_after >= now
     end
 
     # Interprets a ISO8601 duration value relative to a given timestamp.
     #
     # @param duration [String] The duration, as a string.
-    # @param timestamp [Integer] The unix timestamp we should apply the
-    #                            duration to. Optional, default to the
-    #                            current time.
-    #
+    # @param timestamp [Time|Integer] The unix timestamp we should apply the
+    #   duration to. Optional, default to the current time.
     # @return [Integer] The new timestamp, after the duration is applied.
-    #
-    def parse_duration(duration, timestamp=Time.now.utc)
+    def parse_duration(duration, timestamp = Time.now)
       matches = duration.match(DURATION_FORMAT)
 
       if matches.nil?
