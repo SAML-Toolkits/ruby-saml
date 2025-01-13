@@ -161,17 +161,39 @@ class AuthrequestTest < Minitest::Test
       assert auth_url.include?('&RelayState=http%3A%2F%2Fexample.com')
     end
 
-    it "creates request with ID prefixed with default '_'" do
-      request = RubySaml::Authrequest.new
+    describe "uuid" do
+      it "uuid is initialized to nil" do
+        request = RubySaml::Authrequest.new
 
-      assert_match(/^_/, request.uuid)
-    end
+        assert_nil(request.uuid)
+        assert_equal request.request_id, request.uuid
+      end
 
-    it "creates request with ID is prefixed, when :id_prefix is passed" do
-      RubySaml::Utils::set_prefix("test")
-      request = RubySaml::Authrequest.new
-      assert_match(/^test/, request.uuid)
-      RubySaml::Utils::set_prefix("_")
+      it "creates request with ID prefixed with default '_'" do
+        request = RubySaml::Authrequest.new
+        request.create(settings)
+
+        assert_match(/^_/, request.uuid)
+        assert_equal request.request_id, request.uuid
+      end
+
+      it "creates request with ID prefixed by Settings#sp_uuid_prefix" do
+        settings.sp_uuid_prefix = 'test'
+        request = RubySaml::Authrequest.new
+        request.create(settings)
+
+        assert_match(/^test/, request.uuid)
+        assert_equal request.request_id, request.uuid
+      end
+
+      it "can mutate the uuid" do
+        request = RubySaml::Authrequest.new
+        request_id = request.request_id
+        assert_equal request_id, request.uuid
+        request.uuid = "new_uuid"
+        assert_equal "new_uuid", request.uuid
+        assert_equal request.request_id, request.uuid
+      end
     end
 
     describe "when the target url is not set" do
@@ -270,17 +292,6 @@ class AuthrequestTest < Minitest::Test
       auth_doc = RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
       assert auth_doc.to_s =~ /<saml:AuthnContextDeclRef>name\/password\/uri<\/saml:AuthnContextDeclRef>/
       assert auth_doc.to_s =~ /<saml:AuthnContextDeclRef>example\/decl\/ref<\/saml:AuthnContextDeclRef>/
-    end
-
-    describe "#manipulate request_id" do
-      it "be able to modify the request id" do
-        authnrequest = RubySaml::Authrequest.new
-        request_id = authnrequest.request_id
-        assert_equal request_id, authnrequest.uuid
-        authnrequest.uuid = "new_uuid"
-        assert_equal authnrequest.request_id, authnrequest.uuid
-        assert_equal "new_uuid", authnrequest.request_id
-      end
     end
 
     each_signature_algorithm do |sp_key_algo, sp_hash_algo|

@@ -94,29 +94,35 @@ class RequestTest < Minitest::Test
       end
     end
 
-    describe "playgin with preix" do
+    describe "uuid" do
+      it "uuid is initialized to nil" do
+        request = RubySaml::Logoutrequest.new
+
+        assert_nil(request.uuid)
+      end
+
       it "creates request with ID prefixed with default '_'" do
         request = RubySaml::Logoutrequest.new
+        request.create(settings)
 
         assert_match(/^_/, request.uuid)
       end
 
-      it "creates request with ID is prefixed, when :id_prefix is passed" do
-        RubySaml::Utils::set_prefix("test")
+      it "creates request with ID prefixed by Settings#sp_uuid_prefix" do
+        settings.sp_uuid_prefix = 'test'
         request = RubySaml::Logoutrequest.new
-        assert_match(/^test/, request.uuid)
-        RubySaml::Utils::set_prefix("_")
-      end
-    end
+        request.create(settings)
 
-    describe "#manipulate request_id" do
-      it "be able to modify the request id" do
-        logoutrequest = RubySaml::Logoutrequest.new
-        request_id = logoutrequest.request_id
-        assert_equal request_id, logoutrequest.uuid
-        logoutrequest.uuid = "new_uuid"
-        assert_equal logoutrequest.request_id, logoutrequest.uuid
-        assert_equal "new_uuid", logoutrequest.request_id
+        assert_match(/^test/, request.uuid)
+      end
+
+      it "can mutate the uuid" do
+        request = RubySaml::Logoutrequest.new
+        request_id = request.request_id
+        assert_equal request_id, request.uuid
+        request.uuid = "new_uuid"
+        assert_equal "new_uuid", request.uuid
+        assert_equal request.request_id, request.uuid
       end
     end
 

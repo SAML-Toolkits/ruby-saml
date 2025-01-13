@@ -13,7 +13,7 @@ module RubySaml
   class Logoutrequest < SamlMessage
 
     # Logout Request ID
-    attr_reader :uuid
+    attr_accessor :uuid
     alias_method :request_id, :uuid
 
     # Creates the Logout Request string.

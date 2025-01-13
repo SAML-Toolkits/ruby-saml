@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "ruby_saml/logging"
-
 require "ruby_saml/saml_message"
 require "ruby_saml/utils"
 require "ruby_saml/setting_error"
@@ -14,8 +13,8 @@ module RubySaml
   class SloLogoutresponse < SamlMessage
 
     # Logout Response ID
-    attr_reader :uuid
-    alias_method :request_id, :uuid
+    attr_accessor :uuid
+    alias_method :response_id, :uuid
 
     # Creates the Logout Response string.
     # @param settings [RubySaml::Settings|nil] Toolkit settings

@@ -15,7 +15,7 @@ module RubySaml
   class Authrequest < SamlMessage
 
     # AuthNRequest ID
-    attr_reader :uuid
+    attr_accessor :uuid
     alias_method :request_id, :uuid
 
     # Creates the AuthNRequest string.
