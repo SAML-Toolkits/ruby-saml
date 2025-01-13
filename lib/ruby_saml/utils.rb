@@ -39,7 +39,7 @@ module RubySaml
     # @return [true|false] Whether the certificate is expired.
     def is_cert_expired(cert, now = Time.now)
       now = Time.at(now) if now.is_a?(Integer)
-      cert = build_cert_object(cert) if cert.is_a?(String)
+      cert = build_cert_object(cert)
       cert.not_after < now
     end
 
@@ -50,7 +50,7 @@ module RubySaml
     # @return [true|false] Whether the certificate is currently active.
     def is_cert_active(cert, now = Time.now)
       now = Time.at(now) if now.is_a?(Integer)
-      cert = build_cert_object(cert) if cert.is_a?(String)
+      cert = build_cert_object(cert)
       cert.not_before <= now && cert.not_after >= now
     end
 
@@ -119,6 +119,7 @@ module RubySaml
     # @param pem [String] The original certificate
     # @return [OpenSSL::X509::Certificate] The certificate object
     def build_cert_object(pem)
+      return pem if pem.is_a?(OpenSSL::X509::Certificate)
       return unless (pem = PemFormatter.format_cert(pem, multi: false))
 
       OpenSSL::X509::Certificate.new(pem)
@@ -129,6 +130,7 @@ module RubySaml
     # @param pem [String] The original private key.
     # @return [OpenSSL::PKey::PKey] The private key object.
     def build_private_key_object(pem)
+      return pem if pem.is_a?(OpenSSL::PKey::PKey)
       return unless (pem = PemFormatter.format_private_key(pem, multi: false))
 
       error = nil
