@@ -57,6 +57,7 @@ Gem::Specification.new do |s|
   else
     s.add_runtime_dependency('nokogiri', '>= 1.13.10')
     s.add_runtime_dependency('rexml')
+    s.add_runtime_dependency('mutex_m')
   end
 
   s.add_development_dependency('simplecov', '<0.22.0')
