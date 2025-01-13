@@ -364,6 +364,24 @@ module RubySaml
                         '"HTTP-Redirect" will always be compressed, and "HTTP-POST" will always be uncompressed.'
     end
 
+    # Quick check if a certificate value is present as a string or OpenSSL::X509::Certificate.
+    # Does not check if the string can actually be parsed.
+    #
+    # @param cert [OpenSSL::X509::Certificate|String] The x509 certificate.
+    # @return [true|false] Whether the certificate value is present.
+    def cert?(cert)
+      !!cert && (cert.is_a?(OpenSSL::X509::Certificate) || !cert.empty?)
+    end
+
+    # Quick check if a private key value is present as a string or OpenSSL::PKey::PKey.
+    # Does not check if the string can actually be parsed.
+    #
+    # @param private_key [OpenSSL::PKey::PKey|String] The private key.
+    # @return [true|false] Whether the private key value is present.
+    def private_key?(private_key)
+      !!private_key && (private_key.is_a?(OpenSSL::PKey::PKey) || !private_key.empty?)
+    end
+
     # @return [Hash<Symbol, Array<Array<OpenSSL::X509::Certificate, OpenSSL::PKey::RSA>>>]
     #   Build the SP certificates and private keys from the settings. Returns all
     #   certificates and private keys, even if they are expired.
@@ -374,11 +392,8 @@ module RubySaml
 
     # Validate certificate, certificate_new, private_key, and sp_cert_multi params.
     def validate_sp_certs_params!
-      multi    = sp_cert_multi   && !sp_cert_multi.empty?
-      cert     = certificate     && !certificate.empty?
-      cert_new = certificate_new && !certificate_new.empty?
-      pk       = private_key     && !private_key.empty?
-      if multi && (cert || cert_new || pk)
+      has_multi = sp_cert_multi && !sp_cert_multi.empty?
+      if has_multi && (cert?(certificate) || cert?(certificate_new) || private_key?(private_key))
         raise ArgumentError.new("Cannot specify both sp_cert_multi and certificate, certificate_new, private_key parameters")
       end
     end
