@@ -30,6 +30,22 @@ TEST_LOGGER = Logger.new(StringIO.new)
 OneLogin::RubySaml::Logging.logger = TEST_LOGGER
 
 class Minitest::Test
+  def self.jruby?
+    defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby'
+  end
+
+  def jruby?
+    self.class.jruby?
+  end
+
+  def self.truffleruby?
+    defined?(RUBY_ENGINE) && RUBY_ENGINE == 'truffleruby'
+  end
+
+  def truffleruby?
+    self.class.truffleruby?
+  end
+
   def fixture(document, base64 = true)
     response = Dir.glob(File.join(File.dirname(__FILE__), "responses", "#{document}*")).first
     if base64 && response =~ /\.xml$/
@@ -364,4 +380,20 @@ class Minitest::Test
   def downcased_escape(str)
     CGI.escape(str).gsub(/%[A-Fa-f0-9]{2}/) { |match| match.downcase }
   end
+end
+
+# Remove after https://github.com/jruby/jruby/issues/6613 is fixed
+if Minitest::Test.jruby?
+  module JRubyZlibTestExtension
+    @@jruby_zlib_failures = 0
+
+    def run
+      super
+    rescue Zlib::BufError => e
+      raise e unless (@@jruby_zlib_failures += 1) < 10
+      skip "Skipping Zlib::BufError in JRuby, see https://github.com/jruby/jruby/issues/6613"
+    end
+  end
+
+  Minitest::Test.prepend(JRubyZlibTestExtension)
 end

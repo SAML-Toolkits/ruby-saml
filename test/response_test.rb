@@ -1160,7 +1160,7 @@ class RubySamlTest < Minitest::Test
 
       it "optionally allows for clock drift on NotOnOrAfter" do
         # Java Floats behave differently than MRI
-        java = defined?(RUBY_ENGINE) && %w[jruby truffleruby].include?(RUBY_ENGINE)
+        java = jruby? || truffleruby?
 
         settings.soft = true
 
