@@ -386,8 +386,9 @@ module RubySaml
       end
     end
 
+    # @deprecated Use RubySaml::Settings#sp_uuid_prefix instead.
     def set_prefix(_value)
-      raise NoMethodError.new('RubySaml::Util.set_prefix has been removed. Please use RubySaml::Settings#uuid_prefix instead.')
+      raise NoMethodError.new('RubySaml::Util.set_prefix has been removed. Please use RubySaml::Settings#sp_uuid_prefix instead.')
     end
 
     # Generates a UUID with a prefix.
