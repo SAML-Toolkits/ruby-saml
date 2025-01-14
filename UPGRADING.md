@@ -89,10 +89,15 @@ this prefix is now set using `settings.sp_uuid_prefix`:
 ```ruby
 # Change the default prefix from `_` to `my_id_`
 settings.sp_uuid_prefix = 'my_id_'
+
+# Create the AuthNRequest message
+request = RubySaml::Authrequest.new
+request.create(settings)
+request.uuid #=> "my_id_a1b3c5d7-9f1e-3d5c-7b1a-9f1e3d5c7b1a"
 ```
 
 A side-effect of this change is that the `uuid` of the `Authrequest`, `Logoutrequest`, and `Logoutresponse`
-classes now is `nil` until the `#create` method is called (previously, it was generated during object instantiation.)
+classes now is `nil` until the `#create` method is called (previously, it was set in the constructor.)
 After calling `#create` for the first time the `uuid` will not change, even if a `Settings` object with
 a different `sp_uuid_prefix` is passed-in on subsequent calls.
 
