@@ -399,6 +399,7 @@ module RubySaml
       prefix = prefix.is_a?(FalseClass) ? nil : prefix || UUID_DEFAULT_PREFIX
       "#{prefix}#{SecureRandom.uuid}"
     end
+    # @deprecated Use #generate_uuid
     alias_method :uuid, :generate_uuid
 
     # Given two strings, attempt to match them as URIs using Rails' parse method.  If they can be parsed,
