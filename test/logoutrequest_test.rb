@@ -99,6 +99,7 @@ class RequestTest < Minitest::Test
         request = RubySaml::Logoutrequest.new
 
         assert_nil(request.uuid)
+        assert_equal request.request_id, request.uuid
       end
 
       it "creates request with ID prefixed with default '_'" do
@@ -106,6 +107,18 @@ class RequestTest < Minitest::Test
         request.create(settings)
 
         assert_match(/^_/, request.uuid)
+        assert_equal request.uuid, request.request_id
+      end
+
+      it "does not change even after repeated #create calls" do
+        request = RubySaml::Logoutrequest.new
+        request.create(settings)
+
+        uuid = request.uuid
+        request.create(settings)
+
+        assert_equal uuid, request.uuid
+        assert_equal request.uuid, request.request_id
       end
 
       it "creates request with ID prefixed by Settings#sp_uuid_prefix" do
@@ -114,6 +127,7 @@ class RequestTest < Minitest::Test
         request.create(settings)
 
         assert_match(/^test/, request.uuid)
+        assert_equal request.uuid, request.request_id
       end
 
       it "can mutate the uuid" do
@@ -122,7 +136,7 @@ class RequestTest < Minitest::Test
         assert_equal request_id, request.uuid
         request.uuid = "new_uuid"
         assert_equal "new_uuid", request.uuid
-        assert_equal request.request_id, request.uuid
+        assert_equal request.uuid, request.request_id
       end
     end
 

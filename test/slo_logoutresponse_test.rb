@@ -95,7 +95,18 @@ class SloLogoutresponseTest < Minitest::Test
         response.create(settings)
 
         assert_match(/^_/, response.uuid)
-        assert_equal response.response_id, response.uuid
+        assert_equal response.uuid, response.response_id
+      end
+
+      it "does not change even after repeated #create calls" do
+        response = RubySaml::SloLogoutresponse.new
+        response.create(settings)
+
+        uuid = response.uuid
+        response.create(settings)
+
+        assert_equal uuid, response.uuid
+        assert_equal response.uuid, response.response_id
       end
 
       it "creates response with ID prefixed by Settings#sp_uuid_prefix" do
@@ -104,16 +115,16 @@ class SloLogoutresponseTest < Minitest::Test
         response.create(settings)
 
         assert_match(/^test/, response.uuid)
-        assert_equal response.response_id, response.uuid
+        assert_equal response.uuid, response.response_id
       end
 
-      it "be able to modify the response id" do
+      it "can mutate the uuid" do
         response = RubySaml::SloLogoutresponse.new
         response_id = response.response_id
         assert_equal response_id, response.uuid
         response.uuid = "new_uuid"
         assert_equal "new_uuid", response.uuid
-        assert_equal response.response_id, response.uuid
+        assert_equal response.uuid, response.response_id
       end
     end
 
