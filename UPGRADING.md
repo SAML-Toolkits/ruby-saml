@@ -77,12 +77,12 @@ settings.idp_slo_service_binding = :redirect
 
 For clarity, the default value of both parameters is `:redirect` if they are not set.
 
-### Addition of Settings sp_uuid_prefix and removal of Utils::UUID_PREFIX
+### Change to message UUID prefix customization
 
-By default, the `uuid` (aliased to `request_id` / `response_id`) method in `RubySaml::Authrequest`,
-`RubySaml::Logoutrequest`, and `RubySaml::Logoutresponse` uses the `_` character as a default prefix,
-for example `_a1b3c5d7-9f1e-3d5c-7b1a-9f1e3d5c7b1a`. In RubySaml, versions prior to `2.0.0`, it was
-possible to change this default prefix by either calling `RubySaml::Utils.set_prefix` or by mutating
+On SP-originated messages (`Authrequest`, `Logoutrequest`, `Logoutresponse`), RubySaml generates the
+`uuid` (aliased to `request_id` / `response_id`) using the `_` character as a default prefix,
+for example `_a1b3c5d7-9f1e-3d5c-7b1a-9f1e3d5c7b1a`. In RubySaml versions prior to `2.0.0`, it was
+possible to change this default prefix by either `RubySaml::Utils.set_prefix` or by mutating
 the `RubySaml::Utils::UUID_PREFIX` constant (which was what `.set_prefix` did.) In RubySaml `2.0.0`,
 this prefix is now set using `settings.sp_uuid_prefix`:
 
@@ -91,10 +91,9 @@ this prefix is now set using `settings.sp_uuid_prefix`:
 settings.sp_uuid_prefix = 'my_id_'
 ```
 
-A side-effect of this change is that the `uuid` (aliased to `request_id` / `response_id`) method in
-`RubySaml::Authrequest`, `RubySaml::Logoutrequest`, and `RubySaml::Logoutresponse` now is `nil` until
-the `#create` method is called. Previously, it was generated automatically during object instantiation.
-After calling `#create` for the first time the UUID will not change, even if a `Settings` object with
+A side-effect of this change is that the `uuid` of the `Authrequest`, `Logoutrequest`, and `Logoutresponse`
+classes now is `nil` until the `#create` method is called (previously, it was generated during object instantiation.)
+After calling `#create` for the first time the `uuid` will not change, even if a `Settings` object with
 a different `sp_uuid_prefix` is passed-in on subsequent calls.
 
 ### Deprecation of compression settings
