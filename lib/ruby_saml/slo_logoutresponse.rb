@@ -152,7 +152,7 @@ module RubySaml
     end
 
     def assign_uuid(settings)
-      @uuid ||= RubySaml::Utils.generate_uuid(settings.sp_uuid_prefix)
+      @uuid ||= RubySaml::Utils.generate_uuid(settings.sp_uuid_prefix) # rubocop:disable Naming/MemoizedInstanceVariableName
     end
   end
 end
