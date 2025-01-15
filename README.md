@@ -965,12 +965,6 @@ The `attribute_value` option additionally accepts an array of possible values.
 
 ## SP-Originated Message IDs
 
-By default, Ruby SAML will generate UUIDs for SP requests prefixed with the `_` character,
-for example `"_ea8b5fdf-0a71-4bef-9f87-5406ee746f5b"`. To override this behavior,
-you may set `settings.sp_uuid_prefix` to a string of your choice, or `false` to use no prefix.
-
-## SP-Originated Message IDs
-
 Ruby SAML automatically generates message IDs for SP-originated messages (AuthNRequest, etc.)
 By default, this is a UUID prefixed by the `_` character, for example `"_ea8b5fdf-0a71-4bef-9f87-5406ee746f5b"`. 
 To override this behavior, you may set `settings.sp_uuid_prefix` to a string of your choice.
