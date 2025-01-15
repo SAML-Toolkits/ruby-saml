@@ -16,6 +16,9 @@ AllCops:
     - 'tmp/**/*'
     - 'vendor/**/*'
 
+Style/Alias:
+  EnforcedStyle: prefer_alias_method
+
 Style/ModuleFunction:
   EnforcedStyle: extend_self
 

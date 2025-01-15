@@ -382,7 +382,7 @@ class Minitest::Test
   # logoutresponse fixtures
   #
   def random_id
-    "_#{RubySaml::Utils.uuid}"
+    "_#{RubySaml::Utils.generate_uuid}"
   end
 
   #

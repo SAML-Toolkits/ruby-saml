@@ -82,29 +82,49 @@ class SloLogoutresponseTest < Minitest::Test
       assert_match(/Destination='http:\/\/unauth.com\/logout\/return'/, inflated)
     end
 
-    describe "playgin with preix" do
-      it "creates request with ID prefixed with default '_'" do
-        request = RubySaml::SloLogoutresponse.new
+    describe "uuid" do
+      it "uuid is initialized to nil" do
+        response = RubySaml::SloLogoutresponse.new
 
-        assert_match(/^_/, request.uuid)
+        assert_nil(response.uuid)
+        assert_equal response.response_id, response.uuid
       end
 
-      it "creates request with ID is prefixed, when :id_prefix is passed" do
-        RubySaml::Utils::set_prefix("test")
-        request = RubySaml::SloLogoutresponse.new
-        assert_match(/^test/, request.uuid)
-        RubySaml::Utils::set_prefix("_")
-      end
-    end
+      it "creates response with ID prefixed with default '_'" do
+        response = RubySaml::SloLogoutresponse.new
+        response.create(settings)
 
-    describe "#manipulate response_id" do
-      it "be able to modify the response id" do
-        logoutresponse = RubySaml::SloLogoutresponse.new
-        response_id = logoutresponse.response_id
-        assert_equal response_id, logoutresponse.uuid
-        logoutresponse.uuid = "new_uuid"
-        assert_equal logoutresponse.response_id, logoutresponse.uuid
-        assert_equal "new_uuid", logoutresponse.response_id
+        assert_match(/^_/, response.uuid)
+        assert_equal response.uuid, response.response_id
+      end
+
+      it "does not change even after repeated #create calls" do
+        response = RubySaml::SloLogoutresponse.new
+        response.create(settings)
+
+        uuid = response.uuid
+        response.create(settings)
+
+        assert_equal uuid, response.uuid
+        assert_equal response.uuid, response.response_id
+      end
+
+      it "creates response with ID prefixed by Settings#sp_uuid_prefix" do
+        settings.sp_uuid_prefix = 'test'
+        response = RubySaml::SloLogoutresponse.new
+        response.create(settings)
+
+        assert_match(/^test/, response.uuid)
+        assert_equal response.uuid, response.response_id
+      end
+
+      it "can mutate the uuid" do
+        response = RubySaml::SloLogoutresponse.new
+        response_id = response.response_id
+        assert_equal response_id, response.uuid
+        response.uuid = "new_uuid"
+        assert_equal "new_uuid", response.uuid
+        assert_equal response.uuid, response.response_id
       end
     end
 

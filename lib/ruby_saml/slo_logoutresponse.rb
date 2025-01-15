@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "ruby_saml/logging"
-
 require "ruby_saml/saml_message"
 require "ruby_saml/utils"
 require "ruby_saml/setting_error"
@@ -15,18 +14,7 @@ module RubySaml
 
     # Logout Response ID
     attr_accessor :uuid
-
-    # Initializes the Logout Response. A SloLogoutresponse Object that is an extension of the SamlMessage class.
-    # Asigns an ID, a random uuid.
-    #
-    def initialize
-      @uuid = RubySaml::Utils.uuid
-      super()
-    end
-
-    def response_id
-      @uuid
-    end
+    alias_method :response_id, :uuid
 
     # Creates the Logout Response string.
     # @param settings [RubySaml::Settings|nil] Toolkit settings
@@ -37,6 +25,7 @@ module RubySaml
     # @return [String] Logout Request string that includes the SAMLRequest
     #
     def create(settings, request_id = nil, logout_message = nil, params = {}, logout_status_code = nil)
+      assign_uuid(settings)
       params = create_params(settings, request_id, logout_message, params, logout_status_code)
       params_prefix = /\?/.match?(settings.idp_slo_service_url) ? '&' : '?'
       url = settings.idp_slo_response_service_url || settings.idp_slo_service_url
@@ -117,6 +106,7 @@ module RubySaml
 
     def create_xml_document(settings, request_id = nil, logout_message = nil, status_code = nil)
       time = Time.now.utc.strftime('%Y-%m-%dT%H:%M:%SZ')
+      assign_uuid(settings)
 
       response_doc = RubySaml::XML::Document.new
       response_doc.uuid = uuid
@@ -159,6 +149,10 @@ module RubySaml
       end
 
       document
+    end
+
+    def assign_uuid(settings)
+      @uuid ||= RubySaml::Utils.generate_uuid(settings.sp_uuid_prefix) # rubocop:disable Naming/MemoizedInstanceVariableName
     end
   end
 end
