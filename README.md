@@ -4,22 +4,41 @@
 [![Rubygem Version](https://badge.fury.io/rb/ruby-saml.svg)](https://badge.fury.io/rb/ruby-saml)
 [![GitHub version](https://badge.fury.io/gh/SAML-Toolkits%2Fruby-saml.svg)](https://badge.fury.io/gh/SAML-Toolkits%2Fruby-saml) ![GitHub](https://img.shields.io/github/license/SAML-Toolkits/ruby-saml) ![Gem](https://img.shields.io/gem/dtv/ruby-saml?label=gem%20downloads%20latest) ![Gem](https://img.shields.io/gem/dt/ruby-saml?label=gem%20total%20downloads)
 
-Ruby SAML minor and tiny versions may introduce breaking changes. Please read
+Ruby SAML minor versions may introduce breaking changes. Please read
 [UPGRADING.md](UPGRADING.md) for guidance on upgrading to new Ruby SAML versions.
+
+## Vulnerability Notice
 
 **There is a critical vulnerability affecting ruby-saml < 1.17.0 (CVE-2024-45409).
 Make sure you are using an updated version. (1.12.3 is safe)**
 
 ## Overview
 
-The Ruby SAML library is for implementing the client side of a SAML authorization,
-i.e. it provides a means for managing authorization initialization and confirmation
-requests from identity providers.
+The Ruby SAML library is used by Service Providers (SPs) to implement SAML authentication.
+It enables SPs to create SAML AuthnRequests (authentication requests) and validate SAML
+Response messages from Identity Providers (IdPs).
 
-SAML authorization is a two step process and you are expected to implement support for both.
+**Important:** This libary does not currently support the IdP-side of SAML authentication,
+such as creating SAML Response messages.
 
-We created a demo project for Rails 4 that uses the latest version of this library:
-[ruby-saml-example](https://github.com/saml-toolkits/ruby-saml-example)
+A Rails 4 reference implemenation is avaiable at the
+[Ruby SAML Demo Project](https://github.com/saml-toolkits/ruby-saml-example).
+
+### Vulnerability Reporting
+
+If you believe you have discovered a security vulnerability in this gem, please report
+it by email to the maintainer: sixto.martin.garcia+security@gmail.com
+
+### Security Considerations
+
+- **Validation of the IdP Metadata URL:** When loading IdP Metadata from a URLs,
+  Ruby SAML requires you (the developer/administrator) to ensure the supplied URL is correct
+  and from a trusted source. Ruby SAML does not perform any validation that the URL
+  you entered is correct and/or safe.
+- **False-Positive Security Warnings:** Some tools may incorrectly report Ruby SAML as a
+  potential security vulnerability, due to it's dependency on Nokogiri. Such warnings can
+  be ignored; Ruby SAML uses Nokogiri in a safe way, by always disabling its DTDLOAD option
+  and enabling its NONET option.
 
 ### Supported Ruby Versions
 
@@ -31,103 +50,31 @@ The following Ruby versions are covered by CI testing:
 
 Older Ruby versions are supported on the 1.x release of Ruby SAML.
 
-## Adding Features, Pull Requests
-
-* Fork the repository
-* Make your feature addition or bug fix
-* Add tests for your new features. This is important so we don't break any features in a future version unintentionally.
-* Ensure all tests pass by running `bundle exec rake test`.
-* Do not change rakefile, version, or history.
-* Open a pull request, following [this template](https://gist.github.com/Lordnibbler/11002759).
-
-## Security Guidelines
-
-If you believe you have discovered a security vulnerability in this gem, please report it
-by mail to the maintainer: sixto.martin.garcia+security@gmail.com
-
-### Security Warning
-
-Some tools may incorrectly report ruby-saml is a potential security vulnerability.
-ruby-saml depends on Nokogiri, and it's possible to use Nokogiri in a dangerous way
-(by enabling its DTDLOAD option and disabling its NONET option).
-This dangerous Nokogiri configuration, which is sometimes used by other components,
-can create an XML External Entity (XXE) vulnerability if the XML data is not trusted.
-However, ruby-saml never enables this dangerous Nokogiri configuration;
-ruby-saml never enables DTDLOAD, and it never disables NONET.
-
-The RubySaml::IdpMetadataParser class does not validate in any way the URL
-that is introduced in order to be parsed.
-
-Usually the same administrator that handles the Service Provider also sets the URL to
-the IdP, which should be a trusted resource.
-
-But there are other scenarios, like a SAAS app where the administrator of the app
-delegates this functionality to other users. In this case, extra precaution should
-be taken in order to validate such URL inputs and avoid attacks like SSRF.
-
 ## Getting Started
 
-In order to use Ruby SAML you will need to install the gem (either manually or using Bundler),
-and require the library in your Ruby application:
-
-Using `Gemfile`
-
-```ruby
-# latest stable
-gem 'ruby-saml', '~> 1.11.0'
-
-# or track master for bleeding-edge
-gem 'ruby-saml', :github => 'saml-toolkit/ruby-saml'
-```
-
-Using RubyGems
+You may install Ruby SAML from the command line:
 
 ```sh
 gem install ruby-saml
 ```
 
-You may require the entire Ruby SAML gem:
+or in your project `Gemfile`:
 
 ```ruby
-require 'ruby_saml'
+gem 'ruby-saml', '~> 2.0.0'
 ```
-
-or just the required components individually:
-
-```ruby
-require 'ruby_saml/authrequest'
-```
-
-### Installation on Ruby 1.8.7
-
-This gem uses Nokogiri as a dependency, which dropped support for Ruby 1.8.x in Nokogiri 1.6.
-When installing this gem on Ruby 1.8.7, you will need to make sure a version of Nokogiri
-prior to 1.6 is installed or specified if it hasn't been already.
-
-Using `Gemfile`
-
-```ruby
-gem 'nokogiri', '~> 1.5.10'
-```
-
-Using RubyGems
-
-```sh
-gem install nokogiri --version '~> 1.5.10'
-````
 
 ### Configuring Logging
 
-When troubleshooting SAML integration issues, you will find it extremely helpful to examine the
-output of this gem's business logic. By default, log messages are emitted to RAILS_DEFAULT_LOGGER
-when the gem is used in a Rails context, and to STDOUT when the gem is used outside of Rails.
-
-To override the default behavior and control the destination of log messages, provide
-a ruby Logger object to the gem's logging singleton:
+Ruby SAML provides verbose logs which are useful to troubleshooting SAML integration issues.
+By default, log messages are emitted to Rails' logger if using Rails, otherwise to `STDOUT`.
+You may manually set your own logger as follows:
 
 ```ruby
 RubySaml::Logging.logger = Logger.new('/var/log/ruby-saml.log')
 ```
+
+# Implementation Guide
 
 ## The Initialization Phase
 
@@ -143,7 +90,8 @@ def init
 end
 ```
 
-If the SP knows who should be authenticated in the IdP, then can provide that info as follows:
+If you (the SP) know which specific user should be authenticated by the IdP,
+then can provide that info as follows:
 
 ```ruby
 def init
@@ -155,22 +103,22 @@ end
 ```
 
 Once you've redirected back to the identity provider, it will ensure that the user has been
-authorized and redirect back to your application for final consumption.
-This can look something like this (the `authorize_success` and `authorize_failure`
+authenticated and redirect back to your application for final consumption.
+This can look something like this (the `authn_success` and `authn_failure`
 methods are specific to your application):
 
 ```ruby
 def consume
-  response = RubySaml::Response.new(params[:SAMLResponse], :settings => saml_settings)
+  response = RubySaml::Response.new(params[:SAMLResponse], settings: saml_settings)
 
   # We validate the SAML Response and check if the user already exists in the system
   if response.is_valid?
-     # authorize_success, log the user
-     session[:userid] = response.nameid
-     session[:attributes] = response.attributes
+    authn_success(response) # This is your method to log the user, etc.
+    session[:userid] = response.nameid
+    session[:attributes] = response.attributes
   else
-    authorize_failure  # This method shows an error message
-    # List of errors is available in response.errors array
+    authn_failure(response) # This is your method to log the failure and show an error message, etc.
+    # The list of errors is available in response.errors array
   end
 end
 ```
@@ -194,14 +142,14 @@ If you don't know what expect, always use the former (set the settings on initia
 def saml_settings
   settings = RubySaml::Settings.new
 
-  settings.assertion_consumer_service_url = "http://#{request.host}/saml/consume"
-  settings.sp_entity_id                   = "http://#{request.host}/saml/metadata"
-  settings.idp_entity_id                  = "https://app.onelogin.com/saml/metadata/#{OneLoginAppId}"
-  settings.idp_sso_service_url            = "https://app.onelogin.com/trust/saml2/http-post/sso/#{OneLoginAppId}"
+  settings.assertion_consumer_service_url = "https://www.my-domain.com/saml/consume"
+  settings.sp_entity_id                   = "https://www.my-domain.com/saml/metadata"
+  settings.idp_entity_id                  = "https://www.your-idp.com/saml/metadata/#{IdpAppId}"
+  settings.idp_sso_service_url            = "https://www.your-idp.com/saml/#{IdpAppId}"
   settings.idp_sso_service_binding        = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" # or :post, :redirect
-  settings.idp_slo_service_url            = "https://app.onelogin.com/trust/saml2/http-redirect/slo/#{OneLoginAppId}"
+  settings.idp_slo_service_url            = "https://www.your-idp.com/saml/slo/#{IdpAppId}"
   settings.idp_slo_service_binding        = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" # or :post, :redirect
-  settings.idp_cert_fingerprint           = OneLoginAppCertFingerPrint
+  settings.idp_cert_fingerprint           = IdpAppCertFingerPrint
   settings.idp_cert_fingerprint_algorithm = "http://www.w3.org/2000/09/xmldsig#sha256"
   settings.name_identifier_format         = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
 
@@ -228,18 +176,18 @@ For example, you can skip the `AuthnStatement`, `Conditions`, `Recipient`, or th
 validations by initializing the response with different options:
 
 ```ruby
-response = RubySaml::Response.new(params[:SAMLResponse], {skip_authnstatement: true}) # skips AuthnStatement
-response = RubySaml::Response.new(params[:SAMLResponse], {skip_conditions: true}) # skips conditions
-response = RubySaml::Response.new(params[:SAMLResponse], {skip_subject_confirmation: true}) # skips subject confirmation
-response = RubySaml::Response.new(params[:SAMLResponse], {skip_recipient_check: true}) # doesn't skip subject confirmation, but skips the recipient check which is a sub check of the subject_confirmation check
-response = RubySaml::Response.new(params[:SAMLResponse], {skip_audience: true}) # skips audience check
+response = RubySaml::Response.new(params[:SAMLResponse], { skip_authnstatement: true }) # skips AuthnStatement
+response = RubySaml::Response.new(params[:SAMLResponse], { skip_conditions: true }) # skips conditions
+response = RubySaml::Response.new(params[:SAMLResponse], { skip_subject_confirmation: true }) # skips subject confirmation
+response = RubySaml::Response.new(params[:SAMLResponse], { skip_recipient_check: true }) # doesn't skip subject confirmation, but skips the recipient check which is a sub check of the subject_confirmation check
+response = RubySaml::Response.new(params[:SAMLResponse], { skip_audience: true }) # skips audience check
 ```
 
 All that's left is to wrap everything in a controller and reference it in the initialization and
-consumption URLs in OneLogin. A full controller example could look like this:
+consumption URLs. A full controller example could look like this:
 
 ```ruby
-# This controller expects you to use the URLs /saml/init and /saml/consume in your OneLogin application.
+# This controller expects you to use the URLs /saml/init and /saml/consume in your application.
 class SamlController < ApplicationController
   def init
     request = RubySaml::Authrequest.new
@@ -252,12 +200,12 @@ class SamlController < ApplicationController
 
     # We validate the SAML Response and check if the user already exists in the system
     if response.is_valid?
-       # authorize_success, log the user
-       session[:userid] = response.nameid
-       session[:attributes] = response.attributes
+      authn_success(response) # This is your method to log the user, etc.
+      session[:userid] = response.nameid
+      session[:attributes] = response.attributes
     else
-      authorize_failure  # This method shows an error message
-      # List of errors is available in response.errors array
+      authn_failure(response) # This is your method to log the failure and show an error message, etc.
+      # The list of errors is available in response.errors array
     end
   end
 
@@ -266,10 +214,10 @@ class SamlController < ApplicationController
   def saml_settings
     settings = RubySaml::Settings.new
 
-    settings.assertion_consumer_service_url = "http://#{request.host}/saml/consume"
-    settings.sp_entity_id                   = "http://#{request.host}/saml/metadata"
-    settings.idp_sso_service_url             = "https://app.onelogin.com/saml/signon/#{OneLoginAppId}"
-    settings.idp_cert_fingerprint           = OneLoginAppCertFingerPrint
+    settings.assertion_consumer_service_url = "https://www.my-sp-domain.com/saml/consume"
+    settings.sp_entity_id                   = "https://www.my-sp-domain.com/saml/metadata"
+    settings.idp_sso_service_url            = "https://www.your-idp.com/saml/#{IdpAppId}"
+    settings.idp_cert_fingerprint           = IdpAppCertFingerPrint
     settings.name_identifier_format         = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
 
     # Optional for most SAML IdPs
@@ -281,7 +229,7 @@ class SamlController < ApplicationController
     settings.attribute_consuming_service.configure do
       service_name "Service"
       service_index 5
-      add_attribute :name => "Name", :name_format => "Name Format", :friendly_name => "Friendly Name"
+      add_attribute name: "Name", name_format: "Name Format", friendly_name: "Friendly Name"
     end
 
     settings
@@ -320,8 +268,8 @@ add the IdP X.509 public certificates which were published in the IdP metadata.
 
 ```ruby
 {
-  :signing => [],
-  :encryption => []
+  signing: [],
+  encryption: []
 }
 ```
 
@@ -339,10 +287,10 @@ def saml_settings
 
   idp_metadata_parser = RubySaml::IdpMetadataParser.new
   # Returns RubySaml::Settings pre-populated with IdP metadata
-  settings = idp_metadata_parser.parse_remote("https://example.com/auth/saml2/idp/metadata")
+  settings = idp_metadata_parser.parse_remote("https://www.your-idp.com/saml/metadata/#{IdpAppId}.xml")
 
-  settings.assertion_consumer_service_url = "http://#{request.host}/saml/consume"
-  settings.sp_entity_id                   = "http://#{request.host}/saml/metadata"
+  settings.assertion_consumer_service_url = "https://www.my-sp-domain.com/saml/consume"
+  settings.sp_entity_id                   = "https://www.my-sp-domain.com/saml/metadata"
   settings.name_identifier_format         = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
   # Optional for most SAML IdPs
   settings.authn_context = "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport"
@@ -402,7 +350,6 @@ by the values of binding and nameid:
 The `RubySaml::IdpMetadataParser` also provides the methods `#parse_to_hash` and `#parse_remote_to_hash`.
 Those return an Hash instead of a `Settings` object, which may be useful for configuring
 [omniauth-saml](https://github.com/omniauth/omniauth-saml), for instance.
-
 
 ### Validating Signature of Metadata and retrieve settings
 
@@ -496,12 +443,12 @@ Imagine this `saml:AttributeStatement`
 ```ruby
 pp(response.attributes)   # is an RubySaml::Attributes object
 # => @attributes=
-  {"uid"=>["demo"],
-   "another_value"=>["value1", "value2"],
-   "role"=>["role1", "role2", "role3"],
-   "attribute_with_nil_value"=>[nil],
-   "attribute_with_nils_and_empty_strings"=>["", "valuePresent", nil, nil]
-   "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname"=>["usersName"]}>
+#  {"uid"=>["demo"],
+#   "another_value"=>["value1", "value2"],
+#   "role"=>["role1", "role2", "role3"],
+#   "attribute_with_nil_value"=>[nil],
+#   "attribute_with_nils_and_empty_strings"=>["", "valuePresent", nil, nil]
+#   "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname"=>["usersName"]}>
 
 # Active single_value_compatibility
 RubySaml::Attributes.single_value_compatibility = true
@@ -582,7 +529,7 @@ To add a `saml:AuthnContextDeclRef`, define `settings.authn_context_decl_ref`.
 In a SP-initiated flow, the SP can indicate to the IdP the subject that should be authenticated. This is done by defining the `settings.name_identifier_value_requested` before
 building the authrequest object.
 
-## Service Provider Metadata
+## SP Metadata
 
 To form a trusted pair relationship with the IdP, the SP (you) need to provide metadata XML
 to the IdP for various good reasons. (Caching, certificate lookups, relaying party permissions, etc)
@@ -598,7 +545,7 @@ class SamlController < ApplicationController
   def metadata
     settings = Account.get_saml_settings
     meta = RubySaml::Metadata.new
-    render :xml => meta.generate(settings), :content_type => "application/samlmetadata+xml"
+    render xml: meta.generate(settings), content_type: "application/samlmetadata+xml"
   end
 end
 ```
@@ -606,11 +553,11 @@ end
 You can add `ValidUntil` and `CacheDuration` to the SP Metadata XML using instead:
 
 ```ruby
-  # Valid until => 2 days from now
-  # Cache duration = 604800s = 1 week
-  valid_until = Time.now + 172800
-  cache_duration = 604800
-  meta.generate(settings, false, valid_until, cache_duration)
+# Valid until => 2 days from now
+# Cache duration = 604800s = 1 week
+valid_until = Time.now + 172800
+cache_duration = 604800
+meta.generate(settings, false, valid_until, cache_duration)
 ```
 
 ## Signing and Decryption
@@ -625,8 +572,8 @@ Ruby SAML supports the following functionality:
 In order to use functions 1-3 above, you must first define your SP public certificate and private key:
 
 ```ruby
-  settings.certificate = "CERTIFICATE TEXT WITH BEGIN/END HEADER AND FOOTER"
-  settings.private_key = "PRIVATE KEY TEXT WITH BEGIN/END HEADER AND FOOTER"
+settings.certificate = "CERTIFICATE TEXT WITH BEGIN/END HEADER AND FOOTER"
+settings.private_key = "PRIVATE KEY TEXT WITH BEGIN/END HEADER AND FOOTER"
 ```
 
 Note that the same certificate (and its associated private key) are used to perform
@@ -636,8 +583,8 @@ to specify different certificates for each function.
 You may also globally set the SP signature and digest method, to be used in SP signing (functions 1 and 2 above):
 
 ```ruby
-  settings.security[:digest_method]    = RubySaml::XML::Document::SHA1
-  settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
+settings.security[:digest_method]    = RubySaml::XML::Document::SHA1
+settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
 ```
 
 #### Signing SP Metadata
@@ -645,52 +592,52 @@ You may also globally set the SP signature and digest method, to be used in SP s
 You may add a `<ds:Signature>` digital signature element to your SP Metadata XML using the following setting:
 
 ```ruby
-  settings.certificate = "CERTIFICATE TEXT WITH BEGIN/END HEADER AND FOOTER"
-  settings.private_key = "PRIVATE KEY TEXT WITH BEGIN/END HEADER AND FOOTER"
+settings.certificate = "CERTIFICATE TEXT WITH BEGIN/END HEADER AND FOOTER"
+settings.private_key = "PRIVATE KEY TEXT WITH BEGIN/END HEADER AND FOOTER"
 
-  settings.security[:metadata_signed] = true # Enable signature on Metadata
+settings.security[:metadata_signed] = true # Enable signature on Metadata
 ```
 
 #### Signing SP SAML Messages
 
-Ruby SAML supports SAML request signing. The Service Provider will sign the
-request/responses with its private key. The Identity Provider will then validate the signature
-of the received request/responses with the public X.509 cert of the Service Provider.
+Ruby SAML supports SAML request signing. You (the SP) will sign the
+request/responses with your private key. The IdP will then validate the signature
+of the received request/responses with the SP's public X.509 cert.
 
 To enable, please first set your certificate and private key. This will add `<md:KeyDescriptor use="signing">`
 to your SP Metadata XML, to be read by the IdP.
 
 ```ruby
-  settings.certificate = "CERTIFICATE TEXT WITH BEGIN/END HEADER AND FOOTER"
-  settings.private_key = "PRIVATE KEY TEXT WITH BEGIN/END HEADER AND FOOTER"
+settings.certificate = "CERTIFICATE TEXT WITH BEGIN/END HEADER AND FOOTER"
+settings.private_key = "PRIVATE KEY TEXT WITH BEGIN/END HEADER AND FOOTER"
 ```
 
 Next, you may specify the specific SP SAML messages you would like to sign:
 
 ```ruby
-  settings.security[:authn_requests_signed]   = true  # Enable signature on AuthNRequest
-  settings.security[:logout_requests_signed]  = true  # Enable signature on Logout Request
-  settings.security[:logout_responses_signed] = true  # Enable signature on Logout Response
+settings.security[:authn_requests_signed]   = true  # Enable signature on AuthNRequest
+settings.security[:logout_requests_signed]  = true  # Enable signature on Logout Request
+settings.security[:logout_responses_signed] = true  # Enable signature on Logout Response
 ```
 
 Signatures will be handled automatically for both `HTTP-Redirect` and `HTTP-Redirect` Binding.
 Note that the RelayState parameter is used when creating the Signature on the `HTTP-Redirect` Binding.
 Remember to provide it to the Signature builder if you are sending a `GET RelayState` parameter or the
-signature validation process will fail at the Identity Provider.
+signature validation process will fail at the IdP.
 
 #### Decrypting IdP SAML Assertions
 
-Ruby SAML supports EncryptedAssertion. The Identity Provider will encrypt the Assertion with the
-public cert of the Service Provider. The Service Provider will decrypt the EncryptedAssertion with its private key.
+Ruby SAML supports EncryptedAssertion. The IdP will encrypt the Assertion with the
+public cert of the SP. The SP will decrypt the EncryptedAssertion with its private key.
 
 You may enable EncryptedAssertion as follows. This will add `<md:KeyDescriptor use="encryption">` to your
 SP Metadata XML, to be read by the IdP.
 
 ```ruby
-  settings.certificate = "CERTIFICATE TEXT WITH BEGIN/END HEADER AND FOOTER"
-  settings.private_key = "PRIVATE KEY TEXT WITH BEGIN/END HEADER AND FOOTER"
+settings.certificate = "CERTIFICATE TEXT WITH BEGIN/END HEADER AND FOOTER"
+settings.private_key = "PRIVATE KEY TEXT WITH BEGIN/END HEADER AND FOOTER"
 
-  settings.security[:want_assertions_encrypted] = true # Invalidate SAML messages without an EncryptedAssertion
+settings.security[:want_assertions_encrypted] = true # Invalidate SAML messages without an EncryptedAssertion
 ```
 
 #### Verifying Signature on IdP Assertions
@@ -701,7 +648,7 @@ The signature will be checked against the `<md:KeyDescriptor use="signing">` ele
 present in the IdP's metadata.
 
 ```ruby
-  settings.security[:want_assertions_signed]  = true  # Require the IdP to sign its SAML Assertions
+settings.security[:want_assertions_signed]  = true  # Require the IdP to sign its SAML Assertions
 ```
 
 #### Certificate and Signature Validation
@@ -709,15 +656,15 @@ present in the IdP's metadata.
 You may require SP and IdP certificates to be non-expired using the following settings:
 
 ```ruby
-  settings.security[:check_idp_cert_expiration] = true  # Raise error if IdP X.509 cert is expired
-  settings.security[:check_sp_cert_expiration] = true   # Raise error SP X.509 cert is expired
+settings.security[:check_idp_cert_expiration] = true  # Raise error if IdP X.509 cert is expired
+settings.security[:check_sp_cert_expiration] = true   # Raise error SP X.509 cert is expired
 ```
 
 By default, Ruby SAML will raise a `RubySaml::ValidationError` if a signature or certificate
 validation fails. You may disable such exceptions using the `settings.security[:soft]` parameter.
 
 ```ruby
-  settings.security[:soft] = true  # Do not raise error on failed signature/certificate validations
+settings.security[:soft] = true  # Do not raise error on failed signature/certificate validations
 ```
 
 #### Advanced SP Certificate Usage & Key Rollover
@@ -743,7 +690,7 @@ settings.sp_cert_multi = {
 }
 ```
 
-Certificate rotation is acheived by inserting new certificates at the bottom of each list,
+Certificate rotation is achieved by inserting new certificates at the bottom of each list,
 and then removing the old certificates from the top of the list once your IdPs have migrated.
 A common practice is for apps to publish the current SP metadata at a URL endpoint and have
 the IdP regularly poll for updates.
@@ -824,7 +771,7 @@ def sp_logout_request
     session[:logged_out_user] = logged_user
 
     relayState = url_for(controller: 'saml', action: 'index')
-    redirect_to(logout_request.create(settings, :RelayState => relayState))
+    redirect_to(logout_request.create(settings, 'RelayState' => relayState))
   end
 end
 ```
@@ -838,7 +785,7 @@ def process_logout_response
   settings = Account.get_saml_settings
 
   if session.has_key? :transaction_id
-    logout_response = RubySaml::Logoutresponse.new(params[:SAMLResponse], settings, :matches_request_id => session[:transaction_id])
+    logout_response = RubySaml::Logoutresponse.new(params[:SAMLResponse], settings, matches_request_id: session[:transaction_id])
   else
     logout_response = RubySaml::Logoutresponse.new(params[:SAMLResponse], settings)
   end
@@ -879,7 +826,7 @@ def idp_logout_request
   )
   if !logout_request.is_valid?
     logger.error "IdP initiated LogoutRequest was not valid!"
-    return render :inline => logger.error
+    return render inline: logger.error
   end
   logger.info "IdP initiated Logout for #{logout_request.name_id}"
 
@@ -888,7 +835,7 @@ def idp_logout_request
 
   # Generate a response to the IdP.
   logout_request_id = logout_request.id
-  logout_response = RubySaml::SloLogoutresponse.new.create(settings, logout_request_id, nil, :RelayState => params[:RelayState])
+  logout_response = RubySaml::SloLogoutresponse.new.create(settings, logout_request_id, nil, 'RelayState' => params[:RelayState])
   redirect_to logout_response
 end
 ```
@@ -913,14 +860,17 @@ end
 
 ## Clock Drift
 
-Server clocks tend to drift naturally. If during validation of the response you get the error "Current time is earlier than NotBefore condition", this may be due to clock differences between your system and that of the Identity Provider.
+If during validation of the response you get the error "Current time is earlier than NotBefore condition",
+this may be due to clock differences between your system and that of the IdP.
 
-First, ensure that both systems synchronize their clocks, using for example the industry standard [Network Time Protocol (NTP)](http://en.wikipedia.org/wiki/Network_Time_Protocol).
+First, ensure that both systems synchronize their clocks, using for example the industry standard
+[Network Time Protocol (NTP)](https://en.wikipedia.org/wiki/Network_Time_Protocol).
 
-Even then you may experience intermittent issues, as the clock of the Identity Provider may drift slightly ahead of your system clocks. To allow for a small amount of clock drift, you can initialize the response by passing in an option named `:allowed_clock_drift`. Its value must be given in a number (and/or fraction) of seconds. The value given is added to the current time at which the response is validated before it's tested against the `NotBefore` assertion. For example:
+To allow for a small amount of clock drift, you can initialize the response with the
+`:allowed_clock_drift` option, specified in number of seconds. For example:
 
 ```ruby
-response = RubySaml::Response.new(params[:SAMLResponse], :allowed_clock_drift => 1.second)
+response = RubySaml::Response.new(params[:SAMLResponse], allowed_clock_drift: 1.second)
 ```
 
 Make sure to keep the value as comfortably small as possible to keep security risks to a minimum.
@@ -936,7 +886,7 @@ Example:
 ```ruby
 def consume
   response = RubySaml::Response.new(params[:SAMLResponse], { settings: saml_settings })
-  ...
+  # ...
 end
 
 private
@@ -956,8 +906,8 @@ settings.attributes_index = 5
 settings.attribute_consuming_service.configure do
   service_name "Service"
   service_index 5
-  add_attribute :name => "Name", :name_format => "Name Format", :friendly_name => "Friendly Name"
-  add_attribute :name => "Another Attribute", :name_format => "Name Format", :friendly_name => "Friendly Name", :attribute_value => "Attribute Value"
+  add_attribute name: "Name", name_format: "Name Format", friendly_name: "Friendly Name"
+  add_attribute name: "Another Attribute", name_format: "Name Format", friendly_name: "Friendly Name", attribute_value: "Attribute Value"
 end
 ```
 
@@ -995,3 +945,23 @@ end
 # Output XML with custom metadata
 MyMetadata.new.generate(settings)
 ```
+
+## Adding Features, Pull Requests
+
+* Fork the repository
+* Make your feature addition or bug fix
+* Add tests for your new features. This is important so we don't break any features in a future version unintentionally.
+* Ensure all tests pass by running `bundle exec rake test`.
+* Do not change rakefile, version, or history.
+* Open a pull request, following [this template](https://gist.github.com/Lordnibbler/11002759).
+
+## Attribution
+
+Portions of the code in `RubySaml::XML` namespace is adapted from earlier work
+copyrighted by either Oracle and/or Todd W. Saxton. The original code was distributed
+under the Common Development and Distribution License (CDDL) 1.0. This code is planned to
+be written entirely in future versions.
+
+## License
+
+Ruby SAML is made available under the MIT License. Refer to [LICENSE](LICENSE).
