@@ -502,8 +502,8 @@ if Minitest::Test.jruby?
   module JRubyZlibTestExtension
     def capture_exceptions
       super
-      if failures&.any? {|e| e.error&.is_a?(Zlib::BufError) }
-        failures.reject! {|e| e.error&.is_a?(Zlib::BufError) }
+
+      if failures&.reject! { |e| e.error&.is_a?(Zlib::BufError) } # nil if nothing rejected
         failures << Minitest::Skip.new('Skipping Zlib::BufError in JRuby. See: https://github.com/jruby/jruby/issues/6613')
       end
     end
