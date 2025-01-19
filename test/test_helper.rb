@@ -385,13 +385,12 @@ end
 # Remove after https://github.com/jruby/jruby/issues/6613 is fixed
 if Minitest::Test.jruby?
   module JRubyZlibTestExtension
-    @@jruby_zlib_failures = 0
-
-    def run
+    def capture_exceptions
       super
-    rescue Zlib::BufError => e
-      raise e unless (@@jruby_zlib_failures += 1) < 10
-      skip "Skipping Zlib::BufError in JRuby, see https://github.com/jruby/jruby/issues/6613"
+
+      if failures&.reject! { |e| e.error&.is_a?(Zlib::BufError) } # nil if nothing rejected
+        failures << Minitest::Skip.new('Skipping Zlib::BufError in JRuby. See: https://github.com/jruby/jruby/issues/6613')
+      end
     end
   end
 
