@@ -97,7 +97,7 @@ request.uuid #=> "my_id_a1b3c5d7-9f1e-3d5c-7b1a-9f1e3d5c7b1a"
 ```
 
 A side-effect of this change is that the `uuid` of the `Authrequest`, `Logoutrequest`, and `Logoutresponse`
-classes now is `nil` until the `#create` method is called (previously, it was set in the constructor.)
+classes now is `nil` until the `#create` method is called (previously, it was set in the initializer.)
 After calling `#create` for the first time the `uuid` will not change, even if a `Settings` object with
 a different `sp_uuid_prefix` is passed-in on subsequent calls.
 
@@ -215,7 +215,7 @@ the [CVE-2017-11428](https://www.cvedetails.com/cve/CVE-2017-11428/) vulnerabili
 
 Version `1.6.0` changes the preferred way to construct instances of `Logoutresponse` and
 `SloLogoutrequest`. Previously the _SAMLResponse_, _RelayState_, and _SigAlg_ parameters
-of these message types were provided via the constructor's `options[:get_params]` parameter.
+of these message types were provided via the initializer's `options[:get_params]` parameter.
 Unfortunately this can result in incompatibility with other SAML implementations; signatures
 are specified to be computed based on the _sender's_ URI-encoding of the message, which can
 differ from that of Ruby SAML. In particular, Ruby SAML's URI-encoding does not match that

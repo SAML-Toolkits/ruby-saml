@@ -239,20 +239,21 @@ end
 
 ## Signature Validation
 
-Ruby SAML allows different ways to validate the signature of the SAMLResponse:
-- You can provide the IdP X.509 public certificate at the `idp_cert` setting.
-- You can provide the IdP X.509 public certificate in fingerprint format using the
- `idp_cert_fingerprint` setting parameter and additionally the `idp_cert_fingerprint_algorithm` parameter.
+Ruby SAML allows different ways to validate the signature of the SAML Response:
+- You may provide the IdP X.509 public certificate at the `idp_cert` setting.
+- (Deprecated) You may provide the IdP X.509 public certificate in fingerprint format using the
+  `idp_cert_fingerprint` and `idp_cert_fingerprint_algorithm` parameters.
 
-When validating the signature of redirect binding, the fingerprint is useless and the certificate
-of the IdP is required in order to execute the validation. You can pass the option
-`:relax_signature_validation` to `SloLogoutrequest` and `Logoutresponse` if want to avoid signature
-validation if no certificate of the IdP is provided.
+In addition, you may pass the option `:relax_signature_validation` to `SloLogoutrequest` and
+`Logoutresponse` if want to skip signature validation on logout.
 
-In production also we highly recommend to register on the settings the IdP certificate instead
-of using the fingerprint method. The fingerprint, is a hash, so at the end is open to a collision
-attack that can end on a signature validation bypass. Other SAML toolkits deprecated that mechanism,
-we maintain it for compatibility and also to be used on test environment.
+The `idp_cert_fingerprint` option is deprecated for the following reasons. It will be
+removed in Ruby SAML version 3.0.
+1. It only works with HTTP-POST binding, not HTTP-Redirect, since the full certificate
+   is not sent in the Redirect URL parameters.
+2. It is theoretically be susceptible to collision attacks, by which a malicious
+   actor could impersonate the IdP. (However, as of January 2025, such attacks have not
+   been publicly demonstrated for SHA-256.)
 
 ## Handling Multiple IdP Certificates
 
