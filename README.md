@@ -16,10 +16,10 @@ Make sure you are using an updated version. (1.12.3 is safe)**
 
 The Ruby SAML library is used by Service Providers (SPs) to implement SAML authentication.
 It enables SPs to create SAML AuthnRequests (authentication requests) and validate SAML
-Response messages from Identity Providers (IdPs).
+Response assertions from Identity Providers (IdPs).
 
-**Important:** This libary does not currently support the IdP-side of SAML authentication,
-such as creating SAML Response messages.
+**Important:** This libary does not support the IdP-side of SAML authentication,
+such as creating SAML Response messages to assert a user's identity.
 
 A Rails 4 reference implemenation is avaiable at the
 [Ruby SAML Demo Project](https://github.com/saml-toolkits/ruby-saml-example).
