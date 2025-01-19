@@ -36,8 +36,8 @@ module RubySaml
     attr_accessor :idp_slo_service_url
     attr_accessor :idp_slo_response_service_url
     attr_accessor :idp_cert
-    attr_accessor :idp_cert_fingerprint
-    attr_accessor :idp_cert_fingerprint_algorithm
+    attr_reader   :idp_cert_fingerprint
+    attr_reader   :idp_cert_fingerprint_algorithm
     attr_accessor :idp_cert_multi
     attr_accessor :idp_attribute_names
     attr_accessor :idp_name_qualifier
@@ -306,6 +306,18 @@ module RubySaml
     end
 
     # @deprecated Will be removed in v2.1.0
+    def idp_cert_fingerprint=(value)
+      idp_cert_fingerprint_deprecation
+      @idp_cert_fingerprint = value
+    end
+
+    # @deprecated Will be removed in v2.1.0
+    def idp_cert_fingerprint_algorithm=(value)
+      idp_cert_fingerprint_deprecation
+      @idp_cert_fingerprint_algorithm = value
+    end
+
+    # @deprecated Will be removed in v2.1.0
     def certificate_new
       certificate_new_deprecation
       @certificate_new
@@ -347,6 +359,13 @@ module RubySaml
     def replaced_deprecation(old_param, new_param)
       Logging.deprecate "`RubySaml::Settings##{old_param}` is deprecated and will be removed in RubySaml 2.1.0. " \
                         "Please set the same value to `RubySaml::Settings##{new_param}` instead."
+    end
+
+    # @deprecated Will be removed in v2.1.0
+    def idp_cert_fingerprint_deprecation
+      Logging.deprecate '`RubySaml::Settings#idp_cert_fingerprint` and `#idp_cert_fingerprint_algorithm` are ' \
+                        'deprecated and will be removed in RubySaml v2.1.0. Please provide the full IdP certificate in ' \
+                        '`RubySaml::Settings#idp_cert` instead.'
     end
 
     # @deprecated Will be removed in v2.1.0

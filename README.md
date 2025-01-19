@@ -248,12 +248,13 @@ In addition, you may pass the option `:relax_signature_validation` to `SloLogout
 `Logoutresponse` if want to skip signature validation on logout.
 
 The `idp_cert_fingerprint` option is deprecated for the following reasons. It will be
-removed in Ruby SAML version 3.0.
+removed in Ruby SAML version 2.1.0.
 1. It only works with HTTP-POST binding, not HTTP-Redirect, since the full certificate
    is not sent in the Redirect URL parameters.
 2. It is theoretically be susceptible to collision attacks, by which a malicious
    actor could impersonate the IdP. (However, as of January 2025, such attacks have not
    been publicly demonstrated for SHA-256.)
+3. It has been removed already from several other SAML libraries in other languages.
 
 ## Handling Multiple IdP Certificates
 

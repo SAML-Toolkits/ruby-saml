@@ -113,6 +113,13 @@ The SAML SP request/response message compression behavior is now controlled auto
 "compression" is used to make redirect URLs which contain SAML messages be shorter. For POST messages,
 compression may be achieved by enabling `Content-Encoding: gzip` on your webserver.
 
+### Deprecation of IdP certificate fingerprint settings
+
+The `settings.idp_cert_fingerprint` and `settings.idp_cert_fingerprint_algorithm` are deprecated
+and will be removed in RubySaml 2.1.0. Please use `settings.idp_cert` or `settings.idp_cert_multi` instead.
+The reasons for this deprecation are that (1) fingerprint cannot be used with HTTP-Redirect binding,
+and (2) fingerprint is theoretically susceptible to collision attacks.
+
 ### Other settings deprecations
 
 The following parameters in `RubySaml::Settings` are deprecated and will be removed in RubySaml 2.1.0:
