@@ -8,6 +8,7 @@
 * [#692](https://github.com/SAML-Toolkits/ruby-saml/pull/692) Remove `XMLSecurity` namespace and replace with `RubySaml::XML`.
 * [#686](https://github.com/SAML-Toolkits/ruby-saml/pull/686) Use SHA-256 as the default hashing algorithm everywhere instead of SHA-1, including signatures, fingerprints, and digests.
 * [#695](https://github.com/SAML-Toolkits/ruby-saml/pull/695) Deprecate `settings.compress_request` and `settings.compess_response` parameters.
+* [#701](https://github.com/SAML-Toolkits/ruby-saml/pull/695) Deprecate `settings.idp_cert_fingerprint` and `settings.idp_cert_fingerprint_algorithm` parameters.
 * [#690](https://github.com/SAML-Toolkits/ruby-saml/pull/690) Remove deprecated `settings.security[:embed_sign]` parameter.
 * [#697](https://github.com/SAML-Toolkits/ruby-saml/pull/697) Add deprecation for various parameters in `RubySaml::Settings`.
 * [#709](https://github.com/SAML-Toolkits/ruby-saml/pull/709) Allow passing in `Net::HTTP` `:open_timeout`, `:read_timeout`, and `:max_retries` settings to `IdpMetadataParser#parse_remote`.
