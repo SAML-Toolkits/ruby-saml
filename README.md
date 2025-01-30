@@ -4,7 +4,7 @@
 [![Rubygem Version](https://badge.fury.io/rb/ruby-saml.svg)](https://badge.fury.io/rb/ruby-saml)
 [![GitHub version](https://badge.fury.io/gh/SAML-Toolkits%2Fruby-saml.svg)](https://badge.fury.io/gh/SAML-Toolkits%2Fruby-saml) ![GitHub](https://img.shields.io/github/license/SAML-Toolkits/ruby-saml) ![Gem](https://img.shields.io/gem/dtv/ruby-saml?label=gem%20downloads%20latest) ![Gem](https://img.shields.io/gem/dt/ruby-saml?label=gem%20total%20downloads)
 
-Ruby SAML minor and tiny versions may introduce breaking changes. Please read
+Minor and patch versions of Ruby SAML may introduce breaking changes. Please read
 [UPGRADING.md](UPGRADING.md) for guidance on upgrading to new Ruby SAML versions.
 
 There is a critical vulnerability affecting ruby-saml < 1.17.0 (CVE-2024-45409). Make sure you are using an updated version. (1.12.3 is safe)
@@ -15,7 +15,7 @@ The Ruby SAML library is for implementing the client side of a SAML authorizatio
 i.e. it provides a means for managing authorization initialization and confirmation
 requests from identity providers.
 
-SAML authorization is a two step process and you are expected to implement support for both.
+SAML authorization is a two-step process and you are expected to implement support for both.
 
 We created a demo project for Rails 4 that uses the latest version of this library:
 [ruby-saml-example](https://github.com/saml-toolkits/ruby-saml-example)
@@ -34,7 +34,7 @@ The following Ruby versions are covered by CI testing:
 * Make your feature addition or bug fix
 * Add tests for your new features. This is important so we don't break any features in a future version unintentionally.
 * Ensure all tests pass by running `bundle exec rake test`.
-* Do not change rakefile, version, or history.
+* Do not change Rakefile, version, or history.
 * Open a pull request, following [this template](https://gist.github.com/Lordnibbler/11002759).
 
 ## Security Guidelines
@@ -45,20 +45,19 @@ by mail to the maintainer: sixto.martin.garcia+security@gmail.com
 ### Security Warning
 
 Some tools may incorrectly report ruby-saml is a potential security vulnerability.
-ruby-saml depends on Nokogiri, and it's possible to use Nokogiri in a dangerous way
+ruby-saml depends on Nokogiri, and it is possible to use Nokogiri in a dangerous way
 (by enabling its DTDLOAD option and disabling its NONET option).
 This dangerous Nokogiri configuration, which is sometimes used by other components,
 can create an XML External Entity (XXE) vulnerability if the XML data is not trusted.
 However, ruby-saml never enables this dangerous Nokogiri configuration;
 ruby-saml never enables DTDLOAD, and it never disables NONET.
 
-The OneLogin::RubySaml::IdpMetadataParser class does not validate in any way the URL
-that is introduced in order to be parsed.
+The OneLogin::RubySaml::IdpMetadataParser class does not validate the provided URL before parsing.
 
-Usually, the same administrator that handles the Service Provider also sets the URL to
+Usually, the same administrator who handles the Service Provider also sets the URL to
 the IdP, which should be a trusted resource.
 
-But there are other scenarios, like a SAAS app where the administrator of the app
+But there are other scenarios, like a SaaS app where the administrator of the app
 delegates this functionality to other users. In this case, extra precautions should
 be taken in order to validate such URL inputs and avoid attacks like SSRF.
 
@@ -122,8 +121,8 @@ gem install nokogiri --version '~> 1.5.10'
 ### Configuring Logging
 
 When troubleshooting SAML integration issues, you will find it extremely helpful to examine the
-output of this gem's business logic. By default, log messages are emitted to RAILS_DEFAULT_LOGGER
-when the gem is used in a Rails context, and to STDOUT when the gem is used outside of Rails.
+output of this gem's business logic. By default, log messages are emitted to `RAILS_DEFAULT_LOGGER`
+when the gem is used in a Rails context, and to `STDOUT` when the gem is used outside of Rails.
 
 To override the default behavior and control the destination of log messages, provide
 a ruby Logger object to the gem's logging singleton:
@@ -146,7 +145,7 @@ def init
 end
 ```
 
-If the SP knows who should be authenticated in the IdP, then can provide that info as follows:
+If the SP knows who should be authenticated in the IdP, it can provide that info as follows:
 
 ```ruby
 def init
@@ -224,7 +223,7 @@ def saml_settings
 end
 ```
 
-The use of settings.issuer is deprecated in favour of settings.sp_entity_id since version 1.11.0
+The use of `settings.issuer` is deprecated in favor of `settings.sp_entity_id` since version 1.11.0
 
 Some assertion validations can be skipped by passing parameters to `OneLogin::RubySaml::Response.new()`.
 For example, you can skip the `AuthnStatement`, `Conditions`, `Recipient`, or the `SubjectConfirmation`
@@ -379,11 +378,11 @@ IdpMetadataParser by its Entity Id value:
              )
 ```
 
-### Retrieve one Entity Descriptor with an specific binding and nameid format when several are available
+### Retrieve one Entity Descriptor with a specific binding and nameid format when several are available
 
-If the Metadata contains several bindings and nameids, the relevant ones
-also can be specified when retrieving the settings from the IdpMetadataParser
-by the values of binding and nameid:
+If the metadata contains multiple bindings and NameID formats, the relevant ones
+can be specified when retrieving the settings from the IdpMetadataParser
+by the values of binding and NameID:
 
 ```ruby
   validate_cert = true
@@ -447,13 +446,13 @@ if valid
     entity_id: "<entity_id_of_the_entity_to_be_retrieved>"
   )
 else
-  print "Metadata Signarture failed to be verified with the cert provided"
+  print "Metadata Signature failed to be verified with the cert provided"
 end
 ```
 
 ## Retrieving Attributes
 
-If you are using `saml:AttributeStatement` to transfer data like the username, you can access all the attributes through `response.attributes`. It contains all the `saml:AttributeStatement`s with its 'Name' as an indifferent key and one or more `saml:AttributeValue`s as values. The value returned depends on the value of the
+If you are using `saml:AttributeStatement` to transfer data, such as the username, you can access all the attributes through `response.attributes`. It contains all the `saml:AttributeStatement`s with its 'Name' as an indifferent key and one or more `saml:AttributeValue`s as values. The value returned depends on the value of the
 `single_value_compatibility` (when activated, only the first value is returned)
 
 ```ruby
@@ -676,7 +675,7 @@ Next, you may specify the specific SP SAML messages you would like to sign:
   settings.security[:logout_responses_signed] = true  # Enable signature on Logout Response
 ```
 
-Signatures will be handled automatically for both `HTTP-Redirect` and `HTTP-Redirect` Binding.
+Signatures will be handled automatically for both `HTTP-Redirect` and `HTTP-POST` Binding.
 Note that the RelayState parameter is used when creating the Signature on the `HTTP-Redirect` Binding.
 Remember to provide it to the Signature builder if you are sending a `GET RelayState` parameter or the
 signature validation process will fail at the Identity Provider.
@@ -768,7 +767,7 @@ Note the following:
 #### Audience Validation
 
 A service provider should only consider a SAML response valid if the IdP includes an <AudienceRestriction>
-element containting an <Audience> element that uniquely identifies the service provider. Unless you specify
+element containing an <Audience> element that uniquely identifies the service provider. Unless you specify
 the `skip_audience` option, Ruby SAML will validate that each SAML response includes an <Audience> element
 whose contents matches `settings.sp_entity_id`.
 
@@ -946,7 +945,7 @@ end
 
 ## Attribute Service
 
-To request attributes from the IdP the SP needs to provide an attribute service within it's metadata and reference the index in the assertion.
+To request attributes from the IdP the SP must provide an attribute service within its metadata and reference the index in the assertion.
 
 ```ruby
 settings = OneLogin::RubySaml::Settings.new
@@ -963,7 +962,7 @@ The `attribute_value` option additionally accepts an array of possible values.
 
 ## Custom Metadata Fields
 
-Some IdPs may require to add SPs to add additional fields (Organization, ContactPerson, etc.)
+Some IdPs may require SPs to add additional fields (Organization, ContactPerson, etc.)
 into the SP metadata. This can be achieved by extending the `OneLogin::RubySaml::Metadata`
 class and overriding the `#add_extras` method as per the following example:
 
