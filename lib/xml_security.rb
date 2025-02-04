@@ -262,7 +262,7 @@ module XMLSecurity
       else
         base64_cert = Base64.encode64(idp_cert.to_pem)
       end
-      validate_signature(base64_cert, true)
+      validate_signature(base64_cert, soft)
     end
 
     def validate_signature(base64_cert, soft = true)
