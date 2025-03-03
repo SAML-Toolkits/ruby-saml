@@ -131,7 +131,7 @@ module RubySaml
         x509_cert_element.content = Base64.encode64(certificate.to_der).gsub(/\n/, '')
 
         # add the signature
-        issuer_element = at_xpath('//saml:Issuer')
+        issuer_element = at_xpath('//saml:Issuer', 'saml' => 'urn:oasis:names:tc:SAML:2.0:assertion')
         if issuer_element
           issuer_element.after(signature_element)
         elsif root.children.any?

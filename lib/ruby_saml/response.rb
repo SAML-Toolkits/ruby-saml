@@ -364,7 +364,7 @@ module RubySaml
     #
     def assertion_encrypted?
       !document.at_xpath(
-        "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
+        "/p:Response/p:EncryptedAssertion | /p:Response/a:EncryptedAssertion",
         { "p" => PROTOCOL, "a" => ASSERTION }
       ).nil?
     end
