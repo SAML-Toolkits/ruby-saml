@@ -50,7 +50,7 @@ module RubySaml
       root["entityID"] = settings.sp_entity_id if settings.sp_entity_id
       root["validUntil"] = valid_until.utc.strftime('%Y-%m-%dT%H:%M:%SZ') if valid_until
       root["cacheDuration"] = "PT#{cache_duration}S" if cache_duration
-      
+
       meta_doc.add_child(root)
       root
     end
@@ -60,7 +60,7 @@ module RubySaml
       sp_sso["protocolSupportEnumeration"] = "urn:oasis:names:tc:SAML:2.0:protocol"
       sp_sso["AuthnRequestsSigned"] = settings.security[:authn_requests_signed] ? "true" : "false"
       sp_sso["WantAssertionsSigned"] = settings.security[:want_assertions_signed] ? "true" : "false"
-      
+
       root.add_child(sp_sso)
       sp_sso
     end
@@ -106,19 +106,19 @@ module RubySaml
         sp_acs = Nokogiri::XML::Element.new("md:AttributeConsumingService", sp_sso.document)
         sp_acs["isDefault"] = "true"
         sp_acs["index"] = settings.attribute_consuming_service.index
-        
+
         srv_name = Nokogiri::XML::Element.new("md:ServiceName", sp_sso.document)
         srv_name["xml:lang"] = "en"
         srv_name.content = settings.attribute_consuming_service.name
         sp_acs.add_child(srv_name)
-        
+
         settings.attribute_consuming_service.attributes.each do |attribute|
           sp_req_attr = Nokogiri::XML::Element.new("md:RequestedAttribute", sp_sso.document)
           sp_req_attr["NameFormat"] = attribute[:name_format]
           sp_req_attr["Name"] = attribute[:name]
           sp_req_attr["FriendlyName"] = attribute[:friendly_name]
           sp_req_attr["isRequired"] = attribute[:is_required] ? "true" : "false"
-          
+
           next if attribute[:attribute_value].nil?
 
           Array(attribute[:attribute_value]).each do |value|
@@ -126,10 +126,10 @@ module RubySaml
             sp_attr_val.content = value.to_s
             sp_req_attr.add_child(sp_attr_val)
           end
-          
+
           sp_acs.add_child(sp_req_attr)
         end
-        
+
         sp_sso.add_child(sp_acs)
       end
 
@@ -172,18 +172,18 @@ module RubySaml
     def add_sp_cert_element(sp_sso, cert, use)
       return unless cert
       cert_text = Base64.encode64(cert.to_der).gsub("\n", '')
-      
+
       kd = Nokogiri::XML::Element.new("md:KeyDescriptor", sp_sso.document)
       kd["use"] = use.to_s
-      
+
       ki = Nokogiri::XML::Element.new("ds:KeyInfo", sp_sso.document)
       ki["xmlns:ds"] = "http://www.w3.org/2000/09/xmldsig#"
-      
+
       xd = Nokogiri::XML::Element.new("ds:X509Data", sp_sso.document)
-      
+
       xc = Nokogiri::XML::Element.new("ds:X509Certificate", sp_sso.document)
       xc.content = cert_text
-      
+
       xd.add_child(xc)
       ki.add_child(xd)
       kd.add_child(ki)

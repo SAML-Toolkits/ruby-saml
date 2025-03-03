@@ -53,9 +53,7 @@ module RubySaml
 
       request_doc = create_logout_request_xml_doc(settings)
       request_doc.context[:attribute_quote] = :quote if settings.double_quote_xml_attribute_values
-
-      request = +""
-      request_doc.write(request)
+      request = request_doc.to_xml(save_with: Nokogiri::XML::Node::SaveOptions::AS_XML)
 
       Logging.debug "Created SLO Logout Request: #{request}"
 

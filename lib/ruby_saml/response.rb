@@ -266,7 +266,7 @@ module RubySaml
           "/p:Response/p:Status/p:StatusMessage",
           { "p" => PROTOCOL }
         )
-        
+
         RubySaml::Utils.element_text(node)
       end
     end

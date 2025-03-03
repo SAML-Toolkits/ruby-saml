@@ -61,9 +61,7 @@ module RubySaml
 
       response_doc = create_logout_response_xml_doc(settings, request_id, logout_message, logout_status_code)
       response_doc.context[:attribute_quote] = :quote if settings.double_quote_xml_attribute_values
-
-      response = +""
-      response_doc.write(response)
+      response = response_doc.to_xml(save_with: Nokogiri::XML::Node::SaveOptions::AS_XML)
 
       Logging.debug "Created SLO Logout Response: #{response}"
 
@@ -113,30 +111,41 @@ module RubySaml
 
       destination = settings.idp_slo_response_service_url || settings.idp_slo_service_url
 
-      root = response_doc.add_element 'samlp:LogoutResponse', { 'xmlns:samlp' => 'urn:oasis:names:tc:SAML:2.0:protocol', "xmlns:saml" => "urn:oasis:names:tc:SAML:2.0:assertion" }
-      root.attributes['ID'] = uuid
-      root.attributes['IssueInstant'] = time
-      root.attributes['Version'] = '2.0'
-      root.attributes['InResponseTo'] = request_id unless request_id.nil?
-      root.attributes['Destination'] = destination unless destination.nil? or destination.empty?
+      root = Nokogiri::XML::Node.new('samlp:LogoutResponse', response_doc)
+      response_doc.add_child(root)
+
+      # Set namespaces
+      root['xmlns:samlp'] = 'urn:oasis:names:tc:SAML:2.0:protocol'
+      root['xmlns:saml'] = 'urn:oasis:names:tc:SAML:2.0:assertion'
+
+      # Set attributes
+      root['ID'] = uuid
+      root['IssueInstant'] = time
+      root['Version'] = '2.0'
+      root['InResponseTo'] = request_id unless request_id.nil?
+      root['Destination'] = destination unless destination.nil? or destination.empty?
 
       unless settings.sp_entity_id.nil?
-        issuer = root.add_element "saml:Issuer"
-        issuer.text = settings.sp_entity_id
+        issuer = Nokogiri::XML::Node.new('saml:Issuer', response_doc)
+        issuer.content = settings.sp_entity_id
+        root.add_child(issuer)
       end
 
       # add status
-      status = root.add_element 'samlp:Status'
+      status = Nokogiri::XML::Node.new('samlp:Status', response_doc)
+      root.add_child(status)
 
       # status code
       status_code ||= 'urn:oasis:names:tc:SAML:2.0:status:Success'
-      status_code_elem = status.add_element 'samlp:StatusCode'
-      status_code_elem.attributes['Value'] = status_code
+      status_code_elem = Nokogiri::XML::Node.new('samlp:StatusCode', response_doc)
+      status_code_elem['Value'] = status_code
+      status.add_child(status_code_elem)
 
       # status message
       logout_message ||= 'Successfully Signed Out'
-      status_message = status.add_element 'samlp:StatusMessage'
-      status_message.text = logout_message
+      status_message = Nokogiri::XML::Node.new('samlp:StatusMessage', response_doc)
+      status_message.content = logout_message
+      status.add_child(status_message)
 
       response_doc
     end

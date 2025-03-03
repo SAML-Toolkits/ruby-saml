@@ -56,14 +56,14 @@ module RubySaml
         # Create signature elements using Nokogiri
         signature_element = Nokogiri::XML::Element.new('ds:Signature', self)
         signature_element['xmlns:ds'] = RubySaml::XML::Crypto::DSIG
-        
+
         signed_info_element = Nokogiri::XML::Element.new('ds:SignedInfo', self)
         signature_element.add_child(signed_info_element)
-        
+
         canon_method_element = Nokogiri::XML::Element.new('ds:CanonicalizationMethod', self)
         canon_method_element['Algorithm'] = RubySaml::XML::Crypto::C14N
         signed_info_element.add_child(canon_method_element)
-        
+
         sig_method_element = Nokogiri::XML::Element.new('ds:SignatureMethod', self)
         sig_method_element['Algorithm'] = signature_method
         signed_info_element.add_child(sig_method_element)
@@ -76,15 +76,15 @@ module RubySaml
         # Add Transforms
         transforms_element = Nokogiri::XML::Element.new('ds:Transforms', self)
         reference_element.add_child(transforms_element)
-        
+
         transform1 = Nokogiri::XML::Element.new('ds:Transform', self)
         transform1['Algorithm'] = RubySaml::XML::Crypto::ENVELOPED_SIG
         transforms_element.add_child(transform1)
-        
+
         transform2 = Nokogiri::XML::Element.new('ds:Transform', self)
         transform2['Algorithm'] = RubySaml::XML::Crypto::C14N
         transforms_element.add_child(transform2)
-        
+
         inc_namespaces = Nokogiri::XML::Element.new('ec:InclusiveNamespaces', self)
         inc_namespaces['xmlns:ec'] = RubySaml::XML::Crypto::C14N
         inc_namespaces['PrefixList'] = INC_PREFIX_LIST
@@ -93,10 +93,10 @@ module RubySaml
         digest_method_element = Nokogiri::XML::Element.new('ds:DigestMethod', self)
         digest_method_element['Algorithm'] = digest_method
         reference_element.add_child(digest_method_element)
-        
+
         inclusive_namespaces = INC_PREFIX_LIST.split
         canon_doc = noko.canonicalize(RubySaml::XML::Crypto.canon_algorithm(RubySaml::XML::Crypto::C14N), inclusive_namespaces)
-        
+
         digest_value_element = Nokogiri::XML::Element.new('ds:DigestValue', self)
         digest_value_element.content = compute_digest(canon_doc, RubySaml::XML::Crypto.hash_algorithm(digest_method_element))
         reference_element.add_child(digest_value_element)
@@ -110,7 +110,7 @@ module RubySaml
         canon_string = noko_signed_info_element.canonicalize(RubySaml::XML::Crypto.canon_algorithm(RubySaml::XML::Crypto::C14N))
 
         signature = compute_signature(private_key, RubySaml::XML::Crypto.hash_algorithm(signature_method).new, canon_string)
-        
+
         sig_value_element = Nokogiri::XML::Element.new('ds:SignatureValue', self)
         sig_value_element.content = signature
         signature_element.add_child(sig_value_element)
@@ -118,7 +118,7 @@ module RubySaml
         # add KeyInfo
         key_info_element = Nokogiri::XML::Element.new('ds:KeyInfo', self)
         signature_element.add_child(key_info_element)
-        
+
         x509_element = Nokogiri::XML::Element.new('ds:X509Data', self)
         key_info_element.add_child(x509_element)
 

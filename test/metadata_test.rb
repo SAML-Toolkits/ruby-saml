@@ -421,7 +421,7 @@ class MetadataTest < Minitest::Test
                   org_url["xml:lang"] = "en-US"
                   org_url.content = 'https://www.acme.com'
                   org.add_child(org_url)
-                  
+
                   root.add_child(org)
                 end
               end

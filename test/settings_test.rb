@@ -556,7 +556,6 @@ class SettingsTest < Minitest::Test
         assert_equal expected_encryption, actual[:encryption].map { |ary| ary.map(&:to_pem) }
       end
 
-
       it 'handles OpenSSL::PKey::PKey objects for single case' do
         @settings.certificate = cert_text1
         @settings.private_key = OpenSSL::PKey::RSA.new(key_text1)

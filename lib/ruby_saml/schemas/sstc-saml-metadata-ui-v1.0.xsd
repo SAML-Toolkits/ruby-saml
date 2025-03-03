@@ -55,7 +55,7 @@
       </extension>
     </simpleContent>
   </complexType>
-  
+
   <simpleType name="listOfStrings">
     <list itemType="string"/>
   </simpleType>
@@ -86,4 +86,3 @@
   <element name="GeolocationHint" type="anyURI"/>
 
 </schema>
-

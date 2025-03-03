@@ -163,7 +163,7 @@ module RubySaml
         )
         digest_algorithm = RubySaml::XML::Crypto.hash_algorithm(digest_method_node)
         hash = digest_algorithm.digest(canon_hashed_element)
-        
+
         encoded_digest_value = ref.at_xpath(
           './ds:DigestValue',
           { 'ds' => RubySaml::XML::Crypto::DSIG }

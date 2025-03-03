@@ -59,6 +59,13 @@ settings.security[:digest_method] = RubySaml::XML::Crypto::SHA1
 settings.security[:signature_method] = RubySaml::XML::Crypto::RSA_SHA1
 ```
 
+### Replacement of REXML with Nokogiri.
+
+RubySaml `1.x` used a combination of REXML and Nokogiri for XML parsing and generation.
+In `2.0.0`, REXML has been completely replaced with Nokogiri. This change should be transparent
+to most users, however, if you are adding Custom Metadata Fields as per the example in the README,
+please refer to the latest README for the correct way to do this with Nokogiri.
+
 ### Removal of embed_sign setting
 
 The deprecated `settings.security[:embed_sign]` parameter has been removed. If you were using it, please instead switch
@@ -139,7 +146,6 @@ PEM strings. In general, version `2.0.0` is more permissive than `1.x`, and the 
 are not anticipated to affect most users. Please note the change affects parameters
 such `#idp_cert` and `#certificate`, as well as the `RubySaml::Utils#format_cert`
 and `#format_private_key` methods. Specifically:
-
 
 | # | Input value                                          | RubySaml 2.0.0                                          | RubySaml 1.x              |
 |---|------------------------------------------------------|---------------------------------------------------------|---------------------------|
