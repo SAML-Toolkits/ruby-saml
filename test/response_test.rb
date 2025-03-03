@@ -212,23 +212,23 @@ class RubySamlTest < Minitest::Test
         end
 
         it "raise when no signature" do
-            settings.idp_cert_fingerprint = signature_fingerprint_1
-            response_no_signed_elements.settings = settings
-            response_no_signed_elements.soft = false
-            error_msg = "Found an unexpected number of Signature Element. SAML Response rejected"
-            assert_raises(RubySaml::ValidationError, error_msg) do
-                response_no_signed_elements.is_valid?
-            end
+          settings.idp_cert_fingerprint = signature_fingerprint_1
+          response_no_signed_elements.settings = settings
+          response_no_signed_elements.soft = false
+          error_msg = "Found an unexpected number of Signature Element. SAML Response rejected"
+          assert_raises(RubySaml::ValidationError, error_msg) do
+            response_no_signed_elements.is_valid?
+          end
         end
 
         it "raise when multiple signatures" do
-            settings.idp_cert_fingerprint = signature_fingerprint_1
-            response_multiple_signed.settings = settings
-            response_multiple_signed.soft = false
-            error_msg = "Duplicated ID. SAML Response rejected"
-            assert_raises(RubySaml::ValidationError, error_msg) do
-                response_multiple_signed.is_valid?
-            end
+          settings.idp_cert_fingerprint = signature_fingerprint_1
+          response_multiple_signed.settings = settings
+          response_multiple_signed.soft = false
+          error_msg = "Duplicated ID. SAML Response rejected"
+          assert_raises(RubySaml::ValidationError, error_msg) do
+            response_multiple_signed.is_valid?
+          end
         end
 
         it "validate SAML 2.0 XML structure" do
@@ -656,11 +656,11 @@ class RubySamlTest < Minitest::Test
     end
 
     describe "validate_formatted_x509_certificate" do
-      let(:response_with_formatted_x509certificate) {
+      let(:response_with_formatted_x509certificate) do
         RubySaml::Response.new(read_response("valid_response_with_formatted_x509certificate.xml.base64"), {
           :skip_conditions => true,
           :skip_subject_confirmation => true })
-        }
+      end
 
       it "be able to parse the response wihout errors" do
         response_with_formatted_x509certificate.settings = settings
@@ -1568,8 +1568,7 @@ class RubySamlTest < Minitest::Test
         it "is not possible to decrypt the assertion if no private key" do
           response = RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)
 
-          encrypted_assertion_node = REXML::XPath.first(
-            response.document,
+          encrypted_assertion_node = response.document.at_xpath(
             "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
             { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
           )
@@ -1592,15 +1591,13 @@ class RubySamlTest < Minitest::Test
         it "is possible to decrypt the assertion if private key" do
           response = RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)
 
-          encrypted_assertion_node = REXML::XPath.first(
-            response.document,
+          encrypted_assertion_node = response.document.at_xpath(
             "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
             { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
           )
           decrypted = response.send(:decrypt_assertion, encrypted_assertion_node)
 
-          encrypted_assertion_node2 = REXML::XPath.first(
-            decrypted,
+          encrypted_assertion_node2 = decrypted.at_xpath(
             "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
             { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
           )
@@ -1618,8 +1615,7 @@ class RubySamlTest < Minitest::Test
           }
           response = RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings)
 
-          encrypted_assertion_node = REXML::XPath.first(
-            response.document,
+          encrypted_assertion_node = response.document.at_xpath(
             "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
             { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
           )
@@ -1633,15 +1629,13 @@ class RubySamlTest < Minitest::Test
           resp = read_response('response_with_retrieval_method.xml')
           response = RubySaml::Response.new(resp, :settings => settings)
 
-          encrypted_assertion_node = REXML::XPath.first(
-            response.document,
+          encrypted_assertion_node = response.document.at_xpath(
             "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
             { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
           )
           decrypted = response.send(:decrypt_assertion, encrypted_assertion_node)
 
-          encrypted_assertion_node2 = REXML::XPath.first(
-            decrypted,
+          encrypted_assertion_node2 = decrypted.at_xpath(
             "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
             { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
           )
@@ -1653,15 +1647,13 @@ class RubySamlTest < Minitest::Test
         it "is possible to decrypt the assertion if private key but no saml namespace on the Assertion Element that is inside the EncryptedAssertion" do
           unsigned_message_encrypted_assertion_without_saml_namespace = read_response('unsigned_message_encrypted_assertion_without_saml_namespace.xml.base64')
           response = RubySaml::Response.new(unsigned_message_encrypted_assertion_without_saml_namespace, :settings => settings)
-          encrypted_assertion_node = REXML::XPath.first(
-            response.document,
+          encrypted_assertion_node = response.document.at_xpath(
             "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
             { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
           )
           decrypted = response.send(:decrypt_assertion, encrypted_assertion_node)
 
-          encrypted_assertion_node2 = REXML::XPath.first(
-            decrypted,
+          encrypted_assertion_node2 = decrypted.at_xpath(
             "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
             { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
           )

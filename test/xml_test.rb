@@ -9,7 +9,7 @@ class XmlTest < Minitest::Test
     let(:settings) { RubySaml::Settings.new }
 
     before do
-      @base64cert = document.elements["//ds:X509Certificate"].text
+      @base64cert = document.at_xpath("//ds:X509Certificate", { "ds" => "http://www.w3.org/2000/09/xmldsig#" }).text
     end
 
     it "should run validate without throwing NS related exceptions" do
@@ -52,7 +52,7 @@ class XmlTest < Minitest::Test
       decoded_response.sub!("<ds:DigestValue>pJQ7MS/ek4KRRWGmv/H43ReHYMs=</ds:DigestValue>",
                     "<ds:DigestValue>b9xsAXLsynugg3Wc1CI3kpWku+0=</ds:DigestValue>")
       mod_document = RubySaml::XML::SignedDocument.new(decoded_response)
-      base64cert = mod_document.elements["//ds:X509Certificate"].text
+      base64cert = mod_document.at_xpath("//ds:X509Certificate", { "ds" => "http://www.w3.org/2000/09/xmldsig#" }).text
       exception = assert_raises(RubySaml::ValidationError) do
         mod_document.validate_signature(base64cert, false)
       end
@@ -62,7 +62,7 @@ class XmlTest < Minitest::Test
 
     it "correctly obtain the digest method with alternate namespace declaration" do
       adfs_document = RubySaml::XML::SignedDocument.new(fixture(:adfs_response_xmlns, false))
-      base64cert = adfs_document.elements["//X509Certificate"].text
+      base64cert = adfs_document.at_xpath("//X509Certificate").text
       assert adfs_document.validate_signature(base64cert, false)
     end
 
@@ -166,7 +166,6 @@ class XmlTest < Minitest::Test
       assert !response_fingerprint_test.document.validate_document(sha512_fingerprint)
       assert response_fingerprint_test.document.validate_document(sha512_fingerprint, true, fingerprint_alg: RubySaml::XML::Document::SHA512)
     end
-
   end
 
   describe "Signature Algorithms" do

@@ -429,7 +429,7 @@ class Minitest::Test
       xml = if document.is_a? Nokogiri::XML::Document
               document
             else
-              Nokogiri::XML(document) { |c| c.strict }
+              Nokogiri::XML(document, &:strict)
             end
 
       result = xsd.validate(xml)

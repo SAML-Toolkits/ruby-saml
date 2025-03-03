@@ -121,10 +121,10 @@ module RubySaml
         
         x509_element = Nokogiri::XML::Element.new('ds:X509Data', self)
         key_info_element.add_child(x509_element)
-        
+
         x509_cert_element = Nokogiri::XML::Element.new('ds:X509Certificate', self)
         x509_element.add_child(x509_cert_element)
-        
+
         if certificate.is_a?(String)
           certificate = OpenSSL::X509::Certificate.new(certificate)
         end

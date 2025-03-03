@@ -24,6 +24,5 @@ Gem::Specification.new do |s|
   s.summary = %q{SAML Ruby Tookit}
 
   s.add_dependency('nokogiri', '>= 1.13.10')
-  s.add_dependency('rexml')
   s.add_dependency('base64')
 end

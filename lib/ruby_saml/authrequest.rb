@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "rexml/document"
-
 require "ruby_saml/logging"
 require "ruby_saml/saml_message"
 require "ruby_saml/utils"
