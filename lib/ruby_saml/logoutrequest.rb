@@ -30,7 +30,7 @@ module RubySaml
       params.each_pair do |key, value|
         request_params << "&#{key}=#{CGI.escape(value.to_s)}"
       end
-      raise SettingError.new "Invalid settings, idp_slo_service_url is not set!" if settings.idp_slo_service_url.nil? or settings.idp_slo_service_url.empty?
+      raise SettingError.new "Invalid settings, idp_slo_service_url is not set!" if settings.idp_slo_service_url.nil? || settings.idp_slo_service_url.empty?
       @logout_url = settings.idp_slo_service_url + request_params
     end
 
@@ -104,7 +104,7 @@ module RubySaml
       root["ID"] = uuid
       root["IssueInstant"] = time
       root["Version"] = "2.0"
-      root["Destination"] = settings.idp_slo_service_url unless settings.idp_slo_service_url.nil? or settings.idp_slo_service_url.empty?
+      root["Destination"] = settings.idp_slo_service_url unless settings.idp_slo_service_url.nil? || settings.idp_slo_service_url.empty?
 
       if settings.sp_entity_id
         issuer = Nokogiri::XML::Element.new("saml:Issuer", request_doc)

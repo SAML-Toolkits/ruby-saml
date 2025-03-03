@@ -35,7 +35,7 @@ module RubySaml
         response_params << "&#{key}=#{CGI.escape(value.to_s)}"
       end
 
-      raise SettingError.new "Invalid settings, idp_slo_service_url is not set!" if url.nil? or url.empty?
+      raise SettingError.new "Invalid settings, idp_slo_service_url is not set!" if url.nil? || url.empty?
       @logout_url = url + response_params
     end
 
