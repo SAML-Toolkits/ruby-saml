@@ -44,7 +44,7 @@ module RubySaml
 
       @options = options
       @response = decode_raw_saml(response, settings)
-      @document = RubySaml::XML::SignedDocument.new(@response)
+      @document = Nokogiri::XML(@response)
       super()
     end
 
@@ -64,12 +64,11 @@ module RubySaml
     #
     def in_response_to
       @in_response_to ||= begin
-        node = REXML::XPath.first(
-          document,
+        node = document.at_xpath(
           "/p:LogoutResponse",
           { "p" => PROTOCOL }
         )
-        node.nil? ? nil : node.attributes['InResponseTo']
+        node.nil? ? nil : node['InResponseTo']
       end
     end
 
@@ -77,12 +76,11 @@ module RubySaml
     #
     def issuer
       @issuer ||= begin
-        node = REXML::XPath.first(
-          document,
+        node = document.at_xpath(
           "/p:LogoutResponse/a:Issuer",
           { "p" => PROTOCOL, "a" => ASSERTION }
         )
-        Utils.element_text(node)
+        RubySaml::Utils.element_text(node)
       end
     end
 
@@ -90,19 +88,18 @@ module RubySaml
     #
     def status_code
       @status_code ||= begin
-        node = REXML::XPath.first(document, "/p:LogoutResponse/p:Status/p:StatusCode", { "p" => PROTOCOL })
-        node.nil? ? nil : node.attributes["Value"]
+        node = document.at_xpath("/p:LogoutResponse/p:Status/p:StatusCode", { "p" => PROTOCOL })
+        node.nil? ? nil : node['Value']
       end
     end
 
     def status_message
       @status_message ||= begin
-        node = REXML::XPath.first(
-          document,
+        node = document.at_xpath(
           "/p:LogoutResponse/p:Status/p:StatusMessage",
           { "p" => PROTOCOL }
         )
-        Utils.element_text(node)
+        RubySaml::Utils.element_text(node)
       end
     end
 
@@ -254,6 +251,7 @@ module RubySaml
             query_string: query_string
           )
           next unless valid
+
           if settings.security[:check_idp_cert_expiration] && RubySaml::Utils.is_cert_expired(signing_idp_cert)
             expired = true
           end

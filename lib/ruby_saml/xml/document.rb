@@ -30,7 +30,7 @@ module RubySaml
       attr_writer :uuid
 
       def uuid
-        @uuid ||= document.root&.attributes&.[]('ID')
+        @uuid ||= root&.attr('ID')
       end
 
       # <Signature>
@@ -53,24 +53,53 @@ module RubySaml
           config.options = RubySaml::XML::BaseDocument::NOKOGIRI_OPTIONS
         end
 
-        signature_element = REXML::Element.new('ds:Signature').add_namespace('ds', RubySaml::XML::Crypto::DSIG)
-        signed_info_element = signature_element.add_element('ds:SignedInfo')
-        signed_info_element.add_element('ds:CanonicalizationMethod', {'Algorithm' => RubySaml::XML::Crypto::C14N})
-        signed_info_element.add_element('ds:SignatureMethod', {'Algorithm'=>signature_method})
+        # Create signature elements using Nokogiri
+        signature_element = Nokogiri::XML::Element.new('ds:Signature', self)
+        signature_element['xmlns:ds'] = RubySaml::XML::Crypto::DSIG
+        
+        signed_info_element = Nokogiri::XML::Element.new('ds:SignedInfo', self)
+        signature_element.add_child(signed_info_element)
+        
+        canon_method_element = Nokogiri::XML::Element.new('ds:CanonicalizationMethod', self)
+        canon_method_element['Algorithm'] = RubySaml::XML::Crypto::C14N
+        signed_info_element.add_child(canon_method_element)
+        
+        sig_method_element = Nokogiri::XML::Element.new('ds:SignatureMethod', self)
+        sig_method_element['Algorithm'] = signature_method
+        signed_info_element.add_child(sig_method_element)
 
         # Add Reference
-        reference_element = signed_info_element.add_element('ds:Reference', {'URI' => "##{uuid}"})
+        reference_element = Nokogiri::XML::Element.new('ds:Reference', self)
+        reference_element['URI'] = "##{uuid}"
+        signed_info_element.add_child(reference_element)
 
         # Add Transforms
-        transforms_element = reference_element.add_element('ds:Transforms')
-        transforms_element.add_element('ds:Transform', {'Algorithm' => RubySaml::XML::Crypto::ENVELOPED_SIG})
-        c14element = transforms_element.add_element('ds:Transform', {'Algorithm' => RubySaml::XML::Crypto::C14N})
-        c14element.add_element('ec:InclusiveNamespaces', {'xmlns:ec' => RubySaml::XML::Crypto::C14N, 'PrefixList' => INC_PREFIX_LIST})
+        transforms_element = Nokogiri::XML::Element.new('ds:Transforms', self)
+        reference_element.add_child(transforms_element)
+        
+        transform1 = Nokogiri::XML::Element.new('ds:Transform', self)
+        transform1['Algorithm'] = RubySaml::XML::Crypto::ENVELOPED_SIG
+        transforms_element.add_child(transform1)
+        
+        transform2 = Nokogiri::XML::Element.new('ds:Transform', self)
+        transform2['Algorithm'] = RubySaml::XML::Crypto::C14N
+        transforms_element.add_child(transform2)
+        
+        inc_namespaces = Nokogiri::XML::Element.new('ec:InclusiveNamespaces', self)
+        inc_namespaces['xmlns:ec'] = RubySaml::XML::Crypto::C14N
+        inc_namespaces['PrefixList'] = INC_PREFIX_LIST
+        transform2.add_child(inc_namespaces)
 
-        digest_method_element = reference_element.add_element('ds:DigestMethod', {'Algorithm' => digest_method})
+        digest_method_element = Nokogiri::XML::Element.new('ds:DigestMethod', self)
+        digest_method_element['Algorithm'] = digest_method
+        reference_element.add_child(digest_method_element)
+        
         inclusive_namespaces = INC_PREFIX_LIST.split
         canon_doc = noko.canonicalize(RubySaml::XML::Crypto.canon_algorithm(RubySaml::XML::Crypto::C14N), inclusive_namespaces)
-        reference_element.add_element('ds:DigestValue').text = compute_digest(canon_doc, RubySaml::XML::Crypto.hash_algorithm(digest_method_element))
+        
+        digest_value_element = Nokogiri::XML::Element.new('ds:DigestValue', self)
+        digest_value_element.content = compute_digest(canon_doc, RubySaml::XML::Crypto.hash_algorithm(digest_method_element))
+        reference_element.add_child(digest_value_element)
 
         # add SignatureValue
         noko_sig_element = Nokogiri::XML(signature_element.to_s) do |config|
@@ -81,25 +110,34 @@ module RubySaml
         canon_string = noko_signed_info_element.canonicalize(RubySaml::XML::Crypto.canon_algorithm(RubySaml::XML::Crypto::C14N))
 
         signature = compute_signature(private_key, RubySaml::XML::Crypto.hash_algorithm(signature_method).new, canon_string)
-        signature_element.add_element('ds:SignatureValue').text = signature
+        
+        sig_value_element = Nokogiri::XML::Element.new('ds:SignatureValue', self)
+        sig_value_element.content = signature
+        signature_element.add_child(sig_value_element)
 
         # add KeyInfo
-        key_info_element  = signature_element.add_element('ds:KeyInfo')
-        x509_element      = key_info_element.add_element('ds:X509Data')
-        x509_cert_element = x509_element.add_element('ds:X509Certificate')
+        key_info_element = Nokogiri::XML::Element.new('ds:KeyInfo', self)
+        signature_element.add_child(key_info_element)
+        
+        x509_element = Nokogiri::XML::Element.new('ds:X509Data', self)
+        key_info_element.add_child(x509_element)
+        
+        x509_cert_element = Nokogiri::XML::Element.new('ds:X509Certificate', self)
+        x509_element.add_child(x509_cert_element)
+        
         if certificate.is_a?(String)
           certificate = OpenSSL::X509::Certificate.new(certificate)
         end
-        x509_cert_element.text = Base64.encode64(certificate.to_der).gsub(/\n/, '')
+        x509_cert_element.content = Base64.encode64(certificate.to_der).gsub(/\n/, '')
 
         # add the signature
-        issuer_element = elements['//saml:Issuer']
+        issuer_element = at_xpath('//saml:Issuer')
         if issuer_element
-          root.insert_after(issuer_element, signature_element)
-        elsif (first_child = root.children[0])
-          root.insert_before(first_child, signature_element)
+          issuer_element.after(signature_element)
+        elsif root.children.any?
+          root.children.first.before(signature_element)
         else
-          root.add_element(signature_element)
+          root.add_child(signature_element)
         end
       end
 

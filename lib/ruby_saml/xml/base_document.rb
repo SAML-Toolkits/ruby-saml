@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require 'rexml/document'
-require 'rexml/security'
-require 'rexml/xpath'
 require 'nokogiri'
 require 'openssl'
 require 'digest/sha1'
@@ -11,10 +8,7 @@ require 'ruby_saml/xml/crypto'
 
 module RubySaml
   module XML
-    class BaseDocument < REXML::Document
-      # TODO: This affects the global state
-      REXML::Security.entity_expansion_limit = 0
-
+    class BaseDocument < Nokogiri::XML::Document
       # @deprecated Constants moved to Crypto module
       C14N = RubySaml::XML::Crypto::C14N
       DSIG = RubySaml::XML::Crypto::DSIG

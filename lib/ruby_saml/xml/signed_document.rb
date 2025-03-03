@@ -12,7 +12,8 @@ module RubySaml
       attr_writer :signed_element_id
 
       def initialize(response, errors = [])
-        super(response)
+        super()
+        parse(response)
         @errors = errors
       end
 
@@ -22,8 +23,7 @@ module RubySaml
 
       def validate_document(idp_cert_fingerprint, soft = true, options = {})
         # get cert from response
-        cert_element = REXML::XPath.first(
-          self,
+        cert_element = at_xpath(
           '//ds:X509Certificate',
           { 'ds' => RubySaml::XML::Crypto::DSIG }
         )
@@ -60,8 +60,7 @@ module RubySaml
 
       def validate_document_with_cert(idp_cert, soft = true)
         # get cert from response
-        cert_element = REXML::XPath.first(
-          self,
+        cert_element = at_xpath(
           '//ds:X509Certificate',
           { 'ds' => RubySaml::XML::Crypto::DSIG }
         )
@@ -86,42 +85,37 @@ module RubySaml
       end
 
       def validate_signature(base64_cert, soft = true)
+        # Create a copy of the document for validation
         document = Nokogiri::XML(to_s) do |config|
           config.options = RubySaml::XML::BaseDocument::NOKOGIRI_OPTIONS
         end
 
-        # create a rexml document
-        @working_copy ||= REXML::Document.new(to_s).root
-
         # get signature node
-        sig_element = REXML::XPath.first(
-            @working_copy,
-            '//ds:Signature',
-            { 'ds' => RubySaml::XML::Crypto::DSIG }
-          )
+        sig_element = at_xpath(
+          '//ds:Signature',
+          { 'ds' => RubySaml::XML::Crypto::DSIG }
+        )
 
         # signature method
-        sig_alg_value = REXML::XPath.first(
-          sig_element,
+        sig_alg_value = sig_element.at_xpath(
           './ds:SignedInfo/ds:SignatureMethod',
           { 'ds' => RubySaml::XML::Crypto::DSIG }
         )
         signature_hash_algorithm = RubySaml::XML::Crypto.hash_algorithm(sig_alg_value)
 
         # get signature
-        base64_signature = REXML::XPath.first(
-          sig_element,
+        base64_signature = sig_element.at_xpath(
           './ds:SignatureValue',
           { 'ds' => RubySaml::XML::Crypto::DSIG}
         )
         signature = Base64.decode64(RubySaml::Utils.element_text(base64_signature))
 
         # canonicalization method
-        canon_algorithm = RubySaml::XML::Crypto.canon_algorithm(REXML::XPath.first(
-          sig_element,
+        canon_method_node = sig_element.at_xpath(
           './ds:SignedInfo/ds:CanonicalizationMethod',
-          'ds' => RubySaml::XML::Crypto::DSIG
-        ))
+          { 'ds' => RubySaml::XML::Crypto::DSIG }
+        )
+        canon_algorithm = RubySaml::XML::Crypto.canon_algorithm(canon_method_node)
 
         noko_sig_element = document.at_xpath('//ds:Signature', 'ds' => RubySaml::XML::Crypto::DSIG)
         noko_signed_info_element = noko_sig_element.at_xpath('./ds:SignedInfo', 'ds' => RubySaml::XML::Crypto::DSIG)
@@ -130,8 +124,7 @@ module RubySaml
         noko_sig_element.remove
 
         # get signed info
-        signed_info_element = REXML::XPath.first(
-          sig_element,
+        signed_info_element = sig_element.at_xpath(
           './ds:SignedInfo',
           { 'ds' => RubySaml::XML::Crypto::DSIG }
         )
@@ -140,8 +133,7 @@ module RubySaml
         inclusive_namespaces = extract_inclusive_namespaces
 
         # check digests
-        ref = REXML::XPath.first(
-          signed_info_element,
+        ref = signed_info_element.at_xpath(
           './ds:Reference',
           { 'ds' => RubySaml::XML::Crypto::DSIG }
         )
@@ -155,24 +147,24 @@ module RubySaml
 
         hashed_element = reference_nodes[0]
 
-        canon_algorithm = RubySaml::XML::Crypto.canon_algorithm(REXML::XPath.first(
-          signed_info_element,
+        canon_method_node = signed_info_element.at_xpath(
           './ds:CanonicalizationMethod',
           { 'ds' => RubySaml::XML::Crypto::DSIG }
-        ))
+        )
+        canon_algorithm = RubySaml::XML::Crypto.canon_algorithm(canon_method_node)
 
         canon_algorithm = process_transforms(ref, canon_algorithm)
 
         canon_hashed_element = hashed_element.canonicalize(canon_algorithm, inclusive_namespaces)
 
-        digest_algorithm = RubySaml::XML::Crypto.hash_algorithm(REXML::XPath.first(
-          ref,
+        digest_method_node = ref.at_xpath(
           './ds:DigestMethod',
           { 'ds' => RubySaml::XML::Crypto::DSIG }
-        ))
+        )
+        digest_algorithm = RubySaml::XML::Crypto.hash_algorithm(digest_method_node)
         hash = digest_algorithm.digest(canon_hashed_element)
-        encoded_digest_value = REXML::XPath.first(
-          ref,
+        
+        encoded_digest_value = ref.at_xpath(
           './ds:DigestValue',
           { 'ds' => RubySaml::XML::Crypto::DSIG }
         )
@@ -200,14 +192,13 @@ module RubySaml
       private
 
       def process_transforms(ref, canon_algorithm)
-        transforms = REXML::XPath.match(
-          ref,
+        transforms = ref.xpath(
           './ds:Transforms/ds:Transform',
           { 'ds' => RubySaml::XML::Crypto::DSIG }
         )
 
         transforms.each do |transform_element|
-          next unless transform_element.attributes&.[]('Algorithm')
+          next unless transform_element['Algorithm']
 
           canon_algorithm = RubySaml::XML::Crypto.canon_algorithm(transform_element, default: false)
         end
@@ -220,27 +211,28 @@ module RubySaml
       end
 
       def extract_signed_element_id
-        reference_element = REXML::XPath.first(
-          self,
+        reference_element = at_xpath(
           '//ds:Signature/ds:SignedInfo/ds:Reference',
           { 'ds' => RubySaml::XML::Crypto::DSIG }
         )
 
         return nil if reference_element.nil?
 
-        sei = reference_element.attribute('URI').value[1..]
-        sei.nil? ? reference_element.parent.parent.parent.attribute('ID').value : sei
+        uri = reference_element['URI']
+        return nil unless uri
+
+        sei = uri[1..]  # Remove the leading '#'
+        sei.nil? ? reference_element.parent.parent.parent['ID'] : sei
       end
 
       def extract_inclusive_namespaces
-        element = REXML::XPath.first(
-          self,
+        element = at_xpath(
           '//ec:InclusiveNamespaces',
           { 'ec' => RubySaml::XML::Crypto::C14N }
         )
         return unless element
 
-        prefix_list = element.attributes.get_attribute('PrefixList').value
+        prefix_list = element['PrefixList']
         prefix_list.split
       end
     end

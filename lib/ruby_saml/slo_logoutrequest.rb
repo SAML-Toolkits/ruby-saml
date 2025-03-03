@@ -43,7 +43,7 @@ module RubySaml
       end
 
       @request = decode_raw_saml(request, settings)
-      @document = REXML::Document.new(@request)
+      @document = Nokogiri::XML(@request)
       super()
     end
 
@@ -62,7 +62,7 @@ module RubySaml
     # @return [String] Gets the NameID of the Logout Request.
     #
     def name_id
-      @name_id ||= Utils.element_text(name_id_node)
+      @name_id ||= RubySaml::Utils.element_text(name_id_node)
     end
 
     alias_method :nameid, :name_id
@@ -81,18 +81,18 @@ module RubySaml
     def name_id_node
       @name_id_node ||=
         begin
-          encrypted_node = REXML::XPath.first(document, "/p:LogoutRequest/a:EncryptedID", { "p" => PROTOCOL, "a" => ASSERTION })
+          encrypted_node = document.at_xpath("/p:LogoutRequest/a:EncryptedID", { "p" => PROTOCOL, "a" => ASSERTION })
           if encrypted_node
             node = decrypt_nameid(encrypted_node)
           else
-            node = REXML::XPath.first(document, "/p:LogoutRequest/a:NameID", { "p" => PROTOCOL, "a" => ASSERTION })
+            node = document.at_xpath("/p:LogoutRequest/a:NameID", { "p" => PROTOCOL, "a" => ASSERTION })
           end
         end
     end
 
     # Decrypts an EncryptedID element
-    # @param encrypted_id_node [REXML::Element] The EncryptedID element
-    # @return [REXML::Document] The decrypted EncrypedtID element
+    # @param encrypted_id_node [Nokogiri::XML::Element] The EncryptedID element
+    # @return [Nokogiri::XML::Element] The decrypted EncrypedtID element
     #
     def decrypt_nameid(encrypted_id_node)
       if settings.nil? || settings.get_sp_decryption_keys.empty?
@@ -109,8 +109,8 @@ module RubySaml
       # create a parent node first with the namespace defined
       node_header = '<node xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">'
       elem_plaintext = node_header + elem_plaintext + '</node>'
-      doc = REXML::Document.new(elem_plaintext)
-      doc.root[0]
+      doc = Nokogiri::XML(elem_plaintext)
+      doc.root.at_xpath('.//*')
     end
 
     # @return [String|nil] Gets the ID attribute from the Logout Request. if exists.
@@ -123,12 +123,11 @@ module RubySaml
     #
     def issuer
       @issuer ||= begin
-        node = REXML::XPath.first(
-          document,
+        node = document.at_xpath(
           "/p:LogoutRequest/a:Issuer",
           { "p" => PROTOCOL, "a" => ASSERTION }
         )
-        Utils.element_text(node)
+        RubySaml::Utils.element_text(node)
       end
     end
 
@@ -136,13 +135,12 @@ module RubySaml
     #
     def not_on_or_after
       @not_on_or_after ||= begin
-        node = REXML::XPath.first(
-          document,
+        node = document.at_xpath(
           "/p:LogoutRequest",
           { "p" => PROTOCOL }
         )
 
-        if (value = node&.attributes&.[]("NotOnOrAfter"))
+        if (value = node&.attribute("NotOnOrAfter")&.value)
           Time.parse(value)
         end
       end
@@ -151,13 +149,12 @@ module RubySaml
     # @return [Array] Gets the SessionIndex if exists (Supported multiple values). Empty Array if none found
     #
     def session_indexes
-      nodes = REXML::XPath.match(
-        document,
+      nodes = document.xpath(
         "/p:LogoutRequest/p:SessionIndex",
         { "p" => PROTOCOL }
       )
 
-      nodes.map { |node| Utils.element_text(node) }
+      nodes.map { |node| RubySaml::Utils.element_text(node) }
     end
 
     private
