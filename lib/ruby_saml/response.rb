@@ -869,7 +869,12 @@ module RubySaml
           fingerprint_alg: settings.idp_cert_fingerprint_algorithm
         }
 
-        if fingerprint && RubySaml::XML::SignedDocumentValidator.validate_document(doc.to_s, fingerprint, @soft, opts, @errors)
+        # TODO: [ERRORS-REFACTOR] This needs to be cleaned-up
+        # TODO: [ERRORS-REFACTOR] Missing fingerprint should be part of #validate_document
+        result = fingerprint && RubySaml::XML::SignedDocumentValidator.validate_document(doc.to_s, fingerprint, **opts)
+        @errors << result if result.is_a?(String)
+        valid = result.is_a?(TrueClass)
+        if valid
           if settings.security[:check_idp_cert_expiration] && RubySaml::Utils.is_cert_expired(idp_cert)
             return append_error("IdP x509 certificate expired")
           end
@@ -880,7 +885,10 @@ module RubySaml
         valid = false
         expired = false
         idp_certs[:signing].each do |idp_cert|
-          valid = RubySaml::XML::SignedDocumentValidator.validate_document_with_cert(doc.to_s, idp_cert, true, @errors)
+          # TODO: [ERRORS-REFACTOR] This needs to be cleaned-up
+          result = RubySaml::XML::SignedDocumentValidator.validate_document_with_cert(doc.to_s, idp_cert)
+          @errors << result if result.is_a?(String)
+          valid = result.is_a?(TrueClass)
           next unless valid
 
           if settings.security[:check_idp_cert_expiration] && RubySaml::Utils.is_cert_expired(idp_cert)

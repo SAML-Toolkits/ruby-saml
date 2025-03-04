@@ -539,7 +539,7 @@ class XmlTest < Minitest::Test
           it 'is invalid' do
             wrong_document_data = document_data.sub(/<ds:X509Certificate>.*<\/ds:X509Certificate>/, "<ds:X509Certificate>invalid<\/ds:X509Certificate>")
             wrong_document = RubySaml::Response.new(wrong_document_data).document
-            refute wrong_document.validate_document_with_cert(idp_cert), 'Document should be invalid'
+            refute RubySaml::XML::SignedDocumentValidator.validate_document_with_cert(wrong_document, idp_cert).is_a?(TrueClass), 'Document should be invalid'
           end
         end
       end
@@ -547,7 +547,7 @@ class XmlTest < Minitest::Test
       describe 'with valid document' do
         describe 'when response has cert' do
           it 'is valid' do
-            assert document.validate_document_with_cert(idp_cert), 'Document should be valid'
+            assert RubySaml::XML::SignedDocumentValidator.validate_document_with_cert(document, idp_cert).is_a?(TrueClass), 'Document should be valid'
           end
         end
 
@@ -556,7 +556,7 @@ class XmlTest < Minitest::Test
           let(:idp_cert) { OpenSSL::X509::Certificate.new(ruby_saml_cert_text) }
 
           it 'is valid' do
-            assert document.validate_document_with_cert(idp_cert), 'Document should be valid'
+            assert RubySaml::XML::SignedDocumentValidator.validate_document_with_cert(document, idp_cert).is_a?(TrueClass), 'Document should be valid'
           end
         end
       end
@@ -565,7 +565,7 @@ class XmlTest < Minitest::Test
         let(:document_data) { response_document_valid_signed_without_x509certificate }
 
         it 'is valid' do
-          assert document.validate_document_with_cert(idp_cert), 'Document should be valid'
+          assert RubySaml::XML::SignedDocumentValidator.validate_document_with_cert(document, idp_cert).is_a?(TrueClass), 'Document should be valid'
         end
       end
 
@@ -577,8 +577,9 @@ class XmlTest < Minitest::Test
         end
 
         it 'is not valid' do
-          assert !document.validate_document_with_cert(idp_cert), 'Document should be valid'
-          assert_equal(["Document Certificate Error"], document.errors)
+          assert !RubySaml::XML::SignedDocumentValidator.validate_document_with_cert(document, idp_cert).is_a?(TrueClass), 'Document should be valid'
+          errors = [RubySaml::XML::SignedDocumentValidator.validate_document_with_cert(document, idp_cert)]
+          assert_equal(["Document Certificate Error"], errors)
         end
       end
 
@@ -587,14 +588,14 @@ class XmlTest < Minitest::Test
 
         it 'is not valid' do
           exception = assert_raises(RubySaml::ValidationError) do
-            document.validate_document_with_cert(idp_cert, false)
+            RubySaml::XML::SignedDocumentValidator.validate_document_with_cert(document, idp_cert)
           end
           assert_equal("Certificate of the Signature element does not match provided certificate", exception.message)
         end
 
         it 'is not valid (soft = true)' do
-          document.validate_document_with_cert(idp_cert)
-          assert_equal(["Certificate of the Signature element does not match provided certificate"], document.errors)
+          errors = [RubySaml::XML::SignedDocumentValidator.validate_document_with_cert(document, idp_cert)]
+          assert_equal(["Certificate of the Signature element does not match provided certificate"], errors)
         end
       end
     end
