@@ -106,8 +106,7 @@ module RubySaml
       time = Time.now.utc.strftime('%Y-%m-%dT%H:%M:%SZ')
       assign_uuid(settings)
 
-      response_doc = RubySaml::XML::Document.new
-      response_doc.uuid = uuid
+      response_doc = Nokogiri::XML::Document.new
 
       destination = settings.idp_slo_response_service_url || settings.idp_slo_service_url
 
@@ -151,13 +150,12 @@ module RubySaml
     end
 
     def sign_document(document, settings)
-      # embed signature
       cert, private_key = settings.get_sp_signing_pair
       if settings.idp_slo_service_binding == Utils::BINDINGS[:post] && private_key && cert
-        document.sign_document(private_key, cert, settings.get_sp_signature_method, settings.get_sp_digest_method)
+        RubySaml::XML::DocumentSigner.sign_document(document, private_key, cert, settings.get_sp_signature_method, settings.get_sp_digest_method, uuid)
+      else
+        document
       end
-
-      document
     end
 
     def assign_uuid(settings)

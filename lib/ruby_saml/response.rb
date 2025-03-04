@@ -64,7 +64,9 @@ module RubySaml
       end
 
       @response = decode_raw_saml(response, settings)
-      @document = RubySaml::XML::SignedDocument.new(@response, @errors)
+      @document = Nokogiri::XML(@response) do |config|
+        config.options = RubySaml::XML::BaseDocument::NOKOGIRI_OPTIONS
+      end
 
       if assertion_encrypted?
         @decrypted_document = generate_decrypted_document
@@ -843,7 +845,7 @@ module RubySaml
         sig_elements = doc.xpath(
           "/p:Response/a:Assertion[@ID=$id]/ds:Signature",
           {"p" => PROTOCOL, "a" => ASSERTION, "ds" => DSIG},
-          { 'id' => doc.signed_element_id }
+          { 'id' => RubySaml::XML::SignedDocumentValidator.extract_signed_element_id(doc) }
         )
       end
 
@@ -867,7 +869,7 @@ module RubySaml
           fingerprint_alg: settings.idp_cert_fingerprint_algorithm
         }
 
-        if fingerprint && doc.validate_document(fingerprint, @soft, opts)
+        if fingerprint && RubySaml::XML::SignedDocumentValidator.validate_document(doc.to_s, fingerprint, @soft, opts, @errors)
           if settings.security[:check_idp_cert_expiration] && RubySaml::Utils.is_cert_expired(idp_cert)
             return append_error("IdP x509 certificate expired")
           end
@@ -878,7 +880,7 @@ module RubySaml
         valid = false
         expired = false
         idp_certs[:signing].each do |idp_cert|
-          valid = doc.validate_document_with_cert(idp_cert, true)
+          valid = RubySaml::XML::SignedDocumentValidator.validate_document_with_cert(doc.to_s, idp_cert, true, @errors)
           next unless valid
 
           if settings.security[:check_idp_cert_expiration] && RubySaml::Utils.is_cert_expired(idp_cert)

@@ -85,7 +85,6 @@ module RubySaml
     # Creates the SAMLRequest String.
     # @param settings [RubySaml::Settings|nil] Toolkit settings
     # @return [String] The SAMLRequest String.
-    #
     def create_authentication_xml_doc(settings)
       document = create_xml_document(settings)
       sign_document(document, settings)
@@ -95,11 +94,11 @@ module RubySaml
       time = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
       assign_uuid(settings)
 
-      request_doc = RubySaml::XML::Document.new
-      request_doc.uuid = uuid
+      request_doc = Nokogiri::XML::Document.new
 
       root = Nokogiri::XML::Node.new("samlp:AuthnRequest", request_doc)
       request_doc.add_child(root)
+
       root["xmlns:samlp"] = "urn:oasis:names:tc:SAML:2.0:protocol"
       root["xmlns:saml"] = "urn:oasis:names:tc:SAML:2.0:assertion"
       root["ID"] = uuid
@@ -176,10 +175,10 @@ module RubySaml
     def sign_document(document, settings)
       cert, private_key = settings.get_sp_signing_pair
       if settings.idp_sso_service_binding == Utils::BINDINGS[:post] && settings.security[:authn_requests_signed] && private_key && cert
-        document.sign_document(private_key, cert, settings.get_sp_signature_method, settings.get_sp_digest_method)
+        RubySaml::XML::DocumentSigner.sign_document(document, private_key, cert, settings.get_sp_signature_method, settings.get_sp_digest_method, uuid)
+      else
+        document
       end
-
-      document
     end
 
     def assign_uuid(settings)

@@ -95,10 +95,11 @@ module RubySaml
       time = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
       assign_uuid(settings)
 
-      request_doc = RubySaml::XML::Document.new
-      request_doc.uuid = uuid
+      request_doc = Nokogiri::XML::Document.new
 
       root = Nokogiri::XML::Element.new("samlp:LogoutRequest", request_doc)
+      request_doc.add_child(root)
+
       root["xmlns:samlp"] = "urn:oasis:names:tc:SAML:2.0:protocol"
       root["xmlns:saml"] = "urn:oasis:names:tc:SAML:2.0:assertion"
       root["ID"] = uuid
@@ -131,7 +132,6 @@ module RubySaml
         root.add_child(sessionindex)
       end
 
-      request_doc.add_child(root)
       request_doc
     end
 
