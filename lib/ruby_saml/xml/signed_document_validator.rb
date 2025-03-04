@@ -9,8 +9,9 @@ module RubySaml
     module SignedDocumentValidator
       extend self
 
-      def validate_document(document, idp_cert_fingerprint, soft = true, options = {}, errors = [])
-        errors = Array(errors)
+      # TODO: [ERRORS-REFACTOR] -- Rather than returning array of error,
+      # raise actual error classes
+      def validate_document(document, idp_cert_fingerprint, soft: true, **options)
 
         # get cert from response
         doc = Nokogiri::XML(document.to_s) do |config|
@@ -28,9 +29,8 @@ module RubySaml
           begin
             cert = OpenSSL::X509::Certificate.new(cert_text)
           rescue OpenSSL::X509::CertificateError => _e
-            errors << 'Document Certificate Error'
-            return false if !soft
-            return false
+            # TODO: [ERRORS-REFACTOR] Refactor to Errors::CertificateInvalid
+            return ['Document Certificate Error']
           end
 
           if options[:fingerprint_alg]
@@ -42,24 +42,21 @@ module RubySaml
 
           # check cert matches registered idp cert
           if fingerprint != idp_cert_fingerprint.gsub(/[^a-zA-Z0-9]/,'').downcase
-            errors << 'Fingerprint mismatch'
-            return false if !soft
-            return false
+            # TODO: [ERRORS-REFACTOR] Refactor to Errors::FingerprintMismatch
+            return ['Fingerprint mismatch']
           end
         elsif options[:cert]
           base64_cert = Base64.encode64(options[:cert].to_pem)
-        elsif soft
-          return false
         else
-          errors << 'Certificate element missing in response (ds:X509Certificate) and not cert provided at settings'
-          return false
+          # TODO: [ERRORS-REFACTOR] Refactor to Errors::CertificateElementMissing
+          # TODO: Return false if soft -- why?
+          return soft ? [] : ['Certificate element missing in response (ds:X509Certificate) and not cert provided at settings']
         end
 
-        validate_signature(document, base64_cert, soft, errors)
+        validate_signature(document, base64_cert)
       end
 
-      def validate_document_with_cert(document, idp_cert, soft = true, errors = [])
-        errors = Array(errors)
+      def validate_document_with_cert(document, idp_cert)
 
         # Get document as Nokogiri document
         doc = Nokogiri::XML(document.to_s) do |config|
@@ -78,26 +75,23 @@ module RubySaml
           begin
             cert = OpenSSL::X509::Certificate.new(cert_text)
           rescue OpenSSL::X509::CertificateError => _e
-            errors << 'Document Certificate Error'
-            return false if !soft
-            return false
+            # TODO: [ERRORS-REFACTOR] Refactor to Errors::CertificateInvalid
+            return ['Document Certificate Error']
           end
 
           # check saml response cert matches provided idp cert
           if idp_cert.to_pem != cert.to_pem
-            errors << 'Certificate of the Signature element does not match provided certificate'
-            return false if !soft
-            return false
+            # TODO: [ERRORS-REFACTOR] Refactor to Errors::CertificateMismatch
+            return ['Certificate of the Signature element does not match provided certificate']
           end
         else
           base64_cert = Base64.encode64(idp_cert.to_pem)
         end
 
-        validate_signature(document, base64_cert, true, errors)
+        validate_signature(document, base64_cert)
       end
 
-      def validate_signature(document, base64_cert, soft = true, errors = [])
-        errors = Array(errors)
+      def validate_signature(document, base64_cert)
 
         # Create a copy of the document for validation
         doc = Nokogiri::XML(document.to_s) do |config|
@@ -159,9 +153,8 @@ module RubySaml
 
         # ensure no elements with same ID to prevent signature wrapping attack.
         if reference_nodes.length > 1
-          errors << 'Digest mismatch. Duplicated ID found'
-          return false if !soft
-          return false
+          # TODO: [ERRORS-REFACTOR] Refactor to Errors::DigestDuplicateId
+          return ['Digest mismatch. Duplicated ID found']
         end
 
         hashed_element = reference_nodes[0]
@@ -190,9 +183,8 @@ module RubySaml
         digest_value = Base64.decode64(RubySaml::Utils.element_text(encoded_digest_value))
 
         unless digests_match?(hash, digest_value)
-          errors << 'Digest mismatch'
-          return false if !soft
-          return false
+          # TODO: [ERRORS-REFACTOR] Refactor to Errors::DigestMismatch
+          return ['Digest mismatch']
         end
 
         # get certificate object
@@ -206,10 +198,9 @@ module RubySaml
         rescue OpenSSL::PKey::PKeyError # rubocop:disable Lint/SuppressedException
         end
 
-        if !signature_verified
-          errors << 'Key validation error'
-          return false if !soft
-          return false
+        unless signature_verified
+          # TODO: [ERRORS-REFACTOR] Refactor to Errors::SignatureVerificationFailed
+          return ['Key validation error']
         end
 
         true
