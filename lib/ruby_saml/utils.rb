@@ -425,6 +425,7 @@ module RubySaml
 
     # Given a Nokogiri::XML::Element instance, return the content of the element.
     # If nil is passed, nil will be returned.
+    # TODO: Remove this and just inline it after all tests passing
     def element_text(element)
       element&.content
     end
