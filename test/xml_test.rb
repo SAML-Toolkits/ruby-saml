@@ -396,14 +396,11 @@ class XmlTest < Minitest::Test
         )
 
         # Verify our signature
-        errors = []
         assert RubySaml::XML::SignedDocumentValidator.validate_document(
           signed_doc.to_s,
           ruby_saml_cert_fingerprint,
-          false,
-          {},
-          errors
-        )
+          soft: false
+        ).is_a?(TrueClass)
 
         logout_response2 = RubySaml::SloLogoutresponse.new
         logout_response2.assign_uuid(settings)
@@ -419,14 +416,11 @@ class XmlTest < Minitest::Test
         )
 
         # Verify our signature
-        errors2 = []
         assert RubySaml::XML::SignedDocumentValidator.validate_document(
           signed_doc2.to_s,
           ruby_saml_cert_fingerprint,
-          false,
-          {},
-          errors2
-        )
+          soft: false
+        ).is_a?(TrueClass)
       end
     end
 

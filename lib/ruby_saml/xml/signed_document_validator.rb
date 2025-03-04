@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require 'ruby_saml/xml/base_document'
 require 'ruby_saml/error_handling'
 require 'ruby_saml/utils'
 

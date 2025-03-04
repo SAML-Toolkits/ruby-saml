@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'ruby_saml/xml/base_document'
-
 module RubySaml
   module XML
     module DocumentSigner
