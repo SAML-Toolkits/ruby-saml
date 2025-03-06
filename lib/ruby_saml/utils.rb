@@ -305,7 +305,7 @@ module RubySaml
     def retrieve_symmetric_key(encrypt_data, private_key)
       encrypted_key = encrypt_data.at_xpath(
         "./ds:KeyInfo/xenc:EncryptedKey | ./KeyInfo/xenc:EncryptedKey | //xenc:EncryptedKey[@Id=$id]",
-        { "ds" => DSIG, "xenc" => XENC, "id" => retrieve_symetric_key_reference(encrypt_data) }
+        { "ds" => DSIG, "xenc" => XENC, "id" => retrieve_symmetric_key_reference(encrypt_data) }
       )
 
       encrypted_symmetric_key_element = encrypted_key.at_xpath(
@@ -324,7 +324,7 @@ module RubySaml
       retrieve_plaintext(cipher_text, private_key, algorithm)
     end
 
-    def retrieve_symetric_key_reference(encrypt_data)
+    def retrieve_symmetric_key_reference(encrypt_data)
       reference = encrypt_data.at_xpath(
         "./ds:KeyInfo/ds:RetrievalMethod/@URI",
         { "ds" => DSIG }
