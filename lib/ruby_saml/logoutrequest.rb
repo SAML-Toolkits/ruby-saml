@@ -139,7 +139,7 @@ module RubySaml
       # embed signature
       cert, private_key = settings.get_sp_signing_pair
       if settings.idp_slo_service_binding == Utils::BINDINGS[:post] && settings.security[:logout_requests_signed] && private_key && cert
-        document.sign_document(private_key, cert, settings.get_sp_signature_method, settings.get_sp_digest_method)
+        RubySaml::XML::DocumentSigner.sign_document(document, private_key, cert, settings.get_sp_signature_method, settings.get_sp_digest_method)
       end
 
       document

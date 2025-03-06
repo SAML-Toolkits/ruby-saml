@@ -21,7 +21,7 @@ module RubySaml
     # @return [String] XML Metadata of the Service Provider
     #
     def generate(settings, pretty_print=false, valid_until=nil, cache_duration=nil)
-      meta_doc = RubySaml::XML::Document.new
+      meta_doc = Nokogiri::XML::Document.new
       add_xml_declaration(meta_doc)
       root = add_root_element(meta_doc, settings, valid_until, cache_duration)
       sp_sso = add_sp_sso_element(root, settings)
@@ -151,20 +151,16 @@ module RubySaml
       cert, private_key = settings.get_sp_signing_pair
       return unless private_key && cert
 
-      meta_doc.sign_document(private_key, cert, settings.get_sp_signature_method, settings.get_sp_digest_method)
+      RubySaml::XML::DocumentSigner.sign_document(meta_doc, private_key, cert, settings.get_sp_signature_method, settings.get_sp_digest_method)
     end
 
+    # pretty print the XML so IdP administrators can easily see what the SP supports
     def output_xml(meta_doc, pretty_print)
-      ret = +''
-
-      # pretty print the XML so IdP administrators can easily see what the SP supports
       if pretty_print
-        ret = meta_doc.to_xml(indent: 1)
+        meta_doc.to_xml(indent: 1)
       else
-        ret = meta_doc.to_xml(save_with: Nokogiri::XML::Node::SaveOptions::AS_XML)
+        meta_doc.to_xml(save_with: Nokogiri::XML::Node::SaveOptions::AS_XML)
       end
-
-      ret
     end
 
     private

@@ -834,7 +834,7 @@ module RubySaml
       sig_elements = document.xpath(
         "/p:Response[@ID=$id]/ds:Signature",
         { "p" => PROTOCOL, "ds" => DSIG },
-        { 'id' => document.signed_element_id }
+        { 'id' => RubySaml::XML::SignedDocumentValidator.extract_signed_element_id(document) }
       )
 
       use_original = sig_elements.size == 1 || decrypted_document.nil?
@@ -932,16 +932,17 @@ module RubySaml
     # @return [Nokogiri::XML::Element | nil] If any matches, return the Element
     #
     def xpath_first_from_signed_assertion(subelt = nil)
-      doc = decrypted_document.nil? ? document : decrypted_document
+      doc = decrypted_document || document
+      signed_element_id = RubySaml::XML::SignedDocumentValidator.extract_signed_element_id(doc)
       node = doc.at_xpath(
           "/p:Response/a:Assertion[@ID=$id]#{subelt}",
           { "p" => PROTOCOL, "a" => ASSERTION },
-          { 'id' => doc.signed_element_id }
+          { 'id' => signed_element_id }
         )
       node ||= doc.at_xpath(
           "/p:Response[@ID=$id]/a:Assertion#{subelt}",
           { "p" => PROTOCOL, "a" => ASSERTION },
-          { 'id' => doc.signed_element_id }
+          { 'id' => signed_element_id }
         )
       node
     end
@@ -952,16 +953,17 @@ module RubySaml
     # @return [Array of Nokogiri::XML::Element] Return all matches
     #
     def xpath_from_signed_assertion(subelt=nil)
-      doc = decrypted_document.nil? ? document : decrypted_document
+      doc = decrypted_document || document
+      signed_element_id = RubySaml::XML::SignedDocumentValidator.extract_signed_element_id(doc)
       node = doc.xpath(
           "/p:Response/a:Assertion[@ID=$id]#{subelt}",
           { "p" => PROTOCOL, "a" => ASSERTION },
-          { 'id' => doc.signed_element_id }
+          { 'id' => signed_element_id }
         )
       node += doc.xpath(
           "/p:Response[@ID=$id]/a:Assertion#{subelt}",
           { "p" => PROTOCOL, "a" => ASSERTION },
-          { 'id' => doc.signed_element_id }
+          { 'id' => signed_element_id }
         )
       node
     end

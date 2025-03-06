@@ -155,8 +155,8 @@ class XmlTest < Minitest::Test
       sha1_fingerprint = "F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72"
       sha1_fingerprint_downcase = sha1_fingerprint.tr(':', '').downcase
 
-      assert response_fingerprint_test.document.validate_document(sha1_fingerprint, true, fingerprint_alg: RubySaml::XML::Document::SHA1)
-      assert response_fingerprint_test.document.validate_document(sha1_fingerprint_downcase, true, fingerprint_alg: RubySaml::XML::Document::SHA1)
+      assert response_fingerprint_test.document.validate_document(sha1_fingerprint, true, fingerprint_alg: RubySaml::XML::Crypto::SHA1)
+      assert response_fingerprint_test.document.validate_document(sha1_fingerprint_downcase, true, fingerprint_alg: RubySaml::XML::Crypto::SHA1)
     end
 
     it "validate using SHA256" do
@@ -164,46 +164,46 @@ class XmlTest < Minitest::Test
       sha256_fingerprint_downcase = sha256_fingerprint.tr(':', '').downcase
 
       assert response_fingerprint_test.document.validate_document(sha256_fingerprint)
-      assert response_fingerprint_test.document.validate_document(sha256_fingerprint, true, fingerprint_alg: RubySaml::XML::Document::SHA256)
+      assert response_fingerprint_test.document.validate_document(sha256_fingerprint, true, fingerprint_alg: RubySaml::XML::Crypto::SHA256)
 
       assert response_fingerprint_test.document.validate_document(sha256_fingerprint_downcase)
-      assert response_fingerprint_test.document.validate_document(sha256_fingerprint_downcase, true, fingerprint_alg: RubySaml::XML::Document::SHA256)
+      assert response_fingerprint_test.document.validate_document(sha256_fingerprint_downcase, true, fingerprint_alg: RubySaml::XML::Crypto::SHA256)
     end
 
     it "validate using SHA384" do
       sha384_fingerprint = "98:FE:17:90:31:E7:68:18:8A:65:4D:DA:F5:76:E2:09:97:BE:8B:E3:7E:AA:8D:63:64:7C:0C:38:23:9A:AC:A2:EC:CE:48:A6:74:4D:E0:4C:50:80:40:B4:8D:55:14:14"
 
       assert !response_fingerprint_test.document.validate_document(sha384_fingerprint)
-      assert response_fingerprint_test.document.validate_document(sha384_fingerprint, true, :fingerprint_alg => RubySaml::XML::Document::SHA384)
+      assert response_fingerprint_test.document.validate_document(sha384_fingerprint, true, :fingerprint_alg => RubySaml::XML::Crypto::SHA384)
     end
 
     it "validate using SHA512" do
       sha512_fingerprint = "5A:AE:BA:D0:BA:9D:1E:25:05:01:1E:1A:C9:E9:FF:DB:ED:FA:6E:F7:52:EB:45:49:BD:DB:06:D8:A3:7E:CC:63:3A:04:A2:DD:DF:EE:61:05:D9:58:95:2A:77:17:30:4B:EB:4A:9F:48:4A:44:1C:D0:9E:0B:1E:04:77:FD:A3:D2"
 
       assert !response_fingerprint_test.document.validate_document(sha512_fingerprint)
-      assert response_fingerprint_test.document.validate_document(sha512_fingerprint, true, fingerprint_alg: RubySaml::XML::Document::SHA512)
+      assert response_fingerprint_test.document.validate_document(sha512_fingerprint, true, fingerprint_alg: RubySaml::XML::Crypto::SHA512)
     end
   end
 
   describe "Signature Algorithms" do
     it "validate using SHA1" do
-      document = RubySaml::XML::SignedDocument.new(fixture(:adfs_response_sha1, false))
-      assert document.validate_document("C4:C6:BD:41:EC:AD:57:97:CE:7B:7D:80:06:C3:E4:30:53:29:02:0B:DD:2D:47:02:9E:BD:85:AD:93:02:45:21")
+      document = fixture(:adfs_response_sha1, false)
+      assert RubySaml::XML::SignedDocumentValidator.validate_document(document, 'C4:C6:BD:41:EC:AD:57:97:CE:7B:7D:80:06:C3:E4:30:53:29:02:0B:DD:2D:47:02:9E:BD:85:AD:93:02:45:21')
     end
 
-    it "validate using SHA256" do
-      document = RubySaml::XML::SignedDocument.new(fixture(:adfs_response_sha256, false))
-      assert document.validate_document("3D:C5:BC:58:60:5D:19:64:94:E3:BA:C8:3D:49:01:D5:56:34:44:65:C2:85:0A:A8:65:A5:AC:76:7E:65:1F:F7")
+    it 'validate using SHA256' do
+      document = fixture(:adfs_response_sha256, false)
+      assert RubySaml::XML::SignedDocumentValidator.validate_document(document, '3D:C5:BC:58:60:5D:19:64:94:E3:BA:C8:3D:49:01:D5:56:34:44:65:C2:85:0A:A8:65:A5:AC:76:7E:65:1F:F7')
     end
 
-    it "validate using SHA384" do
-      document = RubySaml::XML::SignedDocument.new(fixture(:adfs_response_sha384, false))
-      assert document.validate_document("C4:C6:BD:41:EC:AD:57:97:CE:7B:7D:80:06:C3:E4:30:53:29:02:0B:DD:2D:47:02:9E:BD:85:AD:93:02:45:21")
+    it 'validate using SHA384' do
+      document = fixture(:adfs_response_sha384, false)
+      assert RubySaml::XML::SignedDocumentValidator.validate_document(document, 'C4:C6:BD:41:EC:AD:57:97:CE:7B:7D:80:06:C3:E4:30:53:29:02:0B:DD:2D:47:02:9E:BD:85:AD:93:02:45:21')
     end
 
-    it "validate using SHA512" do
-      document = RubySaml::XML::SignedDocument.new(fixture(:adfs_response_sha512, false))
-      assert document.validate_document("C4:C6:BD:41:EC:AD:57:97:CE:7B:7D:80:06:C3:E4:30:53:29:02:0B:DD:2D:47:02:9E:BD:85:AD:93:02:45:21")
+    it 'validate using SHA512' do
+      document = fixture(:adfs_response_sha512, false)
+      assert RubySaml::XML::SignedDocumentValidator.validate_document(document, 'C4:C6:BD:41:EC:AD:57:97:CE:7B:7D:80:06:C3:E4:30:53:29:02:0B:DD:2D:47:02:9E:BD:85:AD:93:02:45:21')
     end
   end
 
@@ -211,17 +211,15 @@ class XmlTest < Minitest::Test
 
     describe "#extract_inclusive_namespaces" do
       it "support explicit namespace resolution for exclusive canonicalization" do
-        response = fixture(:open_saml_response, false)
-        document = RubySaml::XML::SignedDocument.new(response)
-        inclusive_namespaces = document.send(:extract_inclusive_namespaces)
+        document = fixture(:open_saml_response, false)
+        inclusive_namespaces = RubySaml::XML::SignedDocumentValidator.send(:extract_inclusive_namespaces, document)
 
         assert_equal %w[ xs ], inclusive_namespaces
       end
 
       it "support implicit namespace resolution for exclusive canonicalization" do
-        response = fixture(:no_signature_ns, false)
-        document = RubySaml::XML::SignedDocument.new(response)
-        inclusive_namespaces = document.send(:extract_inclusive_namespaces)
+        document = fixture(:no_signature_ns, false)
+        inclusive_namespaces = RubySaml::XML::SignedDocumentValidator.send(:extract_inclusive_namespaces, document)
 
         assert_equal %w[ #default saml ds xs xsi ], inclusive_namespaces
       end
@@ -239,11 +237,9 @@ class XmlTest < Minitest::Test
       end
 
       it "return nil when inclusive namespace element is missing" do
-        response = fixture(:no_signature_ns, false)
-        response.slice! %r{<InclusiveNamespaces xmlns="http://www.w3.org/2001/10/xml-exc-c14n#" PrefixList="#default saml ds xs xsi"/>}
-
-        document = RubySaml::XML::SignedDocument.new(response)
-        inclusive_namespaces = document.send(:extract_inclusive_namespaces)
+        document = fixture(:no_signature_ns, false)
+        document.slice! %r{<InclusiveNamespaces xmlns="http://www.w3.org/2001/10/xml-exc-c14n#" PrefixList="#default saml ds xs xsi"/>}
+        inclusive_namespaces = RubySaml::XML::SignedDocumentValidator.send(:extract_inclusive_namespaces, document)
 
         assert inclusive_namespaces.nil?
       end
@@ -499,12 +495,12 @@ class XmlTest < Minitest::Test
 
       describe 'signature wrapping attack - doubled SAML response body' do
         let(:document_data) { read_invalid_response("response_with_doubled_signed_assertion.xml") }
-        let(:document) { RubySaml::Response.new(document_data) }
+        let(:response) { RubySaml::Response.new(document_data) }
         let(:fingerprint) { '6385109dd146a45d4382799491cb2707bd1ebda3738f27a0e4a4a8159c0fe6cd' }
 
         it 'is valid, but the unsigned information is ignored in favour of the signed information' do
-          assert document.document.validate_document(fingerprint, true), 'Document should be valid'
-          assert_equal 'someone@example.org', document.name_id, 'Document should expose only signed, valid details'
+          assert RubySaml::XML::SignedDocumentValidator.validate_document(response.document, fingerprint, soft: true), 'Document should be valid'
+          assert_equal 'someone@example.org', response.name_id, 'Document should expose only signed, valid details'
         end
       end
 

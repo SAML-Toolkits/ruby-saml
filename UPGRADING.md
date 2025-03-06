@@ -241,7 +241,7 @@ The new preferred way to provide _SAMLResponse_, _RelayState_, and _SigAlg_ is v
 # In this example `query_params` is assumed to contain decoded query parameters,
 # and `raw_query_params` is assumed to contain encoded query parameters as sent by the IDP.
 settings = {
-  settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
+  settings.security[:signature_method] = RubySaml::XML::Crypto::RSA_SHA1
   settings.soft = false
 }
 options = {

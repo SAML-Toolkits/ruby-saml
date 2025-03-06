@@ -22,7 +22,7 @@ module RubySaml
       #   <KeyInfo />
       #   <Object />
       # </Signature>
-      def sign_document(document, private_key, certificate, signature_method = RSA_SHA256, digest_method = SHA256, uuid = nil)
+      def sign_document(document, private_key, certificate, signature_method = RubySaml::XML::Crypto::RSA_SHA256, digest_method = RubySaml::XML::Crypto::SHA256, uuid = nil)
         noko = Nokogiri::XML(document.to_s) do |config|
           config.options = RubySaml::XML::BaseDocument::NOKOGIRI_OPTIONS
         end

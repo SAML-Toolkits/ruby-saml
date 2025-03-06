@@ -132,7 +132,7 @@ class OneloginAliasTest < Minitest::Test
       end
 
       it "be able to parse a document which contains ampersands" do
-        RubySaml::XML::SignedDocument.any_instance.stubs(:digests_match?).returns(true)
+        RubySaml::XML::SignedDocumentValidator.stubs(:digests_match?).returns(true)
         OneLogin::RubySaml::Response.any_instance.stubs(:validate_conditions).returns(true)
 
         ampersands_response = OneLogin::RubySaml::Response.new(ampersands_document)

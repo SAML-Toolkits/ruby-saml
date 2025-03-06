@@ -381,12 +381,9 @@ get = Net::HTTP::Get.new(uri.request_uri)
 get.basic_auth uri.user, uri.password if uri.user
 response = http.request(get)
 xml = response.body
-errors = []
-doc = RubySaml::XML::SignedDocument.new(xml, errors)
-cert_str = "<include_cert_here>"
-cert = RubySaml::Utils.format_cert("cert_str")
+cert = RubySaml::Utils.format_cert("<include_cert_here>")
 metadata_sign_cert = OpenSSL::X509::Certificate.new(cert)
-valid = doc.validate_document_with_cert(metadata_sign_cert, true)
+valid = RubySaml::XML::SignedDocumentValidator.validate_document_with_cert(xml, metadata_sign_cert, soft: true)
 if valid
   settings = idp_metadata_parser.parse(
     xml,
@@ -585,8 +582,8 @@ to specify different certificates for each function.
 You may also globally set the SP signature and digest method, to be used in SP signing (functions 1 and 2 above):
 
 ```ruby
-settings.security[:digest_method]    = RubySaml::XML::Document::SHA1
-settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
+settings.security[:digest_method]    = RubySaml::XML::Crypto::SHA1
+settings.security[:signature_method] = RubySaml::XML::Crypto::RSA_SHA1
 ```
 
 #### Signing SP Metadata
