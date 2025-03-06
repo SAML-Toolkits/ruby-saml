@@ -86,8 +86,8 @@ class SloLogoutresponseTest < Minitest::Test
       it "uuid is initialized to nil" do
         response = RubySaml::SloLogoutresponse.new
 
-        assert_nil(response.uuid)
-        assert_equal response.response_id, response.uuid
+        assert_nil response.uuid
+        assert_nil response.response_id
       end
 
       it "creates response with ID prefixed with default '_'" do
@@ -120,8 +120,8 @@ class SloLogoutresponseTest < Minitest::Test
 
       it "can mutate the uuid" do
         response = RubySaml::SloLogoutresponse.new
-        response_id = response.response_id
-        assert_equal response_id, response.uuid
+        assert_nil response.uuid
+        assert_nil response.response_id
         response.uuid = "new_uuid"
         assert_equal "new_uuid", response.uuid
         assert_equal response.uuid, response.response_id

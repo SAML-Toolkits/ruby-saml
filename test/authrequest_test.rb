@@ -165,8 +165,8 @@ class AuthrequestTest < Minitest::Test
       it "uuid is initialized to nil" do
         request = RubySaml::Authrequest.new
 
-        assert_nil(request.uuid)
-        assert_equal request.request_id, request.uuid
+        assert_nil request.uuid
+        assert_nil request.request_id
       end
 
       it "creates request with ID prefixed with default '_'" do
@@ -200,7 +200,8 @@ class AuthrequestTest < Minitest::Test
       it "can mutate the uuid" do
         request = RubySaml::Authrequest.new
         request_id = request.request_id
-        assert_equal request_id, request.uuid
+        assert_nil request.uuid
+        assert_nil request_id
         request.uuid = "new_uuid"
         assert_equal "new_uuid", request.uuid
         assert_equal request.uuid, request.request_id
