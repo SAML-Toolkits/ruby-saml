@@ -86,52 +86,45 @@ module RubySaml
       end
 
       def validate_signature(base64_cert, soft = true)
-        document = Nokogiri::XML(to_s) do |config|
+        noko = Nokogiri::XML(to_s) do |config|
           config.options = RubySaml::XML::BaseDocument::NOKOGIRI_OPTIONS
         end
 
-        # create a rexml document
-        @working_copy ||= REXML::Document.new(to_s).root
-
         # get signature node
-        sig_element = REXML::XPath.first(
-            @working_copy,
-            '//ds:Signature',
-            { 'ds' => RubySaml::XML::Crypto::DSIG }
-          )
+        sig_element = noko.at_xpath(
+          '//ds:Signature',
+          { 'ds' => RubySaml::XML::Crypto::DSIG }
+        )
 
         # signature method
-        sig_alg_value = REXML::XPath.first(
-          sig_element,
+        sig_alg_value = sig_element.at_xpath(
           './ds:SignedInfo/ds:SignatureMethod',
           { 'ds' => RubySaml::XML::Crypto::DSIG }
         )
         signature_hash_algorithm = RubySaml::XML::Crypto.hash_algorithm(sig_alg_value)
 
         # get signature
-        base64_signature = REXML::XPath.first(
-          sig_element,
+        base64_signature = sig_element.at_xpath(
           './ds:SignatureValue',
-          { 'ds' => RubySaml::XML::Crypto::DSIG}
-        )
-        signature = Base64.decode64(RubySaml::Utils.element_text(base64_signature))
+          { 'ds' => RubySaml::XML::Crypto::DSIG }
+        ).content
+        signature = Base64.decode64(base64_signature)
 
         # canonicalization method
-        canon_algorithm = RubySaml::XML::Crypto.canon_algorithm(REXML::XPath.first(
-          sig_element,
+        canon_method_node = sig_element.at_xpath(
           './ds:SignedInfo/ds:CanonicalizationMethod',
-          'ds' => RubySaml::XML::Crypto::DSIG
-        ))
+          { 'ds' => RubySaml::XML::Crypto::DSIG }
+        )
+        canon_algorithm = RubySaml::XML::Crypto.canon_algorithm(canon_method_node)
 
-        noko_sig_element = document.at_xpath('//ds:Signature', 'ds' => RubySaml::XML::Crypto::DSIG)
+        noko_sig_element = noko.at_xpath('//ds:Signature', 'ds' => RubySaml::XML::Crypto::DSIG)
         noko_signed_info_element = noko_sig_element.at_xpath('./ds:SignedInfo', 'ds' => RubySaml::XML::Crypto::DSIG)
 
         canon_string = noko_signed_info_element.canonicalize(canon_algorithm)
         noko_sig_element.remove
 
         # get signed info
-        signed_info_element = REXML::XPath.first(
-          sig_element,
+        signed_info_element = sig_element.at_xpath(
           './ds:SignedInfo',
           { 'ds' => RubySaml::XML::Crypto::DSIG }
         )
@@ -140,13 +133,12 @@ module RubySaml
         inclusive_namespaces = extract_inclusive_namespaces
 
         # check digests
-        ref = REXML::XPath.first(
-          signed_info_element,
+        ref = signed_info_element.at_xpath(
           './ds:Reference',
           { 'ds' => RubySaml::XML::Crypto::DSIG }
         )
 
-        reference_nodes = document.xpath('//*[@ID=$id]', nil, { 'id' => extract_signed_element_id })
+        reference_nodes = noko.xpath('//*[@ID=$id]', nil, { 'id' => extract_signed_element_id })
 
         # ensure no elements with same ID to prevent signature wrapping attack.
         if reference_nodes.length > 1
@@ -155,28 +147,27 @@ module RubySaml
 
         hashed_element = reference_nodes[0]
 
-        canon_algorithm = RubySaml::XML::Crypto.canon_algorithm(REXML::XPath.first(
-          signed_info_element,
+        canon_method_node = signed_info_element.at_xpath(
           './ds:CanonicalizationMethod',
           { 'ds' => RubySaml::XML::Crypto::DSIG }
-        ))
-
+        )
+        canon_algorithm = RubySaml::XML::Crypto.canon_algorithm(canon_method_node)
         canon_algorithm = process_transforms(ref, canon_algorithm)
 
         canon_hashed_element = hashed_element.canonicalize(canon_algorithm, inclusive_namespaces)
 
-        digest_algorithm = RubySaml::XML::Crypto.hash_algorithm(REXML::XPath.first(
-          ref,
+        digest_method_node = ref.at_xpath(
           './ds:DigestMethod',
           { 'ds' => RubySaml::XML::Crypto::DSIG }
-        ))
+        )
+        digest_algorithm = RubySaml::XML::Crypto.hash_algorithm(digest_method_node)
+
         hash = digest_algorithm.digest(canon_hashed_element)
-        encoded_digest_value = REXML::XPath.first(
-          ref,
+        encoded_digest_value = ref.at_xpath(
           './ds:DigestValue',
           { 'ds' => RubySaml::XML::Crypto::DSIG }
-        )
-        digest_value = Base64.decode64(RubySaml::Utils.element_text(encoded_digest_value))
+        ).content
+        digest_value = Base64.decode64(encoded_digest_value)
 
         unless digests_match?(hash, digest_value)
           return append_error('Digest mismatch', soft)

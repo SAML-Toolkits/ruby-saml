@@ -85,7 +85,9 @@ module RubySaml
       private
 
       def get_algorithm_attr(element)
-        if element.is_a?(REXML::Element)
+        if element.is_a?(Nokogiri::XML::Element)
+          element['Algorithm']
+        elsif element.is_a?(REXML::Element)
           element.attribute('Algorithm').value
         elsif element
           element
