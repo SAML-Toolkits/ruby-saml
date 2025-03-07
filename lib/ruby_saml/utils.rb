@@ -307,7 +307,8 @@ module RubySaml
 
       encrypted_key = encrypt_data.at_xpath(
         "./ds:KeyInfo/xenc:EncryptedKey | ./KeyInfo/xenc:EncryptedKey#{' | //xenc:EncryptedKey[@Id=$id]' if key_ref}",
-        { "ds" => DSIG, "xenc" => XENC, "id" => key_ref }.compact
+        { "ds" => DSIG, "xenc" => XENC },
+        { "id" => key_ref }.compact
       )
 
       encrypted_symmetric_key_element = encrypted_key.at_xpath(
@@ -331,7 +332,8 @@ module RubySaml
         "./ds:KeyInfo/ds:RetrievalMethod/@URI",
         { "ds" => DSIG }
       )
-      reference&.value&.sub(/\A#/, '')
+      reference = reference&.value&.sub(/\A#/, '')
+      reference unless reference&.empty?
     end
 
     # Obtains the deciphered text

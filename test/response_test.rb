@@ -1568,7 +1568,7 @@ class RubySamlTest < Minitest::Test
           response = RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, settings: settings)
 
           encrypted_assertion_node = response.document.at_xpath(
-            "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
+            "/p:Response/EncryptedAssertion | /p:Response/a:EncryptedAssertion",
             { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
           )
           response.settings.private_key = nil
@@ -1591,13 +1591,13 @@ class RubySamlTest < Minitest::Test
           response = RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, settings: settings)
 
           encrypted_assertion_node = response.document.at_xpath(
-            "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
+            "/p:Response/EncryptedAssertion | /p:Response/a:EncryptedAssertion",
             { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
           )
           decrypted = response.send(:decrypt_assertion, encrypted_assertion_node)
 
           encrypted_assertion_node2 = decrypted.at_xpath(
-            "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
+            "/p:Response/EncryptedAssertion | /p:Response/a:EncryptedAssertion",
             { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
           )
           assert_nil encrypted_assertion_node2
@@ -1615,7 +1615,7 @@ class RubySamlTest < Minitest::Test
           response = RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, settings: settings)
 
           encrypted_assertion_node = response.document.at_xpath(
-            "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
+            "/p:Response/EncryptedAssertion | /p:Response/a:EncryptedAssertion",
             { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
           )
           decrypted = response.send(:decrypt_assertion, encrypted_assertion_node)
@@ -1629,13 +1629,13 @@ class RubySamlTest < Minitest::Test
           response = RubySaml::Response.new(resp, settings: settings)
 
           encrypted_assertion_node = response.document.at_xpath(
-            "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
+            "/p:Response/EncryptedAssertion | /p:Response/a:EncryptedAssertion",
             { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
           )
           decrypted = response.send(:decrypt_assertion, encrypted_assertion_node)
 
           encrypted_assertion_node2 = decrypted.at_xpath(
-            "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
+            "/p:Response/EncryptedAssertion | /p:Response/a:EncryptedAssertion",
             { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
           )
 
@@ -1647,13 +1647,13 @@ class RubySamlTest < Minitest::Test
           unsigned_message_encrypted_assertion_without_saml_namespace = read_response('unsigned_message_encrypted_assertion_without_saml_namespace.xml.base64')
           response = RubySaml::Response.new(unsigned_message_encrypted_assertion_without_saml_namespace, settings: settings)
           encrypted_assertion_node = response.document.at_xpath(
-            "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
+            "/p:Response/EncryptedAssertion | /p:Response/a:EncryptedAssertion",
             { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
           )
           decrypted = response.send(:decrypt_assertion, encrypted_assertion_node)
 
           encrypted_assertion_node2 = decrypted.at_xpath(
-            "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
+            "/p:Response/EncryptedAssertion | /p:Response/a:EncryptedAssertion",
             { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
           )
           assert_nil encrypted_assertion_node2

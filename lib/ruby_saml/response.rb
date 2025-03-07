@@ -994,7 +994,7 @@ module RubySaml
         { "p" => PROTOCOL }
       )
       encrypted_assertion_node = document_copy.at_xpath(
-        "(/p:Response/EncryptedAssertion)|(/p:Response/a:EncryptedAssertion)",
+        "/p:Response/EncryptedAssertion | /p:Response/a:EncryptedAssertion",
         { "p" => PROTOCOL, "a" => ASSERTION }
       )
       response_node.add_child(decrypt_assertion(encrypted_assertion_node))

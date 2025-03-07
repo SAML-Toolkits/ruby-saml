@@ -368,7 +368,7 @@ class UtilsTest < Minitest::Test
     let(:response) { RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings) }
     let(:encrypted) do
       response.document.xpath(
-        "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
+        "/p:Response/EncryptedAssertion | /p:Response/a:EncryptedAssertion",
         { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
       ).first
     end

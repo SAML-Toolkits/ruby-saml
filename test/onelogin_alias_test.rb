@@ -31,8 +31,8 @@ class OneloginAliasTest < Minitest::Test
       it "generates Pretty Print Service Provider Metadata" do
         xml_text = OneLogin::RubySaml::Metadata.new.generate(settings, true)
         # assert correct xml declaration
-        start = "<?xml version='1.0' encoding='UTF-8'?>\n<md:EntityDescriptor"
-        assert_equal xml_text[0..start.length-1],start
+        start = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<md:EntityDescriptor"
+        assert_equal start, xml_text[0..start.length-1]
         assert_equal "https://example.com", xml_doc.at_xpath("//md:EntityDescriptor", { "md" => "urn:oasis:names:tc:SAML:2.0:metadata" })['entityID']
         assert_equal "urn:oasis:names:tc:SAML:2.0:protocol", spsso_descriptor['protocolSupportEnumeration']
         assert_equal "false", spsso_descriptor['AuthnRequestsSigned']
@@ -47,9 +47,9 @@ class OneloginAliasTest < Minitest::Test
     describe 'Attributes' do
       let(:attributes) do
         OneLogin::RubySaml::Attributes.new({
-          'email' => ['tom@hanks.com'],
-          'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname' => ['Tom'],
-          'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname' => ['Hanks']
+          'email' => %w[tom@hanks.com],
+          'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname' => %w[Tom],
+          'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname' => %w[Hanks]
         })
       end
 
