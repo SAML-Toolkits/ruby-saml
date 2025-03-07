@@ -381,12 +381,9 @@ get = Net::HTTP::Get.new(uri.request_uri)
 get.basic_auth uri.user, uri.password if uri.user
 response = http.request(get)
 xml = response.body
-errors = []
-doc = RubySaml::XML::SignedDocument.new(xml, errors)
-cert_str = "<include_cert_here>"
-cert = RubySaml::Utils.format_cert("cert_str")
+cert = RubySaml::Utils.format_cert("<include_cert_here>")
 metadata_sign_cert = OpenSSL::X509::Certificate.new(cert)
-valid = doc.validate_document_with_cert(metadata_sign_cert, true)
+valid = RubySaml::XML::SignedDocumentValidator.validate_document_with_cert(xml, metadata_sign_cert, soft: true)
 if valid
   settings = idp_metadata_parser.parse(
     xml,
@@ -585,8 +582,8 @@ to specify different certificates for each function.
 You may also globally set the SP signature and digest method, to be used in SP signing (functions 1 and 2 above):
 
 ```ruby
-settings.security[:digest_method]    = RubySaml::XML::Document::SHA1
-settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
+settings.security[:digest_method]    = RubySaml::XML::Crypto::SHA1
+settings.security[:signature_method] = RubySaml::XML::Crypto::RSA_SHA1
 ```
 
 #### Signing SP Metadata
@@ -933,14 +930,32 @@ class and overriding the `#add_extras` method as per the following example:
 ```ruby
 class MyMetadata < RubySaml::Metadata
   def add_extras(root, _settings)
-    org = root.add_element("md:Organization")
-    org.add_element("md:OrganizationName", 'xml:lang' => "en-US").text = 'ACME Inc.'
-    org.add_element("md:OrganizationDisplayName", 'xml:lang' => "en-US").text = 'ACME'
-    org.add_element("md:OrganizationURL", 'xml:lang' => "en-US").text = 'https://www.acme.com'
+    # Create Organization element and its children
+    org = root.document.create_element("md:Organization")
+    root.add_child(org)
 
-    cp = root.add_element("md:ContactPerson", 'contactType' => 'technical')
-    cp.add_element("md:GivenName").text = 'ACME SAML Team'
-    cp.add_element("md:EmailAddress").text = 'saml@acme.com'
+    org_name = root.document.create_element("md:OrganizationName", 'ACME Inc.')
+    org_name['xml:lang'] = "en-US"
+    org.add_child(org_name)
+
+    org_display = root.document.create_element("md:OrganizationDisplayName", 'ACME')
+    org_display['xml:lang'] = "en-US"
+    org.add_child(org_display)
+
+    org_url = root.document.create_element("md:OrganizationURL", 'https://www.acme.com')
+    org_url['xml:lang'] = "en-US"
+    org.add_child(org_url)
+
+    # Create ContactPerson element and its children
+    cp = root.document.create_element("md:ContactPerson")
+    cp['contactType'] = 'technical'
+    root.add_child(cp)
+
+    given_name = root.document.create_element("md:GivenName", 'ACME SAML Team')
+    cp.add_child(given_name)
+
+    email = root.document.create_element("md:EmailAddress", 'saml@acme.com')
+    cp.add_child(email)
   end
 end
 

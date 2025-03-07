@@ -44,14 +44,14 @@
   <xs:annotation>
    <xs:documentation>
     <div>
-     
+
       <h3>lang (as an attribute name)</h3>
       <p>
        denotes an attribute whose value
        is a language code for the natural language of the content of
        any element; its value is inherited.  This name is reserved
        by virtue of its definition in the XML specification.</p>
-     
+
     </div>
     <div>
      <h4>Notes</h4>
@@ -90,7 +90,7 @@
   <xs:annotation>
    <xs:documentation>
     <div>
-     
+
       <h3>space (as an attribute name)</h3>
       <p>
        denotes an attribute whose
@@ -98,7 +98,7 @@
        discipline is intended for the content of the element; its
        value is inherited.  This name is reserved by virtue of its
        definition in the XML specification.</p>
-     
+
     </div>
    </xs:documentation>
   </xs:annotation>
@@ -109,11 +109,11 @@
    </xs:restriction>
   </xs:simpleType>
  </xs:attribute>
- 
+
  <xs:attribute name="base" type="xs:anyURI"> <xs:annotation>
    <xs:documentation>
     <div>
-     
+
       <h3>base (as an attribute name)</h3>
       <p>
        denotes an attribute whose value
@@ -121,7 +121,7 @@
        relative URIs in the scope of the element on which it
        appears; its value is inherited.  This name is reserved
        by virtue of its definition in the XML Base specification.</p>
-     
+
      <p>
       See <a
       href="http://www.w3.org/TR/xmlbase/">http://www.w3.org/TR/xmlbase/</a>
@@ -131,19 +131,19 @@
    </xs:documentation>
   </xs:annotation>
  </xs:attribute>
- 
+
  <xs:attribute name="id" type="xs:ID">
   <xs:annotation>
    <xs:documentation>
     <div>
-     
+
       <h3>id (as an attribute name)</h3> 
       <p>
        denotes an attribute whose value
        should be interpreted as if declared to be of type ID.
        This name is reserved by virtue of its definition in the
        xml:id specification.</p>
-     
+
      <p>
       See <a
       href="http://www.w3.org/TR/xml-id/">http://www.w3.org/TR/xml-id/</a>
@@ -164,7 +164,7 @@
  <xs:annotation>
   <xs:documentation>
    <div>
-   
+
     <h3>Father (in any context at all)</h3> 
 
     <div class="bodytext">
@@ -284,4 +284,3 @@
  </xs:annotation>
 
 </xs:schema>
-

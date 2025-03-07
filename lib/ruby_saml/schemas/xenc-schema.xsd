@@ -22,7 +22,7 @@
     <attribute name='MimeType' type='string' use='optional'/>
     <attribute name='Encoding' type='anyURI' use='optional'/>
   </complexType>
-  
+
   <complexType name='EncryptionMethodType' mixed='true'>
     <sequence>
       <element name='KeySize' minOccurs='0' type='xenc:KeySizeType'/>
@@ -57,7 +57,6 @@
          <element ref='ds:Transform' maxOccurs='unbounded'/>
        </sequence>
      </complexType>
-
 
   <element name='EncryptedData' type='xenc:EncryptedDataType'/>
   <complexType name='EncryptedDataType'>
@@ -113,7 +112,6 @@
     <attribute name='URI' type='anyURI' use='required'/>
   </complexType>
 
-
   <element name='EncryptionProperties' type='xenc:EncryptionPropertiesType'/>
   <complexType name='EncryptionPropertiesType'>
     <sequence>
@@ -133,4 +131,3 @@
     </complexType>
 
 </schema>
-

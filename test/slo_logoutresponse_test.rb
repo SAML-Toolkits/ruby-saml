@@ -186,7 +186,7 @@ class SloLogoutresponseTest < Minitest::Test
         unless sp_hash_algo == :sha256
           it 'using mixed signature and digest methods (signature SHA256)' do
             # RSA is ignored here; only the hash sp_key_algo is used
-            settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA256
+            settings.security[:signature_method] = RubySaml::XML::Crypto::RSA_SHA256
             logout_request.settings = settings
             params = RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message")
             response_xml = Base64.decode64(params["SAMLResponse"])
@@ -197,7 +197,7 @@ class SloLogoutresponseTest < Minitest::Test
           end
 
           it 'using mixed signature and digest methods (digest SHA256)' do
-            settings.security[:digest_method] = RubySaml::XML::Document::SHA256
+            settings.security[:digest_method] = RubySaml::XML::Crypto::SHA256
             logout_request.settings = settings
             params = RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message")
             response_xml = Base64.decode64(params["SAMLResponse"])
@@ -287,7 +287,7 @@ class SloLogoutresponseTest < Minitest::Test
         unless sp_hash_algo == :sha256
           it 'using mixed signature and digest methods (signature SHA256)' do
             # RSA is ignored here; only the hash sp_key_algo is used
-            settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA256
+            settings.security[:signature_method] = RubySaml::XML::Crypto::RSA_SHA256
             logout_request.settings = settings
             params = RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message", :RelayState => 'http://example.com')
 
@@ -304,7 +304,7 @@ class SloLogoutresponseTest < Minitest::Test
           end
 
           it 'using mixed signature and digest methods (digest SHA256)' do
-            settings.security[:digest_method] = RubySaml::XML::Document::SHA256
+            settings.security[:digest_method] = RubySaml::XML::Crypto::SHA256
             logout_request.settings = settings
             params = RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message", :RelayState => 'http://example.com')
 
