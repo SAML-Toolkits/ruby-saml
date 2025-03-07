@@ -115,6 +115,8 @@ module RubySaml
         noko
       end
 
+      private
+
       def compute_signature(private_key, signature_hash_algorithm, document)
         Base64.encode64(private_key.sign(signature_hash_algorithm, document)).delete("\n")
       end
