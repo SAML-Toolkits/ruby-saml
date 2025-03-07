@@ -9,8 +9,6 @@ module RubySaml
     class SignedDocument < BaseDocument
       include RubySaml::ErrorHandling
 
-      attr_writer :signed_element_id
-
       def initialize(response, errors = [])
         super(response)
         @errors = errors
@@ -55,6 +53,7 @@ module RubySaml
         else
           return append_error('Certificate element missing in response (ds:X509Certificate) and not cert provided at settings', soft)
         end
+
         validate_signature(base64_cert, soft)
       end
 
@@ -82,6 +81,7 @@ module RubySaml
         else
           base64_cert = Base64.encode64(idp_cert.to_pem)
         end
+
         validate_signature(base64_cert, true)
       end
 
