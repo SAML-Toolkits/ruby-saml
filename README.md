@@ -585,8 +585,8 @@ to specify different certificates for each function.
 You may also globally set the SP signature and digest method, to be used in SP signing (functions 1 and 2 above):
 
 ```ruby
-settings.security[:digest_method]    = RubySaml::XML::Document::SHA1
-settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
+settings.security[:digest_method]    = RubySaml::XML::Crypto::SHA1
+settings.security[:signature_method] = RubySaml::XML::Crypto::RSA_SHA1
 ```
 
 #### Signing SP Metadata

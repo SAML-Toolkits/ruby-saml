@@ -95,13 +95,13 @@ class SettingsTest < Minitest::Test
     it "does not modify default security settings" do
       settings = RubySaml::Settings.new
       settings.security[:authn_requests_signed] = true
-      settings.security[:digest_method] = RubySaml::XML::Document::SHA512
-      settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA512
+      settings.security[:digest_method] = RubySaml::XML::Crypto::SHA512
+      settings.security[:signature_method] = RubySaml::XML::Crypto::RSA_SHA512
 
       new_settings = RubySaml::Settings.new
       assert_equal new_settings.security[:authn_requests_signed], false
-      assert_equal new_settings.get_sp_digest_method, RubySaml::XML::Document::SHA256
-      assert_equal new_settings.get_sp_signature_method, RubySaml::XML::Document::RSA_SHA256
+      assert_equal new_settings.get_sp_digest_method, RubySaml::XML::Crypto::SHA256
+      assert_equal new_settings.get_sp_signature_method, RubySaml::XML::Crypto::RSA_SHA256
     end
 
     it "overrides only provided security attributes passing a second parameter" do
@@ -846,13 +846,13 @@ class SettingsTest < Minitest::Test
         end
 
         it 'uses RSA SHA256 by default' do
-          assert_equal RubySaml::XML::Document::SHA256, @settings.get_sp_digest_method
+          assert_equal RubySaml::XML::Crypto::SHA256, @settings.get_sp_digest_method
         end
 
         it 'can be set as a full string' do
-          @settings.security[:signature_method] = RubySaml::XML::Document::DSA_SHA1
+          @settings.security[:signature_method] = RubySaml::XML::Crypto::DSA_SHA1
 
-          assert_equal RubySaml::XML::Document::DSA_SHA1, @settings.get_sp_signature_method
+          assert_equal RubySaml::XML::Crypto::DSA_SHA1, @settings.get_sp_signature_method
         end
 
         it 'can be set as a short string' do
@@ -903,7 +903,7 @@ class SettingsTest < Minitest::Test
           end
 
           it 'can be set as a full string' do
-            @settings.security[:signature_method] = RubySaml::XML::Document::SHA1
+            @settings.security[:signature_method] = RubySaml::XML::Crypto::SHA1
 
             assert_equal signature_method(sp_key_algo, :sha1), @settings.get_sp_signature_method
           end
@@ -967,7 +967,7 @@ class SettingsTest < Minitest::Test
       end
 
       it 'can be set as full string' do
-        @settings.security[:digest_method] = RubySaml::XML::Document::SHA224
+        @settings.security[:digest_method] = RubySaml::XML::Crypto::SHA224
 
         assert_equal RubySaml::XML::Crypto::SHA224, @settings.get_sp_digest_method
       end

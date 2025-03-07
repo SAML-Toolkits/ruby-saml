@@ -370,7 +370,7 @@ class MetadataTest < Minitest::Test
           unless sp_hash_algo == :sha256
             it 'using mixed signature and digest methods (signature SHA256)' do
               # RSA is ignored here; only the hash sp_key_algo is used
-              settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA256
+              settings.security[:signature_method] = RubySaml::XML::Crypto::RSA_SHA256
               signed_metadata = RubySaml::XML::SignedDocument.new(xml_text)
 
               assert_match(signature_value_matcher, xml_text)
@@ -381,7 +381,7 @@ class MetadataTest < Minitest::Test
             end
 
             it 'using mixed signature and digest methods (digest SHA256)' do
-              settings.security[:digest_method] = RubySaml::XML::Document::SHA256
+              settings.security[:digest_method] = RubySaml::XML::Crypto::SHA256
               signed_metadata = RubySaml::XML::SignedDocument.new(xml_text)
 
               assert_match(signature_value_matcher, xml_text)
