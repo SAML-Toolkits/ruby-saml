@@ -109,7 +109,6 @@ module RubySaml
       assign_uuid(settings)
 
       response_doc = RubySaml::XML::Document.new
-      response_doc.uuid = uuid
 
       destination = settings.idp_slo_response_service_url || settings.idp_slo_service_url
 

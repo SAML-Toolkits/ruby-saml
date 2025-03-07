@@ -27,12 +27,6 @@ module RubySaml
       SHA512        = RubySaml::XML::Crypto::SHA512
       ENVELOPED_SIG = RubySaml::XML::Crypto::ENVELOPED_SIG
 
-      attr_writer :uuid
-
-      def uuid
-        @uuid ||= document.root&.attributes&.[]('ID')
-      end
-
       # <Signature>
       #   <SignedInfo>
       #     <CanonicalizationMethod />
@@ -70,7 +64,7 @@ module RubySaml
 
         # Add Reference
         reference_element = Nokogiri::XML::Element.new('ds:Reference', noko)
-        reference_element['URI'] = "##{uuid}"
+        reference_element['URI'] = "##{noko.root&.attr('ID')}"
         signed_info_element.add_child(reference_element)
 
         # Add Transforms
@@ -143,7 +137,7 @@ module RubySaml
       private
 
       def compute_signature(private_key, signature_hash_algorithm, document)
-        Base64.encode64(private_key.sign(signature_hash_algorithm, document)).gsub(/\n/, '')
+        Base64.encode64(private_key.sign(signature_hash_algorithm, document)).delete("\n")
       end
 
       def compute_digest(document, digest_algorithm)
