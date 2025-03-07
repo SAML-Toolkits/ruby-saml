@@ -13,11 +13,11 @@ module RubySaml
       def validate_document(document, idp_cert_fingerprint, soft: true, **options)
 
         # get cert from response
-        doc = Nokogiri::XML(document.to_s) do |config|
+        noko = Nokogiri::XML(document.to_s) do |config|
           config.options = RubySaml::XML::BaseDocument::NOKOGIRI_OPTIONS
         end
 
-        cert_element = doc.at_xpath(
+        cert_element = noko.at_xpath(
           '//ds:X509Certificate',
           { 'ds' => RubySaml::XML::Crypto::DSIG }
         )
@@ -58,12 +58,12 @@ module RubySaml
       def validate_document_with_cert(document, idp_cert)
 
         # Get document as Nokogiri document
-        doc = Nokogiri::XML(document.to_s) do |config|
+        noko = Nokogiri::XML(document.to_s) do |config|
           config.options = RubySaml::XML::BaseDocument::NOKOGIRI_OPTIONS
         end
 
         # get cert from response
-        cert_element = doc.at_xpath(
+        cert_element = noko.at_xpath(
           '//ds:X509Certificate',
           { 'ds' => RubySaml::XML::Crypto::DSIG }
         )
@@ -93,12 +93,12 @@ module RubySaml
       def validate_signature(document, base64_cert)
 
         # Create a copy of the document for validation
-        doc = Nokogiri::XML(document.to_s) do |config|
+        noko = Nokogiri::XML(document.to_s) do |config|
           config.options = RubySaml::XML::BaseDocument::NOKOGIRI_OPTIONS
         end
 
         # get signature node
-        sig_element = doc.at_xpath(
+        sig_element = noko.at_xpath(
           '//ds:Signature',
           { 'ds' => RubySaml::XML::Crypto::DSIG }
         )
@@ -124,7 +124,7 @@ module RubySaml
         )
         canon_algorithm = RubySaml::XML::Crypto.canon_algorithm(canon_method_node)
 
-        noko_sig_element = doc.at_xpath('//ds:Signature', 'ds' => RubySaml::XML::Crypto::DSIG)
+        noko_sig_element = noko.at_xpath('//ds:Signature', 'ds' => RubySaml::XML::Crypto::DSIG)
         noko_signed_info_element = noko_sig_element.at_xpath('./ds:SignedInfo', 'ds' => RubySaml::XML::Crypto::DSIG)
 
         canon_string = noko_signed_info_element.canonicalize(canon_algorithm)
@@ -148,7 +148,7 @@ module RubySaml
           { 'ds' => RubySaml::XML::Crypto::DSIG }
         )
 
-        reference_nodes = doc.xpath('//*[@ID=$id]', nil, { 'id' => signed_element_id })
+        reference_nodes = noko.xpath('//*[@ID=$id]', nil, { 'id' => signed_element_id })
 
         # ensure no elements with same ID to prevent signature wrapping attack.
         if reference_nodes.length > 1
@@ -167,6 +167,7 @@ module RubySaml
         canon_algorithm = process_transforms(ref, canon_algorithm)
 
         canon_hashed_element = hashed_element.canonicalize(canon_algorithm, inclusive_namespaces)
+        canon_hashed_element.gsub!(/>\s+</, '><')
 
         digest_method_node = ref.at_xpath(
           './ds:DigestMethod',
@@ -206,11 +207,11 @@ module RubySaml
       end
 
       def extract_signed_element_id(document)
-        doc = Nokogiri::XML(document.to_s) do |config|
+        noko = Nokogiri::XML(document.to_s) do |config|
           config.options = RubySaml::XML::BaseDocument::NOKOGIRI_OPTIONS
         end
 
-        reference_element = doc.at_xpath(
+        reference_element = noko.at_xpath(
           '//ds:Signature/ds:SignedInfo/ds:Reference',
           { 'ds' => RubySaml::XML::Crypto::DSIG }
         )
@@ -246,11 +247,11 @@ module RubySaml
       end
 
       def extract_inclusive_namespaces(document)
-        doc = Nokogiri::XML(document.to_s) do |config|
+        noko = Nokogiri::XML(document.to_s) do |config|
           config.options = RubySaml::XML::BaseDocument::NOKOGIRI_OPTIONS
         end
 
-        element = doc.at_xpath(
+        element = noko.at_xpath(
           '//ec:InclusiveNamespaces',
           { 'ec' => RubySaml::XML::Crypto::C14N }
         )

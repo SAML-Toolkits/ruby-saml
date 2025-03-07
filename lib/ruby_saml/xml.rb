@@ -16,7 +16,7 @@ module RubySaml
       DSIG = RubySaml::XML::Crypto::DSIG
 
       NOKOGIRI_OPTIONS = Nokogiri::XML::ParseOptions::STRICT |
-        Nokogiri::XML::ParseOptions::NONET
+                         Nokogiri::XML::ParseOptions::NONET
 
       # @deprecated Remove in v2.1.0
       def self.canon_algorithm(algorithm)

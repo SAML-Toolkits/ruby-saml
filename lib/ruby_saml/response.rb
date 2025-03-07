@@ -934,6 +934,7 @@ module RubySaml
     def xpath_first_from_signed_assertion(subelt = nil)
       doc = decrypted_document || document
       signed_element_id = RubySaml::XML::SignedDocumentValidator.extract_signed_element_id(doc)
+      return nil unless signed_element_id
       node = doc.at_xpath(
           "/p:Response/a:Assertion[@ID=$id]#{subelt}",
           { "p" => PROTOCOL, "a" => ASSERTION },
