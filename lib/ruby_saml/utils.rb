@@ -303,9 +303,11 @@ module RubySaml
     # @param private_key [OpenSSL::PKey::RSA] The SP private key
     # @return [String] The symmetric key
     def retrieve_symmetric_key(encrypt_data, private_key)
+      key_ref = retrieve_symmetric_key_reference(encrypt_data)
+
       encrypted_key = encrypt_data.at_xpath(
-        "./ds:KeyInfo/xenc:EncryptedKey | ./KeyInfo/xenc:EncryptedKey | //xenc:EncryptedKey[@Id=$id]",
-        { "ds" => DSIG, "xenc" => XENC, "id" => retrieve_symmetric_key_reference(encrypt_data) }
+        "./ds:KeyInfo/xenc:EncryptedKey | ./KeyInfo/xenc:EncryptedKey#{' | //xenc:EncryptedKey[@Id=$id]' if key_ref}",
+        { "ds" => DSIG, "xenc" => XENC, "id" => key_ref }.compact
       )
 
       encrypted_symmetric_key_element = encrypted_key.at_xpath(

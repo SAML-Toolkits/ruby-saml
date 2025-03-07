@@ -955,6 +955,7 @@ module RubySaml
     def xpath_from_signed_assertion(subelt=nil)
       doc = decrypted_document || document
       signed_element_id = RubySaml::XML::SignedDocumentValidator.extract_signed_element_id(doc)
+      return [] unless signed_element_id
       node = doc.xpath(
           "/p:Response/a:Assertion[@ID=$id]#{subelt}",
           { "p" => PROTOCOL, "a" => ASSERTION },
@@ -998,7 +999,7 @@ module RubySaml
       )
       response_node.add_child(decrypt_assertion(encrypted_assertion_node))
       encrypted_assertion_node.remove
-      XMLSecurity::SignedDocument.new(response_node.to_s)
+      response_node.to_s
     end
 
     # Decrypts an EncryptedAssertion element
@@ -1050,8 +1051,7 @@ module RubySaml
       # To avoid namespace errors if saml namespace is not defined
       # create a parent node first with the namespace defined
       elem_plaintext = "#{node_header}#{elem_plaintext}</node>"
-      doc = Nokogiri::XML(elem_plaintext)
-      doc.root[0]
+      Nokogiri::XML(elem_plaintext).root
     end
 
     # Parse the attribute of a given node in Time format
