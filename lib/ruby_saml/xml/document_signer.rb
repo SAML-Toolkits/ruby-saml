@@ -22,13 +22,10 @@ module RubySaml
       #   <KeyInfo />
       #   <Object />
       # </Signature>
-      def sign_document(document, private_key, certificate, signature_method = RubySaml::XML::Crypto::RSA_SHA256, digest_method = RubySaml::XML::Crypto::SHA256, uuid = nil)
+      def sign_document(document, private_key, certificate, signature_method = RubySaml::XML::Crypto::RSA_SHA256, digest_method = RubySaml::XML::Crypto::SHA256)
         noko = Nokogiri::XML(document.to_s) do |config|
           config.options = RubySaml::XML::BaseDocument::NOKOGIRI_OPTIONS
         end
-
-        # Use provided uuid or try to get it from the document
-        uuid ||= noko.root&.attr('ID')
 
         # Create signature elements using Nokogiri
         signature_element = Nokogiri::XML::Element.new('ds:Signature', noko)
@@ -47,7 +44,7 @@ module RubySaml
 
         # Add Reference
         reference_element = Nokogiri::XML::Element.new('ds:Reference', noko)
-        reference_element['URI'] = "##{uuid}"
+        reference_element['URI'] = "##{noko.root&.attr('ID')}"
         signed_info_element.add_child(reference_element)
 
         # Add Transforms
@@ -80,7 +77,7 @@ module RubySaml
 
         # add SignatureValue
         noko_sig_element = Nokogiri::XML(signature_element.to_s) do |config|
-          config.options = RubySaml::XML::BaseDocument::NOKOGIRI_OPTIONS
+          config.options = RubySaml::XML::BaseDocument::NOKOGIRI_OPTIONS | Nokogiri::XML::ParseOptions::NOBLANKS
         end
 
         noko_signed_info_element = noko_sig_element.at_xpath('//ds:Signature/ds:SignedInfo', 'ds' => RubySaml::XML::Crypto::DSIG)
@@ -102,10 +99,8 @@ module RubySaml
         x509_cert_element = Nokogiri::XML::Element.new('ds:X509Certificate', noko)
         x509_element.add_child(x509_cert_element)
 
-        if certificate.is_a?(String)
-          certificate = OpenSSL::X509::Certificate.new(certificate)
-        end
-        x509_cert_element.content = Base64.encode64(certificate.to_der).gsub(/\n/, '')
+        certificate = OpenSSL::X509::Certificate.new(certificate) if certificate.is_a?(String)
+        x509_cert_element.content = Base64.encode64(certificate.to_der).delete("\n")
 
         # add the signature
         issuer_element = noko.at_xpath('//saml:Issuer', 'saml' => 'urn:oasis:names:tc:SAML:2.0:assertion')
@@ -121,7 +116,7 @@ module RubySaml
       end
 
       def compute_signature(private_key, signature_hash_algorithm, document)
-        Base64.encode64(private_key.sign(signature_hash_algorithm, document)).gsub(/\n/, '')
+        Base64.encode64(private_key.sign(signature_hash_algorithm, document)).delete("\n")
       end
 
       def compute_digest(document, digest_algorithm)
