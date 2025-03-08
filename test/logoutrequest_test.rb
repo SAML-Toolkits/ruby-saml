@@ -78,7 +78,7 @@ class RequestTest < Minitest::Test
         settings.idp_slo_service_url = "http://example.com?field=value"
 
         unauth_url = RubySaml::Logoutrequest.new.create(settings)
-        assert_match(/^http:\/\/example.com\?field=value&SAMLRequest/, unauth_url)
+        assert_match(/^http:\/\/example\.com\?field=value&SAMLRequest/, unauth_url)
       end
     end
 
@@ -90,7 +90,7 @@ class RequestTest < Minitest::Test
         unauth_url = unauth_req.create(settings)
 
         inflated = decode_saml_request_payload(unauth_url)
-        assert_match %r[ID='#{unauth_req.uuid}'], inflated
+        assert_match %r[ID="#{unauth_req.uuid}"], inflated
       end
     end
 
@@ -132,9 +132,9 @@ class RequestTest < Minitest::Test
 
       it "can mutate the uuid" do
         request = RubySaml::Logoutrequest.new
-        request_id = request.request_id
         assert_nil request.uuid
-        assert_nil request_id
+        assert_nil request.request_id
+
         request.uuid = "new_uuid"
         assert_equal "new_uuid", request.uuid
         assert_equal request.uuid, request.request_id
@@ -198,7 +198,7 @@ class RequestTest < Minitest::Test
         unless sp_hash_algo == :sha256
           it 'using mixed signature and digest methods (signature SHA256)' do
             # RSA is ignored here; only the hash sp_key_algo is used
-            settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA256
+            settings.security[:signature_method] = RubySaml::XML::Crypto::RSA_SHA256
             params = RubySaml::Logoutrequest.new.create_params(settings)
             request_xml = Base64.decode64(params["SAMLRequest"])
 
@@ -208,7 +208,7 @@ class RequestTest < Minitest::Test
           end
 
           it 'using mixed signature and digest methods (digest SHA256)' do
-            settings.security[:digest_method] = RubySaml::XML::Document::SHA256
+            settings.security[:digest_method] = RubySaml::XML::Crypto::SHA256
             params = RubySaml::Logoutrequest.new.create_params(settings)
             request_xml = Base64.decode64(params["SAMLRequest"])
 
@@ -294,7 +294,7 @@ class RequestTest < Minitest::Test
         unless sp_hash_algo == :sha256
           it 'using mixed signature and digest methods (signature SHA256)' do
             # RSA is ignored here; only the hash sp_key_algo is used
-            settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA256
+            settings.security[:signature_method] = RubySaml::XML::Crypto::RSA_SHA256
             params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
 
             assert params['SAMLRequest']
@@ -310,7 +310,7 @@ class RequestTest < Minitest::Test
           end
 
           it 'using mixed signature and digest methods (digest SHA256)' do
-            settings.security[:digest_method] = RubySaml::XML::Document::SHA256
+            settings.security[:digest_method] = RubySaml::XML::Crypto::SHA256
             params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
 
             assert params['SAMLRequest']

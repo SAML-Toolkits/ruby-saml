@@ -252,11 +252,13 @@ module RubySaml
       # @deprecated Will be removed in v2.1.0
       define_method(old_param) do
         removed_deprecation(old_param, new_value)
+        new_value
       end
 
       # @deprecated Will be removed in v2.1.0
       define_method(:"#{old_param}=") do |_|
         removed_deprecation(old_param, new_value)
+        new_value
       end
     end
 

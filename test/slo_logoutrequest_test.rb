@@ -59,12 +59,12 @@ class RubySamlTest < Minitest::Test
         settings.certificate = ruby_saml_cert_text
         settings.private_key = ruby_saml_key_text
         settings.idp_cert = ruby_saml_cert_text
-        settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
+        settings.security[:signature_method] = RubySaml::XML::Crypto::RSA_SHA1
         params = {}
         params['SAMLRequest'] = logout_request_deflated_base64
         params['RelayState'] = 'http://invalid.example.com'
         params['Signature'] = 'invalid_signature'
-        params['SigAlg'] = RubySaml::XML::Document::RSA_SHA1
+        params['SigAlg'] = RubySaml::XML::Crypto::RSA_SHA1
         options = {}
         options[:get_params] = params
 
