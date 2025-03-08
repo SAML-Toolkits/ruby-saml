@@ -100,6 +100,7 @@ module RubySaml
       assign_uuid(settings)
 
       request_doc = RubySaml::XML::Document.new
+      request_doc.context[:attribute_quote] = :quote
       request_doc.uuid = uuid
 
       root = request_doc.add_element "samlp:AuthnRequest", { "xmlns:samlp" => "urn:oasis:names:tc:SAML:2.0:protocol", "xmlns:saml" => "urn:oasis:names:tc:SAML:2.0:assertion" }
