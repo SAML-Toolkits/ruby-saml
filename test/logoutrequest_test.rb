@@ -78,7 +78,7 @@ class RequestTest < Minitest::Test
         settings.idp_slo_service_url = "http://example.com?field=value"
 
         unauth_url = RubySaml::Logoutrequest.new.create(settings)
-        assert_match(/^http:\/\/example.com\?field=value&SAMLRequest/, unauth_url)
+        assert_match(/^http:\/\/example\.com\?field=value&SAMLRequest/, unauth_url)
       end
     end
 
@@ -90,7 +90,7 @@ class RequestTest < Minitest::Test
         unauth_url = unauth_req.create(settings)
 
         inflated = decode_saml_request_payload(unauth_url)
-        assert_match %r[ID='#{unauth_req.uuid}'], inflated
+        assert_match %r[ID="#{unauth_req.uuid}"], inflated
       end
     end
 
@@ -98,8 +98,8 @@ class RequestTest < Minitest::Test
       it "uuid is initialized to nil" do
         request = RubySaml::Logoutrequest.new
 
-        assert_nil(request.uuid)
-        assert_equal request.request_id, request.uuid
+        assert_nil request.uuid
+        assert_nil request.request_id
       end
 
       it "creates request with ID prefixed with default '_'" do
@@ -132,8 +132,9 @@ class RequestTest < Minitest::Test
 
       it "can mutate the uuid" do
         request = RubySaml::Logoutrequest.new
-        request_id = request.request_id
-        assert_equal request_id, request.uuid
+        assert_nil request.uuid
+        assert_nil request.request_id
+
         request.uuid = "new_uuid"
         assert_equal "new_uuid", request.uuid
         assert_equal request.uuid, request.request_id

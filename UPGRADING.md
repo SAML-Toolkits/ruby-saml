@@ -59,6 +59,18 @@ settings.security[:digest_method] = RubySaml::XML::Crypto::SHA1
 settings.security[:signature_method] = RubySaml::XML::Crypto::RSA_SHA1
 ```
 
+### Behavior change of double_quote_xml_attribute_values setting
+
+RubySaml now always uses double quotes for attribute values when generating XML.
+The `settings.double_quote_xml_attribute_values` parameter now always behaves as `true`,
+and will be removed in RubySaml 2.1.0.
+
+The reasons for this change are:
+- RubySaml will use Nokogiri instead of REXML to generate XML. Nokogiri does not support
+  generating XML with single quotes.
+- Double-quoted XML attributes are more commonly used than single quotes. There are no known
+  SAML clients which cannot support double-quoted XML.
+
 ### Removal of embed_sign setting
 
 The deprecated `settings.security[:embed_sign]` parameter has been removed. If you were using it, please instead switch
