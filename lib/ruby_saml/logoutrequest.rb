@@ -52,7 +52,7 @@ module RubySaml
       end
 
       request_doc = create_logout_request_xml_doc(settings)
-      request_doc.context[:attribute_quote] = :quote if settings.double_quote_xml_attribute_values
+      request_doc.context[:attribute_quote] = :quote
 
       request = +""
       request_doc.write(request)

@@ -60,7 +60,7 @@ module RubySaml
       end
 
       response_doc = create_logout_response_xml_doc(settings, request_id, logout_message, logout_status_code)
-      response_doc.context[:attribute_quote] = :quote if settings.double_quote_xml_attribute_values
+      response_doc.context[:attribute_quote] = :quote
 
       response = +""
       response_doc.write(response)

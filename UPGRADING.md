@@ -37,7 +37,8 @@ codebase for `RubySaml::XML::` and replace it as appropriate. In addition, you m
 `require 'xml_security'` with `require 'ruby_saml/xml'`.
 
 For backward compatibility, the alias `XMLSecurity = RubySaml::XML` has been set, so `RubySaml::XML::` will still work
-as before. In addition, a shim file has been added so that `require 'xml_security'` continues to work.
+as before, unless you have defined `XMLSecurity` prior to loading RubySaml.
+In addition, a shim file has been added so that `require 'xml_security'` continues to work.
 These aliases will be removed in RubySaml version `2.1.0`.
 
 ### Security: Change default hashing algorithm to SHA-256 (was SHA-1)
@@ -57,6 +58,23 @@ you may set `RubySaml::Settings` as follows:
 settings.idp_cert_fingerprint_algorithm = RubySaml::XML::Crypto::SHA1
 settings.security[:digest_method] = RubySaml::XML::Crypto::SHA1
 settings.security[:signature_method] = RubySaml::XML::Crypto::RSA_SHA1
+```
+
+### Behavior change of double_quote_xml_attribute_values setting
+
+`settings.double_quote_xml_attribute_values` now always behaves as if it is set to `true`,
+i.e. RubySaml now always uses double quotes for attribute values when generating XML.
+
+The reasons for this change are:
+- RubySaml will use Nokogiri instead of REXML to generate XML. Nokogiri does not support
+  generating XML with single quotes.
+- Double quotes in XML tends to be the standard; there are no known SAML clients in the wild
+  which cannot support double-quoted XML.
+
+If you require to use single quotes in your XML output, you may try the following Regexp:
+
+```ruby
+
 ```
 
 ### Removal of embed_sign setting
