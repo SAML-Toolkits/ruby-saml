@@ -43,12 +43,28 @@ module RubySaml
       #   <Object />
       # </Signature>
       def sign_document(private_key, certificate, signature_method = RubySaml::XML::Crypto::RSA_SHA256, digest_method = RubySaml::XML::Crypto::SHA256)
+        signature_element = build_signature_element(private_key, certificate, signature_method, digest_method)
+        signature_element = convert_nokogiri_to_rexml(signature_element)
+        issuer_element = elements['//saml:Issuer']
+        if issuer_element
+          root.insert_after(issuer_element, signature_element)
+        elsif (first_child = root.children[0])
+          root.insert_before(first_child, signature_element)
+        else
+          root.add_element(signature_element)
+        end
+      end
+
+      private
+
+      def build_signature_element(private_key, certificate, signature_method, digest_method)
+        # Parse the original document
         noko = Nokogiri::XML(to_s) do |config|
           config.options = RubySaml::XML::BaseDocument::NOKOGIRI_OPTIONS
         end
 
-        # Create the signature structure using Builder
-        builder = Nokogiri::XML::Builder.new do |xml|
+        # Build the Signature element
+        signature_element = Nokogiri::XML::Builder.new do |xml|
           xml['ds'].Signature('xmlns:ds' => RubySaml::XML::Crypto::DSIG) do
             xml['ds'].SignedInfo do
               xml['ds'].CanonicalizationMethod(Algorithm: RubySaml::XML::Crypto::C14N)
@@ -64,68 +80,46 @@ module RubySaml
                   end
                 end
                 xml['ds'].DigestMethod(Algorithm: digest_method)
-
-                # We'll compute and add DigestValue after creating the structure
-                xml['ds'].DigestValue
+                xml['ds'].DigestValue(digest_value(noko, digest_method))
               end
             end
-
-            # We'll add these after the digest computation
-            xml['ds'].SignatureValue
+            xml['ds'].SignatureValue # Value is added below
             xml['ds'].KeyInfo do
               xml['ds'].X509Data do
-                xml['ds'].X509Certificate
+                xml['ds'].X509Certificate(certificate_value(certificate))
               end
             end
           end
-        end
-
-        # Extract the signature element from the builder
-        signature_element = builder.doc.root
-
-        # Calculate digest
-        inclusive_namespaces = INC_PREFIX_LIST.split
-        canon_doc = noko.canonicalize(RubySaml::XML::Crypto.canon_algorithm(RubySaml::XML::Crypto::C14N), inclusive_namespaces)
-        digest_value = compute_digest(canon_doc, RubySaml::XML::Crypto.hash_algorithm(digest_method))
-
-        digest_value_element = signature_element.at_xpath('//ds:DigestValue', 'ds' => RubySaml::XML::Crypto::DSIG)
-        digest_value_element.content = digest_value
-
-        # Canonicalize the SignedInfo element for signing
-        signed_info_element = signature_element.at_xpath('//ds:SignedInfo', 'ds' => RubySaml::XML::Crypto::DSIG)
-        canon_string = signed_info_element.canonicalize(RubySaml::XML::Crypto.canon_algorithm(RubySaml::XML::Crypto::C14N))
-        signature = compute_signature(private_key, RubySaml::XML::Crypto.hash_algorithm(signature_method).new, canon_string)
+        end.doc.root
 
         # Set the signature value
+        signed_info_element = signature_element.at_xpath('//ds:SignedInfo', 'ds' => RubySaml::XML::Crypto::DSIG)
         sig_value_element = signature_element.at_xpath('//ds:SignatureValue', 'ds' => RubySaml::XML::Crypto::DSIG)
-        sig_value_element.content = signature
+        sig_value_element.content = signature_value(signed_info_element, private_key, signature_method)
 
-        # Set the certificate
+        signature_element
+      end
+
+      def digest_value(document, digest_method)
+        inclusive_namespaces = INC_PREFIX_LIST.split
+        canon_algorithm = RubySaml::XML::Crypto.canon_algorithm(RubySaml::XML::Crypto::C14N)
+        hash_algorithm = RubySaml::XML::Crypto.hash_algorithm(digest_method)
+
+        canon_doc = document.canonicalize(canon_algorithm, inclusive_namespaces)
+        Base64.encode64(hash_algorithm.digest(canon_doc)).strip
+      end
+
+      def signature_value(signed_info_element, private_key, signature_method)
+        canon_algorithm = RubySaml::XML::Crypto.canon_algorithm(RubySaml::XML::Crypto::C14N)
+        hash_algorithm = RubySaml::XML::Crypto.hash_algorithm(signature_method).new
+
+        canon_string = signed_info_element.canonicalize(canon_algorithm)
+        Base64.encode64(private_key.sign(hash_algorithm, canon_string)).delete("\n")
+      end
+
+      def certificate_value(certificate)
         certificate = OpenSSL::X509::Certificate.new(certificate) if certificate.is_a?(String)
-        x509_cert_element = signature_element.at_xpath('//ds:X509Certificate', 'ds' => RubySaml::XML::Crypto::DSIG)
-        x509_cert_element.content = Base64.encode64(certificate.to_der).delete("\n")
-
-        # add the signature
-        signature_element = convert_nokogiri_to_rexml(signature_element)
-        issuer_element = elements['//saml:Issuer']
-        if issuer_element
-          root.insert_after(issuer_element, signature_element)
-        elsif (first_child = root.children[0])
-          root.insert_before(first_child, signature_element)
-        else
-          root.add_element(signature_element)
-        end
-      end
-
-      private
-
-      def compute_signature(private_key, signature_hash_algorithm, document)
-        Base64.encode64(private_key.sign(signature_hash_algorithm, document)).delete("\n")
-      end
-
-      def compute_digest(document, digest_algorithm)
-        digest = digest_algorithm.digest(document)
-        Base64.encode64(digest).strip
+        Base64.encode64(certificate.to_der).delete("\n")
       end
 
       # TODO: This is a shim method which will be removed when the
