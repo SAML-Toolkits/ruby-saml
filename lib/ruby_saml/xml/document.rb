@@ -47,79 +47,62 @@ module RubySaml
           config.options = RubySaml::XML::BaseDocument::NOKOGIRI_OPTIONS
         end
 
-        # Create signature elements using Nokogiri
-        signature_element = Nokogiri::XML::Element.new('ds:Signature', noko)
-        signature_element['xmlns:ds'] = RubySaml::XML::Crypto::DSIG
+        # Create the signature structure using Builder
+        builder = Nokogiri::XML::Builder.new do |xml|
+          xml['ds'].Signature('xmlns:ds' => RubySaml::XML::Crypto::DSIG) do
+            xml['ds'].SignedInfo do
+              xml['ds'].CanonicalizationMethod(Algorithm: RubySaml::XML::Crypto::C14N)
+              xml['ds'].SignatureMethod(Algorithm: signature_method)
+              xml['ds'].Reference(URI: "##{noko.root.attr('ID')}") do
+                xml['ds'].Transforms do
+                  xml['ds'].Transform(Algorithm: RubySaml::XML::Crypto::ENVELOPED_SIG)
+                  xml['ds'].Transform(Algorithm: RubySaml::XML::Crypto::C14N) do
+                    xml['ec'].InclusiveNamespaces(
+                      'xmlns:ec' => RubySaml::XML::Crypto::C14N,
+                      PrefixList: INC_PREFIX_LIST
+                    )
+                  end
+                end
+                xml['ds'].DigestMethod(Algorithm: digest_method)
 
-        signed_info_element = Nokogiri::XML::Element.new('ds:SignedInfo', noko)
-        signature_element.add_child(signed_info_element)
+                # We'll compute and add DigestValue after creating the structure
+                xml['ds'].DigestValue
+              end
+            end
 
-        canon_method_element = Nokogiri::XML::Element.new('ds:CanonicalizationMethod', noko)
-        canon_method_element['Algorithm'] = RubySaml::XML::Crypto::C14N
-        signed_info_element.add_child(canon_method_element)
-
-        sig_method_element = Nokogiri::XML::Element.new('ds:SignatureMethod', noko)
-        sig_method_element['Algorithm'] = signature_method
-        signed_info_element.add_child(sig_method_element)
-
-        # Add Reference
-        reference_element = Nokogiri::XML::Element.new('ds:Reference', noko)
-        reference_element['URI'] = "##{noko.root&.attr('ID')}"
-        signed_info_element.add_child(reference_element)
-
-        # Add Transforms
-        transforms_element = Nokogiri::XML::Element.new('ds:Transforms', noko)
-        reference_element.add_child(transforms_element)
-
-        transform1 = Nokogiri::XML::Element.new('ds:Transform', noko)
-        transform1['Algorithm'] = RubySaml::XML::Crypto::ENVELOPED_SIG
-        transforms_element.add_child(transform1)
-
-        transform2 = Nokogiri::XML::Element.new('ds:Transform', noko)
-        transform2['Algorithm'] = RubySaml::XML::Crypto::C14N
-        transforms_element.add_child(transform2)
-
-        inc_namespaces = Nokogiri::XML::Element.new('ec:InclusiveNamespaces', noko)
-        inc_namespaces['xmlns:ec'] = RubySaml::XML::Crypto::C14N
-        inc_namespaces['PrefixList'] = INC_PREFIX_LIST
-        transform2.add_child(inc_namespaces)
-
-        digest_method_element = Nokogiri::XML::Element.new('ds:DigestMethod', noko)
-        digest_method_element['Algorithm'] = digest_method
-        reference_element.add_child(digest_method_element)
-
-        inclusive_namespaces = INC_PREFIX_LIST.split
-        canon_doc = noko.canonicalize(RubySaml::XML::Crypto.canon_algorithm(RubySaml::XML::Crypto::C14N), inclusive_namespaces)
-
-        digest_value_element = Nokogiri::XML::Element.new('ds:DigestValue', noko)
-        digest_value_element.content = compute_digest(canon_doc, RubySaml::XML::Crypto.hash_algorithm(digest_method_element))
-        reference_element.add_child(digest_value_element)
-
-        # add SignatureValue
-        noko_sig_element = Nokogiri::XML(signature_element.to_s) do |config|
-          config.options = RubySaml::XML::BaseDocument::NOKOGIRI_OPTIONS | Nokogiri::XML::ParseOptions::NOBLANKS
+            # We'll add these after the digest computation
+            xml['ds'].SignatureValue
+            xml['ds'].KeyInfo do
+              xml['ds'].X509Data do
+                xml['ds'].X509Certificate
+              end
+            end
+          end
         end
 
-        noko_signed_info_element = noko_sig_element.at_xpath('//ds:Signature/ds:SignedInfo', 'ds' => RubySaml::XML::Crypto::DSIG)
-        canon_string = noko_signed_info_element.canonicalize(RubySaml::XML::Crypto.canon_algorithm(RubySaml::XML::Crypto::C14N))
+        # Extract the signature element from the builder
+        signature_element = builder.doc.root
 
+        # Calculate digest
+        inclusive_namespaces = INC_PREFIX_LIST.split
+        canon_doc = noko.canonicalize(RubySaml::XML::Crypto.canon_algorithm(RubySaml::XML::Crypto::C14N), inclusive_namespaces)
+        digest_value = compute_digest(canon_doc, RubySaml::XML::Crypto.hash_algorithm(digest_method))
+
+        digest_value_element = signature_element.at_xpath('//ds:DigestValue', 'ds' => RubySaml::XML::Crypto::DSIG)
+        digest_value_element.content = digest_value
+
+        # Canonicalize the SignedInfo element for signing
+        signed_info_element = signature_element.at_xpath('//ds:SignedInfo', 'ds' => RubySaml::XML::Crypto::DSIG)
+        canon_string = signed_info_element.canonicalize(RubySaml::XML::Crypto.canon_algorithm(RubySaml::XML::Crypto::C14N))
         signature = compute_signature(private_key, RubySaml::XML::Crypto.hash_algorithm(signature_method).new, canon_string)
 
-        sig_value_element = Nokogiri::XML::Element.new('ds:SignatureValue', noko)
+        # Set the signature value
+        sig_value_element = signature_element.at_xpath('//ds:SignatureValue', 'ds' => RubySaml::XML::Crypto::DSIG)
         sig_value_element.content = signature
-        signature_element.add_child(sig_value_element)
 
-        # add KeyInfo
-        key_info_element = Nokogiri::XML::Element.new('ds:KeyInfo', noko)
-        signature_element.add_child(key_info_element)
-
-        x509_element = Nokogiri::XML::Element.new('ds:X509Data', noko)
-        key_info_element.add_child(x509_element)
-
-        x509_cert_element = Nokogiri::XML::Element.new('ds:X509Certificate', noko)
-        x509_element.add_child(x509_cert_element)
-
+        # Set the certificate
         certificate = OpenSSL::X509::Certificate.new(certificate) if certificate.is_a?(String)
+        x509_cert_element = signature_element.at_xpath('//ds:X509Certificate', 'ds' => RubySaml::XML::Crypto::DSIG)
         x509_cert_element.content = Base64.encode64(certificate.to_der).delete("\n")
 
         # add the signature
@@ -145,10 +128,15 @@ module RubySaml
         Base64.encode64(digest).strip
       end
 
-      def convert_nokogiri_to_rexml(noko_element)
-        rexml_element = REXML::Element.new(noko_element.name)
+      # TODO: This is a shim method which will be removed when the
+      # full Nokogiri conversion is complete
+      def convert_nokogiri_to_rexml(noko_element, parent_namespaces = Set.new)
+        rexml_element = REXML::Element.new("#{"#{noko_element.namespace.prefix}:" if noko_element.namespace}#{noko_element.name}")
 
-        # Copy attributes
+        if noko_element.namespace && !parent_namespaces.include?(noko_element.namespace)
+          rexml_element.add_namespace(noko_element.namespace.prefix, noko_element.namespace.href)
+        end
+
         noko_element.attributes.each do |name, value|
           rexml_element.add_attribute(name, value)
         end
@@ -161,7 +149,7 @@ module RubySaml
         # Recursively copy child elements
         noko_element.children.each do |child|
           if child.element?
-            rexml_element.add_element(convert_nokogiri_to_rexml(child))
+            rexml_element.add_element(convert_nokogiri_to_rexml(child, parent_namespaces << noko_element.namespace))
           elsif child.text?
             rexml_element.add_text(child.text)
           end
