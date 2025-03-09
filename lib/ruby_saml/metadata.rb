@@ -22,6 +22,7 @@ module RubySaml
     #
     def generate(settings, pretty_print=false, valid_until=nil, cache_duration=nil)
       meta_doc = RubySaml::XML::Document.new
+      meta_doc.context[:attribute_quote] = :quote
       add_xml_declaration(meta_doc)
       root = add_root_element(meta_doc, settings, valid_until, cache_duration)
       sp_sso = add_sp_sso_element(root, settings)

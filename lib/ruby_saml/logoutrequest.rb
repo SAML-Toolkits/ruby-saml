@@ -52,7 +52,7 @@ module RubySaml
       end
 
       request_doc = create_logout_request_xml_doc(settings)
-      request_doc.context[:attribute_quote] = :quote if settings.double_quote_xml_attribute_values
+      request_doc.context[:attribute_quote] = :quote
 
       request = +""
       request_doc.write(request)
@@ -98,6 +98,7 @@ module RubySaml
       assign_uuid(settings)
 
       request_doc = RubySaml::XML::Document.new
+      request_doc.context[:attribute_quote] = :quote
       request_doc.uuid = uuid
 
       root = request_doc.add_element "samlp:LogoutRequest", { "xmlns:samlp" => "urn:oasis:names:tc:SAML:2.0:protocol", "xmlns:saml" => "urn:oasis:names:tc:SAML:2.0:assertion" }

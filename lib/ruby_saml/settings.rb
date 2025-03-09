@@ -54,7 +54,6 @@ module RubySaml
     attr_accessor :name_identifier_value
     attr_accessor :name_identifier_value_requested
     attr_accessor :sessionindex
-    attr_accessor :double_quote_xml_attribute_values
     attr_accessor :message_max_bytesize
     attr_accessor :passive
     attr_reader   :protocol_binding
@@ -230,7 +229,6 @@ module RubySaml
       idp_cert_fingerprint_algorithm: RubySaml::XML::Crypto::SHA256,
       message_max_bytesize: 250_000,
       soft: true,
-      double_quote_xml_attribute_values: false,
       security: {
         authn_requests_signed: false,
         logout_requests_signed: false,
@@ -247,6 +245,22 @@ module RubySaml
         lowercase_url_encoding: false
       }.freeze
     }.freeze
+
+    {
+      double_quote_xml_attribute_values: true
+    }.each do |old_param, new_value|
+      # @deprecated Will be removed in v2.1.0
+      define_method(old_param) do
+        removed_deprecation(old_param, new_value)
+        new_value
+      end
+
+      # @deprecated Will be removed in v2.1.0
+      define_method(:"#{old_param}=") do |_|
+        removed_deprecation(old_param, new_value)
+        new_value
+      end
+    end
 
     {
       issuer: :sp_entity_id,
@@ -354,6 +368,12 @@ module RubySaml
     end
 
     private
+
+    # @deprecated Will be removed in v2.1.0
+    def removed_deprecation(old_param, new_value)
+      Logging.deprecate "`RubySaml::Settings##{old_param}` is deprecated and will be removed in RubySaml 2.1.0. " \
+                        "It no longer has any effect, and will behave as if always set to #{new_value.inspect}."
+    end
 
     # @deprecated Will be removed in v2.1.0
     def replaced_deprecation(old_param, new_param)
