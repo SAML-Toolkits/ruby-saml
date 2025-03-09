@@ -7,6 +7,7 @@ require 'digest/sha1'
 require 'digest/sha2'
 
 module RubySaml
+  # Utility module for working with XML.
   module XML
     extend self
 
@@ -112,6 +113,4 @@ require 'ruby_saml/xml/document'
 require 'ruby_saml/xml/signed_document'
 
 # @deprecated This alias adds compatibility with v1.x and will be removed in v2.1.0
-unless defined?(XMLSecurity)
-  XMLSecurity = RubySaml::XML
-end
+XMLSecurity = RubySaml::XML unless defined?(XMLSecurity)
