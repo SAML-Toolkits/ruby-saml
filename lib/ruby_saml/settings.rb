@@ -126,7 +126,7 @@ module RubySaml
       idp_cert_fingerprint || begin
         idp_cert = get_idp_cert
         if idp_cert
-          fingerprint_alg = RubySaml::XML::Crypto.hash_algorithm(idp_cert_fingerprint_algorithm).new
+          fingerprint_alg = RubySaml::XML.hash_algorithm(idp_cert_fingerprint_algorithm).new
           fingerprint_alg.hexdigest(idp_cert.to_der).upcase.scan(/../).join(":")
         end
       end
@@ -226,7 +226,7 @@ module RubySaml
     DEFAULTS = {
       assertion_consumer_service_binding: Utils::BINDINGS[:post],
       single_logout_service_binding: Utils::BINDINGS[:redirect],
-      idp_cert_fingerprint_algorithm: RubySaml::XML::Crypto::SHA256,
+      idp_cert_fingerprint_algorithm: RubySaml::XML::SHA256,
       message_max_bytesize: 250_000,
       soft: true,
       security: {
@@ -237,8 +237,8 @@ module RubySaml
         want_assertions_encrypted: false,
         want_name_id: false,
         metadata_signed: false,
-        digest_method: RubySaml::XML::Crypto::SHA256,
-        signature_method: RubySaml::XML::Crypto::RSA_SHA256,
+        digest_method: RubySaml::XML::SHA256,
+        signature_method: RubySaml::XML::RSA_SHA256,
         check_idp_cert_expiration: false,
         check_sp_cert_expiration: false,
         strict_audience_validation: false,
@@ -301,7 +301,7 @@ module RubySaml
       key_alg = 'ECDSA' if key_alg.casecmp('EC') == 0
 
       begin
-        RubySaml::XML::Crypto.const_get("#{key_alg}_#{hash_alg}".upcase)
+        RubySaml::XML.const_get("#{key_alg}_#{hash_alg}".upcase)
       rescue NameError
         raise ArgumentError.new("Unsupported signature method#{" for #{key_alg_real} key" if key_alg_real}: #{sig_alg}")
       end
@@ -313,7 +313,7 @@ module RubySaml
       alg = digest_alg.to_s.match(/(?:\A|#)(sha\d+)\z/i)[1]
 
       begin
-        RubySaml::XML::Crypto.const_get(alg.upcase)
+        RubySaml::XML.const_get(alg.upcase)
       rescue NameError
         raise ArgumentError.new("Unsupported digest method: #{digest_alg}")
       end

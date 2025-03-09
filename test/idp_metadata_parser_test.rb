@@ -157,27 +157,27 @@ class IdpMetadataParserTest < Minitest::Test
       settings = idp_metadata_parser.parse(idp_metadata, {
         :settings => {
           :security => {
-            :digest_method => RubySaml::XML::Crypto::SHA256,
-            :signature_method => RubySaml::XML::Crypto::RSA_SHA256
+            :digest_method => RubySaml::XML::SHA256,
+            :signature_method => RubySaml::XML::RSA_SHA256
           }
         }
       })
       assert_equal "C4:C6:BD:41:EC:AD:57:97:CE:7B:7D:80:06:C3:E4:30:53:29:02:0B:DD:2D:47:02:9E:BD:85:AD:93:02:45:21", settings.idp_cert_fingerprint
-      assert_equal RubySaml::XML::Crypto::SHA256, settings.get_sp_digest_method
-      assert_equal RubySaml::XML::Crypto::RSA_SHA256, settings.get_sp_signature_method
+      assert_equal RubySaml::XML::SHA256, settings.get_sp_digest_method
+      assert_equal RubySaml::XML::RSA_SHA256, settings.get_sp_signature_method
     end
 
     it "merges results into given settings object" do
       settings = RubySaml::Settings.new(:security => {
-        :digest_method => RubySaml::XML::Crypto::SHA256,
-        :signature_method => RubySaml::XML::Crypto::RSA_SHA256
+        :digest_method => RubySaml::XML::SHA256,
+        :signature_method => RubySaml::XML::RSA_SHA256
       })
 
       RubySaml::IdpMetadataParser.new.parse(idp_metadata_descriptor, :settings => settings)
 
       assert_equal "C4:C6:BD:41:EC:AD:57:97:CE:7B:7D:80:06:C3:E4:30:53:29:02:0B:DD:2D:47:02:9E:BD:85:AD:93:02:45:21", settings.idp_cert_fingerprint
-      assert_equal RubySaml::XML::Crypto::SHA256, settings.get_sp_digest_method
-      assert_equal RubySaml::XML::Crypto::RSA_SHA256, settings.get_sp_signature_method
+      assert_equal RubySaml::XML::SHA256, settings.get_sp_digest_method
+      assert_equal RubySaml::XML::RSA_SHA256, settings.get_sp_signature_method
     end
   end
 
@@ -256,8 +256,8 @@ class IdpMetadataParserTest < Minitest::Test
       parsed_metadata = idp_metadata_parser.parse_to_hash(idp_metadata, {
         :settings => {
           :security => {
-            :digest_method => RubySaml::XML::Crypto::SHA256,
-            :signature_method => RubySaml::XML::Crypto::RSA_SHA256
+            :digest_method => RubySaml::XML::SHA256,
+            :signature_method => RubySaml::XML::RSA_SHA256
           }
         }
       })

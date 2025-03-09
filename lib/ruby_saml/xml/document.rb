@@ -7,25 +7,25 @@ module RubySaml
     class Document < BaseDocument
       INC_PREFIX_LIST = '#default samlp saml ds xs xsi md'
 
-      # @deprecated Constants moved to Crypto module
-      RSA_SHA1      = RubySaml::XML::Crypto::RSA_SHA1
-      RSA_SHA224    = RubySaml::XML::Crypto::RSA_SHA224
-      RSA_SHA256    = RubySaml::XML::Crypto::RSA_SHA256
-      RSA_SHA384    = RubySaml::XML::Crypto::RSA_SHA384
-      RSA_SHA512    = RubySaml::XML::Crypto::RSA_SHA512
-      DSA_SHA1      = RubySaml::XML::Crypto::DSA_SHA1
-      DSA_SHA256    = RubySaml::XML::Crypto::DSA_SHA256
-      ECDSA_SHA1    = RubySaml::XML::Crypto::ECDSA_SHA1
-      ECDSA_SHA224  = RubySaml::XML::Crypto::ECDSA_SHA224
-      ECDSA_SHA256  = RubySaml::XML::Crypto::ECDSA_SHA256
-      ECDSA_SHA384  = RubySaml::XML::Crypto::ECDSA_SHA384
-      ECDSA_SHA512  = RubySaml::XML::Crypto::ECDSA_SHA512
-      SHA1          = RubySaml::XML::Crypto::SHA1
-      SHA224        = RubySaml::XML::Crypto::SHA224
-      SHA256        = RubySaml::XML::Crypto::SHA256
-      SHA384        = RubySaml::XML::Crypto::SHA384
-      SHA512        = RubySaml::XML::Crypto::SHA512
-      ENVELOPED_SIG = RubySaml::XML::Crypto::ENVELOPED_SIG
+      # @deprecated Constants moved to RubySaml::XML module
+      RSA_SHA1      = RubySaml::XML::RSA_SHA1
+      RSA_SHA224    = RubySaml::XML::RSA_SHA224
+      RSA_SHA256    = RubySaml::XML::RSA_SHA256
+      RSA_SHA384    = RubySaml::XML::RSA_SHA384
+      RSA_SHA512    = RubySaml::XML::RSA_SHA512
+      DSA_SHA1      = RubySaml::XML::DSA_SHA1
+      DSA_SHA256    = RubySaml::XML::DSA_SHA256
+      ECDSA_SHA1    = RubySaml::XML::ECDSA_SHA1
+      ECDSA_SHA224  = RubySaml::XML::ECDSA_SHA224
+      ECDSA_SHA256  = RubySaml::XML::ECDSA_SHA256
+      ECDSA_SHA384  = RubySaml::XML::ECDSA_SHA384
+      ECDSA_SHA512  = RubySaml::XML::ECDSA_SHA512
+      SHA1          = RubySaml::XML::SHA1
+      SHA224        = RubySaml::XML::SHA224
+      SHA256        = RubySaml::XML::SHA256
+      SHA384        = RubySaml::XML::SHA384
+      SHA512        = RubySaml::XML::SHA512
+      ENVELOPED_SIG = RubySaml::XML::ENVELOPED_SIG
 
       # <Signature>
       #   <SignedInfo>
@@ -42,7 +42,7 @@ module RubySaml
       #   <KeyInfo />
       #   <Object />
       # </Signature>
-      def sign_document(private_key, certificate, signature_method = RubySaml::XML::Crypto::RSA_SHA256, digest_method = RubySaml::XML::Crypto::SHA256)
+      def sign_document(private_key, certificate, signature_method = RubySaml::XML::RSA_SHA256, digest_method = RubySaml::XML::SHA256)
         signature_element = build_signature_element(private_key, certificate, signature_method, digest_method)
         signature_element = convert_nokogiri_to_rexml(signature_element)
         issuer_element = elements['//saml:Issuer']
@@ -65,16 +65,16 @@ module RubySaml
 
         # Build the Signature element
         signature_element = Nokogiri::XML::Builder.new do |xml|
-          xml['ds'].Signature('xmlns:ds' => RubySaml::XML::Crypto::DSIG) do
+          xml['ds'].Signature('xmlns:ds' => RubySaml::XML::DSIG) do
             xml['ds'].SignedInfo do
-              xml['ds'].CanonicalizationMethod(Algorithm: RubySaml::XML::Crypto::C14N)
+              xml['ds'].CanonicalizationMethod(Algorithm: RubySaml::XML::C14N)
               xml['ds'].SignatureMethod(Algorithm: signature_method)
               xml['ds'].Reference(URI: "##{noko.root.attr('ID')}") do
                 xml['ds'].Transforms do
-                  xml['ds'].Transform(Algorithm: RubySaml::XML::Crypto::ENVELOPED_SIG)
-                  xml['ds'].Transform(Algorithm: RubySaml::XML::Crypto::C14N) do
+                  xml['ds'].Transform(Algorithm: RubySaml::XML::ENVELOPED_SIG)
+                  xml['ds'].Transform(Algorithm: RubySaml::XML::C14N) do
                     xml['ec'].InclusiveNamespaces(
-                      'xmlns:ec' => RubySaml::XML::Crypto::C14N,
+                      'xmlns:ec' => RubySaml::XML::C14N,
                       PrefixList: INC_PREFIX_LIST
                     )
                   end
@@ -93,8 +93,8 @@ module RubySaml
         end.doc.root
 
         # Set the signature value
-        signed_info_element = signature_element.at_xpath('//ds:SignedInfo', 'ds' => RubySaml::XML::Crypto::DSIG)
-        sig_value_element = signature_element.at_xpath('//ds:SignatureValue', 'ds' => RubySaml::XML::Crypto::DSIG)
+        signed_info_element = signature_element.at_xpath('//ds:SignedInfo', 'ds' => RubySaml::XML::DSIG)
+        sig_value_element = signature_element.at_xpath('//ds:SignatureValue', 'ds' => RubySaml::XML::DSIG)
         sig_value_element.content = signature_value(signed_info_element, private_key, signature_method)
 
         signature_element
@@ -102,16 +102,16 @@ module RubySaml
 
       def digest_value(document, digest_method)
         inclusive_namespaces = INC_PREFIX_LIST.split
-        canon_algorithm = RubySaml::XML::Crypto.canon_algorithm(RubySaml::XML::Crypto::C14N)
-        hash_algorithm = RubySaml::XML::Crypto.hash_algorithm(digest_method)
+        canon_algorithm = RubySaml::XML.canon_algorithm(RubySaml::XML::C14N)
+        hash_algorithm = RubySaml::XML.hash_algorithm(digest_method)
 
         canon_doc = document.canonicalize(canon_algorithm, inclusive_namespaces)
         Base64.encode64(hash_algorithm.digest(canon_doc)).strip
       end
 
       def signature_value(signed_info_element, private_key, signature_method)
-        canon_algorithm = RubySaml::XML::Crypto.canon_algorithm(RubySaml::XML::Crypto::C14N)
-        hash_algorithm = RubySaml::XML::Crypto.hash_algorithm(signature_method).new
+        canon_algorithm = RubySaml::XML.canon_algorithm(RubySaml::XML::C14N)
+        hash_algorithm = RubySaml::XML.hash_algorithm(signature_method).new
 
         canon_string = signed_info_element.canonicalize(canon_algorithm)
         Base64.encode64(private_key.sign(hash_algorithm, canon_string)).delete("\n")

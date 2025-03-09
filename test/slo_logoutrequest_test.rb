@@ -59,12 +59,12 @@ class RubySamlTest < Minitest::Test
         settings.certificate = ruby_saml_cert_text
         settings.private_key = ruby_saml_key_text
         settings.idp_cert = ruby_saml_cert_text
-        settings.security[:signature_method] = RubySaml::XML::Crypto::RSA_SHA1
+        settings.security[:signature_method] = RubySaml::XML::RSA_SHA1
         params = {}
         params['SAMLRequest'] = logout_request_deflated_base64
         params['RelayState'] = 'http://invalid.example.com'
         params['Signature'] = 'invalid_signature'
-        params['SigAlg'] = RubySaml::XML::Crypto::RSA_SHA1
+        params['SigAlg'] = RubySaml::XML::RSA_SHA1
         options = {}
         options[:get_params] = params
 
@@ -394,7 +394,7 @@ class RubySamlTest < Minitest::Test
           assert_equal(CGI.unescape(query), CGI.unescape(original_query))
 
           # Make normalised signature based on our modified params.
-          sign_algorithm = RubySaml::XML::Crypto.hash_algorithm(settings.get_sp_signature_method)
+          sign_algorithm = RubySaml::XML.hash_algorithm(settings.get_sp_signature_method)
           signature = settings.get_sp_signing_key.sign(sign_algorithm.new, query)
 
           params['Signature'] = Base64.encode64(signature).gsub(/\n/, "")
@@ -431,7 +431,7 @@ class RubySamlTest < Minitest::Test
           assert_equal(CGI.unescape(query), CGI.unescape(original_query))
 
           # Make normalised signature based on our modified params.
-          sign_algorithm = RubySaml::XML::Crypto.hash_algorithm(settings.get_sp_signature_method)
+          sign_algorithm = RubySaml::XML.hash_algorithm(settings.get_sp_signature_method)
           signature = settings.get_sp_signing_key.sign(sign_algorithm.new, query)
           params['Signature'] = Base64.encode64(signature).gsub(/\n/, "")
 
@@ -465,7 +465,7 @@ class RubySamlTest < Minitest::Test
           }
           query = "SAMLRequest=#{params['SAMLRequest']}&SigAlg=#{params['SigAlg']}"
           # Make normalised signature based on our modified params.
-          sign_algorithm = RubySaml::XML::Crypto.hash_algorithm(settings.get_sp_signature_method)
+          sign_algorithm = RubySaml::XML.hash_algorithm(settings.get_sp_signature_method)
           signature = settings.get_sp_signing_key.sign(sign_algorithm.new, query)
           params['Signature'] = downcased_escape(Base64.encode64(signature).gsub(/\n/, ""))
 

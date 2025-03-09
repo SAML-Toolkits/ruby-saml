@@ -7,7 +7,6 @@ require 'nokogiri'
 require 'openssl'
 require 'digest/sha1'
 require 'digest/sha2'
-require 'ruby_saml/xml/crypto'
 
 module RubySaml
   module XML
@@ -15,21 +14,19 @@ module RubySaml
       # TODO: This affects the global state
       REXML::Security.entity_expansion_limit = 0
 
-      # @deprecated Constants moved to Crypto module
-      C14N = RubySaml::XML::Crypto::C14N
-      DSIG = RubySaml::XML::Crypto::DSIG
-
-      NOKOGIRI_OPTIONS = Nokogiri::XML::ParseOptions::STRICT |
-                         Nokogiri::XML::ParseOptions::NONET
+      # @deprecated Constants moved to RubySaml::XML module
+      C14N = RubySaml::XML::C14N
+      DSIG = RubySaml::XML::DSIG
+      NOKOGIRI_OPTIONS = RubySaml::XML::NOKOGIRI_OPTIONS
 
       # @deprecated Remove in v2.1.0
       def canon_algorithm(algorithm)
-        RubySaml::XML::Crypto.canon_algorithm(algorithm)
+        RubySaml::XML.canon_algorithm(algorithm)
       end
 
       # @deprecated Remove in v2.1.0
       def algorithm(algorithm)
-        RubySaml::XML::Crypto.hash_algorithm(algorithm)
+        RubySaml::XML.hash_algorithm(algorithm)
       end
     end
   end
