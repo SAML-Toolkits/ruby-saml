@@ -14,7 +14,7 @@ module RubySaml
       # TODO: This affects the global state
       REXML::Security.entity_expansion_limit = 0
 
-      # @deprecated Constants moved to Crypto module
+      # @deprecated Constants moved to RubySaml::XML module
       C14N = RubySaml::XML::C14N
       DSIG = RubySaml::XML::DSIG
       NOKOGIRI_OPTIONS = RubySaml::XML::NOKOGIRI_OPTIONS

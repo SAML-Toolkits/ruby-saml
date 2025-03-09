@@ -7,7 +7,7 @@ module RubySaml
     class Document < BaseDocument
       INC_PREFIX_LIST = '#default samlp saml ds xs xsi md'
 
-      # @deprecated Constants moved to Crypto module
+      # @deprecated Constants moved to RubySaml::XML module
       RSA_SHA1      = RubySaml::XML::RSA_SHA1
       RSA_SHA224    = RubySaml::XML::RSA_SHA224
       RSA_SHA256    = RubySaml::XML::RSA_SHA256
