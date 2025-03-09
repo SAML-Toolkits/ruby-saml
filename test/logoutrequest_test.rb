@@ -198,7 +198,7 @@ class RequestTest < Minitest::Test
         unless sp_hash_algo == :sha256
           it 'using mixed signature and digest methods (signature SHA256)' do
             # RSA is ignored here; only the hash sp_key_algo is used
-            settings.security[:signature_method] = RubySaml::XML::Crypto::RSA_SHA256
+            settings.security[:signature_method] = RubySaml::XML::RSA_SHA256
             params = RubySaml::Logoutrequest.new.create_params(settings)
             request_xml = Base64.decode64(params["SAMLRequest"])
 
@@ -208,7 +208,7 @@ class RequestTest < Minitest::Test
           end
 
           it 'using mixed signature and digest methods (digest SHA256)' do
-            settings.security[:digest_method] = RubySaml::XML::Crypto::SHA256
+            settings.security[:digest_method] = RubySaml::XML::SHA256
             params = RubySaml::Logoutrequest.new.create_params(settings)
             request_xml = Base64.decode64(params["SAMLRequest"])
 
@@ -288,13 +288,13 @@ class RequestTest < Minitest::Test
           query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
           query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
-          assert @cert.public_key.verify(RubySaml::XML::Crypto.hash_algorithm(params['SigAlg']).new, Base64.decode64(params['Signature']), query_string)
+          assert @cert.public_key.verify(RubySaml::XML.hash_algorithm(params['SigAlg']).new, Base64.decode64(params['Signature']), query_string)
         end
 
         unless sp_hash_algo == :sha256
           it 'using mixed signature and digest methods (signature SHA256)' do
             # RSA is ignored here; only the hash sp_key_algo is used
-            settings.security[:signature_method] = RubySaml::XML::Crypto::RSA_SHA256
+            settings.security[:signature_method] = RubySaml::XML::RSA_SHA256
             params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
 
             assert params['SAMLRequest']
@@ -306,11 +306,11 @@ class RequestTest < Minitest::Test
             query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
             query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
-            assert @cert.public_key.verify(RubySaml::XML::Crypto.hash_algorithm(params['SigAlg']).new, Base64.decode64(params['Signature']), query_string)
+            assert @cert.public_key.verify(RubySaml::XML.hash_algorithm(params['SigAlg']).new, Base64.decode64(params['Signature']), query_string)
           end
 
           it 'using mixed signature and digest methods (digest SHA256)' do
-            settings.security[:digest_method] = RubySaml::XML::Crypto::SHA256
+            settings.security[:digest_method] = RubySaml::XML::SHA256
             params = RubySaml::Logoutrequest.new.create_params(settings, :RelayState => 'http://example.com')
 
             assert params['SAMLRequest']
@@ -322,7 +322,7 @@ class RequestTest < Minitest::Test
             query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
             query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
-            assert @cert.public_key.verify(RubySaml::XML::Crypto.hash_algorithm(params['SigAlg']).new, Base64.decode64(params['Signature']), query_string)
+            assert @cert.public_key.verify(RubySaml::XML.hash_algorithm(params['SigAlg']).new, Base64.decode64(params['Signature']), query_string)
           end
         end
 
@@ -347,7 +347,7 @@ class RequestTest < Minitest::Test
           query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
           query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
-          assert cert.public_key.verify(RubySaml::XML::Crypto.hash_algorithm(params['SigAlg']).new, Base64.decode64(params['Signature']), query_string)
+          assert cert.public_key.verify(RubySaml::XML.hash_algorithm(params['SigAlg']).new, Base64.decode64(params['Signature']), query_string)
         end
 
         it "raises error when no valid certs and :check_sp_cert_expiration is true" do

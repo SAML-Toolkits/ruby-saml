@@ -313,7 +313,7 @@ class RubySamlTest < Minitest::Test
             assert_equal(CGI.unescape(query), CGI.unescape(original_query))
 
             # Make normalised signature based on our modified params.
-            hash_algorithm = RubySaml::XML::Crypto.hash_algorithm(settings.security[:signature_method])
+            hash_algorithm = RubySaml::XML.hash_algorithm(settings.security[:signature_method])
             signature = settings.get_sp_signing_key.sign(hash_algorithm.new, query)
             params['Signature'] = Base64.encode64(signature).gsub(/\n/, "")
             # Re-create the Logoutresponse based on these modified parameters,
@@ -349,7 +349,7 @@ class RubySamlTest < Minitest::Test
             assert_equal(CGI.unescape(query), CGI.unescape(original_query))
 
             # Make normalised signature based on our modified params.
-            hash_algorithm = RubySaml::XML::Crypto.hash_algorithm(settings.security[:signature_method])
+            hash_algorithm = RubySaml::XML.hash_algorithm(settings.security[:signature_method])
             signature = settings.get_sp_signing_key.sign(hash_algorithm.new, query)
             params['Signature'] = Base64.encode64(signature).gsub(/\n/, "")
 

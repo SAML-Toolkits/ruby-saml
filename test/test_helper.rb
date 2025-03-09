@@ -102,11 +102,11 @@ class Minitest::Test
 
   def signature_method(algorithm, digest = :sha256)
     algorithm = :ecdsa if algorithm == :ec
-    RubySaml::XML::Crypto.const_get("#{algorithm}_#{digest}".upcase)
+    RubySaml::XML.const_get("#{algorithm}_#{digest}".upcase)
   end
 
   def digest_method(digest = :sha256)
-    RubySaml::XML::Crypto.const_get(digest.upcase)
+    RubySaml::XML.const_get(digest.upcase)
   end
 
   def signature_value_matcher

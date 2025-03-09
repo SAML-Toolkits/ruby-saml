@@ -32,13 +32,13 @@ as before. This alias will be removed in RubySaml version `2.1.0`.
 
 ### Root "XMLSecurity" namespace changed to "RubySaml::XML"
 
-RubySaml version `2.0.0` changes the namespace `RubySaml::XML::` to `RubySaml::XML::`. Please search your
-codebase for `RubySaml::XML::` and replace it as appropriate. In addition, you must replace direct usage of
+RubySaml version `2.0.0` changes the namespace `XMLSecurity::` to `RubySaml::XML::`. Please search your
+codebase for `XMLSecurity::` and replace it as appropriate. In addition, you must replace direct usage of
 `require 'xml_security'` with `require 'ruby_saml/xml'`.
 
-For backward compatibility, the alias `XMLSecurity = RubySaml::XML` has been set, so `RubySaml::XML::` will still work
-as before. In addition, a shim file has been added so that `require 'xml_security'` continues to work.
-These aliases will be removed in RubySaml version `2.1.0`.
+For backward compatibility, if the constant `XMLSecurity` is not already defined, it will be aliased
+to `RubySaml::XML` has been set. In addition, a shim file has been added so that `require 'xml_security'`
+continues to work. These aliases will be removed in RubySaml version `2.1.0`.
 
 ### Security: Change default hashing algorithm to SHA-256 (was SHA-1)
 
@@ -54,9 +54,9 @@ you may set `RubySaml::Settings` as follows:
 
 ```ruby
 # Preserve RubySaml 1.x insecure SHA-1 behavior
-settings.idp_cert_fingerprint_algorithm = RubySaml::XML::Crypto::SHA1
-settings.security[:digest_method] = RubySaml::XML::Crypto::SHA1
-settings.security[:signature_method] = RubySaml::XML::Crypto::RSA_SHA1
+settings.idp_cert_fingerprint_algorithm = RubySaml::XML::SHA1
+settings.security[:digest_method] = RubySaml::XML::SHA1
+settings.security[:signature_method] = RubySaml::XML::RSA_SHA1
 ```
 
 ### Behavior change of double_quote_xml_attribute_values setting

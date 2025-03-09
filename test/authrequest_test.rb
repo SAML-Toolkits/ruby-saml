@@ -329,7 +329,7 @@ class AuthrequestTest < Minitest::Test
         unless sp_hash_algo == :sha256
           it 'using mixed signature and digest methods (signature SHA256)' do
             # RSA is ignored here; only the hash sp_key_algo is used
-            settings.security[:signature_method] = RubySaml::XML::Crypto::RSA_SHA256
+            settings.security[:signature_method] = RubySaml::XML::RSA_SHA256
             params = RubySaml::Authrequest.new.create_params(settings)
             request_xml = Base64.decode64(params["SAMLRequest"])
 
@@ -339,7 +339,7 @@ class AuthrequestTest < Minitest::Test
           end
 
           it 'using mixed signature and digest methods (digest SHA256)' do
-            settings.security[:digest_method] = RubySaml::XML::Crypto::SHA256
+            settings.security[:digest_method] = RubySaml::XML::SHA256
             params = RubySaml::Authrequest.new.create_params(settings)
             request_xml = Base64.decode64(params["SAMLRequest"])
 
@@ -422,13 +422,13 @@ class AuthrequestTest < Minitest::Test
           query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
           query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
-          assert @cert.public_key.verify(RubySaml::XML::Crypto.hash_algorithm(params['SigAlg']).new, Base64.decode64(params['Signature']), query_string)
+          assert @cert.public_key.verify(RubySaml::XML.hash_algorithm(params['SigAlg']).new, Base64.decode64(params['Signature']), query_string)
         end
 
         unless sp_hash_algo == :sha256
           it 'using mixed signature and digest methods (signature SHA256)' do
             # RSA is ignored here; only the hash sp_key_algo is used
-            settings.security[:signature_method] = RubySaml::XML::Crypto::RSA_SHA256
+            settings.security[:signature_method] = RubySaml::XML::RSA_SHA256
             params = RubySaml::Authrequest.new.create_params(settings, :RelayState => 'http://example.com')
 
             assert params['SAMLRequest']
@@ -440,11 +440,11 @@ class AuthrequestTest < Minitest::Test
             query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
             query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
-            assert @cert.public_key.verify(RubySaml::XML::Crypto.hash_algorithm(params['SigAlg']).new, Base64.decode64(params['Signature']), query_string)
+            assert @cert.public_key.verify(RubySaml::XML.hash_algorithm(params['SigAlg']).new, Base64.decode64(params['Signature']), query_string)
           end
 
           it 'using mixed signature and digest methods (digest SHA256)' do
-            settings.security[:digest_method] = RubySaml::XML::Crypto::SHA256
+            settings.security[:digest_method] = RubySaml::XML::SHA256
             params = RubySaml::Authrequest.new.create_params(settings, :RelayState => 'http://example.com')
 
             assert params['SAMLRequest']
@@ -456,12 +456,12 @@ class AuthrequestTest < Minitest::Test
             query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
             query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
-            assert @cert.public_key.verify(RubySaml::XML::Crypto.hash_algorithm(params['SigAlg']).new, Base64.decode64(params['Signature']), query_string)
+            assert @cert.public_key.verify(RubySaml::XML.hash_algorithm(params['SigAlg']).new, Base64.decode64(params['Signature']), query_string)
           end
         end
 
         it "create a signature parameter using the first certificate and key" do
-          settings.security[:signature_method] = RubySaml::XML::Crypto::RSA_SHA1
+          settings.security[:signature_method] = RubySaml::XML::RSA_SHA1
           settings.certificate = nil
           settings.private_key = nil
           cert, pkey = CertificateHelper.generate_pair(sp_key_algo)
@@ -482,7 +482,7 @@ class AuthrequestTest < Minitest::Test
           query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
           query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
-          signature_algorithm = RubySaml::XML::Crypto.hash_algorithm(params['SigAlg'])
+          signature_algorithm = RubySaml::XML.hash_algorithm(params['SigAlg'])
           assert_equal signature_algorithm, OpenSSL::Digest::SHA1
           assert cert.public_key.verify(signature_algorithm.new, Base64.decode64(params['Signature']), query_string)
         end

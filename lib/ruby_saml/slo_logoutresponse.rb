@@ -80,7 +80,7 @@ module RubySaml
           relay_state: relay_state,
           sig_alg: params['SigAlg']
         )
-        sign_algorithm = RubySaml::XML::Crypto.hash_algorithm(settings.get_sp_signature_method)
+        sign_algorithm = RubySaml::XML.hash_algorithm(settings.get_sp_signature_method)
         signature = sp_signing_key.sign(sign_algorithm.new, url_string)
         params['Signature'] = encode(signature)
       end
