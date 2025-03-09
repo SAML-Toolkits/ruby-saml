@@ -110,7 +110,6 @@ module RubySaml
 
       response_doc = RubySaml::XML::Document.new
       response_doc.context[:attribute_quote] = :quote
-      response_doc.uuid = uuid
 
       destination = settings.idp_slo_response_service_url || settings.idp_slo_service_url
 
