@@ -36,8 +36,8 @@ RubySaml version `2.0.0` changes the namespace `XMLSecurity::` to `RubySaml::XML
 codebase for `XMLSecurity::` and replace it as appropriate. In addition, you must replace direct usage of
 `require 'xml_security'` with `require 'ruby_saml/xml'`.
 
-For backward compatibility, if the constant `XMLSecurity` is not already defined, it will be aliased
-to `RubySaml::XML` has been set. In addition, a shim file has been added so that `require 'xml_security'`
+For backward compatibility, if the constant `XMLSecurity` is not already defined by another gem, it will
+be aliased to `RubySaml::XML`. In addition, a shim file has been added so that `require 'xml_security'`
 continues to work. These aliases will be removed in RubySaml version `2.1.0`.
 
 ### Security: Change default hashing algorithm to SHA-256 (was SHA-1)
