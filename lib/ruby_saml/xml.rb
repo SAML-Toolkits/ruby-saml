@@ -7,12 +7,12 @@ require 'digest/sha1'
 require 'digest/sha2'
 
 module RubySaml
-  # Utility module for working with XML.
+  # XML Signature and Canonicalization algorithms.
+  # @api private
   module XML
     extend self
 
-    # XML constants
-    #
+    # XML namespaces
     # @api private
     C14N          = 'http://www.w3.org/2001/10/xml-exc-c14n#'
     DSIG          = 'http://www.w3.org/2000/09/xmldsig#'
@@ -38,8 +38,7 @@ module RubySaml
     NOKOGIRI_OPTIONS = Nokogiri::XML::ParseOptions::STRICT |
                        Nokogiri::XML::ParseOptions::NONET
 
-    # Find XML canonicalization algorithm
-    #
+    # Lookup XML canonicalization algorithm
     # @api private
     def canon_algorithm(element, default: true)
       case get_algorithm_attr(element)
@@ -54,8 +53,7 @@ module RubySaml
       end
     end
 
-    # Find XML signature algorithm
-    #
+    # Lookup XML signature algorithm
     # @api private
     def signature_algorithm(element)
       alg = get_algorithm_attr(element)
@@ -75,8 +73,7 @@ module RubySaml
       [key, hash_algorithm(hash_alg)]
     end
 
-    # Find XML digest hashing algorithm
-    #
+    # Lookup XML digest hashing algorithm
     # @api private
     def hash_algorithm(element)
       alg = get_algorithm_attr(element)
@@ -111,6 +108,4 @@ end
 require 'ruby_saml/xml/base_document'
 require 'ruby_saml/xml/document'
 require 'ruby_saml/xml/signed_document'
-
-# @deprecated This alias adds compatibility with v1.x and will be removed in v2.1.0
-XMLSecurity = RubySaml::XML unless defined?(XMLSecurity)
+require 'ruby_saml/xml/deprecated'

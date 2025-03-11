@@ -87,7 +87,7 @@ module RubySaml
 
       def validate_signature(base64_cert, soft = true)
         noko = Nokogiri::XML(to_s) do |config|
-          config.options = RubySaml::XML::BaseDocument::NOKOGIRI_OPTIONS
+          config.options = RubySaml::XML::NOKOGIRI_OPTIONS
         end
 
         # get signature node

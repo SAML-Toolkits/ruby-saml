@@ -178,46 +178,10 @@ Lint/UselessAssignment:
   Exclude:
     - 'lib/ruby_saml/slo_logoutrequest.rb'
 
-# Offense count: 42
-# Configuration parameters: AllowedMethods, AllowedPatterns, CountRepeatedAttributes.
-Metrics/AbcSize:
-  Max: 200
-
-# Offense count: 1
-# Configuration parameters: CountComments, CountAsOne, AllowedMethods, AllowedPatterns.
-# AllowedMethods: refine
-Metrics/BlockLength:
-  Max: 27
-
-# Offense count: 8
-# Configuration parameters: CountComments, CountAsOne.
-Metrics/ClassLength:
-  Max: 661
-
-# Offense count: 29
-# Configuration parameters: AllowedMethods, AllowedPatterns.
-Metrics/CyclomaticComplexity:
-  Max: 21
-
-# Offense count: 60
-# Configuration parameters: CountComments, CountAsOne, AllowedMethods, AllowedPatterns.
-Metrics/MethodLength:
-  Max: 77
-
-# Offense count: 1
-# Configuration parameters: CountComments, CountAsOne.
-Metrics/ModuleLength:
-  Max: 261
-
 # Offense count: 2
 # Configuration parameters: Max, CountKeywordArgs.
 Metrics/ParameterLists:
   MaxOptionalParameters: 4
-
-# Offense count: 25
-# Configuration parameters: AllowedMethods, AllowedPatterns.
-Metrics/PerceivedComplexity:
-  Max: 22
 
 # Offense count: 15
 Naming/AccessorMethodName:
@@ -359,7 +323,6 @@ Style/Documentation:
     - 'lib/ruby_saml/error_handling.rb'
     - 'lib/ruby_saml/idp_metadata_parser.rb'
     - 'lib/ruby_saml/logging.rb'
-    - 'lib/ruby_saml/xml/base_document.rb'
     - 'lib/ruby_saml/xml/document.rb'
     - 'lib/ruby_saml/xml/signed_document.rb'
 

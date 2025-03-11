@@ -7,26 +7,6 @@ module RubySaml
     class Document < BaseDocument
       INC_PREFIX_LIST = '#default samlp saml ds xs xsi md'
 
-      # @deprecated Constants moved to RubySaml::XML module
-      RSA_SHA1      = RubySaml::XML::RSA_SHA1
-      RSA_SHA224    = RubySaml::XML::RSA_SHA224
-      RSA_SHA256    = RubySaml::XML::RSA_SHA256
-      RSA_SHA384    = RubySaml::XML::RSA_SHA384
-      RSA_SHA512    = RubySaml::XML::RSA_SHA512
-      DSA_SHA1      = RubySaml::XML::DSA_SHA1
-      DSA_SHA256    = RubySaml::XML::DSA_SHA256
-      ECDSA_SHA1    = RubySaml::XML::ECDSA_SHA1
-      ECDSA_SHA224  = RubySaml::XML::ECDSA_SHA224
-      ECDSA_SHA256  = RubySaml::XML::ECDSA_SHA256
-      ECDSA_SHA384  = RubySaml::XML::ECDSA_SHA384
-      ECDSA_SHA512  = RubySaml::XML::ECDSA_SHA512
-      SHA1          = RubySaml::XML::SHA1
-      SHA224        = RubySaml::XML::SHA224
-      SHA256        = RubySaml::XML::SHA256
-      SHA384        = RubySaml::XML::SHA384
-      SHA512        = RubySaml::XML::SHA512
-      ENVELOPED_SIG = RubySaml::XML::ENVELOPED_SIG
-
       # <Signature>
       #   <SignedInfo>
       #     <CanonicalizationMethod />
@@ -60,7 +40,7 @@ module RubySaml
       def build_signature_element(private_key, certificate, signature_method, digest_method)
         # Parse the original document
         noko = Nokogiri::XML(to_s) do |config|
-          config.options = RubySaml::XML::BaseDocument::NOKOGIRI_OPTIONS
+          config.options = RubySaml::XML::NOKOGIRI_OPTIONS
         end
 
         # Build the Signature element
