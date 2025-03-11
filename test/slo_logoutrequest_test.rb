@@ -1,6 +1,7 @@
+# frozen_string_literal: true
+
 require_relative 'test_helper'
 require 'logout_responses/logoutresponse_fixtures'
-
 require 'ruby_saml/slo_logoutrequest'
 require 'timecop'
 

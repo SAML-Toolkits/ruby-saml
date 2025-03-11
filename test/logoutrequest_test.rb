@@ -1,5 +1,6 @@
-require_relative 'test_helper'
+# frozen_string_literal: true
 
+require_relative 'test_helper'
 require 'ruby_saml/logoutrequest'
 
 class RequestTest < Minitest::Test
