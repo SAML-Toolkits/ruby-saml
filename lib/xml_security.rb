@@ -6,4 +6,4 @@ RubySaml::Logging.deprecate 'Using `require "xml_security"` is deprecated and wi
                             'the modules in RubySaml::XML instead.'
 
 # @deprecated This file adds compatibility with v1.x and will be removed in v2.1.0
-require 'ruby_saml/xml/deprecated'
+require 'ruby_saml/xml'
