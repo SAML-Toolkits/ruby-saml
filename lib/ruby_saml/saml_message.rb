@@ -67,7 +67,7 @@ module RubySaml
     def valid_saml?(document, soft = true)
       begin
         xml = Nokogiri::XML(document.to_s) do |config|
-          config.options = RubySaml::XML::BaseDocument::NOKOGIRI_OPTIONS
+          config.options = RubySaml::XML::NOKOGIRI_OPTIONS
         end
       rescue StandardError => error
         return false if soft
