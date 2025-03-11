@@ -10,6 +10,7 @@ require 'digest/sha2'
 
 module RubySaml
   module XML
+    # @deprecated Will be removed soon.
     class BaseDocument < REXML::Document
       # TODO: This affects the global state
       REXML::Security.entity_expansion_limit = 0
