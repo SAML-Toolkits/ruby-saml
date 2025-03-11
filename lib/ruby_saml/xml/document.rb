@@ -3,6 +3,12 @@
 require 'rexml/document'
 require 'rexml/security'
 require 'rexml/xpath'
+require 'nokogiri'
+require 'openssl'
+require 'digest/sha1'
+require 'digest/sha2'
+
+REXML::Security.entity_expansion_limit = 0
 
 module RubySaml
   module XML

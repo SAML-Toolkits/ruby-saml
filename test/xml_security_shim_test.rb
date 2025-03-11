@@ -39,7 +39,7 @@ class XMLSecurityTest < Minitest::Test
   end
 
   def test_document_constants
-    assert_equal RubySaml::XML::DocumentSigner::INC_PREFIX_LIST, XMLSecurity::Document::INC_PREFIX_LIST
+    assert_equal RubySaml::XML::Document::INC_PREFIX_LIST, XMLSecurity::Document::INC_PREFIX_LIST
     assert_equal RubySaml::XML::RSA_SHA1, XMLSecurity::Document::RSA_SHA1
     assert_equal RubySaml::XML::RSA_SHA224, XMLSecurity::Document::RSA_SHA224
     assert_equal RubySaml::XML::RSA_SHA256, XMLSecurity::Document::RSA_SHA256
