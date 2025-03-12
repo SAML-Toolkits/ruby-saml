@@ -50,6 +50,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency('simplecov', '<0.22.0')
   if RUBY_VERSION < '2.4.1'
     s.add_development_dependency('simplecov-lcov', '<0.8.0')
+    s.add_development_dependency('term-ansicolor', '1.2.2')
   else
     s.add_development_dependency('simplecov-lcov', '>0.7.0')
   end
