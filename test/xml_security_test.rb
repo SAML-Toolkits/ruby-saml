@@ -387,9 +387,9 @@ class XmlSecurityTest < Minitest::Test
         let(:document) { OneLogin::RubySaml::Response.new(document_data) }
         let(:fingerprint) { '4b68c453c7d994aad9025c99d5efcf566287fe8d' }
 
-        it 'is valid, but fails to retrieve information' do
+        it 'is valid, but the unsigned information is ignored in favour of the signed information' do
           assert document.document.validate_document(fingerprint, true), 'Document should be valid'
-          assert document.name_id.nil?, 'Document should expose only signed, valid details'
+          assert_equal 'someone@example.org', document.name_id, 'Document should expose only signed, valid details'
         end
       end
     end
