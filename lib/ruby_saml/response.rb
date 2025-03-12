@@ -450,11 +450,12 @@ module RubySaml
     def validate_structure
       structure_error_msg = "Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd"
 
-      unless valid_saml?(document, soft, check_malformed_doc: check_malformed_doc_enabled?)
+      check_malformed_doc = check_malformed_doc_enabled?
+      unless valid_saml?(document, soft, check_malformed_doc: check_malformed_doc)
         return append_error(structure_error_msg)
       end
 
-      if decrypted_document && !valid_saml?(decrypted_document, soft, check_malformed_doc: check_malformed_doc_enabled?)
+      if decrypted_document && !valid_saml?(decrypted_document, soft, check_malformed_doc: check_malformed_doc)
         return append_error(structure_error_msg)
       end
 
@@ -1106,9 +1107,7 @@ module RubySaml
     end
 
     def check_malformed_doc_enabled?
-      default_value = RubySaml::Settings::DEFAULTS[:check_malformed_doc]
-
-      settings.nil? ? default_value : settings.check_malformed_doc
+      check_malformed_doc?(settings)
     end
   end
 end

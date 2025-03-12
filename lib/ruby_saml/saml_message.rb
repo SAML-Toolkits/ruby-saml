@@ -167,5 +167,11 @@ module RubySaml
     def deflate(inflated)
       Zlib::Deflate.deflate(inflated, Zlib::BEST_COMPRESSION)[2..-5]
     end
+
+    def check_malformed_doc?(settings)
+      default_value = RubySaml::Settings::DEFAULTS[:check_malformed_doc]
+
+      settings.nil? ? default_value : settings.check_malformed_doc
+    end
   end
 end
