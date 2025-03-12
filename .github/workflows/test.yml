@@ -1,0 +1,65 @@
+name: ruby-saml CI
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    name: Unit test
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-20.04
+          - macos-latest
+          - windows-latest
+        ruby-version:
+          - 2.1
+          - 2.2
+          - 2.3
+          - 2.4
+          - 2.5
+          - 2.6
+          - 2.7
+          - 3.0
+          - jruby-9.1
+          - jruby-9.2
+        exclude:
+          - os: macos-latest
+            ruby-version: 2.1
+          - os: macos-latest
+            ruby-version: 2.2
+          - os: macos-latest
+            ruby-version: 2.3
+          - os: macos-latest
+            ruby-version: 2.4
+          - os: macos-latest
+            ruby-version: 2.5
+          - os: macos-latest
+            ruby-version: jruby-9.1
+          - os: macos-latest
+            ruby-version: jruby-9.2
+          - os: windows-latest
+            ruby-version: 2.1
+          - os: windows-latest
+            ruby-version: jruby-9.1
+          - os: windows-latest
+            ruby-version: jruby-9.2
+          - os: windows-latest
+            ruby-version: jruby-9.3
+          - os: windows-latest
+            ruby-version: jruby-9.4
+          - os: windows-latest
+            ruby-version: truffleruby
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Ruby ${{ matrix.ruby-version }}
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+
+      - name: Install dependencies
+        run: bundle install
+
+      - name: Run tests
+        run: bundle exec rake
