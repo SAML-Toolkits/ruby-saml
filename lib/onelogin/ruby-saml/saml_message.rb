@@ -97,10 +97,16 @@ module OneLogin
 
         decoded = decode(saml)
         begin
-          inflate(decoded)
+            message = inflate(decoded)
         rescue
-          decoded
+            message = decoded
         end
+
+        if message.bytesize > MAX_BYTE_SIZE
+          raise ValidationError.new("Encoded SAML Message exceeds " + MAX_BYTE_SIZE.to_s + " bytes, so was rejected")
+        end
+
+        message
       end
 
       # Deflate, base64 encode and url-encode a SAML Message (To be used in the HTTP-redirect binding)
