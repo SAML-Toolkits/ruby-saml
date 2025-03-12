@@ -1,4 +1,7 @@
 # RubySaml Changelog
+### 1.12.4 (Mar 12, 2025)
+* Fix vulnerabilities: CVE-2025-25291, CVE-2025-25292: SAML authentication bypass via Signature Wrapping attack allowed due parser differential.
+* Fix vulnerability: CVE-2025-25293: Potential DOS abusing of compressed messages.
 
 ### 1.12.3 (Sep 10, 2024)
 * Fix for critical vulnerability CVE-2024-45409: SAML authentication bypass via Incorrect XPath selector
