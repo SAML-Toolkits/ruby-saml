@@ -1,6 +1,6 @@
 # Ruby SAML Migration Guide
 
-## Updating from 1.17.x to 2.0.0
+## Updating from 1.x to 2.0.0
 
 **IMPORTANT: Please read this section carefully as it contains breaking changes!**
 
@@ -32,8 +32,8 @@ as before. This alias will be removed in RubySaml version `2.1.0`.
 
 ### Root "XMLSecurity" namespace changed to "RubySaml::XML"
 
-RubySaml version `2.0.0` changes the namespace `XMLSecurity::` to `RubySaml::XML::`. Please search your
-codebase for `XMLSecurity::` and replace it as appropriate. In addition, you must replace direct usage of
+RubySaml version `2.0.0` changes the namespace `::XMLSecurity` to `::RubySaml::XML`. Please search your
+codebase for `XMLSecurity` and replace it as appropriate. In addition, you must replace direct usage of
 `require 'xml_security'` with `require 'ruby_saml/xml'`.
 
 For backward compatibility, if the constant `XMLSecurity` is not already defined by another gem, it will
@@ -174,6 +174,16 @@ and `#format_private_key` methods. Specifically:
   stripped out.
 - Case 7: If no valid certificates are found, the entire original string will be returned.
 
+## Updating from 1.17.x to 1.18.0
+
+Version `1.18.0` changes the way the toolkit validates SAML signatures. There is a new order
+how validation happens in the toolkit and also the toolkit by default will check malformed doc
+when parsing a SAML Message (`settings.check_malformed_doc`).
+
+The SignedDocument class defined at xml_security.rb experienced several changes.
+We don't expect compatibilty issues if you use the main methods offered by ruby-saml, but if
+you use a fork or customized usage, is possible that you need to adapt your code.
+
 ## Updating from 1.12.x to 1.13.0
 
 Version `1.13.0` adds `settings.idp_sso_service_binding` and `settings.idp_slo_service_binding`, and
@@ -247,7 +257,7 @@ The new preferred way to provide _SAMLResponse_, _RelayState_, and _SigAlg_ is v
 # In this example `query_params` is assumed to contain decoded query parameters,
 # and `raw_query_params` is assumed to contain encoded query parameters as sent by the IDP.
 settings = {
-  settings.security[:signature_method] = RubySaml::XML::Document::RSA_SHA1
+  settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA1
   settings.soft = false
 }
 options = {
@@ -260,7 +270,7 @@ options = {
     "RelayState" => raw_query_params["RelayState"],
   },
 }
-slo_logout_request = RubySaml::SloLogoutrequest.new(query_params["SAMLRequest"], settings, options)
+slo_logout_request = OneLogin::RubySaml::SloLogoutrequest.new(query_params["SAMLRequest"], settings, options)
 raise "Invalid Logout Request" unless slo_logout_request.is_valid?
 ```
 

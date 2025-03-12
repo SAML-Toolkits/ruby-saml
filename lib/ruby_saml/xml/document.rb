@@ -58,10 +58,7 @@ module RubySaml
       private
 
       def build_signature_element(private_key, certificate, signature_method, digest_method)
-        # Parse the original document
-        noko = Nokogiri::XML(to_s) do |config|
-          config.options = RubySaml::XML::BaseDocument::NOKOGIRI_OPTIONS
-        end
+        noko = RubySaml::XML.safe_load_nokogiri(to_s)
 
         # Build the Signature element
         signature_element = Nokogiri::XML::Builder.new do |xml|

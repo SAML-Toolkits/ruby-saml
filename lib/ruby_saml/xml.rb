@@ -7,12 +7,12 @@ require 'digest/sha1'
 require 'digest/sha2'
 
 module RubySaml
-  # Utility module for working with XML.
+  # XML Signature and Canonicalization algorithms.
+  # @api private
   module XML
     extend self
 
-    # XML constants
-    #
+    # XML namespaces
     # @api private
     C14N          = 'http://www.w3.org/2001/10/xml-exc-c14n#'
     DSIG          = 'http://www.w3.org/2000/09/xmldsig#'
@@ -38,8 +38,31 @@ module RubySaml
     NOKOGIRI_OPTIONS = Nokogiri::XML::ParseOptions::STRICT |
                        Nokogiri::XML::ParseOptions::NONET
 
-    # Find XML canonicalization algorithm
-    #
+    # Safely load the SAML Message XML.
+    # @param document [REXML::Document] The message to be loaded
+    # @param check_malformed_doc [Boolean] check_malformed_doc Enable or Disable the check for malformed XML
+    # @return [Nokogiri::XML] The nokogiri document
+    # @raise [ValidationError] If there was a problem loading the SAML Message XML
+    def self.safe_load_nokogiri(document, check_malformed_doc: true)
+      doc_str = document.to_s
+      raise StandardError.new('Dangerous XML detected. No Doctype nodes allowed') if doc_str.include?('<!DOCTYPE')
+
+      begin
+        xml = Nokogiri::XML(doc_str) do |config|
+          config.options = NOKOGIRI_OPTIONS
+        end
+      rescue StandardError => e
+        raise StandardError.new(e.message)
+      end
+
+      raise StandardError.new('Dangerous XML detected. No Doctype nodes allowed') if xml.internal_subset
+
+      raise StandardError.new("There were XML errors when parsing: #{xml.errors}") if check_malformed_doc && !xml.errors.empty?
+
+      xml
+    end
+
+    # Lookup XML canonicalization algorithm.
     # @api private
     def canon_algorithm(element, default: true)
       case get_algorithm_attr(element)
@@ -54,8 +77,7 @@ module RubySaml
       end
     end
 
-    # Find XML signature algorithm
-    #
+    # Lookup XML signature algorithm.
     # @api private
     def signature_algorithm(element)
       alg = get_algorithm_attr(element)
@@ -75,8 +97,7 @@ module RubySaml
       [key, hash_algorithm(hash_alg)]
     end
 
-    # Find XML digest hashing algorithm
-    #
+    # Lookup XML digest hashing algorithm.
     # @api private
     def hash_algorithm(element)
       alg = get_algorithm_attr(element)

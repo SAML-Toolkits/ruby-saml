@@ -9,8 +9,9 @@ Ruby SAML minor versions may introduce breaking changes. Please read
 
 ## Vulnerability Notice
 
-**There is a critical vulnerability affecting ruby-saml < 1.17.0 (CVE-2024-45409).
-Make sure you are using an updated version. (1.12.3 is safe)**
+There are **critical vulnerabilities** affecting ruby-saml < 1.18.0 which allow
+SAML authentication bypass (CVE-2024-45409, CVE-2025-25291, CVE-2025-25292, CVE-2025-25293).
+**Please upgrade to a fixed version (1.18.0 or 2.0.0) as soon as possible.**
 
 ## Overview
 
@@ -589,7 +590,7 @@ settings.security[:digest_method]    = RubySaml::XML::SHA1
 settings.security[:signature_method] = RubySaml::XML::RSA_SHA1
 ```
 
-#### Signing SP Metadata
+### Signing SP Metadata
 
 You may add a `<ds:Signature>` digital signature element to your SP Metadata XML using the following setting:
 
@@ -600,7 +601,7 @@ settings.private_key = "PRIVATE KEY TEXT WITH BEGIN/END HEADER AND FOOTER"
 settings.security[:metadata_signed] = true # Enable signature on Metadata
 ```
 
-#### Signing SP SAML Messages
+### Signing SP SAML Messages
 
 Ruby SAML supports SAML request signing. You (the SP) will sign the
 request/responses with your private key. The IdP will then validate the signature
@@ -627,7 +628,7 @@ Note that the RelayState parameter is used when creating the Signature on the `H
 Remember to provide it to the Signature builder if you are sending a `GET RelayState` parameter or the
 signature validation process will fail at the IdP.
 
-#### Decrypting IdP SAML Assertions
+### Decrypting IdP SAML Assertions
 
 Ruby SAML supports EncryptedAssertion. The IdP will encrypt the Assertion with the
 public cert of the SP. The SP will decrypt the EncryptedAssertion with its private key.
@@ -642,7 +643,7 @@ settings.private_key = "PRIVATE KEY TEXT WITH BEGIN/END HEADER AND FOOTER"
 settings.security[:want_assertions_encrypted] = true # Invalidate SAML messages without an EncryptedAssertion
 ```
 
-#### Verifying Signature on IdP Assertions
+### Verifying Signature on IdP Assertions
 
 You may require the IdP to sign its SAML Assertions using the following setting.
 With will add `<md:SPSSODescriptor WantAssertionsSigned="true">` to your SP Metadata XML.
@@ -653,7 +654,7 @@ present in the IdP's metadata.
 settings.security[:want_assertions_signed]  = true  # Require the IdP to sign its SAML Assertions
 ```
 
-#### Certificate and Signature Validation
+### Certificate and Signature Validation
 
 You may require SP and IdP certificates to be non-expired using the following settings:
 
@@ -669,7 +670,7 @@ validation fails. You may disable such exceptions using the `settings.security[:
 settings.security[:soft] = true  # Do not raise error on failed signature/certificate validations
 ```
 
-#### Advanced SP Certificate Usage & Key Rollover
+### Advanced SP Certificate Usage & Key Rollover
 
 Ruby SAML provides the `settings.sp_cert_multi` parameter to enable the following
 advanced usage scenarios:
@@ -711,12 +712,12 @@ Note the following:
   inactive/expired certificates. This avoids validation errors when the IdP reads the SP
   metadata.
 
-#### Key Algorithm Support
+### Key Algorithm Support
 
 Ruby SAML supports RSA, DSA, and ECDSA keys for both SP and IdP certificates.
 JRuby cannot support ECDSA due to a [known issue](https://github.com/jruby/jruby-openssl/issues/257).
 
-#### Audience Validation
+### Audience Validation
 
 A service provider should only consider a SAML response valid if the IdP includes an <AudienceRestriction>
 element containting an <Audience> element that uniquely identifies the service provider. Unless you specify
@@ -739,7 +740,7 @@ is invalid using the `settings.security[:strict_audience_validation]` parameter.
 settings.security[:strict_audience_validation] = true
 ```
 
-## Single Log Out
+### Single Log Out
 
 Ruby SAML supports SP-initiated Single Logout and IdP-Initiated Single Logout.
 
@@ -860,7 +861,7 @@ def logout
 end
 ```
 
-## Clock Drift
+### Clock Drift
 
 If during validation of the response you get the error "Current time is earlier than NotBefore condition",
 this may be due to clock differences between your system and that of the IdP.
@@ -877,7 +878,7 @@ response = RubySaml::Response.new(params[:SAMLResponse], allowed_clock_drift: 1.
 
 Make sure to keep the value as comfortably small as possible to keep security risks to a minimum.
 
-## Deflation Limit
+### Deflation Limit
 
 To protect against decompression bombs (a form of DoS attack), SAML messages are limited to 250,000 bytes by default.
 Sometimes legitimate SAML messages will exceed this limit,
@@ -898,7 +899,7 @@ def saml_settings
 end
 ```
 
-## Attribute Service
+### Attribute Service
 
 To request attributes from the IdP the SP needs to provide an attribute service within it's metadata and reference the index in the assertion.
 
@@ -915,7 +916,7 @@ end
 
 The `attribute_value` option additionally accepts an array of possible values.
 
-## SP-Originated Message IDs
+### SP-Originated Message IDs
 
 Ruby SAML automatically generates message IDs for SP-originated messages (AuthNRequest, etc.)
 By default, this is a UUID prefixed by the `_` character, for example `"_ea8b5fdf-0a71-4bef-9f87-5406ee746f5b"`. 
@@ -924,7 +925,7 @@ Note that the SAML specification requires that this type (`xsd:ID`) be an
 [NCName](https://www.w3.org/TR/xmlschema-2/#NCName), meaning that it must start with a letter
 or underscore, and can only contain letters, digits, underscores, hyphens, and periods.
 
-## Custom Metadata Fields
+### Custom Metadata Fields
 
 Some IdPs may require to add SPs to add additional fields (Organization, ContactPerson, etc.)
 into the SP metadata. This can be achieved by extending the `RubySaml::Metadata`
@@ -948,7 +949,30 @@ end
 MyMetadata.new.generate(settings)
 ```
 
-## Adding Features, Pull Requests
+## Contributing
+
+### Pay it Forward: Support RubySAML and Strengthen Open-Source Security
+
+RubySAML is a trusted authentication library used by startups and enterprises alike—
+a community-driven alternative to costly third-party services.
+
+But security doesn't happen in a vacuum. Vulnerabilities in authentication libraries can
+have widespread consequences. Maintaining open-source security requires continuous
+effort, expertise, and funding. By supporting RubySAML, you’re not just securing your
+own systems—you’re strengthening auth security globally. Instead of paying for closed
+solutions, consider investing in the community that does the real security work.
+
+#### How you can help
+
+* Sponsor RubySAML: [GitHub Sponsors](https://github.com/sponsors/SAML-Toolkits)
+* Contribute to secure-by-design improvements
+* Responsibly report vulnerabilities (see "Vulnerability Reporting" above)
+
+Security is a shared responsibility. If RubySAML has helped your organization, please
+consider giving back. Together, we can keep authentication secure—without putting it
+behind paywalls.
+
+### Adding Features, Pull Requests
 
 * Fork the repository
 * Make your feature addition or bug fix
@@ -957,12 +981,18 @@ MyMetadata.new.generate(settings)
 * Do not change rakefile, version, or history.
 * Open a pull request, following [this template](https://gist.github.com/Lordnibbler/11002759).
 
-## Attribution
+### Sponsors
+
+Thanks to the following sponsors for securing the open source ecosystem.
+
+[<img alt="84codes" src="https://avatars.githubusercontent.com/u/5353257" width="75px">](https://www.84codes.com)
+
+### Attribution
 
 Portions of the code in `RubySaml::XML` namespace is adapted from earlier work
 copyrighted by either Oracle and/or Todd W. Saxton. The original code was distributed
-under the Common Development and Distribution License (CDDL) 1.0. This code is planned to
-be written entirely in future versions.
+under the Common Development and Distribution License (CDDL) 1.0. This code is
+currently in the process of being rewritten.
 
 ## License
 
