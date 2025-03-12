@@ -425,12 +425,13 @@ module OneLogin
       #
       def validate_structure
         structure_error_msg = "Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd"
-        unless valid_saml?(document, soft)
+        check_malformed_doc = check_malformed_doc_enabled?
+        unless valid_saml?(document, soft, check_malformed_doc)
           return append_error(structure_error_msg)
         end
 
         unless decrypted_document.nil?
-          unless valid_saml?(decrypted_document, soft)
+          unless valid_saml?(decrypted_document, soft, check_malformed_doc)
             return append_error(structure_error_msg)
           end
         end
@@ -865,6 +866,8 @@ module OneLogin
           fingerprint = settings.get_fingerprint
           opts[:cert] = idp_cert
 
+          check_malformed_doc = check_malformed_doc_enabled?
+          opts[:check_malformed_doc] = check_malformed_doc
           if fingerprint && doc.validate_document(fingerprint, @soft, opts)
             if settings.security[:check_idp_cert_expiration]
               if OneLogin::RubySaml::Utils.is_cert_expired(idp_cert)
@@ -879,7 +882,7 @@ module OneLogin
           valid = false
           expired = false
           idp_certs[:signing].each do |idp_cert|
-            valid = doc.validate_document_with_cert(idp_cert, true)
+            valid = doc.validate_document_with_cert(idp_cert, true, check_malformed_doc)
             if valid
               if settings.security[:check_idp_cert_expiration]
                 if OneLogin::RubySaml::Utils.is_cert_expired(idp_cert)
@@ -1062,6 +1065,10 @@ module OneLogin
         if node && node.attributes[attribute]
           Time.parse(node.attributes[attribute])
         end
+      end
+
+      def check_malformed_doc_enabled?
+        check_malformed_doc?(settings)
       end
     end
   end

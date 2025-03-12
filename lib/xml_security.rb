@@ -42,6 +42,36 @@ module XMLSecurity
     NOKOGIRI_OPTIONS = Nokogiri::XML::ParseOptions::STRICT |
                        Nokogiri::XML::ParseOptions::NONET
 
+    # Safety load the SAML Message XML
+    # @param document [REXML::Document] The message to be loaded
+    # @param check_malformed_doc [Boolean] check_malformed_doc Enable or Disable the check for malformed XML
+    # @return [Nokogiri::XML] The nokogiri document
+    # @raise [ValidationError] If there was a problem loading the SAML Message XML
+    def self.safe_load_xml(document, check_malformed_doc = true)
+      doc_str = document.to_s
+      if doc_str.include?("<!DOCTYPE")
+       raise StandardError.new("Dangerous XML detected. No Doctype nodes allowed")
+      end
+
+      begin
+        xml = Nokogiri::XML(doc_str) do |config|
+          config.options = self::NOKOGIRI_OPTIONS
+        end
+      rescue StandardError => error
+        raise StandardError.new(error.message)
+      end
+
+      if xml.internal_subset
+        raise StandardError.new("Dangerous XML detected. No Doctype nodes allowed")
+      end
+
+      unless xml.errors.empty?
+        raise StandardError.new("There were XML errors when parsing: #{xml.errors}") if check_malformed_doc
+      end
+
+      xml
+    end
+
     def canon_algorithm(element)
       algorithm = element
       if algorithm.is_a?(REXML::Element)
@@ -114,10 +144,8 @@ module XMLSecurity
       #<KeyInfo />
       #<Object />
     #</Signature>
-    def sign_document(private_key, certificate, signature_method = RSA_SHA1, digest_method = SHA1)
-      noko = Nokogiri::XML(self.to_s) do |config|
-        config.options = XMLSecurity::BaseDocument::NOKOGIRI_OPTIONS
-      end
+    def sign_document(private_key, certificate, signature_method = RSA_SHA1, digest_method = SHA1, check_malformed_doc = true)
+      noko = XMLSecurity::BaseDocument.safe_load_xml(self.to_s, check_malformed_doc)
 
       signature_element = REXML::Element.new("ds:Signature").add_namespace('ds', DSIG)
       signed_info_element = signature_element.add_element("ds:SignedInfo")
@@ -139,9 +167,7 @@ module XMLSecurity
       reference_element.add_element("ds:DigestValue").text = compute_digest(canon_doc, algorithm(digest_method_element))
 
       # add SignatureValue
-      noko_sig_element = Nokogiri::XML(signature_element.to_s) do |config|
-        config.options = XMLSecurity::BaseDocument::NOKOGIRI_OPTIONS
-      end
+      noko_sig_element = XMLSecurity::BaseDocument.safe_load_xml(signature_element.to_s, check_malformed_doc)
 
       noko_signed_info_element = noko_sig_element.at_xpath('//ds:Signature/ds:SignedInfo', 'ds' => DSIG)
       canon_string = noko_signed_info_element.canonicalize(canon_algorithm(C14N))
@@ -237,10 +263,12 @@ module XMLSecurity
           end
         end
       end
-      validate_signature(base64_cert, soft)
+      check_malformed_doc = true
+      check_malformed_doc = options[:check_malformed_doc] if options.key?(:check_malformed_doc)
+      validate_signature(base64_cert, soft, check_malformed_doc)
     end
 
-    def validate_document_with_cert(idp_cert, soft = true)
+    def validate_document_with_cert(idp_cert, soft = true, check_malformed_doc = true)
       # get cert from response
       cert_element = REXML::XPath.first(
         self,
@@ -264,13 +292,17 @@ module XMLSecurity
       else
         base64_cert = Base64.encode64(idp_cert.to_pem)
       end
-      validate_signature(base64_cert, true)
+      validate_signature(base64_cert, true, check_malformed_doc)
     end
 
-    def validate_signature(base64_cert, soft = true)
+    def validate_signature(base64_cert, soft = true, check_malformed_doc = true)
 
-      document = Nokogiri::XML(self.to_s) do |config|
-        config.options = XMLSecurity::BaseDocument::NOKOGIRI_OPTIONS
+      begin
+        document = XMLSecurity::BaseDocument.safe_load_xml(self, check_malformed_doc)
+      rescue StandardError => error
+        @errors << error.message
+        return false if soft
+        raise ValidationError.new("XML load failed: #{error.message}")
       end
 
       # create a rexml document
