@@ -1,5 +1,14 @@
 # Ruby SAML Migration Guide
 
+## Updating from 1.17.x to 1.18.0
+
+Version `1.18.0` changes the way the toolkit validates SAML signatures. There is a new order
+how validation happens in the toolkit and also the toolkit by default will check malformed doc
+when parsing a SAML Message (`settings.check_malformed_doc`).
+
+The SignedDocument class defined at xml_security.rb experienced several changes.
+We don't expect compatibilty issues if you use the main methods offered by ruby-saml, but if you use a fork or customized usage, is possible that you need to adapt your code.
+
 ## Updating from 1.12.x to 1.13.0
 
 Version `1.13.0` adds `settings.idp_sso_service_binding` and `settings.idp_slo_service_binding`, and

@@ -7,7 +7,34 @@
 Minor and patch versions of Ruby SAML may introduce breaking changes. Please read
 [UPGRADING.md](UPGRADING.md) for guidance on upgrading to new Ruby SAML versions.
 
-There is a critical vulnerability affecting ruby-saml < 1.17.0 (CVE-2024-45409). Make sure you are using an updated version. (1.12.3 is safe)
+### Pay it Forward: Support RubySAML and Strengthen Open-Source Security
+
+RubySAML is a trusted authentication library used by startups and enterprises alike.
+
+But security doesn't happen in a vacuum. Vulnerabilities in authentication libraries can
+have widespread consequences. Maintaining open-source security requires continuous
+effort, expertise, and funding. By supporting RubySAML, you’re not just securing your
+own systems—you’re strengthening auth security globally.
+
+#### How you can help
+
+* Sponsor RubySAML: [GitHub Sponsors](https://github.com/sponsors/SAML-Toolkits)
+* Contribute to secure-by-design improvements
+* Responsibly report vulnerabilities (see "Vulnerability Reporting" above)
+
+Security is a shared responsibility. If RubySAML has helped your organization, please
+consider giving back. Together, we can keep authentication secure.
+
+### Sponsors
+
+Thanks to the following sponsors for securing the open source ecosystem,
+
+[<img alt="84codes" src="https://avatars.githubusercontent.com/u/5353257" width="75px">](https://www.84codes.com)
+
+
+## Vulnerabilities
+
+There are critical vulnerabilities affecting ruby-saml < 1.18.0, two of them allows SAML authentication bypass (CVE-2025-25291, CVE-2025-25292, CVE-2025-25293). Please upgrade to a fixed version (1.18.0)
 
 ## Overview
 
@@ -60,12 +87,6 @@ the IdP, which should be a trusted resource.
 But there are other scenarios, like a SaaS app where the administrator of the app
 delegates this functionality to other users. In this case, extra precautions should
 be taken in order to validate such URL inputs and avoid attacks like SSRF.
-
-### Sponsors
-
-Thanks to the following sponsors for their support:
-
-[<img alt="84codes" src="https://avatars.githubusercontent.com/u/5353257" width="50px">](https://www.84codes.com)
 
 ## Getting Started
 
