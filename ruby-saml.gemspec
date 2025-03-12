@@ -51,6 +51,7 @@ Gem::Specification.new do |s|
   if RUBY_VERSION < '2.4.1'
     s.add_development_dependency('simplecov-lcov', '<0.8.0')
     s.add_development_dependency('term-ansicolor', '1.2.2')
+    s.add_development_dependency('mime-types', '<3.6.0')
   else
     s.add_development_dependency('simplecov-lcov', '>0.7.0')
   end
