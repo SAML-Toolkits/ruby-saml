@@ -22,7 +22,6 @@ Gem::Specification.new do |s|
   s.rubygems_version = %q{1.3.7}
   s.required_ruby_version = '>= 1.8.7'
   s.summary = %q{SAML Ruby Tookit}
-  s.test_files = `git ls-files test/*`.split("\x0")
 
   # Because runtime dependencies are determined at build time, we cannot make
   # Nokogiri's version dependent on the Ruby version, even though we would
@@ -48,12 +47,20 @@ Gem::Specification.new do |s|
     s.add_runtime_dependency('rexml')
   end
 
+  s.add_development_dependency('simplecov', '<0.22.0')
+  if RUBY_VERSION < '2.4.1'
+    s.add_development_dependency('simplecov-lcov', '<0.8.0')
+    s.add_development_dependency('term-ansicolor', '1.2.2')
+    s.add_development_dependency('mime-types', '<3.6.0')
+  else
+    s.add_development_dependency('simplecov-lcov', '>0.7.0')
+  end
+
   s.add_development_dependency('coveralls')
   s.add_development_dependency('minitest', '~> 5.5')
   s.add_development_dependency('mocha',    '~> 0.14')
   s.add_development_dependency('rake',     '~> 10')
   s.add_development_dependency('shoulda',  '~> 2.11')
-  s.add_development_dependency('simplecov')
   s.add_development_dependency('systemu',  '~> 2')
   s.add_development_dependency('timecop',  '<= 0.6.0')
 

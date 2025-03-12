@@ -53,6 +53,7 @@ module OneLogin
       attr_accessor :compress_request
       attr_accessor :compress_response
       attr_accessor :double_quote_xml_attribute_values
+      attr_accessor :check_malformed_doc
       attr_accessor :passive
       attr_accessor :protocol_binding
       attr_accessor :attributes_index
@@ -259,6 +260,7 @@ module OneLogin
         :compress_request                          => true,
         :compress_response                         => true,
         :soft                                      => true,
+        :check_malformed_doc                       => true, 
         :double_quote_xml_attribute_values         => false,
         :security                                  => {
           :authn_requests_signed      => false,

@@ -1,8 +1,12 @@
-# Ruby SAML [![Build Status](https://secure.travis-ci.org/onelogin/ruby-saml.svg)](http://travis-ci.org/onelogin/ruby-saml) [![Coverage Status](https://coveralls.io/repos/onelogin/ruby-saml/badge.svg?branch=master)](https://coveralls.io/r/onelogin/ruby-saml?branch=master) [![Gem Version](https://badge.fury.io/rb/ruby-saml.svg)](http://badge.fury.io/rb/ruby-saml)
+# Ruby SAML [![Build Status](https://secure.travis-ci.org/onelogin/ruby-saml.svg)](http://travis-ci.org/onelogin/ruby-saml) [![Coverage Status](https://coveralls.io/repos/onelogin/ruby-saml/badge.svg?branch=master)](https://coveralls.io/r/onelogin/ruby-saml?branch=master)
 
 ## Updating from 1.11.x to 1.12.0
 Version `1.12.0` adds support for gcm algorithm and
 change/adds specific error messages for signature validations
+
+`idp_sso_target_url` and `idp_slo_target_url` attributes of the Settings class deprecated in favor of `idp_sso_service_url` and `idp_slo_service_url`.
+In IDPMetadataParser, `parse`, `parse_to_hash` and `parse_to_array` methods now retrieve SSO URL and SLO URL endpoints with
+`idp_sso_service_url` and `idp_slo_service_url` (previously `idp_sso_target_url` and `idp_slo_target_url` respectively).
 
 ## Updating from 1.10.x to 1.11.0
 Version `1.11.0` deprecates the use of `settings.issuer` in favour of `settings.sp_entity_id`.
@@ -120,9 +124,11 @@ We created a demo project for Rails4 that uses the latest version of this librar
 * 2.5.x
 * 2.6.x
 * 2.7.x
-* JRuby 1.7.19
-* JRuby 9.0.0.0
-* JRuby 9.2.0.0
+* 3.0.x
+* JRuby 1.7.x
+* JRuby 9.0.x
+* JRuby 9.1.x
+* JRuby 9.2.x
 
 ## Adding Features, Pull Requests
 * Fork the repository
@@ -154,7 +160,7 @@ Using `Gemfile`
 
 ```ruby
 # latest stable
-gem 'ruby-saml', '~> 1.9.0'
+gem 'ruby-saml', '~> 1.11.0'
 
 # or track master for bleeding-edge
 gem 'ruby-saml', :github => 'onelogin/ruby-saml'

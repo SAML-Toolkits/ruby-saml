@@ -1,5 +1,15 @@
 # RubySaml Changelog
 
+### 1.12.3 (Sep 10, 2024)
+* Fix for critical vulnerability CVE-2024-45409: SAML authentication bypass via Incorrect XPath selector
+
+### 1.12.2 (Apr 08, 2022)
+* [575](https://github.com/onelogin/ruby-saml/pull/575) Fix SloLogoutresponse bug on LogoutRequest
+
+### 1.12.1 (Apr 05, 2022)
+* Fix XPath typo incompatible with Rexml 3.2.5
+* Refactor GCM support
+
 ### 1.12.0 (Feb 18, 2021)
 * Support AES-128-GCM, AES-192-GCM, and AES-256-GCM encryptions
 * Parse & return SLO ResponseLocation in IDPMetadataParser & Settings 

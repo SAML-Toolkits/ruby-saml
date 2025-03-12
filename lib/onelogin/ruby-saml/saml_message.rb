@@ -63,14 +63,13 @@ module OneLogin
       # Validates the SAML Message against the specified schema.
       # @param document [REXML::Document] The message that will be validated
       # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the message is invalid or not)
+      # @param check_malformed_doc [Boolean] check_malformed_doc Enable or Disable the check for malformed XML
       # @return [Boolean] True if the XML is valid, otherwise False, if soft=True
       # @raise [ValidationError] if soft == false and validation fails
       #
-      def valid_saml?(document, soft = true)
+      def valid_saml?(document, soft = true, check_malformed_doc = true)
         begin
-          xml = Nokogiri::XML(document.to_s) do |config|
-            config.options = XMLSecurity::BaseDocument::NOKOGIRI_OPTIONS
-          end
+          xml = XMLSecurity::BaseDocument.safe_load_xml(document, check_malformed_doc)
         rescue Exception => error
           return false if soft
           raise ValidationError.new("XML load failed: #{error.message}")
@@ -97,10 +96,16 @@ module OneLogin
 
         decoded = decode(saml)
         begin
-          inflate(decoded)
+            message = inflate(decoded)
         rescue
-          decoded
+            message = decoded
         end
+
+        if message.bytesize > MAX_BYTE_SIZE
+          raise ValidationError.new("Encoded SAML Message exceeds " + MAX_BYTE_SIZE.to_s + " bytes, so was rejected")
+        end
+
+        message
       end
 
       # Deflate, base64 encode and url-encode a SAML Message (To be used in the HTTP-redirect binding)
@@ -156,6 +161,12 @@ module OneLogin
       #
       def deflate(inflated)
         Zlib::Deflate.deflate(inflated, 9)[2..-5]
+      end
+
+      def check_malformed_doc?(settings)
+        default_value = OneLogin::RubySaml::Settings::DEFAULTS[:check_malformed_doc]
+
+        settings.nil? ? default_value : settings.check_malformed_doc
       end
     end
   end

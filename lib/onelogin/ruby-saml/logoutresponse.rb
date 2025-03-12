@@ -150,7 +150,8 @@ module OneLogin
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_structure
-        unless valid_saml?(document, soft)
+        check_malformed_doc = check_malformed_doc?(settings)
+        unless valid_saml?(document, soft, check_malformed_doc)
           return append_error("Invalid SAML Logout Response. Not match the saml-schema-protocol-2.0.xsd")
         end
 

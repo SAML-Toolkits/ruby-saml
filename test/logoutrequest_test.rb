@@ -8,7 +8,7 @@ class RequestTest < Minitest::Test
     let(:settings) { OneLogin::RubySaml::Settings.new }
 
     before do
-      settings.idp_slo_target_url = "http://unauth.com/logout"
+      settings.idp_slo_service_url = "http://unauth.com/logout"
       settings.name_identifier_value = "f00f00"
     end
 
@@ -43,7 +43,7 @@ class RequestTest < Minitest::Test
     end
 
     it "set sessionindex" do
-      settings.idp_slo_target_url = "http://example.com"
+      settings.idp_slo_service_url = "http://example.com"
       sessionidx = OneLogin::RubySaml::Utils.uuid
       settings.sessionindex = sessionidx
 
@@ -75,7 +75,7 @@ class RequestTest < Minitest::Test
 
     describe "when the target url contains a query string" do
       it "create the SAMLRequest parameter correctly" do
-        settings.idp_slo_target_url = "http://example.com?field=value"
+        settings.idp_slo_service_url = "http://example.com?field=value"
 
         unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings)
         assert_match /^http:\/\/example.com\?field=value&SAMLRequest/, unauth_url
@@ -84,7 +84,7 @@ class RequestTest < Minitest::Test
 
     describe "consumation of logout may need to track the transaction" do
       it "have access to the request uuid" do
-        settings.idp_slo_target_url = "http://example.com?field=value"
+        settings.idp_slo_service_url = "http://example.com?field=value"
 
         unauth_req = OneLogin::RubySaml::Logoutrequest.new
         unauth_url = unauth_req.create(settings)

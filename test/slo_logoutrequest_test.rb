@@ -54,7 +54,6 @@ class RubySamlTest < Minitest::Test
 
       it "collect errors when collect_errors=true" do
         settings.idp_entity_id = 'http://idp.example.com/invalid'
-        settings.idp_slo_target_url = "http://example.com?field=value"
         settings.security[:logout_requests_signed] = true
         settings.security[:embed_sign] = false
         settings.certificate = ruby_saml_cert_text
@@ -247,7 +246,6 @@ class RubySamlTest < Minitest::Test
 
     describe "#validate_signature" do
       before do
-        settings.idp_slo_target_url = "http://example.com?field=value"
         settings.security[:logout_requests_signed] = true
         settings.security[:embed_sign] = false
         settings.certificate = ruby_saml_cert_text
@@ -406,7 +404,6 @@ class RubySamlTest < Minitest::Test
 
     describe "#validate_signature with multiple idp certs" do
       before do
-        settings.idp_slo_target_url = "http://example.com?field=value"
         settings.certificate = ruby_saml_cert_text
         settings.private_key = ruby_saml_key_text
         settings.idp_cert = nil
