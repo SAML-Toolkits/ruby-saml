@@ -377,12 +377,11 @@ class RubySamlTest < Minitest::Test
         end
 
         it "support dynamic namespace resolution on signature elements" do
-          no_signature_response = OneLogin::RubySaml::Response.new(fixture("no_signature_ns.xml"))
+          no_signature_response = OneLogin::RubySaml::Response.new(fixture("inclusive_namespaces.xml"))
           no_signature_response.stubs(:conditions).returns(nil)
           no_signature_response.stubs(:validate_subject_confirmation).returns(true)
           no_signature_response.settings = settings
-          no_signature_response.settings.idp_cert_fingerprint = "28:74:9B:E8:1F:E8:10:9C:A8:7C:A9:C3:E3:C5:01:6C:92:1C:B4:BA"
-          XMLSecurity::SignedDocument.any_instance.expects(:validate_signature).returns(true)
+          no_signature_response.settings.idp_cert_fingerprint = "A0:C7:DB:B7:90:E3:47:6D:3C:5D:D2:36:F9:F2:06:0B:1F:D6:E2:53"
           assert no_signature_response.is_valid?
         end
 
