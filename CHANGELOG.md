@@ -1,10 +1,10 @@
 # Ruby SAML Changelog
 
 ### 1.18.0  (Mar 12, 2025)
+* [#750](https://github.com/SAML-Toolkits/ruby-saml/pull/750) Fix vulnerabilities: CVE-2025-25291, CVE-2025-25292: SAML authentication bypass via Signature Wrapping attack allowed due parser differential. Fix vulnerability: CVE-2025-25293: Potential DOS abusing of compressed messages.
 * [#718](https://github.com/SAML-Toolkits/ruby-saml/pull/718/) Add support to retrieve from SAMLResponse the AuthnInstant and AuthnContextClassRef values
 * [#720](https://github.com/SAML-Toolkits/ruby-saml/pull/720) Fix ambiguous regex warnings
 * [#715](https://github.com/SAML-Toolkits/ruby-saml/pull/715) Fix typo in SPNameQualifier error text
-* [750](https://github.com/SAML-Toolkits/ruby-saml/pull/750) Fix vulnerabilities: CVE-2025-25291, CVE-2025-25292: SAML authentication bypass via Signature Wrapping attack allowed due parser differential. Fix vulnerability: CVE-2025-25293: Potential DOS abusing of compressed messages.
 
 ### 1.17.0  (Sep 10, 2024)
 * Fix for critical vulnerability CVE-2024-45409: SAML authentication bypass via Incorrect XPath selector
