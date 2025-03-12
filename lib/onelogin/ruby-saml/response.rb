@@ -17,6 +17,10 @@ module OneLogin
       PROTOCOL  = "urn:oasis:names:tc:SAML:2.0:protocol"
       DSIG      = "http://www.w3.org/2000/09/xmldsig#"
       XENC      = "http://www.w3.org/2001/04/xmlenc#"
+      SAML_NAMESPACES = {
+        "p" => PROTOCOL,
+        "a" => ASSERTION
+      }.freeze
 
       # TODO: Settings should probably be initialized too... WDYT?
 
@@ -303,7 +307,7 @@ module OneLogin
           issuer_response_nodes = REXML::XPath.match(
             document,
             "/p:Response/a:Issuer",
-            { "p" => PROTOCOL, "a" => ASSERTION }
+            SAML_NAMESPACES
           )
 
           unless issuer_response_nodes.size == 1
@@ -370,7 +374,7 @@ module OneLogin
         ! REXML::XPath.first(
           document,
           "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
-          { "p" => PROTOCOL, "a" => ASSERTION }
+          SAML_NAMESPACES
         ).nil?
       end
 
@@ -401,9 +405,9 @@ module OneLogin
           :validate_id,
           :validate_success_status,
           :validate_num_assertion,
-          :validate_no_duplicated_attributes,
           :validate_signed_elements,
           :validate_structure,
+          :validate_no_duplicated_attributes,
           :validate_in_response_to,
           :validate_one_conditions,
           :validate_conditions,
@@ -444,12 +448,14 @@ module OneLogin
       #
       def validate_structure
         structure_error_msg = "Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd"
-        unless valid_saml?(document, soft)
+
+        check_malformed_doc = check_malformed_doc_enabled?
+        unless valid_saml?(document, soft, check_malformed_doc)
           return append_error(structure_error_msg)
         end
 
         unless decrypted_document.nil?
-          unless valid_saml?(decrypted_document, soft)
+          unless valid_saml?(decrypted_document, soft, check_malformed_doc)
             return append_error(structure_error_msg)
           end
         end
@@ -841,13 +847,7 @@ module OneLogin
         true
       end
 
-      # Validates the Signature
-      # @return [Boolean] True if not contains a Signature or if the Signature is valid, otherwise False if soft=True
-      # @raise [ValidationError] if soft == false and validation fails
-      #
-      def validate_signature
-        error_msg = "Invalid Signature on SAML Response"
-
+      def doc_to_validate
         # If the response contains the signature, and the assertion was encrypted, validate the original SAML Response
         # otherwise, review if the decrypted assertion contains a signature
         sig_elements = REXML::XPath.match(
@@ -859,13 +859,35 @@ module OneLogin
 
         use_original = sig_elements.size == 1 || decrypted_document.nil?
         doc = use_original ? document : decrypted_document
+        if !doc.processed
+          doc.cache_referenced_xml(@soft, check_malformed_doc_enabled?)
+        end
 
-        # Check signature nodes
+        return doc
+      end
+
+      # Validates the Signature
+      # @return [Boolean] True if not contains a Signature or if the Signature is valid, otherwise False if soft=True
+      # @raise [ValidationError] if soft == false and validation fails
+      #
+      def validate_signature
+        error_msg = "Invalid Signature on SAML Response"
+
+        doc = doc_to_validate
+
+        sig_elements = REXML::XPath.match(
+          document,
+          "/p:Response[@ID=$id]/ds:Signature",
+          { "p" => PROTOCOL, "ds" => DSIG },
+          { 'id' => document.signed_element_id }
+        )
+
+        # Check signature node inside assertion
         if sig_elements.nil? || sig_elements.size == 0
           sig_elements = REXML::XPath.match(
             doc,
             "/p:Response/a:Assertion[@ID=$id]/ds:Signature",
-            {"p" => PROTOCOL, "a" => ASSERTION, "ds"=>DSIG},
+            SAML_NAMESPACES.merge({"ds"=>DSIG}),
             { 'id' => doc.signed_element_id }
           )
         end
@@ -943,24 +965,47 @@ module OneLogin
           end
       end
 
+      def get_cached_signed_assertion
+        xml = doc_to_validate.referenced_xml
+        empty_doc = REXML::Document.new
+
+        return empty_doc if xml.nil? # when no signature/reference is found, return empty document
+
+        root = REXML::Document.new(xml).root
+
+        if root.attributes["ID"] != doc_to_validate.signed_element_id
+          return empty_doc
+        end
+
+        assertion = empty_doc
+        if root.name == "Response"
+          if REXML::XPath.first(root, "a:Assertion", {"a" => ASSERTION})
+            assertion = REXML::XPath.first(root, "a:Assertion", {"a" => ASSERTION})
+          elsif REXML::XPath.first(root, "a:EncryptedAssertion", {"a" => ASSERTION})
+            assertion = decrypt_assertion(REXML::XPath.first(root, "a:EncryptedAssertion", {"a" => ASSERTION}))
+          end
+        elsif root.name == "Assertion"
+          assertion = root
+        end
+
+        assertion
+      end
+
+      def signed_assertion
+        @signed_assertion ||= get_cached_signed_assertion
+      end
+
       # Extracts the first appearance that matchs the subelt (pattern)
       # Search on any Assertion that is signed, or has a Response parent signed
       # @param subelt [String] The XPath pattern
       # @return [REXML::Element | nil] If any matches, return the Element
       #
       def xpath_first_from_signed_assertion(subelt=nil)
-        doc = decrypted_document.nil? ? document : decrypted_document
+        doc = signed_assertion
         node = REXML::XPath.first(
             doc,
-            "/p:Response/a:Assertion[@ID=$id]#{subelt}",
-            { "p" => PROTOCOL, "a" => ASSERTION },
-            { 'id' => doc.signed_element_id }
-        )
-        node ||= REXML::XPath.first(
-            doc,
-            "/p:Response[@ID=$id]/a:Assertion#{subelt}",
-            { "p" => PROTOCOL, "a" => ASSERTION },
-            { 'id' => doc.signed_element_id }
+            "./#{subelt}",
+            SAML_NAMESPACES
         )
         node
       end
@@ -971,19 +1016,13 @@ module OneLogin
       # @return [Array of REXML::Element] Return all matches
       #
       def xpath_from_signed_assertion(subelt=nil)
-        doc = decrypted_document.nil? ? document : decrypted_document
+        doc = signed_assertion
         node = REXML::XPath.match(
             doc,
-            "/p:Response/a:Assertion[@ID=$id]#{subelt}",
-            { "p" => PROTOCOL, "a" => ASSERTION },
-            { 'id' => doc.signed_element_id }
+            "./#{subelt}",
+            SAML_NAMESPACES
         )
-        node.concat( REXML::XPath.match(
-            doc,
-            "/p:Response[@ID=$id]/a:Assertion#{subelt}",
-            { "p" => PROTOCOL, "a" => ASSERTION },
-            { 'id' => doc.signed_element_id }
-        ))
+        node
       end
 
       # Generates the decrypted_document
@@ -1017,7 +1056,7 @@ module OneLogin
         encrypted_assertion_node = REXML::XPath.first(
           document_copy,
           "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
-          { "p" => PROTOCOL, "a" => ASSERTION }
+          SAML_NAMESPACES
         )
         response_node.add(decrypt_assertion(encrypted_assertion_node))
         encrypted_assertion_node.remove
@@ -1086,6 +1125,10 @@ module OneLogin
         if node && node.attributes[attribute]
           Time.parse(node.attributes[attribute])
         end
+      end
+
+      def check_malformed_doc_enabled?
+        check_malformed_doc?(settings)
       end
     end
   end
