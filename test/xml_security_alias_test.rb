@@ -195,7 +195,7 @@ class XmlSecurityAliasTest < Minitest::Test
 
         it 'is valid, but fails to retrieve information' do
           assert document.document.validate_document(fingerprint, true), 'Document should be valid'
-          assert document.name_id.nil?, 'Document should expose only signed, valid details'
+          assert_equal 'someone@example.org', document.name_id, 'Document should expose only signed, valid details'
         end
       end
     end

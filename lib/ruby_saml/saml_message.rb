@@ -61,14 +61,13 @@ module RubySaml
     # Validates the SAML Message against the specified schema.
     # @param document [REXML::Document] The message that will be validated
     # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the message is invalid or not)
+    # @param check_malformed_doc [Boolean] check_malformed_doc Enable or Disable the check for malformed XML
     # @return [Boolean] True if the XML is valid, otherwise False, if soft=True
     # @raise [ValidationError] if soft == false and validation fails
     #
-    def valid_saml?(document, soft = true)
+    def valid_saml?(document, soft = true, check_malformed_doc: true)
       begin
-        xml = Nokogiri::XML(document.to_s) do |config|
-          config.options = RubySaml::XML::BaseDocument::NOKOGIRI_OPTIONS
-        end
+        xml = RubySaml::XML.safe_load_nokogiri(document, check_malformed_doc: check_malformed_doc)
       rescue StandardError => error
         return false if soft
         raise ValidationError.new("XML load failed: #{error.message}")
@@ -86,6 +85,7 @@ module RubySaml
 
     # Base64 decode and try also to inflate a SAML Message
     # @param saml [String] The deflated and encoded SAML Message
+    # @param settings [RubySaml::Settings|nil] Toolkit settings
     # @return [String] The plain SAML Message
     #
     def decode_raw_saml(saml, settings = nil)
@@ -97,11 +97,17 @@ module RubySaml
       end
 
       decoded = decode(saml)
-      begin
+      message = begin
         inflate(decoded)
       rescue StandardError
         decoded
       end
+
+      if message.bytesize > settings.message_max_bytesize
+        raise ValidationError.new("SAML Message exceeds #{settings.message_max_bytesize} bytes, so was rejected")
+      end
+
+      message
     end
 
     # Deflate, base64 encode and url-encode a SAML Message (To be used in the HTTP-redirect binding)

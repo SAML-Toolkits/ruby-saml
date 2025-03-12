@@ -55,6 +55,7 @@ module RubySaml
     attr_accessor :name_identifier_value_requested
     attr_accessor :sessionindex
     attr_accessor :message_max_bytesize
+    attr_accessor :check_malformed_doc
     attr_accessor :passive
     attr_reader   :protocol_binding
     attr_accessor :attributes_index
@@ -229,6 +230,7 @@ module RubySaml
       idp_cert_fingerprint_algorithm: RubySaml::XML::SHA256,
       message_max_bytesize: 250_000,
       soft: true,
+      check_malformed_doc: true,
       security: {
         authn_requests_signed: false,
         logout_requests_signed: false,

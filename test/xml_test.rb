@@ -386,9 +386,9 @@ class XmlTest < Minitest::Test
         let(:document) { RubySaml::Response.new(document_data) }
         let(:fingerprint) { '6385109dd146a45d4382799491cb2707bd1ebda3738f27a0e4a4a8159c0fe6cd' }
 
-        it 'is valid, but fails to retrieve information' do
+        it 'is valid, but the unsigned information is ignored in favour of the signed information' do
           assert document.document.validate_document(fingerprint, true), 'Document should be valid'
-          assert document.name_id.nil?, 'Document should expose only signed, valid details'
+          assert_equal 'someone@example.org', document.name_id, 'Document should expose only signed, valid details'
         end
       end
     end
