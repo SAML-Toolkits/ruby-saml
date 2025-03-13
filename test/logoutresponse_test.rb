@@ -1,5 +1,6 @@
-require_relative 'test_helper'
+# frozen_string_literal: true
 
+require_relative 'test_helper'
 require 'ruby_saml/logoutresponse'
 require 'logout_responses/logoutresponse_fixtures'
 
@@ -59,7 +60,7 @@ class RubySamlTest < Minitest::Test
 
         it "validate the logout response" do
           in_relation_to_request_id = random_id
-          opts = { :matches_request_id => in_relation_to_request_id}
+          opts = { matches_request_id: in_relation_to_request_id }
           logoutresponse = RubySaml::Logoutresponse.new(valid_logout_response_document({:uuid => in_relation_to_request_id}), settings, opts)
 
           assert logoutresponse.validate
@@ -72,7 +73,7 @@ class RubySamlTest < Minitest::Test
         it "validate the logout response extended" do
           in_relation_to_request_id = random_id
           settings.idp_entity_id = 'http://app.muda.no'
-          opts = { :matches_request_id => in_relation_to_request_id}
+          opts = { matches_request_id: in_relation_to_request_id }
           logoutresponse = RubySaml::Logoutresponse.new(valid_logout_response_document({:uuid => in_relation_to_request_id}), settings, opts)
 
           assert logoutresponse.validate
@@ -100,7 +101,7 @@ class RubySamlTest < Minitest::Test
 
         it "invalidate logout response with wrong id when given option :matches_request_id" do
           expected_request_id = "_some_other_expected_uuid"
-          opts = { :matches_request_id => expected_request_id}
+          opts = { matches_request_id: expected_request_id }
           logoutresponse = RubySaml::Logoutresponse.new(valid_logout_response_document, settings, opts)
 
           refute logoutresponse.validate
@@ -183,7 +184,7 @@ class RubySamlTest < Minitest::Test
 
         it "raises validation error when matching for wrong request id" do
           expected_request_id = "_some_other_expected_id"
-          opts = { :matches_request_id => expected_request_id}
+          opts = { matches_request_id: expected_request_id }
           logoutresponse = RubySaml::Logoutresponse.new(valid_logout_response_document, settings, opts)
 
           assert_raises(RubySaml::ValidationError) { logoutresponse.validate }
