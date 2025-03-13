@@ -20,15 +20,13 @@ module RubySaml
     PROTOCOL  = "urn:oasis:names:tc:SAML:2.0:protocol"
 
     BASE64_FORMAT = %r{\A([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?\Z}
-    @@mutex = Mutex.new
 
     # @return [Nokogiri::XML::Schema] Gets the schema object of the SAML 2.0 Protocol schema
     #
     def self.schema
-      @@mutex.synchronize do
-        Dir.chdir(File.expand_path('../../lib/ruby_saml/schemas', __dir__)) do
-          ::Nokogiri::XML::Schema(File.read("saml-schema-protocol-2.0.xsd"))
-        end
+      path = File.expand_path('schemas/saml-schema-protocol-2.0.xsd', __dir__)
+      File.open(path) do |file|
+        ::Nokogiri::XML::Schema(file)
       end
     end
 
