@@ -1,5 +1,6 @@
-require_relative 'test_helper'
+# frozen_string_literal: true
 
+require_relative 'test_helper'
 require 'ruby_saml/idp_metadata_parser'
 
 class IdpMetadataParserTest < Minitest::Test

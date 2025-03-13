@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'test_helper'
 require 'ruby_saml/xml'
 
@@ -224,7 +226,7 @@ class XmlTest < Minitest::Test
 
       it "return nil when inclusive namespace element is missing" do
         response = fixture(:no_signature_ns, false)
-        response.slice! %r{<InclusiveNamespaces xmlns="http://www.w3.org/2001/10/xml-exc-c14n#" PrefixList="#default saml ds xs xsi"/>}
+        response.slice! %r{<InclusiveNamespaces xmlns="http://www\.w3\.org/2001/10/xml-exc-c14n#" PrefixList="#default saml ds xs xsi"/>}
 
         document = RubySaml::XML::SignedDocument.new(response)
         inclusive_namespaces = document.send(:extract_inclusive_namespaces)

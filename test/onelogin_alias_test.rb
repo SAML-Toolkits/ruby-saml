@@ -1,5 +1,6 @@
-require_relative 'test_helper'
+# frozen_string_literal: true
 
+require_relative 'test_helper'
 require 'ruby_saml/metadata'
 
 class OneloginAliasTest < Minitest::Test
@@ -47,9 +48,9 @@ class OneloginAliasTest < Minitest::Test
     describe 'Attributes' do
       let(:attributes) do
         OneLogin::RubySaml::Attributes.new({
-          'email' => ['tom@hanks.com'],
-          'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname' => ['Tom'],
-          'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname' => ['Hanks']
+          'email' => %w[tom@hanks.com],
+          'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname' => %w[Tom],
+          'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname' => %w[Hanks]
         })
       end
 

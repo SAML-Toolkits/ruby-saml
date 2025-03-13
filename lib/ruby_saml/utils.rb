@@ -5,10 +5,8 @@ require 'openssl'
 require 'ruby_saml/pem_formatter'
 
 module RubySaml
-
   # SAML2 Auxiliary class
-  #
-  module Utils # rubocop:disable Metrics/ModuleLength
+  module Utils
     extend self
 
     BINDINGS = { post: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",

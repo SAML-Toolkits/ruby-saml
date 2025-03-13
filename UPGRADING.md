@@ -30,15 +30,21 @@ Note that the project folder structure has also been updated accordingly. Notabl
 For backward compatibility, the alias `OneLogin = Object` has been set, so `OneLogin::RubySaml::` will still work
 as before. This alias will be removed in RubySaml version `2.1.0`.
 
-### Root "XMLSecurity" namespace changed to "RubySaml::XML"
+### Deprecation and removal of "XMLSecurity" namespace
 
-RubySaml version `2.0.0` changes the namespace `::XMLSecurity` to `::RubySaml::XML`. Please search your
-codebase for `XMLSecurity` and replace it as appropriate. In addition, you must replace direct usage of
-`require 'xml_security'` with `require 'ruby_saml/xml'`.
+RubySaml version `2.0.0` deprecates the `::XMLSecurity` namespace and the following classes:
 
-For backward compatibility, if the constant `XMLSecurity` is not already defined by another gem, it will
-be aliased to `RubySaml::XML`. In addition, a shim file has been added so that `require 'xml_security'`
-continues to work. These aliases will be removed in RubySaml version `2.1.0`.
+| Removed Class                 | Replacement Module & Method                                                      |
+|-------------------------------|----------------------------------------------------------------------------------|
+| `XMLSecurity::BaseDocument`   | (none)                                                                           |
+| `XMLSecurity::Document`       | Will be replaced with `RubySaml::XML::DocumentSigner.sign_document`              |
+| `XMLSecurity::SignedDocument` | Will be replaced with `RubySaml::XML::SignedDocumentValidator.validate_document` |
+
+If your application does not already define the `XMLSecurity` namespace (e.g. from another gem),
+these old classes will be shimmed to raise a deprecation warning or `NoMethodError` when used.
+
+The new modules in the `RubySaml::XML` namespace provide similar functionality as the
+deprecated classes, but are based on Nokogiri instead of REXML.
 
 ### Security: Change default hashing algorithm to SHA-256 (was SHA-1)
 
