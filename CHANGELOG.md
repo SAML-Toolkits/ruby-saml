@@ -21,8 +21,9 @@
 * [#731](https://github.com/SAML-Toolkits/ruby-saml/pull/731) Add CI coverage for Ruby 3.4. Remove CI coverage for Ruby 1.x and 2.x.
 * [#735](https://github.com/SAML-Toolkits/ruby-saml/pull/735) Add `Settings#sp_uuid_prefix` and deprecate `Utils#set_prefix`.
 
-### 1.18.0  (???)
-* [#718](https://github.com/SAML-Toolkits/ruby-saml/pull/718) Add support to retrieve from SAMLResponse the AuthnInstant and AuthnContextClassRef values
+### 1.18.0  (Mar 12, 2025)
+* [#750](https://github.com/SAML-Toolkits/ruby-saml/pull/750) Fix vulnerabilities: CVE-2025-25291, CVE-2025-25292: SAML authentication bypass via Signature Wrapping attack allowed due parser differential. Fix vulnerability: CVE-2025-25293: Potential DOS abusing of compressed messages.
+* [#718](https://github.com/SAML-Toolkits/ruby-saml/pull/718/) Add support to retrieve from SAMLResponse the AuthnInstant and AuthnContextClassRef values
 * [#720](https://github.com/SAML-Toolkits/ruby-saml/pull/720) Fix ambiguous regex warnings
 * [#715](https://github.com/SAML-Toolkits/ruby-saml/pull/715) Fix typo in SPNameQualifier error text
 
@@ -66,6 +67,9 @@
 * [#607](https://github.com/SAML-Toolkits/ruby-saml/pull/607) Clean up
 * Add warning about the use of IdpMetadataParser class and SSRF
 * CI: Migrate from Travis to Github Actions
+
+### 1.12.4  (Mar 12, 2025)
+* [#750](https://github.com/SAML-Toolkits/ruby-saml/pull/750) Fix vulnerabilities: CVE-2025-25291, CVE-2025-25292: SAML authentication bypass via Signature Wrapping attack allowed due parser differential. Fix vulnerability: CVE-2025-25293: Potential DOS abusing of compressed messages.
 
 ### 1.12.3  (Sep 10, 2024)
 * Fix for critical vulnerability CVE-2024-45409: SAML authentication bypass via Incorrect XPath selector
@@ -299,7 +303,7 @@
 * [#138](https://github.com/SAML-Toolkits/ruby-saml/pull/138) Change logoutrequest.rb to UTC time
 * [#136](https://github.com/SAML-Toolkits/ruby-saml/pull/136) Remote idp metadata
 * [#135](https://github.com/SAML-Toolkits/ruby-saml/pull/135) Restored support for NIL as well as empty AttributeValues
-* [#134](https://github.com/SAML-Toolkits/ruby-saml/pull/134) explicitly require "ruby_saml/logging"
+* [#134](https://github.com/SAML-Toolkits/ruby-saml/pull/134) explicitly require "onelogin/ruby-saml/logging"
 * [#133](https://github.com/SAML-Toolkits/ruby-saml/pull/133) Added license to gemspec
 * [#132](https://github.com/SAML-Toolkits/ruby-saml/pull/132) Support AttributeConsumingServiceIndex in AuthnRequest
 * [#131](https://github.com/SAML-Toolkits/ruby-saml/pull/131) Add ruby 2.1.1 to .travis.yml
