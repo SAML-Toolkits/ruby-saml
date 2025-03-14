@@ -182,6 +182,7 @@ module RubySaml
       def validate_signature(base64_cert, soft = true)
         cache_referenced_xml(soft) unless @processed
 
+        return append_error('Cert is missing', soft) if base64_cert.nil?
         return append_error('No Signature Hash Algorithm Method found', soft) if @signature_hash_algorithm.nil?
         return append_error('No Signature node found', soft) if @signature.nil?
         return append_error('No canonized SignedInfo ', soft) if @cached_signed_info.nil?

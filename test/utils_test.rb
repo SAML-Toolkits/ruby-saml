@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 require_relative 'test_helper'
 
 class UtilsTest < Minitest::Test
@@ -369,11 +367,10 @@ class UtilsTest < Minitest::Test
     let(:settings) { RubySaml::Settings.new(:private_key => private_key.to_pem) }
     let(:response) { RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings) }
     let(:encrypted) do
-      REXML::XPath.first(
-        response.document,
-        "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
+      response.document.xpath(
+        "/p:Response/EncryptedAssertion | /p:Response/a:EncryptedAssertion",
         { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
-      )
+      ).first
     end
 
     it 'successfully decrypts with the first private key' do
