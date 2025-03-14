@@ -1,7 +1,10 @@
 # frozen_string_literal: true
 
 unless defined?(XMLSecurity)
+  require 'rexml/document'
   require 'ruby_saml/logging'
+
+  REXML::Security.entity_expansion_limit = 0
 
   module XMLSecurity
     # @deprecated Will be removed in v2.1.0.
@@ -31,7 +34,7 @@ unless defined?(XMLSecurity)
     # @api private
     class Document < BaseDocument
       # @deprecated Constants
-      INC_PREFIX_LIST = RubySaml::XML::Document::INC_PREFIX_LIST
+      INC_PREFIX_LIST = RubySaml::XML::DocumentSigner::INC_PREFIX_LIST
       RSA_SHA1      = RubySaml::XML::RSA_SHA1
       RSA_SHA224    = RubySaml::XML::RSA_SHA224
       RSA_SHA256    = RubySaml::XML::RSA_SHA256

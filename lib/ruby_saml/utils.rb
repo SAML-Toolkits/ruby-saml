@@ -5,8 +5,10 @@ require 'openssl'
 require 'ruby_saml/pem_formatter'
 
 module RubySaml
+
   # SAML2 Auxiliary class
-  module Utils
+  #
+  module Utils # rubocop:disable Metrics/ModuleLength
     extend self
 
     BINDINGS = { post: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
@@ -253,7 +255,7 @@ module RubySaml
 
     # Obtains the decrypted string from an Encrypted node element in XML,
     # given multiple private keys to try.
-    # @param encrypted_node [REXML::Element] The Encrypted element
+    # @param encrypted_node [Nokogirl::XML::Element] The Encrypted element
     # @param private_keys [Array<OpenSSL::PKey::RSA>] The SP private key
     # @return [String] The decrypted data
     def decrypt_multi(encrypted_node, private_keys)
@@ -274,67 +276,64 @@ module RubySaml
     end
 
     # Obtains the decrypted string from an Encrypted node element in XML
-    # @param encrypted_node [REXML::Element] The Encrypted element
+    # @param encrypted_node [Nokogiri::XML::Element] The Encrypted element
     # @param private_key [OpenSSL::PKey::RSA] The SP private key
     # @return [String] The decrypted data
     def decrypt_data(encrypted_node, private_key)
-      encrypt_data = REXML::XPath.first(
-        encrypted_node,
+      encrypt_data = encrypted_node.at_xpath(
         "./xenc:EncryptedData",
         { 'xenc' => XENC }
       )
       symmetric_key = retrieve_symmetric_key(encrypt_data, private_key)
-      cipher_value = REXML::XPath.first(
-        encrypt_data,
+      cipher_value = encrypt_data.at_xpath(
         "./xenc:CipherData/xenc:CipherValue",
         { 'xenc' => XENC }
       )
-      node = Base64.decode64(element_text(cipher_value))
-      encrypt_method = REXML::XPath.first(
-        encrypt_data,
+      node = Base64.decode64(cipher_value.text)
+      encrypt_method = encrypt_data.at_xpath(
         "./xenc:EncryptionMethod",
         { 'xenc' => XENC }
       )
-      algorithm = encrypt_method.attributes['Algorithm']
+      algorithm = encrypt_method['Algorithm']
       retrieve_plaintext(node, symmetric_key, algorithm)
     end
 
     # Obtains the symmetric key from the EncryptedData element
-    # @param encrypt_data [REXML::Element]     The EncryptedData element
+    # @param encrypt_data [Nokogiri::XML::Element] The EncryptedData element
     # @param private_key [OpenSSL::PKey::RSA] The SP private key
     # @return [String] The symmetric key
     def retrieve_symmetric_key(encrypt_data, private_key)
-      encrypted_key = REXML::XPath.first(
-        encrypt_data,
-        "./ds:KeyInfo/xenc:EncryptedKey | ./KeyInfo/xenc:EncryptedKey | //xenc:EncryptedKey[@Id=$id]",
+      key_ref = retrieve_symmetric_key_reference(encrypt_data)
+
+      encrypted_key = encrypt_data.at_xpath(
+        "./ds:KeyInfo/xenc:EncryptedKey | ./KeyInfo/xenc:EncryptedKey#{' | //xenc:EncryptedKey[@Id=$id]' if key_ref}",
         { "ds" => DSIG, "xenc" => XENC },
-        { "id" => retrieve_symetric_key_reference(encrypt_data) }
+        { "id" => key_ref }.compact
       )
 
-      encrypted_symmetric_key_element = REXML::XPath.first(
-        encrypted_key,
+      encrypted_symmetric_key_element = encrypted_key.at_xpath(
         "./xenc:CipherData/xenc:CipherValue",
         "xenc" => XENC
       )
 
-      cipher_text = Base64.decode64(element_text(encrypted_symmetric_key_element))
+      cipher_text = Base64.decode64(encrypted_symmetric_key_element.text)
 
-      encrypt_method = REXML::XPath.first(
-        encrypted_key,
+      encrypt_method = encrypted_key.at_xpath(
         "./xenc:EncryptionMethod",
         "xenc" => XENC
       )
 
-      algorithm = encrypt_method.attributes['Algorithm']
+      algorithm = encrypt_method['Algorithm']
       retrieve_plaintext(cipher_text, private_key, algorithm)
     end
 
-    def retrieve_symetric_key_reference(encrypt_data)
-      REXML::XPath.first(
-        encrypt_data,
-        "substring-after(./ds:KeyInfo/ds:RetrievalMethod/@URI, '#')",
+    def retrieve_symmetric_key_reference(encrypt_data)
+      reference = encrypt_data.at_xpath(
+        "./ds:KeyInfo/ds:RetrievalMethod/@URI",
         { "ds" => DSIG }
       )
+      reference = reference&.sub(/\A#/, '')
+      reference unless reference&.empty?
     end
 
     # Obtains the deciphered text
@@ -426,13 +425,6 @@ module RubySaml
     # @return [Boolean]
     def original_uri_match?(destination_url, settings_url)
       destination_url == settings_url
-    end
-
-    # Given a REXML::Element instance, return the concatenation of all child text nodes. Assumes
-    # that there all children other than text nodes can be ignored (e.g. comments). If nil is
-    # passed, nil will be returned.
-    def element_text(element)
-      element.texts.map(&:value).join if element
     end
 
     # Given a private key PEM string, return an array of OpenSSL::PKey::PKey classes

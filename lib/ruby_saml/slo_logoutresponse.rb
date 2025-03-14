@@ -5,11 +5,8 @@ require "ruby_saml/saml_message"
 require "ruby_saml/utils"
 require "ruby_saml/setting_error"
 
-# Only supports SAML 2.0
 module RubySaml
-
   # SAML2 Logout Response (SLO SP initiated, Parser)
-  #
   class SloLogoutresponse < SamlMessage
 
     # Logout Response ID
@@ -23,7 +20,6 @@ module RubySaml
     # @param params [Hash] Some extra parameters to be added in the GET for example the RelayState
     # @param logout_status_code [String] The StatusCode to be placed as StatusMessage in the logout response
     # @return [String] Logout Request string that includes the SAMLRequest
-    #
     def create(settings, request_id = nil, logout_message = nil, params = {}, logout_status_code = nil)
       assign_uuid(settings)
       params = create_params(settings, request_id, logout_message, params, logout_status_code)
@@ -35,7 +31,7 @@ module RubySaml
         response_params << "&#{key}=#{CGI.escape(value.to_s)}"
       end
 
-      raise SettingError.new "Invalid settings, idp_slo_service_url is not set!" if url.nil? or url.empty?
+      raise SettingError.new "Invalid settings, idp_slo_service_url is not set!" if url.nil? || url.empty?
       @logout_url = url + response_params
     end
 
@@ -46,7 +42,6 @@ module RubySaml
     # @param params [Hash] Some extra parameters to be added in the GET for example the RelayState
     # @param logout_status_code [String] The StatusCode to be placed as StatusMessage in the logout response
     # @return [Hash] Parameters
-    #
     def create_params(settings, request_id = nil, logout_message = nil, params = {}, logout_status_code = nil)
       # The method expects :RelayState but sometimes we get 'RelayState' instead.
       # Based on the HashWithIndifferentAccess value in Rails we could experience
@@ -60,16 +55,13 @@ module RubySaml
       end
 
       response_doc = create_logout_response_xml_doc(settings, request_id, logout_message, logout_status_code)
-      response_doc.context[:attribute_quote] = :quote
-
-      response = +""
-      response_doc.write(response)
+      response = response_doc.to_xml(save_with: Nokogiri::XML::Node::SaveOptions::AS_XML)
 
       Logging.debug "Created SLO Logout Response: #{response}"
 
       response = deflate(response) if binding_redirect
       base64_response = encode(response)
-      response_params = {"SAMLResponse" => base64_response}
+      response_params = { 'SAMLResponse' => base64_response }
       sp_signing_key = settings.get_sp_signing_key
 
       if binding_redirect && settings.security[:logout_responses_signed] && sp_signing_key
@@ -98,57 +90,52 @@ module RubySaml
     # @param logout_message [String] The Message to be placed as StatusMessage in the logout response
     # @param logout_status_code [String] The StatusCode to be placed as StatusMessage in the logout response
     # @return [String] The SAMLResponse String.
-    #
     def create_logout_response_xml_doc(settings, request_id = nil, logout_message = nil, logout_status_code = nil)
-      document = create_xml_document(settings, request_id, logout_message, logout_status_code)
-      sign_document(document, settings)
+      noko = create_xml_document(settings, request_id, logout_message, logout_status_code)
+      sign_document(noko, settings)
     end
 
     def create_xml_document(settings, request_id = nil, logout_message = nil, status_code = nil)
       time = Time.now.utc.strftime('%Y-%m-%dT%H:%M:%SZ')
       assign_uuid(settings)
 
-      response_doc = RubySaml::XML::Document.new
-      response_doc.context[:attribute_quote] = :quote
+      root_attributes = {
+        'xmlns:samlp' => 'urn:oasis:names:tc:SAML:2.0:protocol',
+        'xmlns:saml' => 'urn:oasis:names:tc:SAML:2.0:assertion',
+        'ID' => uuid,
+        'IssueInstant' => time,
+        'Version' => '2.0',
+        'InResponseTo' => request_id,
+        'Destination' => settings.idp_slo_response_service_url || settings.idp_slo_service_url
+      }.compact.reject { |_, v| v.respond_to?(:empty?) && v.empty? }
 
-      destination = settings.idp_slo_response_service_url || settings.idp_slo_service_url
+      # Default values if not provided
+      status_code ||= 'urn:oasis:names:tc:SAML:2.0:status:Success'
+      logout_message ||= 'Successfully Signed Out'
 
-      root = response_doc.add_element 'samlp:LogoutResponse', { 'xmlns:samlp' => 'urn:oasis:names:tc:SAML:2.0:protocol', "xmlns:saml" => "urn:oasis:names:tc:SAML:2.0:assertion" }
-      root.attributes['ID'] = uuid
-      root.attributes['IssueInstant'] = time
-      root.attributes['Version'] = '2.0'
-      root.attributes['InResponseTo'] = request_id unless request_id.nil?
-      root.attributes['Destination'] = destination unless destination.nil? or destination.empty?
+      builder = Nokogiri::XML::Builder.new do |xml|
+        xml['samlp'].LogoutResponse(root_attributes) do
+          # Add Issuer element if sp_entity_id is present
+          xml['saml'].Issuer(settings.sp_entity_id) if settings.sp_entity_id
 
-      unless settings.sp_entity_id.nil?
-        issuer = root.add_element "saml:Issuer"
-        issuer.text = settings.sp_entity_id
+          # Add Status section
+          xml['samlp'].Status do
+            xml['samlp'].StatusCode(Value: status_code)
+            xml['samlp'].StatusMessage(logout_message)
+          end
+        end
       end
 
-      # add status
-      status = root.add_element 'samlp:Status'
-
-      # status code
-      status_code ||= 'urn:oasis:names:tc:SAML:2.0:status:Success'
-      status_code_elem = status.add_element 'samlp:StatusCode'
-      status_code_elem.attributes['Value'] = status_code
-
-      # status message
-      logout_message ||= 'Successfully Signed Out'
-      status_message = status.add_element 'samlp:StatusMessage'
-      status_message.text = logout_message
-
-      response_doc
+      builder.doc
     end
 
-    def sign_document(document, settings)
-      # embed signature
+    def sign_document(noko, settings)
       cert, private_key = settings.get_sp_signing_pair
       if settings.idp_slo_service_binding == Utils::BINDINGS[:post] && private_key && cert
-        document.sign_document(private_key, cert, settings.get_sp_signature_method, settings.get_sp_digest_method)
+        RubySaml::XML::DocumentSigner.sign_document!(noko, private_key, cert, settings.get_sp_signature_method, settings.get_sp_digest_method)
+      else
+        noko
       end
-
-      document
     end
 
     def assign_uuid(settings)
