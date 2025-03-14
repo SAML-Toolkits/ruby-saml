@@ -5,11 +5,8 @@ require "ruby_saml/attribute_service"
 require "ruby_saml/utils"
 require "ruby_saml/validation_error"
 
-# Only supports SAML 2.0
 module RubySaml
-
   # SAML2 Toolkit Settings
-  #
   class Settings
     def initialize(overrides = {}, keep_security_attributes = false)
       if keep_security_attributes
