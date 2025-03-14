@@ -1,6 +1,5 @@
-# frozen_string_literal: true
-
 require_relative 'test_helper'
+
 require 'ruby_saml/logoutresponse'
 require 'logout_responses/logoutresponse_fixtures'
 
@@ -24,7 +23,7 @@ class RubySamlTest < Minitest::Test
       end
 
       it "accept constructor-injected options" do
-        logoutresponse = RubySaml::Logoutresponse.new(valid_logout_response_document, nil, { :foo => :bar} )
+        logoutresponse = RubySaml::Logoutresponse.new(valid_logout_response_document, nil, { foo: :bar})
         refute logoutresponse.options.empty?
       end
 

@@ -4,8 +4,11 @@ require "ruby_saml/xml"
 require "ruby_saml/saml_message"
 require "time"
 
+# Only supports SAML 2.0
 module RubySaml
+
   # SAML2 Logout Response (SLO IdP initiated, Parser)
+  #
   class Logoutresponse < SamlMessage
     include ErrorHandling
 
@@ -41,7 +44,7 @@ module RubySaml
 
       @options = options
       @response = decode_raw_saml(response, settings)
-      @document = RubySaml::XML::SignedDocument.new(@response)
+      @document = Nokogiri::XML(@response)
       super()
     end
 
@@ -61,12 +64,11 @@ module RubySaml
     #
     def in_response_to
       @in_response_to ||= begin
-        node = REXML::XPath.first(
-          document,
+        node = document.at_xpath(
           "/p:LogoutResponse",
           { "p" => PROTOCOL }
         )
-        node.nil? ? nil : node.attributes['InResponseTo']
+        node.nil? ? nil : node['InResponseTo']
       end
     end
 
@@ -74,12 +76,10 @@ module RubySaml
     #
     def issuer
       @issuer ||= begin
-        node = REXML::XPath.first(
-          document,
+        document.at_xpath(
           "/p:LogoutResponse/a:Issuer",
           { "p" => PROTOCOL, "a" => ASSERTION }
-        )
-        Utils.element_text(node)
+        )&.content
       end
     end
 
@@ -87,19 +87,18 @@ module RubySaml
     #
     def status_code
       @status_code ||= begin
-        node = REXML::XPath.first(document, "/p:LogoutResponse/p:Status/p:StatusCode", { "p" => PROTOCOL })
-        node.nil? ? nil : node.attributes["Value"]
+        node = document.at_xpath("/p:LogoutResponse/p:Status/p:StatusCode", { "p" => PROTOCOL })
+        node.nil? ? nil : node['Value']
       end
     end
 
     def status_message
       @status_message ||= begin
-        node = REXML::XPath.first(
-          document,
+        node = document.at_xpath(
           "/p:LogoutResponse/p:Status/p:StatusMessage",
           { "p" => PROTOCOL }
         )
-        Utils.element_text(node)
+        node&.content
       end
     end
 
@@ -148,8 +147,7 @@ module RubySaml
     # @raise [ValidationError] if soft == false and validation fails
     #
     def validate_structure
-      check_malformed_doc = check_malformed_doc?(settings)
-      unless valid_saml?(document, soft, check_malformed_doc: check_malformed_doc)
+      unless valid_saml?(document, soft)
         return append_error("Invalid SAML Logout Response. Not match the saml-schema-protocol-2.0.xsd")
       end
 

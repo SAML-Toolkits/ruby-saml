@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 require_relative 'test_helper'
 
 class UtilsTest < Minitest::Test
@@ -324,42 +322,6 @@ class UtilsTest < Minitest::Test
         assert !RubySaml::Utils.uri_match?(destination, settings)
       end
     end
-
-    describe '.element_text' do
-      it 'returns the element text' do
-        element = REXML::Document.new('<element>element text</element>').elements.first
-        assert_equal 'element text', RubySaml::Utils.element_text(element)
-      end
-
-      it 'returns all segments of the element text' do
-        element = REXML::Document.new('<element>element <!-- comment -->text</element>').elements.first
-        assert_equal 'element text', RubySaml::Utils.element_text(element)
-      end
-
-      it 'returns normalized element text' do
-        element = REXML::Document.new('<element>element &amp; text</element>').elements.first
-        assert_equal 'element & text', RubySaml::Utils.element_text(element)
-      end
-
-      it 'returns the CDATA element text' do
-        element = REXML::Document.new('<element><![CDATA[element & text]]></element>').elements.first
-        assert_equal 'element & text', RubySaml::Utils.element_text(element)
-      end
-
-      it 'returns the element text with newlines and additional whitespace' do
-        element = REXML::Document.new("<element>  element \n text  </element>").elements.first
-        assert_equal "  element \n text  ", RubySaml::Utils.element_text(element)
-      end
-
-      it 'returns nil when element is nil' do
-        assert_nil RubySaml::Utils.element_text(nil)
-      end
-
-      it 'returns empty string when element has no text' do
-        element = REXML::Document.new('<element></element>').elements.first
-        assert_equal '', RubySaml::Utils.element_text(element)
-      end
-    end
   end
 
   describe '.decrypt_multi' do
@@ -369,11 +331,10 @@ class UtilsTest < Minitest::Test
     let(:settings) { RubySaml::Settings.new(:private_key => private_key.to_pem) }
     let(:response) { RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings) }
     let(:encrypted) do
-      REXML::XPath.first(
-        response.document,
-        "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
+      response.document.xpath(
+        "/p:Response/EncryptedAssertion | /p:Response/a:EncryptedAssertion",
         { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
-      )
+      ).first
     end
 
     it 'successfully decrypts with the first private key' do
