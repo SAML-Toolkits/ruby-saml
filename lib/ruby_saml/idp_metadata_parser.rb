@@ -306,11 +306,10 @@ module RubySaml
         binding = single_signon_service_binding(binding_priority)
         return if binding.nil?
 
-        node = @idpsso_descriptor.at_xpath(
+        @idpsso_descriptor.at_xpath(
           "md:SingleSignOnService[@Binding=\"#{binding}\"]/@Location",
           SamlMetadata::NAMESPACE
-        )
-        node&.value
+        )&.value
       end
 
       # @param binding_priority [String|Array<String>] The prioritized list of Binding values to select. Will select first value if nil.
@@ -320,11 +319,10 @@ module RubySaml
         binding = single_logout_service_binding(binding_priority)
         return if binding.nil?
 
-        node = @idpsso_descriptor.at_xpath(
+        @idpsso_descriptor.at_xpath(
           "md:SingleLogoutService[@Binding=\"#{binding}\"]/@Location",
           SamlMetadata::NAMESPACE
-        )
-        node&.value
+        )&.value
       end
 
       # @param binding_priority [String|Array<String>] The prioritized list of Binding values to select. Will select first value if nil.
