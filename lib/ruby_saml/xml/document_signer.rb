@@ -53,7 +53,7 @@ module RubySaml
             xml['ds'].SignedInfo do
               xml['ds'].CanonicalizationMethod(Algorithm: RubySaml::XML::C14N)
               xml['ds'].SignatureMethod(Algorithm: signature_method)
-              xml['ds'].Reference(URI: "##{noko.root.attr('ID')}") do
+              xml['ds'].Reference(URI: "##{noko.root['ID']}") do
                 xml['ds'].Transforms do
                   xml['ds'].Transform(Algorithm: RubySaml::XML::ENVELOPED_SIG)
                   xml['ds'].Transform(Algorithm: RubySaml::XML::C14N) do
