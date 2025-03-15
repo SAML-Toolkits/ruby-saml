@@ -1,12 +1,16 @@
 # frozen_string_literal: true
 
-require 'ruby_saml/xml/base_document'
+require 'rexml/document'
+require 'rexml/security'
+require 'rexml/xpath'
 require 'ruby_saml/error_handling'
 require 'ruby_saml/utils'
 
+REXML::Security.entity_expansion_limit = 0
+
 module RubySaml
   module XML
-    class SignedDocument < BaseDocument
+    class SignedDocument < REXML::Document
       include RubySaml::ErrorHandling
 
       attr_reader :processed,

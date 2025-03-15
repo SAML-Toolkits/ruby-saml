@@ -116,11 +116,11 @@ class Minitest::Test
   end
 
   def signature_method_matcher(algorithm = :rsa, digest = :sha256)
-    %r{<ds:SignatureMethod Algorithm='#{Regexp.escape(signature_method(algorithm, digest))}'/>}
+    %r{<ds:SignatureMethod Algorithm="#{Regexp.escape(signature_method(algorithm, digest))}"/>}
   end
 
   def digest_method_matcher(digest = :sha256)
-    %r{<ds:DigestMethod Algorithm='#{digest_method(digest)}'/>}
+    %r{<ds:DigestMethod Algorithm="#{digest_method(digest)}"/>}
   end
 
   def read_response(response)
@@ -153,8 +153,8 @@ class Minitest::Test
 
   def response_document_without_recipient_with_time_updated
     doc = Base64.decode64(response_document_without_recipient)
-    doc.gsub!(/NotBefore=\"(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z\"/, "NotBefore=\"#{(Time.now-300).getutc.strftime("%Y-%m-%dT%XZ")}\"")
-    doc.gsub!(/NotOnOrAfter=\"(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z\"/, "NotOnOrAfter=\"#{(Time.now+300).getutc.strftime("%Y-%m-%dT%XZ")}\"")
+    doc.gsub!(/NotBefore="(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z"/, "NotBefore=\"#{(Time.now-300).getutc.strftime("%Y-%m-%dT%XZ")}\"")
+    doc.gsub!(/NotOnOrAfter="(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z"/, "NotOnOrAfter=\"#{(Time.now+300).getutc.strftime("%Y-%m-%dT%XZ")}\"")
     Base64.encode64(doc)
   end
 
@@ -431,7 +431,7 @@ class Minitest::Test
       xml = if document.is_a? Nokogiri::XML::Document
               document
             else
-              Nokogiri::XML(document) { |c| c.strict }
+              Nokogiri::XML(document, &:strict)
             end
 
       result = xsd.validate(xml)

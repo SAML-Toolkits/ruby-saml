@@ -37,7 +37,7 @@ RubySaml version `2.0.0` deprecates the `::XMLSecurity` namespace and the follow
 | Removed Class                 | Replacement Module & Method                                                      |
 |-------------------------------|----------------------------------------------------------------------------------|
 | `XMLSecurity::BaseDocument`   | (none)                                                                           |
-| `XMLSecurity::Document`       | Will be replaced with `RubySaml::XML::DocumentSigner.sign_document`              |
+| `XMLSecurity::Document`       | `RubySaml::XML::DocumentSigner.sign_document`                                    |
 | `XMLSecurity::SignedDocument` | Will be replaced with `RubySaml::XML::SignedDocumentValidator.validate_document` |
 
 If your application does not already define the `XMLSecurity` namespace (e.g. from another gem),
@@ -63,6 +63,32 @@ you may set `RubySaml::Settings` as follows:
 settings.idp_cert_fingerprint_algorithm = RubySaml::XML::SHA1
 settings.security[:digest_method] = RubySaml::XML::SHA1
 settings.security[:signature_method] = RubySaml::XML::RSA_SHA1
+```
+
+### Replacement of REXML with Nokogiri
+
+RubySaml `1.x` used a combination of REXML and Nokogiri for XML parsing and generation.
+In `2.0.0`, REXML has been replaced with Nokogiri. This change should be transparent
+to most users, however, see note about Custom Metadata Fields below.
+
+### Custom Metadata Fields now use Nokogiri XML Builder
+
+If you have added custom fields to your SP metadata generation by overriding
+the `RubySaml::Metadata#add_extras` method, you will need to update your code to use
+[Nokogiri::XML::Builder](https://nokogiri.org/rdoc/Nokogiri/XML/Builder.html) format
+instead of REXML. Here is an example of the new format:
+
+```ruby
+class MyMetadata < RubySaml::Metadata
+  private
+
+  def add_extras(xml, _settings)
+    xml['md'].ContactPerson('contactType' => 'technical') do
+      xml['md'].GivenName('ACME SAML Team')
+      xml['md'].EmailAddress('saml@acme.com')
+    end
+  end
+end
 ```
 
 ### Behavior change of double_quote_xml_attribute_values setting

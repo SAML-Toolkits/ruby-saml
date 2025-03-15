@@ -1387,14 +1387,13 @@ class RubySamlTest < Minitest::Test
       it 'sign an unsigned SAML Response XML and initiate the SAML object with it' do
         xml = Base64.decode64(fixture("test_sign.xml"))
 
-        document = RubySaml::XML::Document.new(xml)
-
         formatted_cert = RubySaml::Utils.format_cert(ruby_saml_cert_text)
         cert = OpenSSL::X509::Certificate.new(formatted_cert)
 
         formatted_private_key = RubySaml::Utils.format_private_key(ruby_saml_key_text)
         private_key = OpenSSL::PKey::RSA.new(formatted_private_key)
-        document.sign_document(private_key, cert)
+
+        document = RubySaml::XML::DocumentSigner.sign_document(xml, private_key, cert)
 
         signed_response = RubySaml::Response.new(document.to_s)
         settings.assertion_consumer_service_url = "http://recipient"
@@ -1795,9 +1794,10 @@ class RubySamlTest < Minitest::Test
     each_signature_algorithm do |idp_key_algo, idp_hash_algo|
       describe "#validate_signature" do
         let(:xml_signed) do
-          RubySaml::XML::Document.new(read_response('response_unsigned2.xml'))
-                                 .sign_document(@pkey, @cert, signature_method(idp_key_algo, idp_hash_algo), digest_method(idp_hash_algo))
-                                 .to_s
+          RubySaml::XML::DocumentSigner.sign_document(read_response('response_unsigned2.xml'),
+                                                      @pkey, @cert,
+                                                      signature_method(idp_key_algo, idp_hash_algo),
+                                                      digest_method(idp_hash_algo)).to_s
         end
 
         before do
