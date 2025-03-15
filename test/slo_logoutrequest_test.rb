@@ -139,7 +139,7 @@ class RubySamlTest < Minitest::Test
       it "extract the value of the NotOnOrAfter attribute" do
         time_value = '2014-07-17T01:01:48Z'
         assert_nil logout_request.not_on_or_after
-        logout_request.document.root.attributes['NotOnOrAfter'] = time_value
+        logout_request.document.root['NotOnOrAfter'] = time_value
         assert_equal Time.parse(time_value), logout_request.not_on_or_after
       end
     end
@@ -186,7 +186,7 @@ class RubySamlTest < Minitest::Test
         assert_empty logout_request.errors
 
         Timecop.freeze Time.parse('2014-07-17T01:01:47Z') do
-          logout_request.document.root.attributes['NotOnOrAfter'] = '2014-07-17T01:01:48Z'
+          logout_request.document.root['NotOnOrAfter'] = '2014-07-17T01:01:48Z'
           assert logout_request.send(:validate_not_on_or_after)
           assert_empty logout_request.errors
         end
@@ -194,7 +194,7 @@ class RubySamlTest < Minitest::Test
 
       it "return false when the logout request has an invalid NotOnOrAfter" do
         Timecop.freeze Time.parse('2014-07-17T01:01:49Z') do
-          logout_request.document.root.attributes['NotOnOrAfter'] = '2014-07-17T01:01:48Z'
+          logout_request.document.root['NotOnOrAfter'] = '2014-07-17T01:01:48Z'
           refute logout_request.send(:validate_not_on_or_after)
           assert_match(/Current time is on or after NotOnOrAfter/, logout_request.errors[0])
         end
@@ -202,7 +202,7 @@ class RubySamlTest < Minitest::Test
 
       it "raise when the logout request has an invalid NotOnOrAfter" do
         Timecop.freeze Time.parse('2014-07-17T01:01:49Z') do
-          logout_request.document.root.attributes['NotOnOrAfter'] = '2014-07-17T01:01:48Z'
+          logout_request.document.root['NotOnOrAfter'] = '2014-07-17T01:01:48Z'
           logout_request.soft = false
           assert_raises(RubySaml::ValidationError, "Current time is on or after NotOnOrAfter") do
             logout_request.send(:validate_not_on_or_after)
@@ -215,7 +215,7 @@ class RubySamlTest < Minitest::Test
         java = jruby? || truffleruby?
 
         logout_request.soft = true
-        logout_request.document.root.attributes['NotOnOrAfter'] = '2011-06-14T18:31:01.516Z'
+        logout_request.document.root['NotOnOrAfter'] = '2011-06-14T18:31:01.516Z'
 
         # The NotBefore condition in the document is 2011-06-1418:31:01.516Z
         Timecop.freeze(Time.parse("2011-06-14T18:31:02Z")) do

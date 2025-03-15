@@ -1,6 +1,5 @@
-# frozen_string_literal: true
-
 require_relative 'test_helper'
+
 require 'ruby_saml/metadata'
 
 class MetadataTest < Minitest::Test
@@ -253,8 +252,8 @@ class MetadataTest < Minitest::Test
     end
 
     describe "when attribute service is configured with multiple attribute values" do
-      let(:attr_svc) { xml_doc.at_xpath("//md:AttributeConsumingService", {"md" => "urn:oasis:names:tc:SAML:2.0:metadata"}) }
-      let(:req_attr) { xml_doc.at_xpath("//md:RequestedAttribute", {"md" => "urn:oasis:names:tc:SAML:2.0:metadata"}) }
+      let(:attr_svc)  { xml_doc.at_xpath("//md:AttributeConsumingService", {"md" => "urn:oasis:names:tc:SAML:2.0:metadata"}) }
+      let(:req_attr)  { xml_doc.at_xpath("//md:RequestedAttribute", {"md" => "urn:oasis:names:tc:SAML:2.0:metadata"}) }
 
       before do
         settings.attribute_consuming_service.configure do
@@ -334,12 +333,11 @@ class MetadataTest < Minitest::Test
         @cert, @pkey = CertificateHelper.generate_pair(:rsa)
         settings.certificate, settings.private_key = [@cert, @pkey].map(&:to_pem)
         @fingerprint = OpenSSL::Digest.new('SHA256', @cert.to_der).to_s
-        signed_metadata = RubySaml::XML::SignedDocument.new(xml_text)
 
         assert_match(signature_value_matcher, xml_text)
         assert_match(signature_method_matcher(:rsa, :sha256), xml_text)
         assert_match(digest_method_matcher(:sha256), xml_text)
-        assert(signed_metadata.validate_document(@fingerprint, false))
+        assert(RubySaml::XML::SignedDocumentValidator.validate_document(xml_text, @fingerprint, soft: false))
         assert(validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd"))
       end
 
@@ -354,13 +352,11 @@ class MetadataTest < Minitest::Test
           end
 
           it "creates a signed metadata" do
-            signed_metadata = RubySaml::XML::SignedDocument.new(xml_text)
-
             assert_match(signature_value_matcher, xml_text)
             assert_match(signature_method_matcher(sp_key_algo, sp_hash_algo), xml_text)
             assert_match(digest_method_matcher(sp_hash_algo), xml_text)
 
-            assert signed_metadata.validate_document(@fingerprint, false)
+            assert RubySaml::XML::SignedDocumentValidator.validate_document(xml_text, @fingerprint, soft: false)
             assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
           end
 
@@ -368,23 +364,21 @@ class MetadataTest < Minitest::Test
             it 'using mixed signature and digest methods (signature SHA256)' do
               # RSA is ignored here; only the hash sp_key_algo is used
               settings.security[:signature_method] = RubySaml::XML::RSA_SHA256
-              signed_metadata = RubySaml::XML::SignedDocument.new(xml_text)
 
               assert_match(signature_value_matcher, xml_text)
               assert_match(signature_method_matcher(sp_key_algo, :sha256), xml_text)
               assert_match(digest_method_matcher(sp_hash_algo), xml_text)
-              assert(signed_metadata.validate_document(@fingerprint, false))
+              assert(RubySaml::XML::SignedDocumentValidator.validate_document(xml_text, @fingerprint, soft: false))
               assert(validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd"))
             end
 
             it 'using mixed signature and digest methods (digest SHA256)' do
               settings.security[:digest_method] = RubySaml::XML::SHA256
-              signed_metadata = RubySaml::XML::SignedDocument.new(xml_text)
 
               assert_match(signature_value_matcher, xml_text)
               assert_match(signature_method_matcher(sp_key_algo, sp_hash_algo), xml_text)
               assert_match(digest_method_matcher(:sha256), xml_text)
-              assert(signed_metadata.validate_document(@fingerprint, false))
+              assert(RubySaml::XML::SignedDocumentValidator.validate_document(xml_text, @fingerprint, soft: false))
               assert(validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd"))
             end
           end
@@ -412,7 +406,6 @@ class MetadataTest < Minitest::Test
 
             it "inserts signature as the first child of root element" do
               xml_text = subclass.new.generate(settings, false)
-              signed_metadata = RubySaml::XML::SignedDocument.new(xml_text)
               first_child = xml_doc.root.element_children.first
 
               assert_equal first_child.namespace.prefix, 'ds'
@@ -420,7 +413,7 @@ class MetadataTest < Minitest::Test
               assert_match(signature_value_matcher, xml_text)
               assert_match(signature_method_matcher(sp_key_algo, sp_hash_algo), xml_text)
               assert_match(digest_method_matcher(sp_hash_algo), xml_text)
-              assert signed_metadata.validate_document(@fingerprint, false)
+              assert(RubySaml::XML::SignedDocumentValidator.validate_document(xml_text, @fingerprint, soft: false))
               assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
             end
           end
