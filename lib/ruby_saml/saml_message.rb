@@ -10,10 +10,6 @@ require 'ruby_saml/logging'
 module RubySaml
   # SAML2 Message
   class SamlMessage
-
-    ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion"
-    PROTOCOL  = "urn:oasis:names:tc:SAML:2.0:protocol"
-
     BASE64_FORMAT = %r{\A([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?\Z}
 
     # @return [Nokogiri::XML::Schema] Gets the schema object of the SAML 2.0 Protocol schema
@@ -41,14 +37,14 @@ module RubySaml
       if document.is_a?(Nokogiri::XML::Document)
         node = document.at_xpath(
           "/p:AuthnRequest | /p:Response | /p:LogoutResponse | /p:LogoutRequest",
-          { "p" => PROTOCOL }
+          { "p" => RubySaml::XML::NS_PROTOCOL }
         )
         node.nil? ? nil : node[attribute]
       else
         node = REXML::XPath.first(
           document,
           "/p:AuthnRequest | /p:Response | /p:LogoutResponse | /p:LogoutRequest",
-          { "p" => PROTOCOL }
+          { "p" => RubySaml::XML::NS_PROTOCOL }
         )
         node.nil? ? nil : node.attributes[attribute]
       end

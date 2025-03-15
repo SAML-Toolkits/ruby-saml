@@ -236,7 +236,7 @@ module RubySaml
       unless raw_status_code.nil?
         if raw_status_code.include?("|")
           status_codes = raw_status_code.split(' | ')
-          values = status_codes.collect do |status_code|
+          values = status_codes.map do |status_code|
             status_code.split(':').last
           end
           printable_code = values.join(" => ")

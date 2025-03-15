@@ -33,7 +33,7 @@ module RubySaml
       # Modifies an existing Nokogiri document to add a signature.
       def sign_document!(noko, private_key, certificate, signature_method = RubySaml::XML::RSA_SHA256, digest_method = RubySaml::XML::SHA256)
         signature_element = build_signature_element(noko, private_key, certificate, signature_method, digest_method)
-        issuer_element = noko.at_xpath('//saml:Issuer', 'saml' => 'urn:oasis:names:tc:SAML:2.0:assertion')
+        issuer_element = noko.at_xpath('//saml:Issuer', 'saml' => RubySaml::XML::NS_ASSERTION)
         if issuer_element
           issuer_element.after(signature_element)
         elsif noko.root.children.any?

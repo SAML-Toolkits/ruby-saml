@@ -100,8 +100,8 @@ module RubySaml
       assign_uuid(settings)
 
       root_attributes = {
-        'xmlns:samlp' => 'urn:oasis:names:tc:SAML:2.0:protocol',
-        'xmlns:saml' => 'urn:oasis:names:tc:SAML:2.0:assertion',
+        'xmlns:samlp' => RubySaml::XML::NS_PROTOCOL,
+        'xmlns:saml' => RubySaml::XML::NS_ASSERTION,
         'ID' => uuid,
         'IssueInstant' => time,
         'Version' => '2.0',

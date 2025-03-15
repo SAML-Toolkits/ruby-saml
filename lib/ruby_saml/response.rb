@@ -10,13 +10,10 @@ module RubySaml
   class Response < SamlMessage
     include ErrorHandling
 
-    ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion"
-    PROTOCOL  = "urn:oasis:names:tc:SAML:2.0:protocol"
-    DSIG      = "http://www.w3.org/2000/09/xmldsig#"
-    XENC      = "http://www.w3.org/2001/04/xmlenc#"
+    # TODO: Migrate this to RubySaml::XML
     SAML_NAMESPACES = {
-      "p" => PROTOCOL,
-      "a" => ASSERTION
+      'p' => RubySaml::XML::NS_PROTOCOL,
+      'a' => RubySaml::XML::NS_ASSERTION
     }.freeze
 
     # TODO: Settings should probably be initialized too... WDYT?
@@ -197,7 +194,7 @@ module RubySaml
           # this is useful for allowing eduPersonTargetedId to be passed as an opaque identifier to use to
           # identify the subject in an SP rather than email or other less opaque attributes
           # NameQualifier, if present is prefixed with a "/" to the value
-          REXML::XPath.match(e,'a:NameID', { "a" => ASSERTION }).collect do |n|
+          REXML::XPath.match(e,'a:NameID', { "a" => RubySaml::XML::NS_ASSERTION }).map do |n|
             base_path = n.attributes['NameQualifier'] ? "#{n.attributes['NameQualifier']}/" : ''
             "#{base_path}#{Utils.element_text(n)}"
           end
@@ -224,7 +221,7 @@ module RubySaml
           # this is useful for allowing eduPersonTargetedId to be passed as an opaque identifier to use to
           # identify the subject in an SP rather than email or other less opaque attributes
           # NameQualifier, if present is prefixed with a "/" to the value
-          e.xpath('a:NameID', { "a" => ASSERTION }).map do |n|
+          e.xpath('a:NameID', { "a" => RubySaml::XML::NS_ASSERTION }).map do |n|
             next unless (value = n&.content)
             base_path = n['NameQualifier'] ? "#{n['NameQualifier']}/" : ''
             "#{base_path}#{value}"
@@ -281,7 +278,7 @@ module RubySaml
         nodes = REXML::XPath.match(
           document,
           "/p:Response/p:Status/p:StatusCode",
-          { "p" => PROTOCOL }
+          { "p" => RubySaml::XML::NS_PROTOCOL }
         )
         if nodes.size == 1
           node = nodes[0]
@@ -291,9 +288,9 @@ module RubySaml
             nodes = REXML::XPath.match(
               document,
               "/p:Response/p:Status/p:StatusCode/p:StatusCode",
-              { "p" => PROTOCOL }
+              { "p" => RubySaml::XML::NS_PROTOCOL }
             )
-            statuses = nodes.collect do |inner_node|
+            statuses = nodes.map do |inner_node|
               inner_node.attributes["Value"]
             end
 
@@ -312,7 +309,7 @@ module RubySaml
         nodes = REXML::XPath.match(
           document,
           "/p:Response/p:Status/p:StatusMessage",
-          { "p" => PROTOCOL }
+          { "p" => RubySaml::XML::NS_PROTOCOL }
         )
 
         Utils.element_text(nodes.first) if nodes.size == 1
@@ -376,7 +373,7 @@ module RubySaml
         node = REXML::XPath.first(
           document,
           "/p:Response",
-          { "p" => PROTOCOL }
+          { "p" => RubySaml::XML::NS_PROTOCOL }
         )
         node.nil? ? nil : node.attributes['InResponseTo']
       end
@@ -389,7 +386,7 @@ module RubySaml
         node = REXML::XPath.first(
           document,
           "/p:Response",
-          { "p" => PROTOCOL }
+          { "p" => RubySaml::XML::NS_PROTOCOL }
         )
         node.nil? ? nil : node.attributes['Destination']
       end
@@ -546,12 +543,12 @@ module RubySaml
       assertions = REXML::XPath.match(
         document,
         "//a:Assertion",
-        { "a" => ASSERTION }
+        { "a" => RubySaml::XML::NS_ASSERTION }
       )
       encrypted_assertions = REXML::XPath.match(
         document,
         "//a:EncryptedAssertion",
-        { "a" => ASSERTION }
+        { "a" => RubySaml::XML::NS_ASSERTION }
       )
 
       unless assertions.size + encrypted_assertions.size == 1
@@ -562,7 +559,7 @@ module RubySaml
         assertions = REXML::XPath.match(
           decrypted_document,
           "//a:Assertion",
-          { "a" => ASSERTION }
+          { "a" => RubySaml::XML::NS_ASSERTION }
         )
         unless assertions.size == 1
           return append_error(error_msg)
@@ -598,7 +595,7 @@ module RubySaml
       signature_nodes = REXML::XPath.match(
         decrypted_document.nil? ? document : decrypted_document,
         "//ds:Signature",
-        {"ds"=>DSIG}
+        { "ds" => RubySaml::XML::DSIG }
       )
       signed_elements = []
       verified_seis = []
@@ -620,7 +617,7 @@ module RubySaml
         verified_ids.push(id)
 
         # Check that reference URI matches the parent ID and no duplicate References or IDs
-        ref = REXML::XPath.first(signature_node, ".//ds:Reference", {"ds"=>DSIG})
+        ref = REXML::XPath.first(signature_node, ".//ds:Reference", { "ds" => RubySaml::XML::DSIG })
         if ref
           uri = ref.attributes.get_attribute("URI")
           if uri && !uri.value.empty?
@@ -838,7 +835,7 @@ module RubySaml
         confirmation_data_node = REXML::XPath.first(
           subject_confirmation,
           'a:SubjectConfirmationData',
-          { "a" => ASSERTION }
+          { "a" => RubySaml::XML::NS_ASSERTION }
         )
 
         next unless confirmation_data_node
@@ -870,7 +867,7 @@ module RubySaml
           next
         end
 
-        confirmation_data_node = subject_confirmation.at_xpath('a:SubjectConfirmationData', { "a" => ASSERTION })
+        confirmation_data_node = subject_confirmation.at_xpath('a:SubjectConfirmationData', { "a" => RubySaml::XML::NS_ASSERTION })
 
         next unless confirmation_data_node
 
@@ -916,7 +913,7 @@ module RubySaml
       sig_elements = REXML::XPath.match(
         document,
         "/p:Response[@ID=$id]/ds:Signature",
-        { "p" => PROTOCOL, "ds" => DSIG },
+        { "p" => RubySaml::XML::NS_PROTOCOL, "ds" => RubySaml::XML::DSIG },
         { 'id' => document.signed_element_id }
       )
 
@@ -941,7 +938,7 @@ module RubySaml
       sig_elements = REXML::XPath.match(
         document,
         "/p:Response[@ID=$id]/ds:Signature",
-        { "p" => PROTOCOL, "ds" => DSIG },
+        { "p" => RubySaml::XML::NS_PROTOCOL, "ds" => RubySaml::XML::DSIG },
         { 'id' => document.signed_element_id }
       )
 
@@ -950,7 +947,7 @@ module RubySaml
         sig_elements = REXML::XPath.match(
           doc,
           "/p:Response/a:Assertion[@ID=$id]/ds:Signature",
-          SAML_NAMESPACES.merge({ "ds" => DSIG }),
+          SAML_NAMESPACES.merge({ "ds" => RubySaml::XML::DSIG }),
           { 'id' => doc.signed_element_id }
         )
       end
@@ -1037,10 +1034,10 @@ module RubySaml
 
       assertion = empty_doc
       if root.name == "Response"
-        if REXML::XPath.first(root, "a:Assertion", {"a" => ASSERTION})
-          assertion = REXML::XPath.first(root, "a:Assertion", {"a" => ASSERTION})
-        elsif REXML::XPath.first(root, "a:EncryptedAssertion", {"a" => ASSERTION})
-          assertion = RubySaml::XML::Decryptor.decrypt_assertion(REXML::XPath.first(root, "a:EncryptedAssertion", {"a" => ASSERTION}), settings&.get_sp_decryption_keys)
+        if REXML::XPath.first(root, "a:Assertion", {"a" => RubySaml::XML::NS_ASSERTION})
+          assertion = REXML::XPath.first(root, "a:Assertion", {"a" => RubySaml::XML::NS_ASSERTION})
+        elsif REXML::XPath.first(root, "a:EncryptedAssertion", {"a" => RubySaml::XML::NS_ASSERTION})
+          assertion = RubySaml::XML::Decryptor.decrypt_assertion(REXML::XPath.first(root, "a:EncryptedAssertion", {"a" => RubySaml::XML::NS_ASSERTION}), settings&.get_sp_decryption_keys)
         end
       elsif root.name == "Assertion"
         assertion = root

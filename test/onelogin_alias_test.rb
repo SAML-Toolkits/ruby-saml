@@ -35,7 +35,7 @@ class OneloginAliasTest < Minitest::Test
         start = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<md:EntityDescriptor"
         assert_equal start, xml_text[0..start.length-1]
         assert_equal "https://example.com", xml_doc.at_xpath("//md:EntityDescriptor", { "md" => "urn:oasis:names:tc:SAML:2.0:metadata" })['entityID']
-        assert_equal "urn:oasis:names:tc:SAML:2.0:protocol", spsso_descriptor['protocolSupportEnumeration']
+        assert_equal RubySaml::XML::NS_PROTOCOL, spsso_descriptor['protocolSupportEnumeration']
         assert_equal "false", spsso_descriptor['AuthnRequestsSigned']
         assert_equal "false", spsso_descriptor['WantAssertionsSigned']
         assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress", xml_doc.at_xpath("//md:NameIDFormat", { "md" => "urn:oasis:names:tc:SAML:2.0:metadata" }).text.strip

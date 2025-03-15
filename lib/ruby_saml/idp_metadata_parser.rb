@@ -11,23 +11,12 @@ module RubySaml
   # make sure to validate it properly before use it in a parse_remote method.
   # Read the `Security warning` section of the README.md file to get more info
   class IdpMetadataParser
-    module SamlMetadata
-      module Vocabulary
-        METADATA       = "urn:oasis:names:tc:SAML:2.0:metadata"
-        DSIG           = "http://www.w3.org/2000/09/xmldsig#"
-        NAME_FORMAT    = "urn:oasis:names:tc:SAML:2.0:attrname-format:*"
-        SAML_ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion"
-      end
+    NAMESPACES = {
+      "ds" => RubySaml::XML::DSIG,
+      "md" => RubySaml::XML::NS_METADATA,
+      "saml" => RubySaml::XML::NS_ASSERTION
+    }.freeze
 
-      NAMESPACE = {
-        "md" => Vocabulary::METADATA,
-        "NameFormat" => Vocabulary::NAME_FORMAT,
-        "saml" => Vocabulary::SAML_ASSERTION,
-        "ds" => Vocabulary::DSIG
-      }.freeze
-    end
-
-    include SamlMetadata::Vocabulary
     attr_reader :document
     attr_reader :response
     attr_reader :options
@@ -35,7 +24,7 @@ module RubySaml
     # fetch IdP descriptors from a metadata document
     def self.get_idps(noko_document, only_entity_id = nil)
       path = "//md:EntityDescriptor#{"[@entityID=\"#{only_entity_id}\"]" if only_entity_id}/md:IDPSSODescriptor"
-      noko_document.xpath(path, SamlMetadata::NAMESPACE)
+      noko_document.xpath(path, NAMESPACES)
     end
 
     # Parse the Identity Provider metadata and update the settings with the
@@ -272,7 +261,7 @@ module RubySaml
       def idp_name_id_format(name_id_priority = nil)
         nodes = @idpsso_descriptor.xpath(
           "md:NameIDFormat",
-          SamlMetadata::NAMESPACE
+          NAMESPACES
         )
         first_ranked_text(nodes, name_id_priority)
       end
@@ -283,7 +272,7 @@ module RubySaml
       def single_signon_service_binding(binding_priority = nil)
         nodes = @idpsso_descriptor.xpath(
           "md:SingleSignOnService/@Binding",
-          SamlMetadata::NAMESPACE
+          NAMESPACES
         )
         first_ranked_value(nodes, binding_priority)
       end
@@ -294,7 +283,7 @@ module RubySaml
       def single_logout_service_binding(binding_priority = nil)
         nodes = @idpsso_descriptor.xpath(
           "md:SingleLogoutService/@Binding",
-          SamlMetadata::NAMESPACE
+          NAMESPACES
         )
         first_ranked_value(nodes, binding_priority)
       end
@@ -308,7 +297,7 @@ module RubySaml
 
         @idpsso_descriptor.at_xpath(
           "md:SingleSignOnService[@Binding=\"#{binding}\"]/@Location",
-          SamlMetadata::NAMESPACE
+          NAMESPACES
         )&.value
       end
 
@@ -321,7 +310,7 @@ module RubySaml
 
         @idpsso_descriptor.at_xpath(
           "md:SingleLogoutService[@Binding=\"#{binding}\"]/@Location",
-          SamlMetadata::NAMESPACE
+          NAMESPACES
         )&.value
       end
 
@@ -334,7 +323,7 @@ module RubySaml
 
         node = @idpsso_descriptor.at_xpath(
           "md:SingleLogoutService[@Binding=\"#{binding}\"]/@ResponseLocation",
-          SamlMetadata::NAMESPACE
+          NAMESPACES
         )
         node&.value
       end
@@ -345,12 +334,12 @@ module RubySaml
         @certificates ||= begin
           signing_nodes = @idpsso_descriptor.xpath(
             "md:KeyDescriptor[not(contains(@use, 'encryption'))]/ds:KeyInfo/ds:X509Data/ds:X509Certificate",
-            SamlMetadata::NAMESPACE
+            NAMESPACES
           )
 
           encryption_nodes = @idpsso_descriptor.xpath(
             "md:KeyDescriptor[not(contains(@use, 'signing'))]/ds:KeyInfo/ds:X509Data/ds:X509Certificate",
-            SamlMetadata::NAMESPACE
+            NAMESPACES
           )
 
           return nil if signing_nodes.empty? && encryption_nodes.empty?
@@ -389,7 +378,7 @@ module RubySaml
       def attribute_names
         nodes = @idpsso_descriptor.xpath(
           "saml:Attribute/@Name",
-          SamlMetadata::NAMESPACE
+          NAMESPACES
         )
         nodes.map(&:value)
       end

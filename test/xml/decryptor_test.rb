@@ -6,15 +6,10 @@ require 'base64'
 require 'openssl'
 
 class NokogiriDecryptorTest < Minitest::Test
-  XML_DSIG       = RubySaml::XML::DSIG
-  XML_ENC        = RubySaml::XML::XENC
-  SAML_ASSERTION = RubySaml::XML::NS_ASSERTION
-  SAML_PROTOCOL  = RubySaml::XML::NS_PROTOCOL
-
   describe 'RubySaml::XML::Decryptor' do
     let(:document_encrypted_assertion) { fixture(:unsigned_encrypted_adfs, false) }
     let(:noko_encrypted_assertion_doc) { Nokogiri::XML(document_encrypted_assertion) }
-    let(:noko_encrypted_assertion_node) { noko_encrypted_assertion_doc.at_xpath('//saml:EncryptedAssertion|//EncryptedAssertion', 'saml' => SAML_ASSERTION) }
+    let(:noko_encrypted_assertion_node) { noko_encrypted_assertion_doc.at_xpath('//saml:EncryptedAssertion|//EncryptedAssertion', 'saml' => RubySaml::XML::NS_ASSERTION) }
 
     let(:document_encrypted_attrs) { Base64.decode64(fixture(:response_encrypted_attrs)) }
     let(:noko_encrypted_attribute_doc) { Nokogiri::XML(document_encrypted_attrs) }
@@ -32,10 +27,10 @@ class NokogiriDecryptorTest < Minitest::Test
         decrypted_doc = RubySaml::XML::Decryptor.decrypt_document(document_encrypted_assertion, decryption_keys)
 
         # The encrypted assertion should be removed
-        assert_nil decrypted_doc.at_xpath('/p:Response/EncryptedAssertion', { 'p' => SAML_PROTOCOL })
+        assert_nil decrypted_doc.at_xpath('/p:Response/EncryptedAssertion', { 'p' => RubySaml::XML::NS_PROTOCOL })
 
         # An assertion should now be present
-        refute_nil decrypted_doc.at_xpath('/p:Response/a:Assertion', { 'p' => SAML_PROTOCOL, 'a' => SAML_ASSERTION })
+        refute_nil decrypted_doc.at_xpath('/p:Response/a:Assertion', { 'p' => RubySaml::XML::NS_PROTOCOL, 'a' => RubySaml::XML::NS_ASSERTION })
       end
 
       it 'should raise an error when no decryption keys are provided' do
@@ -48,7 +43,7 @@ class NokogiriDecryptorTest < Minitest::Test
       it 'should decrypt a document with multiple keys trying each one' do
         decrypted_doc = RubySaml::XML::Decryptor.decrypt_document(document_encrypted_assertion, multiple_decryption_keys)
 
-        refute_nil decrypted_doc.at_xpath('/p:Response/a:Assertion', { 'p' => SAML_PROTOCOL, 'a' => SAML_ASSERTION })
+        refute_nil decrypted_doc.at_xpath('/p:Response/a:Assertion', { 'p' => RubySaml::XML::NS_PROTOCOL, 'a' => RubySaml::XML::NS_ASSERTION })
       end
     end
 
@@ -57,10 +52,10 @@ class NokogiriDecryptorTest < Minitest::Test
         decrypted_doc = RubySaml::XML::Decryptor.decrypt_document!(noko_encrypted_assertion_doc, decryption_keys)
 
         # The encrypted assertion should be removed
-        assert_nil decrypted_doc.at_xpath('/p:Response/EncryptedAssertion', { 'p' => SAML_PROTOCOL })
+        assert_nil decrypted_doc.at_xpath('/p:Response/EncryptedAssertion', { 'p' => RubySaml::XML::NS_PROTOCOL })
 
         # An assertion should now be present
-        refute_nil decrypted_doc.at_xpath('/p:Response/a:Assertion', { 'p' => SAML_PROTOCOL, 'a' => SAML_ASSERTION })
+        refute_nil decrypted_doc.at_xpath('/p:Response/a:Assertion', { 'p' => RubySaml::XML::NS_PROTOCOL, 'a' => RubySaml::XML::NS_ASSERTION })
       end
 
       it 'should handle documents without an encrypted assertion' do
@@ -78,7 +73,7 @@ class NokogiriDecryptorTest < Minitest::Test
 
         # Should return the Assertion node
         assert_equal 'Assertion', decrypted_assertion.name
-        assert_equal SAML_ASSERTION, decrypted_assertion.namespace.href
+        assert_equal RubySaml::XML::NS_ASSERTION, decrypted_assertion.namespace.href
       end
 
       it 'should raise an error when no decryption keys are provided' do
@@ -94,7 +89,7 @@ class NokogiriDecryptorTest < Minitest::Test
 
           it 'decrypts' do
             decrypted_doc = RubySaml::XML::Decryptor.decrypt_document(document_encrypted_assertion, decryption_keys)
-            refute_nil decrypted_doc.at_xpath('/p:Response/a:Assertion', { 'p' => SAML_PROTOCOL, 'a' => SAML_ASSERTION })
+            refute_nil decrypted_doc.at_xpath('/p:Response/a:Assertion', { 'p' => RubySaml::XML::NS_PROTOCOL, 'a' => RubySaml::XML::NS_ASSERTION })
           end
         end
 
@@ -103,7 +98,7 @@ class NokogiriDecryptorTest < Minitest::Test
 
           it 'decrypts' do
             decrypted_doc = RubySaml::XML::Decryptor.decrypt_document(document_encrypted_assertion, decryption_keys)
-            refute_nil decrypted_doc.at_xpath('/p:Response/a:Assertion', { 'p' => SAML_PROTOCOL, 'a' => SAML_ASSERTION })
+            refute_nil decrypted_doc.at_xpath('/p:Response/a:Assertion', { 'p' => RubySaml::XML::NS_PROTOCOL, 'a' => RubySaml::XML::NS_ASSERTION })
           end
         end
 
@@ -112,7 +107,7 @@ class NokogiriDecryptorTest < Minitest::Test
 
           it 'decrypts' do
             decrypted_doc = RubySaml::XML::Decryptor.decrypt_document(document_encrypted_assertion, decryption_keys)
-            refute_nil decrypted_doc.at_xpath('/p:Response/a:Assertion', { 'p' => SAML_PROTOCOL, 'a' => SAML_ASSERTION })
+            refute_nil decrypted_doc.at_xpath('/p:Response/a:Assertion', { 'p' => RubySaml::XML::NS_PROTOCOL, 'a' => RubySaml::XML::NS_ASSERTION })
           end
         end
 
@@ -121,7 +116,7 @@ class NokogiriDecryptorTest < Minitest::Test
 
           it 'decrypts' do
             decrypted_doc = RubySaml::XML::Decryptor.decrypt_document(document_encrypted_assertion, decryption_keys)
-            refute_nil decrypted_doc.at_xpath('/p:Response/a:Assertion', { 'p' => SAML_PROTOCOL, 'a' => SAML_ASSERTION })
+            refute_nil decrypted_doc.at_xpath('/p:Response/a:Assertion', { 'p' => RubySaml::XML::NS_PROTOCOL, 'a' => RubySaml::XML::NS_ASSERTION })
           end
         end
 
@@ -131,7 +126,7 @@ class NokogiriDecryptorTest < Minitest::Test
           it 'decrypts' do
             return unless OpenSSL::Cipher.ciphers.include? 'AES-128-GCM'
             decrypted_doc = RubySaml::XML::Decryptor.decrypt_document(document_encrypted_assertion, decryption_keys)
-            refute_nil decrypted_doc.at_xpath('/p:Response/a:Assertion', { 'p' => SAML_PROTOCOL, 'a' => SAML_ASSERTION })
+            refute_nil decrypted_doc.at_xpath('/p:Response/a:Assertion', { 'p' => RubySaml::XML::NS_PROTOCOL, 'a' => RubySaml::XML::NS_ASSERTION })
           end
         end
 
@@ -141,7 +136,7 @@ class NokogiriDecryptorTest < Minitest::Test
           it 'decrypts' do
             return unless OpenSSL::Cipher.ciphers.include? 'AES-192-GCM'
             decrypted_doc = RubySaml::XML::Decryptor.decrypt_document(document_encrypted_assertion, decryption_keys)
-            refute_nil decrypted_doc.at_xpath('/p:Response/a:Assertion', { 'p' => SAML_PROTOCOL, 'a' => SAML_ASSERTION })
+            refute_nil decrypted_doc.at_xpath('/p:Response/a:Assertion', { 'p' => RubySaml::XML::NS_PROTOCOL, 'a' => RubySaml::XML::NS_ASSERTION })
           end
         end
 
@@ -151,7 +146,7 @@ class NokogiriDecryptorTest < Minitest::Test
           it 'decrypts' do
             return unless OpenSSL::Cipher.ciphers.include? 'AES-256-GCM'
             decrypted_doc = RubySaml::XML::Decryptor.decrypt_document(document_encrypted_assertion, decryption_keys)
-            refute_nil decrypted_doc.at_xpath('/p:Response/a:Assertion', { 'p' => SAML_PROTOCOL, 'a' => SAML_ASSERTION })
+            refute_nil decrypted_doc.at_xpath('/p:Response/a:Assertion', { 'p' => RubySaml::XML::NS_PROTOCOL, 'a' => RubySaml::XML::NS_ASSERTION })
           end
         end
       end
@@ -159,18 +154,18 @@ class NokogiriDecryptorTest < Minitest::Test
 
     describe '#decrypt_nameid' do
       it 'should decrypt an encrypted name ID' do
-        encrypted_nameid_node = noko_encrypted_nameid_doc.at_xpath('//saml:EncryptedID', { 'saml' => SAML_ASSERTION })
+        encrypted_nameid_node = noko_encrypted_nameid_doc.at_xpath('//saml:EncryptedID', { 'saml' => RubySaml::XML::NS_ASSERTION })
         decrypted_nameid = RubySaml::XML::Decryptor.decrypt_nameid(encrypted_nameid_node, decryption_keys)
 
         # Should return the NameID node
         assert_equal 'NameID', decrypted_nameid.name
-        assert_equal SAML_ASSERTION, decrypted_nameid.namespace.href
+        assert_equal RubySaml::XML::NS_ASSERTION, decrypted_nameid.namespace.href
         assert_equal 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress', decrypted_nameid['Format']
         assert_equal 'test@onelogin.com', decrypted_nameid.content
       end
 
       it 'should raise an error when no decryption keys are provided' do
-        encrypted_nameid_node = noko_encrypted_nameid_doc.at_xpath('//saml:EncryptedID', { 'saml' => SAML_ASSERTION })
+        encrypted_nameid_node = noko_encrypted_nameid_doc.at_xpath('//saml:EncryptedID', { 'saml' => RubySaml::XML::NS_ASSERTION })
         error = assert_raises(RubySaml::ValidationError) do
           RubySaml::XML::Decryptor.decrypt_nameid(encrypted_nameid_node, [])
         end
@@ -180,18 +175,18 @@ class NokogiriDecryptorTest < Minitest::Test
 
     describe '#decrypt_attribute' do
       it 'should decrypt an encrypted attribute' do
-        encrypted_attr_node = noko_encrypted_attribute_doc.at_xpath('//saml:EncryptedAttribute', { 'saml' => SAML_ASSERTION })
+        encrypted_attr_node = noko_encrypted_attribute_doc.at_xpath('//saml:EncryptedAttribute', { 'saml' => RubySaml::XML::NS_ASSERTION })
         decrypted_attr = RubySaml::XML::Decryptor.decrypt_attribute(encrypted_attr_node, decryption_keys)
 
         # Should return the Attribute node
         assert_equal 'Attribute', decrypted_attr.name
-        assert_equal SAML_ASSERTION, decrypted_attr.namespace.href
+        assert_equal RubySaml::XML::NS_ASSERTION, decrypted_attr.namespace.href
       end
     end
 
     describe '#decrypt_node' do
       describe 'with an EncryptedAssertion' do
-        let(:encrypted_data) { noko_encrypted_assertion_doc.at_xpath('//saml:EncryptedAssertion', 'saml' => SAML_ASSERTION) }
+        let(:encrypted_data) { noko_encrypted_assertion_doc.at_xpath('//saml:EncryptedAssertion', 'saml' => RubySaml::XML::NS_ASSERTION) }
         let(:decrypted_node) do
           RubySaml::XML::Decryptor.decrypt_node(
             encrypted_data,
@@ -251,7 +246,7 @@ class NokogiriDecryptorTest < Minitest::Test
       end
 
       describe 'with an EncryptedAttribute' do
-        let(:encrypted_data) { noko_encrypted_attribute_doc.at_xpath('//saml:EncryptedAttribute', 'saml' => SAML_ASSERTION) }
+        let(:encrypted_data) { noko_encrypted_attribute_doc.at_xpath('//saml:EncryptedAttribute', 'saml' => RubySaml::XML::NS_ASSERTION) }
         let(:decrypted_node) do
           RubySaml::XML::Decryptor.decrypt_node(
             encrypted_data,
@@ -290,7 +285,7 @@ class NokogiriDecryptorTest < Minitest::Test
       let(:noko_encrypted_assertion_node) do
         noko_encrypted_assertion_doc.at_xpath(
           "/p:Response/EncryptedAssertion | /p:Response/a:EncryptedAssertion",
-          { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
+          { "p" => RubySaml::XML::NS_PROTOCOL, "a" => RubySaml::XML::NS_ASSERTION }
         )
       end
 

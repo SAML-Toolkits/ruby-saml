@@ -78,11 +78,11 @@ module RubySaml
 
     def name_id_node
       @name_id_node ||= begin
-        encrypted_node = REXML::XPath.first(document, "/p:LogoutRequest/a:EncryptedID", { "p" => PROTOCOL, "a" => ASSERTION })
+        encrypted_node = REXML::XPath.first(document, "/p:LogoutRequest/a:EncryptedID", { "p" => RubySaml::XML::NS_PROTOCOL, "a" => RubySaml::XML::NS_ASSERTION })
         if encrypted_node
           RubySaml::XML::Decryptor.decrypt_nameid(encrypted_node, settings&.get_sp_decryption_keys)
         else
-          REXML::XPath.first(document, "/p:LogoutRequest/a:NameID", { "p" => PROTOCOL, "a" => ASSERTION })
+          REXML::XPath.first(document, "/p:LogoutRequest/a:NameID", { "p" => RubySaml::XML::NS_PROTOCOL, "a" => RubySaml::XML::NS_ASSERTION })
         end
       end
     end
@@ -100,7 +100,7 @@ module RubySaml
         node = REXML::XPath.first(
           document,
           "/p:LogoutRequest/a:Issuer",
-          { "p" => PROTOCOL, "a" => ASSERTION }
+          { "p" => RubySaml::XML::NS_PROTOCOL, "a" => RubySaml::XML::NS_ASSERTION }
         )
         Utils.element_text(node)
       end
@@ -113,7 +113,7 @@ module RubySaml
         node = REXML::XPath.first(
           document,
           "/p:LogoutRequest",
-          { "p" => PROTOCOL }
+          { "p" => RubySaml::XML::NS_PROTOCOL }
         )
 
         if (value = node&.attributes&.[]("NotOnOrAfter"))
@@ -128,7 +128,7 @@ module RubySaml
       nodes = REXML::XPath.match(
         document,
         "/p:LogoutRequest/p:SessionIndex",
-        { "p" => PROTOCOL }
+        { "p" => RubySaml::XML::NS_PROTOCOL }
       )
 
       nodes.map { |node| Utils.element_text(node) }

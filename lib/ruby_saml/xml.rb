@@ -14,10 +14,13 @@ module RubySaml
 
     # XML namespaces
     # @api private
-    C14N          = 'http://www.w3.org/2001/10/xml-exc-c14n#'
-    DSIG          = 'http://www.w3.org/2000/09/xmldsig#'
-    XENC          = 'http://www.w3.org/2001/04/xmlenc#'
-    XSI           = 'http://www.w3.org/2001/XMLSchema-instance'
+    C14N = 'http://www.w3.org/2001/10/xml-exc-c14n#'
+    DSIG = 'http://www.w3.org/2000/09/xmldsig#'
+    XENC = 'http://www.w3.org/2001/04/xmlenc#'
+    XSI  = 'http://www.w3.org/2001/XMLSchema-instance'
+
+    # Encryption algorithms
+    # @api private
     RSA_SHA1      = 'http://www.w3.org/2000/09/xmldsig#rsa-sha1'
     RSA_SHA224    = 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha224'
     RSA_SHA256    = 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'
@@ -38,9 +41,12 @@ module RubySaml
     ENVELOPED_SIG = 'http://www.w3.org/2000/09/xmldsig#enveloped-signature'
 
     # SAML namespaces
-    NS_ASSERTION  = 'urn:oasis:names:tc:SAML:2.0:assertion'
-    NS_PROTOCOL   = 'urn:oasis:names:tc:SAML:2.0:protocol'
+    # @api private
+    NS_METADATA  = 'urn:oasis:names:tc:SAML:2.0:metadata'
+    NS_ASSERTION = 'urn:oasis:names:tc:SAML:2.0:assertion'
+    NS_PROTOCOL  = 'urn:oasis:names:tc:SAML:2.0:protocol'
 
+    # @api private
     NOKOGIRI_OPTIONS = Nokogiri::XML::ParseOptions::STRICT |
                        Nokogiri::XML::ParseOptions::NONET
 

@@ -27,12 +27,12 @@ module RubySaml
 
         response_node = document.at_xpath(
           '/p:Response',
-          { 'p' => 'urn:oasis:names:tc:SAML:2.0:protocol' }
+          { 'p' => RubySaml::XML::NS_PROTOCOL }
         )
 
         encrypted_assertion_node = document.at_xpath(
           '/p:Response/EncryptedAssertion | /p:Response/a:EncryptedAssertion',
-          { 'p' => 'urn:oasis:names:tc:SAML:2.0:protocol', 'a' => RubySaml::XML::NS_ASSERTION }
+          { 'p' => RubySaml::XML::NS_PROTOCOL, 'a' => RubySaml::XML::NS_ASSERTION }
         )
 
         if encrypted_assertion_node && response_node

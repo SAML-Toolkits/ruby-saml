@@ -1568,7 +1568,7 @@ class RubySamlTest < Minitest::Test
           encrypted_assertion_node = REXML::XPath.first(
             response.document,
             "(/p:Response/EncryptedAssertion)|(/p:Response/a:EncryptedAssertion)",
-            { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
+            { "p" => RubySaml::XML::NS_PROTOCOL, "a" => RubySaml::XML::NS_ASSERTION }
           )
           response.settings.private_key = nil
 
@@ -1592,13 +1592,13 @@ class RubySamlTest < Minitest::Test
           encrypted_assertion_node = REXML::XPath.first(
             response.document,
             "(/p:Response/EncryptedAssertion)|(/p:Response/a:EncryptedAssertion)",
-            { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
+            { "p" => RubySaml::XML::NS_PROTOCOL, "a" => RubySaml::XML::NS_ASSERTION }
           )
           decrypted = RubySaml::XML::Decryptor.decrypt_assertion(encrypted_assertion_node, settings.get_sp_decryption_keys)
 
           encrypted_assertion_node2 = decrypted.at_xpath(
             "(/p:Response/EncryptedAssertion)|(/p:Response/a:EncryptedAssertion)",
-            { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
+            { "p" => RubySaml::XML::NS_PROTOCOL, "a" => RubySaml::XML::NS_ASSERTION }
           )
           assert_nil encrypted_assertion_node2
           assert decrypted.name, "Assertion"
@@ -1617,7 +1617,7 @@ class RubySamlTest < Minitest::Test
           encrypted_assertion_node = REXML::XPath.first(
             response.document,
             "(/p:Response/EncryptedAssertion)|(/p:Response/a:EncryptedAssertion)",
-            { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
+            { "p" => RubySaml::XML::NS_PROTOCOL, "a" => RubySaml::XML::NS_ASSERTION }
           )
           decrypted = RubySaml::XML::Decryptor.decrypt_assertion(encrypted_assertion_node, settings.get_sp_decryption_keys)
 
@@ -1632,13 +1632,13 @@ class RubySamlTest < Minitest::Test
           encrypted_assertion_node = REXML::XPath.first(
             response.document,
             "(/p:Response/EncryptedAssertion)|(/p:Response/a:EncryptedAssertion)",
-            { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
+            { "p" => RubySaml::XML::NS_PROTOCOL, "a" => RubySaml::XML::NS_ASSERTION }
           )
           decrypted = RubySaml::XML::Decryptor.decrypt_assertion(encrypted_assertion_node, settings.get_sp_decryption_keys)
 
           encrypted_assertion_node2 = decrypted.at_xpath(
             "(/p:Response/EncryptedAssertion)|(/p:Response/a:EncryptedAssertion)",
-            { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
+            { "p" => RubySaml::XML::NS_PROTOCOL, "a" => RubySaml::XML::NS_ASSERTION }
           )
 
           assert_nil encrypted_assertion_node2
@@ -1651,13 +1651,13 @@ class RubySamlTest < Minitest::Test
           encrypted_assertion_node = REXML::XPath.first(
             response.document,
             "(/p:Response/EncryptedAssertion)|(/p:Response/a:EncryptedAssertion)",
-            { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
+            { "p" => RubySaml::XML::NS_PROTOCOL, "a" => RubySaml::XML::NS_ASSERTION }
           )
           decrypted = RubySaml::XML::Decryptor.decrypt_assertion(encrypted_assertion_node, settings.get_sp_decryption_keys)
 
           encrypted_assertion_node2 = decrypted.at_xpath(
             "(/p:Response/EncryptedAssertion)|(/p:Response/a:EncryptedAssertion)",
-            { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
+            { "p" => RubySaml::XML::NS_PROTOCOL, "a" => RubySaml::XML::NS_ASSERTION }
           )
           assert_nil encrypted_assertion_node2
           assert decrypted.name, "Assertion"

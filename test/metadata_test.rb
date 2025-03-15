@@ -26,7 +26,7 @@ class MetadataTest < Minitest::Test
 
       assert_equal "https://example.com", xml_doc.at_xpath("//md:EntityDescriptor", {"md" => "urn:oasis:names:tc:SAML:2.0:metadata"})["entityID"]
 
-      assert_equal "urn:oasis:names:tc:SAML:2.0:protocol", spsso_descriptor["protocolSupportEnumeration"]
+      assert_equal RubySaml::XML::NS_PROTOCOL, spsso_descriptor["protocolSupportEnumeration"]
       assert_equal "false", spsso_descriptor["AuthnRequestsSigned"]
       assert_equal "false", spsso_descriptor["WantAssertionsSigned"]
 
@@ -64,7 +64,7 @@ class MetadataTest < Minitest::Test
 
       assert_equal "https://example.com", xml_doc.at_xpath("//md:EntityDescriptor", {"md" => "urn:oasis:names:tc:SAML:2.0:metadata"})["entityID"]
 
-      assert_equal "urn:oasis:names:tc:SAML:2.0:protocol", spsso_descriptor["protocolSupportEnumeration"]
+      assert_equal RubySaml::XML::NS_PROTOCOL, spsso_descriptor["protocolSupportEnumeration"]
       assert_equal "false", spsso_descriptor["AuthnRequestsSigned"]
       assert_equal "false", spsso_descriptor["WantAssertionsSigned"]
 
@@ -272,7 +272,7 @@ class MetadataTest < Minitest::Test
         assert_equal "Name Format", req_attr["NameFormat"]
         assert_equal "Friendly Name", req_attr["FriendlyName"]
 
-        attribute_values = xml_doc.xpath("//saml:AttributeValue", {"saml" => "urn:oasis:names:tc:SAML:2.0:assertion"}).map(&:text)
+        attribute_values = xml_doc.xpath("//saml:AttributeValue", {"saml" => RubySaml::XML::NS_ASSERTION}).map(&:text)
         assert_equal "Attribute Value One", attribute_values[0]
         assert_equal 'false', attribute_values[1]
 
@@ -299,7 +299,7 @@ class MetadataTest < Minitest::Test
         assert_equal 'active', req_attr['Name']
         assert_equal 'format', req_attr['NameFormat']
         assert_equal 'Active', req_attr['FriendlyName']
-        assert_equal 'true', xml_doc.at_xpath('//saml:AttributeValue', {"saml" => "urn:oasis:names:tc:SAML:2.0:assertion"}).text.strip
+        assert_equal 'true', xml_doc.at_xpath('//saml:AttributeValue', {"saml" => RubySaml::XML::NS_ASSERTION}).text.strip
 
         assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
       end
@@ -394,7 +394,7 @@ class MetadataTest < Minitest::Test
             let(:subclass) do
               Class.new(RubySaml::Metadata) do
                 def add_extras(xml, _settings)
-                  xml['md'].IDPSSODescriptor('protocolSupportEnumeration' => 'urn:oasis:names:tc:SAML:2.0:protocol') do
+                  xml['md'].IDPSSODescriptor('protocolSupportEnumeration' => RubySaml::XML::NS_PROTOCOL) do
                     xml['md'].NameIDFormat('urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress')
                     xml['md'].SingleSignOnService(
                       'Binding' => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST',
