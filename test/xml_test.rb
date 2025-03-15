@@ -52,7 +52,7 @@ class XmlTest < Minitest::Test
 
     it "should raise Key validation error" do
       decoded_response.sub!("<ds:DigestValue>pJQ7MS/ek4KRRWGmv/H43ReHYMs=</ds:DigestValue>",
-                    "<ds:DigestValue>b9xsAXLsynugg3Wc1CI3kpWku+0=</ds:DigestValue>")
+                            "<ds:DigestValue>b9xsAXLsynugg3Wc1CI3kpWku+0=</ds:DigestValue>")
       mod_document = RubySaml::XML::SignedDocument.new(decoded_response)
       base64cert = mod_document.elements["//ds:X509Certificate"].text
       exception = assert_raises(RubySaml::ValidationError) do
@@ -63,13 +63,14 @@ class XmlTest < Minitest::Test
     end
 
     it "correctly obtain the digest method with alternate namespace declaration" do
-      adfs_document = RubySaml::XML::SignedDocument.new(fixture(:adfs_response_xmlns, false))
-      base64cert = adfs_document.elements["//X509Certificate"].text
+      adfs_document = fixture(:adfs_response_xmlns, false)
+      base64cert = adfs_document[%r{<X509Certificate>(.*?)</X509Certificate>}, 1]
+      adfs_document = RubySaml::XML::SignedDocument.new(adfs_document)
       assert adfs_document.validate_signature(base64cert, false)
     end
 
     it "raise validation error when the X509Certificate is missing and no cert provided" do
-      decoded_response.sub!(/<ds:X509Certificate>.*<\/ds:X509Certificate>/, "")
+      decoded_response.sub!(%r{<ds:X509Certificate>.*</ds:X509Certificate>}, '')
       mod_document = RubySaml::XML::SignedDocument.new(decoded_response)
       exception = assert_raises(RubySaml::ValidationError) do
         mod_document.validate_document("a fingerprint", false) # The fingerprint isn't relevant to this test
