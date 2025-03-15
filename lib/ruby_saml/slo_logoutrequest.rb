@@ -56,58 +56,35 @@ module RubySaml
       validate(collect_errors)
     end
 
-    # @return [String] Gets the NameID of the Logout Request.
-    #
+    # @return [String] The NameID of the Logout Request.
     def name_id
-      @name_id ||= Utils.element_text(name_id_node)
+      @name_id ||= if name_id_node.is_a?(REXML::Element)
+                     Utils.element_text(name_id_node)
+                   else
+                     name_id_node&.content
+                   end
     end
-
     alias_method :nameid, :name_id
 
-    # @return [String] Gets the NameID Format of the Logout Request.
-    #
+    # @return [String] The NameID Format of the Logout Request.
     def name_id_format
-      @name_id_format ||=
-        if name_id_node && name_id_node.attribute("Format")
-          name_id_node.attribute("Format").value
-        end
+      @name_id_format ||= if name_id_node.is_a?(REXML::Element)
+                            name_id_node&.attribute('Format')&.value
+                          else
+                            name_id_node&.[]('Format')
+                          end
     end
-
     alias_method :nameid_format, :name_id_format
 
     def name_id_node
-      @name_id_node ||=
-        begin
-          encrypted_node = REXML::XPath.first(document, "/p:LogoutRequest/a:EncryptedID", { "p" => PROTOCOL, "a" => ASSERTION })
-          if encrypted_node
-            node = decrypt_nameid(encrypted_node)
-          else
-            node = REXML::XPath.first(document, "/p:LogoutRequest/a:NameID", { "p" => PROTOCOL, "a" => ASSERTION })
-          end
+      @name_id_node ||= begin
+        encrypted_node = REXML::XPath.first(document, "/p:LogoutRequest/a:EncryptedID", { "p" => PROTOCOL, "a" => ASSERTION })
+        if encrypted_node
+          RubySaml::XML::Decryptor.decrypt_nameid(encrypted_node, settings&.get_sp_decryption_keys)
+        else
+          REXML::XPath.first(document, "/p:LogoutRequest/a:NameID", { "p" => PROTOCOL, "a" => ASSERTION })
         end
-    end
-
-    # Decrypts an EncryptedID element
-    # @param encrypted_id_node [REXML::Element] The EncryptedID element
-    # @return [REXML::Document] The decrypted EncrypedtID element
-    #
-    def decrypt_nameid(encrypted_id_node)
-      if settings.nil? || settings.get_sp_decryption_keys.empty?
-        raise ValidationError.new("An #{encrypted_id_node.name} found and no SP private key found on the settings to decrypt it")
       end
-
-      elem_plaintext = RubySaml::Utils.decrypt_multi(encrypted_id_node, settings.get_sp_decryption_keys)
-
-      # If we get some problematic noise in the plaintext after decrypting.
-      # This quick regexp parse will grab only the Element and discard the noise.
-      elem_plaintext = elem_plaintext.match(/(.*<\/(\w+:)?NameID>)/m)[0]
-
-      # To avoid namespace errors if saml namespace is not defined
-      # create a parent node first with the namespace defined
-      node_header = '<node xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">'
-      elem_plaintext = node_header + elem_plaintext + '</node>'
-      doc = REXML::Document.new(elem_plaintext)
-      doc.root[0]
     end
 
     # @return [String|nil] Gets the ID attribute from the Logout Request. if exists.

@@ -16,6 +16,8 @@ module RubySaml
     # @api private
     C14N          = 'http://www.w3.org/2001/10/xml-exc-c14n#'
     DSIG          = 'http://www.w3.org/2000/09/xmldsig#'
+    XENC          = 'http://www.w3.org/2001/04/xmlenc#'
+    XSI           = 'http://www.w3.org/2001/XMLSchema-instance'
     RSA_SHA1      = 'http://www.w3.org/2000/09/xmldsig#rsa-sha1'
     RSA_SHA224    = 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha224'
     RSA_SHA256    = 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'
@@ -34,6 +36,10 @@ module RubySaml
     SHA384        = 'http://www.w3.org/2001/04/xmldsig-more#sha384'
     SHA512        = 'http://www.w3.org/2001/04/xmlenc#sha512'
     ENVELOPED_SIG = 'http://www.w3.org/2000/09/xmldsig#enveloped-signature'
+
+    # SAML namespaces
+    NS_ASSERTION  = 'urn:oasis:names:tc:SAML:2.0:assertion'
+    NS_PROTOCOL   = 'urn:oasis:names:tc:SAML:2.0:protocol'
 
     NOKOGIRI_OPTIONS = Nokogiri::XML::ParseOptions::STRICT |
                        Nokogiri::XML::ParseOptions::NONET
@@ -130,5 +136,6 @@ module RubySaml
 end
 
 require 'ruby_saml/xml/document_signer'
+require 'ruby_saml/xml/decryptor'
 require 'ruby_saml/xml/signed_document'
 require 'ruby_saml/xml/deprecated'
