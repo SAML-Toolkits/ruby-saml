@@ -1,12 +1,16 @@
 # frozen_string_literal: true
 
-require 'ruby_saml/xml/base_document'
+require 'rexml/document'
+require 'rexml/security'
+require 'rexml/xpath'
 require 'ruby_saml/error_handling'
 require 'ruby_saml/utils'
 
+REXML::Security.entity_expansion_limit = 0
+
 module RubySaml
   module XML
-    class SignedDocument < BaseDocument
+    class SignedDocument < REXML::Document
       include RubySaml::ErrorHandling
 
       attr_reader :processed,
@@ -178,6 +182,7 @@ module RubySaml
       def validate_signature(base64_cert, soft = true)
         cache_referenced_xml(soft) unless @processed
 
+        return append_error('Cert is missing', soft) if base64_cert.nil?
         return append_error('No Signature Hash Algorithm Method found', soft) if @signature_hash_algorithm.nil?
         return append_error('No Signature node found', soft) if @signature.nil?
         return append_error('No canonized SignedInfo ', soft) if @cached_signed_info.nil?

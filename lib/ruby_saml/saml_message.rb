@@ -4,16 +4,11 @@ require 'cgi'
 require 'zlib'
 require 'base64'
 require 'nokogiri'
-require 'rexml/document'
-require 'rexml/xpath'
 require 'ruby_saml/error_handling'
 require 'ruby_saml/logging'
 
-# Only supports SAML 2.0
 module RubySaml
-
   # SAML2 Message
-  #
   class SamlMessage
 
     ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion"
@@ -33,31 +28,34 @@ module RubySaml
     # @return [String|nil] Gets the Version attribute from the SAML Message if exists.
     #
     def version(document)
-      @version ||= begin
-        node = REXML::XPath.first(
-          document,
-          "/p:AuthnRequest | /p:Response | /p:LogoutResponse | /p:LogoutRequest",
-          { "p" => PROTOCOL }
-        )
-        node.nil? ? nil : node.attributes['Version']
-      end
+      @version ||= root_attribute(document, 'Version')
     end
 
     # @return [String|nil] Gets the ID attribute from the SAML Message if exists.
     #
     def id(document)
-      @id ||= begin
+      @id ||= root_attribute(document, 'ID')
+    end
+
+    def root_attribute(document, attribute)
+      if document.is_a?(Nokogiri::XML::Document)
+        node = document.at_xpath(
+          "/p:AuthnRequest | /p:Response | /p:LogoutResponse | /p:LogoutRequest",
+          { "p" => PROTOCOL }
+        )
+        node.nil? ? nil : node[attribute]
+      else
         node = REXML::XPath.first(
           document,
           "/p:AuthnRequest | /p:Response | /p:LogoutResponse | /p:LogoutRequest",
           { "p" => PROTOCOL }
         )
-        node.nil? ? nil : node.attributes['ID']
+        node.nil? ? nil : node.attributes[attribute]
       end
     end
 
     # Validates the SAML Message against the specified schema.
-    # @param document [REXML::Document] The message that will be validated
+    # @param document [Nokogiri::XML::Document] The message that will be validated
     # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the message is invalid or not)
     # @param check_malformed_doc [Boolean] check_malformed_doc Enable or Disable the check for malformed XML
     # @return [Boolean] True if the XML is valid, otherwise False, if soft=True
