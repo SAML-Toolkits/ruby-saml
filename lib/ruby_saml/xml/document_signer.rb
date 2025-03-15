@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
-require 'ruby_saml/xml/base_document'
-
 module RubySaml
   module XML
-    class Document < BaseDocument
+    # Given an XML document, returns a copy with an XML Signature element added to it.
+    module DocumentSigner
+      extend self
+
       INC_PREFIX_LIST = '#default samlp saml ds xs xsi md'
 
       # <Signature>
@@ -22,31 +23,37 @@ module RubySaml
       #   <KeyInfo />
       #   <Object />
       # </Signature>
-      def sign_document(private_key, certificate, signature_method = RubySaml::XML::RSA_SHA256, digest_method = RubySaml::XML::SHA256)
-        signature_element = build_signature_element(private_key, certificate, signature_method, digest_method)
-        signature_element = convert_nokogiri_to_rexml(signature_element)
-        issuer_element = elements['//saml:Issuer']
+      # Returns a copy of the document with a signature added.
+      def sign_document(document, private_key, certificate, signature_method = RubySaml::XML::RSA_SHA256, digest_method = RubySaml::XML::SHA256)
+        noko = RubySaml::XML.safe_load_nokogiri(document.to_s)
+
+        sign_document!(noko, private_key, certificate, signature_method, digest_method)
+      end
+
+      # Modifies an existing Nokogiri document to add a signature.
+      def sign_document!(noko, private_key, certificate, signature_method = RubySaml::XML::RSA_SHA256, digest_method = RubySaml::XML::SHA256)
+        signature_element = build_signature_element(noko, private_key, certificate, signature_method, digest_method)
+        issuer_element = noko.at_xpath('//saml:Issuer', 'saml' => 'urn:oasis:names:tc:SAML:2.0:assertion')
         if issuer_element
-          root.insert_after(issuer_element, signature_element)
-        elsif (first_child = root.children[0])
-          root.insert_before(first_child, signature_element)
+          issuer_element.after(signature_element)
+        elsif noko.root.children.any?
+          noko.root.children.first.before(signature_element)
         else
-          root.add_element(signature_element)
+          noko.root.add_child(signature_element)
         end
+
+        noko
       end
 
       private
 
-      def build_signature_element(private_key, certificate, signature_method, digest_method)
-        noko = RubySaml::XML.safe_load_nokogiri(to_s)
-
-        # Build the Signature element
+      def build_signature_element(noko, private_key, certificate, signature_method, digest_method)
         signature_element = Nokogiri::XML::Builder.new do |xml|
           xml['ds'].Signature('xmlns:ds' => RubySaml::XML::DSIG) do
             xml['ds'].SignedInfo do
               xml['ds'].CanonicalizationMethod(Algorithm: RubySaml::XML::C14N)
               xml['ds'].SignatureMethod(Algorithm: signature_method)
-              xml['ds'].Reference(URI: "##{noko.root.attr('ID')}") do
+              xml['ds'].Reference(URI: "##{noko.root['ID']}") do
                 xml['ds'].Transforms do
                   xml['ds'].Transform(Algorithm: RubySaml::XML::ENVELOPED_SIG)
                   xml['ds'].Transform(Algorithm: RubySaml::XML::C14N) do
@@ -97,36 +104,6 @@ module RubySaml
       def certificate_value(certificate)
         certificate = OpenSSL::X509::Certificate.new(certificate) if certificate.is_a?(String)
         Base64.encode64(certificate.to_der).delete("\n")
-      end
-
-      # TODO: This is a shim method which will be removed when the
-      # full Nokogiri conversion is complete
-      def convert_nokogiri_to_rexml(noko_element, parent_namespaces = Set.new)
-        rexml_element = REXML::Element.new("#{"#{noko_element.namespace.prefix}:" if noko_element.namespace}#{noko_element.name}")
-
-        if noko_element.namespace && !parent_namespaces.include?(noko_element.namespace)
-          rexml_element.add_namespace(noko_element.namespace.prefix, noko_element.namespace.href)
-        end
-
-        noko_element.attributes.each do |name, value|
-          rexml_element.add_attribute(name, value)
-        end
-
-        # Copy text content (if any)
-        if noko_element.text?
-          rexml_element.text = noko_element.text
-        end
-
-        # Recursively copy child elements
-        noko_element.children.each do |child|
-          if child.element?
-            rexml_element.add_element(convert_nokogiri_to_rexml(child, parent_namespaces << noko_element.namespace))
-          elsif child.text?
-            rexml_element.add_text(child.text)
-          end
-        end
-
-        rexml_element
       end
     end
   end

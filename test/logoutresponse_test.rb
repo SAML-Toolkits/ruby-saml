@@ -24,7 +24,7 @@ class RubySamlTest < Minitest::Test
       end
 
       it "accept constructor-injected options" do
-        logoutresponse = RubySaml::Logoutresponse.new(valid_logout_response_document, nil, { :foo => :bar} )
+        logoutresponse = RubySaml::Logoutresponse.new(valid_logout_response_document, nil, { foo: :bar })
         refute logoutresponse.options.empty?
       end
 
