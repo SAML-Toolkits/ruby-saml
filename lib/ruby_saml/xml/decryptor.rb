@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require 'ruby_saml/error_handling'
-require 'nokogiri'
-
 module RubySaml
   module XML
     # Module for handling document decryption

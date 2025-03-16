@@ -10,7 +10,6 @@ require 'ruby_saml/logging'
 module RubySaml
   # SAML2 Message
   class SamlMessage
-    BASE64_FORMAT = %r{\A([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?\Z}
 
     # @return [Nokogiri::XML::Schema] Gets the schema object of the SAML 2.0 Protocol schema
     #
@@ -74,91 +73,6 @@ module RubySaml
     end
 
     private
-
-    # Base64 decode and try also to inflate a SAML Message
-    # @param saml [String] The deflated and encoded SAML Message
-    # @param settings [RubySaml::Settings|nil] Toolkit settings
-    # @return [String] The plain SAML Message
-    #
-    def decode_raw_saml(saml, settings = nil)
-      return saml unless base64_encoded?(saml)
-
-      settings ||= RubySaml::Settings.new
-      if saml.bytesize > settings.message_max_bytesize
-        raise ValidationError.new("Encoded SAML Message exceeds #{settings.message_max_bytesize} bytes, so was rejected")
-      end
-
-      decoded = decode(saml)
-      message = begin
-        inflate(decoded)
-      rescue StandardError
-        decoded
-      end
-
-      if message.bytesize > settings.message_max_bytesize
-        raise ValidationError.new("SAML Message exceeds #{settings.message_max_bytesize} bytes, so was rejected")
-      end
-
-      message
-    end
-
-    # Deflate, base64 encode and url-encode a SAML Message (To be used in the HTTP-redirect binding)
-    # @param saml [String] The plain SAML Message
-    # @param settings_or_compress [true|false|RubySaml::Settings|nil] Whether or not the SAML should be deflated.
-    #   The usage of RubySaml::Settings here is deprecated.
-    # @return [String] The deflated and encoded SAML Message (encoded if the compression is requested)
-    def encode_raw_saml(saml, settings_or_compress = false)
-      if settings_or_compress.is_a?(TrueClass)
-        saml = deflate(saml)
-      elsif settings_or_compress.respond_to?(:compress_request)
-        Logging.deprecate('Please change the second argument of `encode_raw_saml_message` to a boolean ' \
-                          'indicating whether or not to use compression. Using a boolean will be required ' \
-                          'in RubySaml 2.1.0.')
-        saml = deflate(saml) if settings_or_compress.compress_request
-      end
-
-      CGI.escape(encode(saml))
-    end
-
-    # Base 64 decode method
-    # @param string [String] The string message
-    # @return [String] The decoded string
-    #
-    def decode(string)
-      Base64.decode64(string)
-    end
-
-    # Base 64 encode method
-    # @param string [String] The string
-    # @return [String] The encoded string
-    #
-    def encode(string)
-      Base64.strict_encode64(string)
-    end
-
-    # Check if a string is base64 encoded
-    # @param string [String] string to check the encoding of
-    # @return [true, false] whether or not the string is base64 encoded
-    #
-    def base64_encoded?(string)
-      !!string.gsub(/[\r\n]|\\r|\\n|\s/, "").match(BASE64_FORMAT)
-    end
-
-    # Inflate method
-    # @param deflated [String] The string
-    # @return [String] The inflated string
-    #
-    def inflate(deflated)
-      Zlib::Inflate.new(-Zlib::MAX_WBITS).inflate(deflated)
-    end
-
-    # Deflate method
-    # @param inflated [String] The string
-    # @return [String] The deflated string
-    #
-    def deflate(inflated)
-      Zlib::Deflate.deflate(inflated, Zlib::BEST_COMPRESSION)[2..-5]
-    end
 
     def check_malformed_doc?(settings)
       default_value = RubySaml::Settings::DEFAULTS[:check_malformed_doc]

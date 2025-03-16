@@ -51,8 +51,7 @@ module RubySaml
 
       Logging.debug "Created SLO Logout Request: #{request}"
 
-      request = deflate(request) if binding_redirect
-      base64_request = encode(request)
+      base64_request = RubySaml::XML::Decoder.encode_message(request, compress: binding_redirect)
       request_params = {"SAMLRequest" => base64_request}
       sp_signing_key = settings.get_sp_signing_key
 
@@ -66,7 +65,7 @@ module RubySaml
         )
         sign_algorithm = RubySaml::XML.hash_algorithm(settings.get_sp_signature_method)
         signature = settings.get_sp_signing_key.sign(sign_algorithm.new, url_string)
-        params['Signature'] = encode(signature)
+        params['Signature'] = Base64.strict_encode64(signature)
       end
 
       params.each_pair do |key, value|

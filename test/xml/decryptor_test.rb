@@ -1,11 +1,8 @@
 # frozen_string_literal: true
 
 require_relative '../test_helper'
-require 'nokogiri'
-require 'base64'
-require 'openssl'
 
-class NokogiriDecryptorTest < Minitest::Test
+class XmlDecryptorTest < Minitest::Test
   describe 'RubySaml::XML::Decryptor' do
     let(:document_encrypted_assertion) { fixture(:unsigned_encrypted_adfs, false) }
     let(:noko_encrypted_assertion_doc) { Nokogiri::XML(document_encrypted_assertion) }

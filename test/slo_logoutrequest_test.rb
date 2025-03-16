@@ -398,7 +398,7 @@ class RubySamlTest < Minitest::Test
           sign_algorithm = RubySaml::XML.hash_algorithm(settings.get_sp_signature_method)
           signature = settings.get_sp_signing_key.sign(sign_algorithm.new, query)
 
-          params['Signature'] = Base64.encode64(signature).gsub(/\n/, "")
+          params['Signature'] = Base64.strict_encode64(signature)
           # Construct SloLogoutrequest and ask it to validate the signature.
           # It will do it incorrectly, because it will compute it based on re-encoded
           # query parameters, rather than their original encodings.
@@ -434,7 +434,7 @@ class RubySamlTest < Minitest::Test
           # Make normalised signature based on our modified params.
           sign_algorithm = RubySaml::XML.hash_algorithm(settings.get_sp_signature_method)
           signature = settings.get_sp_signing_key.sign(sign_algorithm.new, query)
-          params['Signature'] = Base64.encode64(signature).gsub(/\n/, "")
+          params['Signature'] = Base64.strict_encode64(signature)
 
           # Construct SloLogoutrequest and ask it to validate the signature.
           # Provide the altered parameter in its raw URI-encoded form,
@@ -456,7 +456,7 @@ class RubySamlTest < Minitest::Test
           # RubySaml::Utils.build_query
           request_doc = RubySaml::Logoutrequest.new.create_logout_request_xml_doc(settings)
           request = Zlib::Deflate.deflate(request_doc.to_s, 9)[2..-5]
-          base64_request = Base64.encode64(request).gsub(/\n/, "")
+          base64_request = Base64.strict_encode64(request)
           # The original request received from Azure AD comes with downcased
           # encoded characters, like %2f instead of %2F, and the signature they
           # send is based on this base64 request.
@@ -468,7 +468,7 @@ class RubySamlTest < Minitest::Test
           # Make normalised signature based on our modified params.
           sign_algorithm = RubySaml::XML.hash_algorithm(settings.get_sp_signature_method)
           signature = settings.get_sp_signing_key.sign(sign_algorithm.new, query)
-          params['Signature'] = downcased_escape(Base64.encode64(signature).gsub(/\n/, ""))
+          params['Signature'] = downcased_escape(Base64.strict_encode64(signature))
 
           # Then parameters are usually unescaped, like we manage them in rails
           params = params.map { |k, v| [k, CGI.unescape(v)] }.to_h

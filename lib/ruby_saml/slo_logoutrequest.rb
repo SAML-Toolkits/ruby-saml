@@ -39,7 +39,7 @@ module RubySaml
         @soft = @settings.soft unless @settings.soft.nil?
       end
 
-      @request = decode_raw_saml(request, settings)
+      @request = RubySaml::XML::Decoder.decode_message(request, @settings&.message_max_bytesize)
       @document = REXML::Document.new(@request)
       super()
     end

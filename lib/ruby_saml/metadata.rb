@@ -149,7 +149,7 @@ module RubySaml
     private
 
     def add_certificate_element(xml, cert, use)
-      cert_text = Base64.encode64(cert.to_der).delete("\n")
+      cert_text = Base64.strict_encode64(cert.to_der)
       xml['md'].KeyDescriptor('use' => use.to_s) do
         xml['ds'].KeyInfo('xmlns:ds' => 'http://www.w3.org/2000/09/xmldsig#') do
           xml['ds'].X509Data do

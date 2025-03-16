@@ -233,7 +233,7 @@ class RubySamlTest < Minitest::Test
 
         it "validate SAML 2.0 XML structure" do
           resp_xml = Base64.decode64(response_document_unsigned).gsub(/emailAddress/,'test')
-          response_unsigned_mod = RubySaml::Response.new(Base64.encode64(resp_xml))
+          response_unsigned_mod = RubySaml::Response.new(Base64.strict_encode64(resp_xml))
           response_unsigned_mod.stubs(:conditions).returns(nil)
           settings.idp_cert_fingerprint = signature_fingerprint_1
           response_unsigned_mod.settings = settings
@@ -396,7 +396,7 @@ class RubySamlTest < Minitest::Test
 
         it "validate SAML 2.0 XML structure" do
           resp_xml = Base64.decode64(response_document_unsigned).gsub(/emailAddress/,'test')
-          response_unsigned_mod = RubySaml::Response.new(Base64.encode64(resp_xml))
+          response_unsigned_mod = RubySaml::Response.new(Base64.strict_encode64(resp_xml))
           response_unsigned_mod.stubs(:conditions).returns(nil)
           settings.idp_cert_fingerprint = signature_fingerprint_1
           response_unsigned_mod.settings = settings

@@ -225,7 +225,7 @@ module RubySaml
       assertion_consumer_service_binding: Utils::BINDINGS[:post],
       single_logout_service_binding: Utils::BINDINGS[:redirect],
       idp_cert_fingerprint_algorithm: RubySaml::XML::SHA256,
-      message_max_bytesize: 250_000,
+      message_max_bytesize: RubySaml::XML::Decoder::DEFAULT_MAX_BYTESIZE,
       soft: true,
       check_malformed_doc: true,
       security: {

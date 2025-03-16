@@ -344,6 +344,10 @@ class Minitest::Test
     @invalid_logout_request_document
   end
 
+  def logout_request_original
+    @logout_request_original ||= File.read(File.join(File.dirname(__FILE__), 'logout_requests', 'slo_request.xml')).gsub("\n", "\r\n").strip
+  end
+
   def logout_request_base64
     @logout_request_base64 ||= File.read(File.join(File.dirname(__FILE__), 'logout_requests', 'slo_request.xml.base64'))
   end

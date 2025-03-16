@@ -61,7 +61,7 @@ module RubySaml
         end
       end
 
-      @response = decode_raw_saml(response, settings)
+      @response = RubySaml::XML::Decoder.decode_message(response, @settings&.message_max_bytesize)
       @document = RubySaml::XML::SignedDocument.new(@response, @errors)
 
       if assertion_encrypted?
