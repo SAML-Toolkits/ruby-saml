@@ -11,23 +11,19 @@ module RubySaml
   # SAML2 Message
   class SamlMessage
 
-    # @return [Nokogiri::XML::Schema] Gets the schema object of the SAML 2.0 Protocol schema
-    #
+    # @return [Nokogiri::XML::Schema] The SAML 2.0 Protocol schema
     def self.schema
-      path = File.expand_path('schemas/saml-schema-protocol-2.0.xsd', __dir__)
-      File.open(path) do |file|
+      @schema ||= File.open(File.expand_path('schemas/saml-schema-protocol-2.0.xsd', __dir__)) do |file|
         ::Nokogiri::XML::Schema(file)
       end
     end
 
     # @return [String|nil] Gets the Version attribute from the SAML Message if exists.
-    #
     def version(document)
       @version ||= root_attribute(document, 'Version')
     end
 
     # @return [String|nil] Gets the ID attribute from the SAML Message if exists.
-    #
     def id(document)
       @id ||= root_attribute(document, 'ID')
     end
@@ -55,7 +51,6 @@ module RubySaml
     # @param check_malformed_doc [Boolean] check_malformed_doc Enable or Disable the check for malformed XML
     # @return [Boolean] True if the XML is valid, otherwise False, if soft=True
     # @raise [ValidationError] if soft == false and validation fails
-    #
     def valid_saml?(document, soft = true, check_malformed_doc: true)
       begin
         xml = RubySaml::XML.safe_load_nokogiri(document, check_malformed_doc: check_malformed_doc)
