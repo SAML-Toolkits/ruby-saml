@@ -16,11 +16,8 @@ module RubySaml
       'a' => RubySaml::XML::NS_ASSERTION
     }.freeze
 
-    # TODO: Settings should probably be initialized too... WDYT?
-
-    # RubySaml::Settings Toolkit settings
+    # TODO: This should not be an accessor
     attr_accessor :settings
-
     attr_reader :document
     attr_reader :decrypted_document
     attr_reader :response

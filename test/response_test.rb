@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require_relative 'test_helper'
-require 'ruby_saml/response'
 
 class RubySamlTest < Minitest::Test
 
@@ -58,8 +57,8 @@ class RubySamlTest < Minitest::Test
     let(:response_encrypted_nameid) { RubySaml::Response.new(response_document_encrypted_nameid) }
 
     def generate_audience_error(expected, actual)
-      s = actual.count > 1 ? 's' : '';
-      return "Invalid Audience#{s}. The audience#{s} #{actual.join(',')}, did not match the expected audience #{expected}"
+      s = actual.count > 1 ? 's' : ''
+      "Invalid Audience#{s}. The audience#{s} #{actual.join(',')}, did not match the expected audience #{expected}"
     end
 
     it "raise an exception when response is initialized with nil" do

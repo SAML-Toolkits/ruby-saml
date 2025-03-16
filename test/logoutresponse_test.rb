@@ -1,11 +1,9 @@
 # frozen_string_literal: true
 
 require_relative 'test_helper'
-require 'ruby_saml/logoutresponse'
 require 'logout_responses/logoutresponse_fixtures'
 
 class RubySamlTest < Minitest::Test
-
   describe "Logoutresponse" do
     let(:valid_logout_response_without_settings) { RubySaml::Logoutresponse.new(valid_logout_response_document) }
     let(:valid_logout_response) { RubySaml::Logoutresponse.new(valid_logout_response_document, settings) }

@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require_relative 'test_helper'
-require 'xml_security'
 
 class XMLSecurityTest < Minitest::Test
   def test_base_document_inherits_from_rexml_document
