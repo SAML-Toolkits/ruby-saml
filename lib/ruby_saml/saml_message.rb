@@ -29,20 +29,10 @@ module RubySaml
     end
 
     def root_attribute(document, attribute)
-      if document.is_a?(Nokogiri::XML::Document)
-        node = document.at_xpath(
-          "/p:AuthnRequest | /p:Response | /p:LogoutResponse | /p:LogoutRequest",
-          { "p" => RubySaml::XML::NS_PROTOCOL }
-        )
-        node.nil? ? nil : node[attribute]
-      else
-        node = REXML::XPath.first(
-          document,
-          "/p:AuthnRequest | /p:Response | /p:LogoutResponse | /p:LogoutRequest",
-          { "p" => RubySaml::XML::NS_PROTOCOL }
-        )
-        node.nil? ? nil : node.attributes[attribute]
-      end
+      document.at_xpath(
+        "/p:AuthnRequest | /p:Response | /p:LogoutResponse | /p:LogoutRequest",
+        { "p" => RubySaml::XML::NS_PROTOCOL }
+      )&.[](attribute)
     end
 
     # Validates the SAML Message against the specified schema.

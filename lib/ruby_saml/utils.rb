@@ -295,17 +295,6 @@ module RubySaml
       destination_url == settings_url
     end
 
-    # Given a REXML::Element instance, return the concatenation of all child text nodes. Assumes
-    # that there all children other than text nodes can be ignored (e.g. comments). If nil is
-    # passed, nil will be returned.
-    def element_text(element)
-      if element.is_a?(REXML::Element)
-        element.texts.map(&:value).join
-      else
-        element&.content
-      end
-    end
-
     # Given a private key PEM string, return an array of OpenSSL::PKey::PKey classes
     # that can be used to parse it, with the most likely match first.
     def private_key_classes(pem)
