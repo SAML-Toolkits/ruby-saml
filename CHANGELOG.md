@@ -114,7 +114,7 @@
 * Fix ruby 1.8.7 incompatibilities
 
 ### 1.10.0 (Mar 21, 2019)
-* Add Subject support on AuthNRequest to allow SPs provide info to the IdP about the user to be authenticated
+* Add Subject support on AuthnRequest to allow SPs provide info to the IdP about the user to be authenticated
 * Improves IdpMetadataParser to allow parse multiple IDPSSODescriptors
 * Improves format_cert method to accept certs with /\x0d/
 * Forces nokogiri >= 1.8.2 when possible

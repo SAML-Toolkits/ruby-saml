@@ -134,7 +134,7 @@ this prefix is now set using `settings.sp_uuid_prefix`:
 # Change the default prefix from `_` to `my_id_`
 settings.sp_uuid_prefix = 'my_id_'
 
-# Create the AuthNRequest message
+# Create the AuthnRequest message
 request = RubySaml::Authrequest.new
 request.create(settings)
 request.uuid #=> "my_id_a1b3c5d7-9f1e-3d5c-7b1a-9f1e3d5c7b1a"
@@ -252,7 +252,7 @@ Version `1.10.1` improves Ruby 1.8.7 support.
 ## Upgrading from 1.9.0 to 1.10.0
 
 Version `1.10.0` improves IdpMetadataParser to allow parse multiple IDPSSODescriptor,
-Add Subject support on AuthNRequest to allow SPs provide info to the IdP about the user
+Add Subject support on AuthnRequest to allow SPs provide info to the IdP about the user
 to be authenticated and updates the format_cert method to accept certs with /\x0d/
 
 ## Upgrading from 1.8.0 to 1.9.0
