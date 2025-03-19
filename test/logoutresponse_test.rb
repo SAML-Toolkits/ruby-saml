@@ -1,11 +1,9 @@
 # frozen_string_literal: true
 
 require_relative 'test_helper'
-require 'ruby_saml/logoutresponse'
 require 'logout_responses/logoutresponse_fixtures'
 
 class RubySamlTest < Minitest::Test
-
   describe "Logoutresponse" do
     let(:valid_logout_response_without_settings) { RubySaml::Logoutresponse.new(valid_logout_response_document) }
     let(:valid_logout_response) { RubySaml::Logoutresponse.new(valid_logout_response_document, settings) }
@@ -316,7 +314,7 @@ class RubySamlTest < Minitest::Test
             # Make normalised signature based on our modified params.
             hash_algorithm = RubySaml::XML.hash_algorithm(settings.security[:signature_method])
             signature = settings.get_sp_signing_key.sign(hash_algorithm.new, query)
-            params['Signature'] = Base64.encode64(signature).gsub(/\n/, "")
+            params['Signature'] = Base64.strict_encode64(signature)
             # Re-create the Logoutresponse based on these modified parameters,
             # and ask it to validate the signature. It will do it incorrectly,
             # because it will compute it based on re-encoded query parameters,
@@ -352,7 +350,7 @@ class RubySamlTest < Minitest::Test
             # Make normalised signature based on our modified params.
             hash_algorithm = RubySaml::XML.hash_algorithm(settings.security[:signature_method])
             signature = settings.get_sp_signing_key.sign(hash_algorithm.new, query)
-            params['Signature'] = Base64.encode64(signature).gsub(/\n/, "")
+            params['Signature'] = Base64.strict_encode64(signature)
 
             # Re-create the Logoutresponse based on these modified parameters,
             # and ask it to validate the signature. Provide the altered parameter

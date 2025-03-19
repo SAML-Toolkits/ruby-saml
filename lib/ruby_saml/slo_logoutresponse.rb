@@ -59,8 +59,7 @@ module RubySaml
 
       Logging.debug "Created SLO Logout Response: #{response}"
 
-      response = deflate(response) if binding_redirect
-      base64_response = encode(response)
+      base64_response = RubySaml::XML::Decoder.encode_message(response, compress: binding_redirect)
       response_params = { 'SAMLResponse' => base64_response }
       sp_signing_key = settings.get_sp_signing_key
 
@@ -74,7 +73,7 @@ module RubySaml
         )
         sign_algorithm = RubySaml::XML.hash_algorithm(settings.get_sp_signature_method)
         signature = sp_signing_key.sign(sign_algorithm.new, url_string)
-        params['Signature'] = encode(signature)
+        params['Signature'] = Base64.strict_encode64(signature)
       end
 
       params.each_pair do |key, value|
@@ -100,8 +99,8 @@ module RubySaml
       assign_uuid(settings)
 
       root_attributes = {
-        'xmlns:samlp' => 'urn:oasis:names:tc:SAML:2.0:protocol',
-        'xmlns:saml' => 'urn:oasis:names:tc:SAML:2.0:assertion',
+        'xmlns:samlp' => RubySaml::XML::NS_PROTOCOL,
+        'xmlns:saml' => RubySaml::XML::NS_ASSERTION,
         'ID' => uuid,
         'IssueInstant' => time,
         'Version' => '2.0',

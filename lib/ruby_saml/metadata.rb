@@ -33,12 +33,12 @@ module RubySaml
 
         # Add saml namespace if attribute consuming service is configured
         if settings.attribute_consuming_service.configured?
-          root_attributes['xmlns:saml'] = 'urn:oasis:names:tc:SAML:2.0:assertion'
+          root_attributes['xmlns:saml'] = RubySaml::XML::NS_ASSERTION
         end
 
         xml['md'].EntityDescriptor(root_attributes) do
           sp_sso_attributes = {
-            'protocolSupportEnumeration' => 'urn:oasis:names:tc:SAML:2.0:protocol',
+            'protocolSupportEnumeration' => RubySaml::XML::NS_PROTOCOL,
             'AuthnRequestsSigned' => settings.security[:authn_requests_signed] ? 'true' : 'false',
             'WantAssertionsSigned' => settings.security[:want_assertions_signed] ? 'true' : 'false'
           }
@@ -150,7 +150,7 @@ module RubySaml
     private
 
     def add_certificate_element(xml, cert, use)
-      cert_text = Base64.encode64(cert.to_der).delete("\n")
+      cert_text = Base64.strict_encode64(cert.to_der)
       xml['md'].KeyDescriptor('use' => use.to_s) do
         xml['ds'].KeyInfo do
           xml['ds'].X509Data do

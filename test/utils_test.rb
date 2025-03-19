@@ -362,65 +362,6 @@ class UtilsTest < Minitest::Test
     end
   end
 
-  describe '.decrypt_multi' do
-    let(:private_key) { ruby_saml_key }
-    let(:invalid_key1) { CertificateHelper.generate_private_key }
-    let(:invalid_key2) { CertificateHelper.generate_private_key }
-    let(:settings) { RubySaml::Settings.new(:private_key => private_key.to_pem) }
-    let(:response) { RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, :settings => settings) }
-    let(:encrypted) do
-      REXML::XPath.first(
-        response.document,
-        "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
-        { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
-      )
-    end
-
-    it 'successfully decrypts with the first private key' do
-      assert_match(/\A<saml:Assertion/, RubySaml::Utils.decrypt_multi(encrypted, [private_key]))
-    end
-
-    it 'successfully decrypts with a subsequent private key' do
-      assert_match(/\A<saml:Assertion/, RubySaml::Utils.decrypt_multi(encrypted, [invalid_key1, private_key]))
-    end
-
-    it 'raises an error when there is only one key and it fails to decrypt' do
-      assert_raises OpenSSL::PKey::PKeyError do
-        RubySaml::Utils.decrypt_multi(encrypted, [invalid_key1])
-      end
-    end
-
-    it 'raises an error when all keys fail to decrypt' do
-      assert_raises OpenSSL::PKey::PKeyError do
-        RubySaml::Utils.decrypt_multi(encrypted, [invalid_key1, invalid_key2])
-      end
-    end
-
-    it 'raises an error when private keys is an empty array' do
-      assert_raises ArgumentError do
-        RubySaml::Utils.decrypt_multi(encrypted, [])
-      end
-    end
-
-    it 'raises an error when private keys is nil' do
-      assert_raises ArgumentError do
-        RubySaml::Utils.decrypt_multi(encrypted, [])
-      end
-    end
-
-    %i[ecdsa dsa].each do |sp_key_algo|
-      describe "#{sp_key_algo.upcase} private key" do
-        let(:non_rsa_key) { CertificateHelper.generate_private_key(sp_key_algo) }
-
-        it 'raises unsupported error' do
-          assert_raises(ArgumentError, 'private_keys must be OpenSSL::PKey::RSA keys') do
-            RubySaml::Utils.decrypt_multi(encrypted, [non_rsa_key])
-          end
-        end
-      end
-    end
-  end
-
   describe '.is_cert_expired' do
 
     describe 'time argument not specified' do

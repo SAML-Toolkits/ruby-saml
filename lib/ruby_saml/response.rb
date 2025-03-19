@@ -10,20 +10,14 @@ module RubySaml
   class Response < SamlMessage
     include ErrorHandling
 
-    ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion"
-    PROTOCOL  = "urn:oasis:names:tc:SAML:2.0:protocol"
-    DSIG      = "http://www.w3.org/2000/09/xmldsig#"
-    XENC      = "http://www.w3.org/2001/04/xmlenc#"
+    # TODO: Migrate this to RubySaml::XML
     SAML_NAMESPACES = {
-      "p" => PROTOCOL,
-      "a" => ASSERTION
+      'p' => RubySaml::XML::NS_PROTOCOL,
+      'a' => RubySaml::XML::NS_ASSERTION
     }.freeze
 
-    # TODO: Settings should probably be initialized too... WDYT?
-
-    # RubySaml::Settings Toolkit settings
+    # TODO: This should not be an accessor
     attr_accessor :settings
-
     attr_reader :document
     attr_reader :decrypted_document
     attr_reader :response
@@ -64,7 +58,7 @@ module RubySaml
         end
       end
 
-      @response = decode_raw_saml(response, settings)
+      @response = RubySaml::XML::Decoder.decode_message(response, @settings&.message_max_bytesize)
       @document = RubySaml::XML::SignedDocument.new(@response, @errors)
 
       if assertion_encrypted?
@@ -85,7 +79,11 @@ module RubySaml
     # @return [String] the NameID provided by the SAML response from the IdP.
     #
     def name_id
-      @name_id ||= Utils.element_text(name_id_node)
+      @name_id ||= if name_id_node.is_a?(REXML::Element)
+                     Utils.element_text(name_id_node)
+                   else
+                     name_id_node&.content
+                   end
     end
 
     alias_method :nameid, :name_id
@@ -93,10 +91,11 @@ module RubySaml
     # @return [String] the NameID Format provided by the SAML response from the IdP.
     #
     def name_id_format
-      @name_id_format ||=
-        if name_id_node&.attribute("Format")
-          name_id_node.attribute("Format").value
-        end
+      @name_id_format ||= if name_id_node.is_a?(REXML::Element)
+                            name_id_node&.attribute('Format')&.value
+                          else
+                            name_id_node&.[]('Format')
+                          end
     end
 
     alias_method :nameid_format, :name_id_format
@@ -104,19 +103,21 @@ module RubySaml
     # @return [String] the NameID SPNameQualifier provided by the SAML response from the IdP.
     #
     def name_id_spnamequalifier
-      @name_id_spnamequalifier ||=
-        if name_id_node&.attribute("SPNameQualifier")
-          name_id_node.attribute("SPNameQualifier").value
-        end
+      @name_id_spnamequalifier ||= if name_id_node.is_a?(REXML::Element)
+                                     name_id_node&.attribute('SPNameQualifier')&.value
+                                   else
+                                     name_id_node&.[]('SPNameQualifier')
+                                   end
     end
 
     # @return [String] the NameID NameQualifier provided by the SAML response from the IdP.
     #
     def name_id_namequalifier
-      @name_id_namequalifier ||=
-        if name_id_node&.attribute("NameQualifier")
-          name_id_node.attribute("NameQualifier").value
-        end
+      @name_id_namequalifier ||= if name_id_node.is_a?(REXML::Element)
+                                   name_id_node&.attribute('NameQualifier')&.value
+                                 else
+                                   name_id_node&.[]('NameQualifier')
+                                 end
     end
 
     # Gets the SessionIndex from the AuthnStatement.
@@ -154,41 +155,78 @@ module RubySaml
         stmt_elements = xpath_from_signed_assertion('/a:AttributeStatement')
         stmt_elements.each do |stmt_element|
           stmt_element.elements.each do |attr_element|
-            if attr_element.name == "EncryptedAttribute"
-              node = decrypt_attribute(attr_element.dup)
+            if attr_element.name == 'EncryptedAttribute'
+              node = RubySaml::XML::Decryptor.decrypt_attribute(attr_element.dup, settings&.get_sp_decryption_keys)
             else
               node = attr_element
             end
 
-            name  = node.attributes["Name"]
-
-            if options[:check_duplicated_attributes] && attributes.include?(name)
-              raise ValidationError.new("Found an Attribute element with duplicated Name")
+            if node.is_a?(Nokogiri::XML::Element)
+              name, values = handle_nokogiri_attribute(node, attributes)
+            else
+              name, values = handle_rexml_attribute(node, attributes)
             end
-
-            values = node.elements.map do |e|
-              if e.elements.nil? || e.elements.empty?
-                # SAMLCore requires that nil AttributeValues MUST contain xsi:nil XML attribute set to "true" or "1"
-                # otherwise the value is to be regarded as empty.
-                %w[true 1].include?(e.attributes['xsi:nil']) ? nil : Utils.element_text(e)
-              else
-                # Explicitly support saml2:NameID with saml2:NameQualifier if supplied in attributes
-                # this is useful for allowing eduPersonTargetedId to be passed as an opaque identifier to use to
-                # identify the subject in an SP rather than email or other less opaque attributes
-                # NameQualifier, if present is prefixed with a "/" to the value
-                REXML::XPath.match(e,'a:NameID', { "a" => ASSERTION }).collect do |n|
-                  base_path = n.attributes['NameQualifier'] ? "#{n.attributes['NameQualifier']}/" : ''
-                  "#{base_path}#{Utils.element_text(n)}"
-                end
-              end
-            end
-
-            attributes.add(name, values.flatten)
+            attributes.add(name, values)
           end
         end
 
         attributes
       end
+    end
+
+    def handle_rexml_attribute(node, attributes)
+      name = node.attributes["Name"]
+
+      if options[:check_duplicated_attributes] && attributes.include?(name)
+        raise ValidationError.new("Found an Attribute element with duplicated Name")
+      end
+
+      values = node.elements.map do |e|
+        if e.elements.nil? || e.elements.empty?
+          # SAMLCore requires that nil AttributeValues MUST contain xsi:nil XML attribute set to "true" or "1"
+          # otherwise the value is to be regarded as empty.
+          %w[true 1].include?(e.attributes['xsi:nil']) ? nil : Utils.element_text(e)
+        else
+          # Explicitly support saml2:NameID with saml2:NameQualifier if supplied in attributes
+          # this is useful for allowing eduPersonTargetedId to be passed as an opaque identifier to use to
+          # identify the subject in an SP rather than email or other less opaque attributes
+          # NameQualifier, if present is prefixed with a "/" to the value
+          REXML::XPath.match(e,'a:NameID', { "a" => RubySaml::XML::NS_ASSERTION }).map do |n|
+            base_path = n.attributes['NameQualifier'] ? "#{n.attributes['NameQualifier']}/" : ''
+            "#{base_path}#{Utils.element_text(n)}"
+          end
+        end
+      end.flatten
+
+      [name, values]
+    end
+
+    def handle_nokogiri_attribute(node, attributes)
+      name = node['Name']
+
+      if options[:check_duplicated_attributes] && attributes.include?(name)
+        raise ValidationError.new("Found an Attribute element with duplicated Name")
+      end
+
+      values = node.elements.map do |e|
+        if e.elements.nil? || e.elements.empty?
+          # SAMLCore requires that nil AttributeValues MUST contain xsi:nil XML attribute set to "true" or "1"
+          # otherwise the value is to be regarded as empty.
+          %w[true 1].include?(e['xsi:nil']) ? nil : e&.content
+        else
+          # Explicitly support saml2:NameID with saml2:NameQualifier if supplied in attributes
+          # this is useful for allowing eduPersonTargetedId to be passed as an opaque identifier to use to
+          # identify the subject in an SP rather than email or other less opaque attributes
+          # NameQualifier, if present is prefixed with a "/" to the value
+          e.xpath('a:NameID', { "a" => RubySaml::XML::NS_ASSERTION }).map do |n|
+            next unless (value = n&.content)
+            base_path = n['NameQualifier'] ? "#{n['NameQualifier']}/" : ''
+            "#{base_path}#{value}"
+          end
+        end
+      end.flatten
+
+      [name, values]
     end
 
     # Gets the SessionNotOnOrAfter from the AuthnStatement.
@@ -237,7 +275,7 @@ module RubySaml
         nodes = REXML::XPath.match(
           document,
           "/p:Response/p:Status/p:StatusCode",
-          { "p" => PROTOCOL }
+          { "p" => RubySaml::XML::NS_PROTOCOL }
         )
         if nodes.size == 1
           node = nodes[0]
@@ -247,9 +285,9 @@ module RubySaml
             nodes = REXML::XPath.match(
               document,
               "/p:Response/p:Status/p:StatusCode/p:StatusCode",
-              { "p" => PROTOCOL }
+              { "p" => RubySaml::XML::NS_PROTOCOL }
             )
-            statuses = nodes.collect do |inner_node|
+            statuses = nodes.map do |inner_node|
               inner_node.attributes["Value"]
             end
 
@@ -268,7 +306,7 @@ module RubySaml
         nodes = REXML::XPath.match(
           document,
           "/p:Response/p:Status/p:StatusMessage",
-          { "p" => PROTOCOL }
+          { "p" => RubySaml::XML::NS_PROTOCOL }
         )
 
         Utils.element_text(nodes.first) if nodes.size == 1
@@ -332,7 +370,7 @@ module RubySaml
         node = REXML::XPath.first(
           document,
           "/p:Response",
-          { "p" => PROTOCOL }
+          { "p" => RubySaml::XML::NS_PROTOCOL }
         )
         node.nil? ? nil : node.attributes['InResponseTo']
       end
@@ -345,7 +383,7 @@ module RubySaml
         node = REXML::XPath.first(
           document,
           "/p:Response",
-          { "p" => PROTOCOL }
+          { "p" => RubySaml::XML::NS_PROTOCOL }
         )
         node.nil? ? nil : node.attributes['Destination']
       end
@@ -502,12 +540,12 @@ module RubySaml
       assertions = REXML::XPath.match(
         document,
         "//a:Assertion",
-        { "a" => ASSERTION }
+        { "a" => RubySaml::XML::NS_ASSERTION }
       )
       encrypted_assertions = REXML::XPath.match(
         document,
         "//a:EncryptedAssertion",
-        { "a" => ASSERTION }
+        { "a" => RubySaml::XML::NS_ASSERTION }
       )
 
       unless assertions.size + encrypted_assertions.size == 1
@@ -518,7 +556,7 @@ module RubySaml
         assertions = REXML::XPath.match(
           decrypted_document,
           "//a:Assertion",
-          { "a" => ASSERTION }
+          { "a" => RubySaml::XML::NS_ASSERTION }
         )
         unless assertions.size == 1
           return append_error(error_msg)
@@ -554,7 +592,7 @@ module RubySaml
       signature_nodes = REXML::XPath.match(
         decrypted_document.nil? ? document : decrypted_document,
         "//ds:Signature",
-        {"ds"=>DSIG}
+        { "ds" => RubySaml::XML::DSIG }
       )
       signed_elements = []
       verified_seis = []
@@ -576,7 +614,7 @@ module RubySaml
         verified_ids.push(id)
 
         # Check that reference URI matches the parent ID and no duplicate References or IDs
-        ref = REXML::XPath.first(signature_node, ".//ds:Reference", {"ds"=>DSIG})
+        ref = REXML::XPath.first(signature_node, ".//ds:Reference", { "ds" => RubySaml::XML::DSIG })
         if ref
           uri = ref.attributes.get_attribute("URI")
           if uri && !uri.value.empty?
@@ -783,6 +821,7 @@ module RubySaml
       valid_subject_confirmation = false
 
       subject_confirmation_nodes = xpath_from_signed_assertion('/a:Subject/a:SubjectConfirmation')
+      return validate_subject_confirmation_nokogiri(subject_confirmation_nodes) if subject_confirmation_nodes.first.is_a?(Nokogiri::XML::Element)
 
       now = Time.now.utc
       subject_confirmation_nodes.each do |subject_confirmation|
@@ -793,7 +832,7 @@ module RubySaml
         confirmation_data_node = REXML::XPath.first(
           subject_confirmation,
           'a:SubjectConfirmationData',
-          { "a" => ASSERTION }
+          { "a" => RubySaml::XML::NS_ASSERTION }
         )
 
         next unless confirmation_data_node
@@ -803,6 +842,36 @@ module RubySaml
                 (attrs.include? "NotBefore" and now < (parse_time(confirmation_data_node, "NotBefore") - allowed_clock_drift)) ||
                 (attrs.include? "NotOnOrAfter" and now >= (parse_time(confirmation_data_node, "NotOnOrAfter") + allowed_clock_drift)) ||
                 (attrs.include? "Recipient" and !options[:skip_recipient_check] and settings and attrs['Recipient'] != settings.assertion_consumer_service_url)
+
+        valid_subject_confirmation = true
+        break
+      end
+
+      unless valid_subject_confirmation
+        error_msg = "A valid SubjectConfirmation was not found on this Response"
+        return append_error(error_msg)
+      end
+
+      true
+    end
+
+    def validate_subject_confirmation_nokogiri(subject_confirmation_nodes)
+      valid_subject_confirmation = false
+
+      now = Time.now.utc
+      subject_confirmation_nodes.each do |subject_confirmation|
+        if subject_confirmation['Method'] != 'urn:oasis:names:tc:SAML:2.0:cm:bearer'
+          next
+        end
+
+        confirmation_data_node = subject_confirmation.at_xpath('a:SubjectConfirmationData', { "a" => RubySaml::XML::NS_ASSERTION })
+
+        next unless confirmation_data_node
+
+        next if (confirmation_data_node['InResponseTo'] && confirmation_data_node['InResponseTo'] != in_response_to) ||
+                (confirmation_data_node['NotBefore'] && now < (parse_time(confirmation_data_node, "NotBefore") - allowed_clock_drift)) ||
+                (confirmation_data_node['NotOnOrAfter'] && now >= (parse_time(confirmation_data_node, "NotOnOrAfter") + allowed_clock_drift)) ||
+                (confirmation_data_node['Recipient'] && !options[:skip_recipient_check] && settings && confirmation_data_node['Recipient'] != settings.assertion_consumer_service_url)
 
         valid_subject_confirmation = true
         break
@@ -841,7 +910,7 @@ module RubySaml
       sig_elements = REXML::XPath.match(
         document,
         "/p:Response[@ID=$id]/ds:Signature",
-        { "p" => PROTOCOL, "ds" => DSIG },
+        { "p" => RubySaml::XML::NS_PROTOCOL, "ds" => RubySaml::XML::DSIG },
         { 'id' => document.signed_element_id }
       )
 
@@ -866,7 +935,7 @@ module RubySaml
       sig_elements = REXML::XPath.match(
         document,
         "/p:Response[@ID=$id]/ds:Signature",
-        { "p" => PROTOCOL, "ds" => DSIG },
+        { "p" => RubySaml::XML::NS_PROTOCOL, "ds" => RubySaml::XML::DSIG },
         { 'id' => document.signed_element_id }
       )
 
@@ -875,7 +944,7 @@ module RubySaml
         sig_elements = REXML::XPath.match(
           doc,
           "/p:Response/a:Assertion[@ID=$id]/ds:Signature",
-          SAML_NAMESPACES.merge({ "ds" => DSIG }),
+          SAML_NAMESPACES.merge({ "ds" => RubySaml::XML::DSIG }),
           { 'id' => doc.signed_element_id }
         )
       end
@@ -942,7 +1011,7 @@ module RubySaml
         begin
           encrypted_node = xpath_first_from_signed_assertion('/a:Subject/a:EncryptedID')
           if encrypted_node
-            decrypt_nameid(encrypted_node)
+            RubySaml::XML::Decryptor.decrypt_nameid(encrypted_node, settings&.get_sp_decryption_keys)
           else
             xpath_first_from_signed_assertion('/a:Subject/a:NameID')
           end
@@ -962,10 +1031,10 @@ module RubySaml
 
       assertion = empty_doc
       if root.name == "Response"
-        if REXML::XPath.first(root, "a:Assertion", {"a" => ASSERTION})
-          assertion = REXML::XPath.first(root, "a:Assertion", {"a" => ASSERTION})
-        elsif REXML::XPath.first(root, "a:EncryptedAssertion", {"a" => ASSERTION})
-          assertion = decrypt_assertion(REXML::XPath.first(root, "a:EncryptedAssertion", {"a" => ASSERTION}))
+        if REXML::XPath.first(root, "a:Assertion", {"a" => RubySaml::XML::NS_ASSERTION})
+          assertion = REXML::XPath.first(root, "a:Assertion", {"a" => RubySaml::XML::NS_ASSERTION})
+        elsif REXML::XPath.first(root, "a:EncryptedAssertion", {"a" => RubySaml::XML::NS_ASSERTION})
+          assertion = RubySaml::XML::Decryptor.decrypt_assertion(REXML::XPath.first(root, "a:EncryptedAssertion", {"a" => RubySaml::XML::NS_ASSERTION}), settings&.get_sp_decryption_keys)
         end
       elsif root.name == "Assertion"
         assertion = root
@@ -985,11 +1054,16 @@ module RubySaml
     #
     def xpath_first_from_signed_assertion(subelt = nil)
       doc = signed_assertion
-      REXML::XPath.first(
-        doc,
-        "./#{subelt}",
-        SAML_NAMESPACES
-      )
+      if doc.is_a?(REXML::Element)
+        REXML::XPath.first(
+          doc,
+          "./#{subelt}",
+          SAML_NAMESPACES
+        )
+      else
+        return if !subelt || subelt.empty?
+        doc.at_xpath("./#{subelt}", SAML_NAMESPACES)
+      end
     end
 
     # Extracts all the appearances that matchs the subelt (pattern)
@@ -999,97 +1073,24 @@ module RubySaml
     #
     def xpath_from_signed_assertion(subelt = nil)
       doc = signed_assertion
-      REXML::XPath.match(
-        doc,
-        "./#{subelt}",
-        SAML_NAMESPACES
-      )
+      if doc.is_a?(REXML::Element)
+        REXML::XPath.match(
+          doc,
+          "./#{subelt}",
+          SAML_NAMESPACES
+        )
+      else
+        return if !subelt || subelt.empty?
+        doc.xpath("./#{subelt}", SAML_NAMESPACES)
+      end
     end
 
     # Generates the decrypted_document
     # @return [RubySaml::XML::SignedDocument] The SAML Response with the assertion decrypted
     #
     def generate_decrypted_document
-      if settings.nil? || settings.get_sp_decryption_keys.empty?
-        raise ValidationError.new('An EncryptedAssertion found and no SP private key found on the settings to decrypt it. Be sure you provided the :settings parameter at the initialize method')
-      end
-
-      document_copy = Marshal.load(Marshal.dump(document))
-
-      decrypt_assertion_from_document(document_copy)
-    end
-
-    # Obtains a SAML Response with the EncryptedAssertion element decrypted
-    # @param document_copy [RubySaml::XML::SignedDocument] A copy of the original SAML Response with the encrypted assertion
-    # @return [RubySaml::XML::SignedDocument] The SAML Response with the assertion decrypted
-    #
-    def decrypt_assertion_from_document(document_copy)
-      response_node = REXML::XPath.first(
-        document_copy,
-        "/p:Response/",
-        { "p" => PROTOCOL }
-      )
-      encrypted_assertion_node = REXML::XPath.first(
-        document_copy,
-        "(/p:Response/EncryptedAssertion/)|(/p:Response/a:EncryptedAssertion/)",
-        SAML_NAMESPACES
-      )
-      response_node.add(decrypt_assertion(encrypted_assertion_node))
-      encrypted_assertion_node.remove
-      RubySaml::XML::SignedDocument.new(response_node.to_s)
-    end
-
-    # Decrypts an EncryptedAssertion element
-    # @param encrypted_assertion_node [REXML::Element] The EncryptedAssertion element
-    # @return [REXML::Document] The decrypted EncryptedAssertion element
-    #
-    def decrypt_assertion(encrypted_assertion_node)
-      decrypt_element(encrypted_assertion_node, /(.*<\/(\w+:)?Assertion>)/m)
-    end
-
-    # Decrypts an EncryptedID element
-    # @param encrypted_id_node [REXML::Element] The EncryptedID element
-    # @return [REXML::Document] The decrypted EncrypedtID element
-    #
-    def decrypt_nameid(encrypted_id_node)
-      decrypt_element(encrypted_id_node, /(.*<\/(\w+:)?NameID>)/m)
-    end
-
-    # Decrypts an EncryptedAttribute element
-    # @param encrypted_attribute_node [REXML::Element] The EncryptedAttribute element
-    # @return [REXML::Document] The decrypted EncryptedAttribute element
-    #
-    def decrypt_attribute(encrypted_attribute_node)
-      decrypt_element(encrypted_attribute_node, /(.*<\/(\w+:)?Attribute>)/m)
-    end
-
-    # Decrypt an element
-    # @param encrypt_node [REXML::Element] The encrypted element
-    # @param regexp [Regexp] The regular expression to extract the decrypted data
-    # @return [REXML::Document] The decrypted element
-    #
-    def decrypt_element(encrypt_node, regexp)
-      if settings.nil? || settings.get_sp_decryption_keys.empty?
-        raise ValidationError.new("An #{encrypt_node.name} found and no SP private key found on the settings to decrypt it.")
-      end
-
-      node_header = if encrypt_node.name == 'EncryptedAttribute'
-                      '<node xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'
-                    else
-                      '<node xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">'
-                    end
-
-      elem_plaintext = RubySaml::Utils.decrypt_multi(encrypt_node, settings.get_sp_decryption_keys)
-
-      # If we get some problematic noise in the plaintext after decrypting.
-      # This quick regexp parse will grab only the Element and discard the noise.
-      elem_plaintext = elem_plaintext.match(regexp)[0]
-
-      # To avoid namespace errors if saml namespace is not defined
-      # create a parent node first with the namespace defined
-      elem_plaintext = "#{node_header}#{elem_plaintext}</node>"
-      doc = REXML::Document.new(elem_plaintext)
-      doc.root[0]
+      noko = RubySaml::XML::Decryptor.decrypt_document(document.to_s, settings&.get_sp_decryption_keys)
+      RubySaml::XML::SignedDocument.new(noko.to_xml(save_with: Nokogiri::XML::Node::SaveOptions::AS_XML))
     end
 
     # Parse the attribute of a given node in Time format

@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 require_relative 'test_helper'
-require 'ruby_saml/settings'
-require 'ruby_saml/validation_error'
 
 class SettingsTest < Minitest::Test
 

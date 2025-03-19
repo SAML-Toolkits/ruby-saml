@@ -236,7 +236,7 @@ module RubySaml
       unless raw_status_code.nil?
         if raw_status_code.include?("|")
           status_codes = raw_status_code.split(' | ')
-          values = status_codes.collect do |status_code|
+          values = status_codes.map do |status_code|
             status_code.split(':').last
           end
           printable_code = values.join(" => ")
@@ -249,139 +249,6 @@ module RubySaml
       error_msg += " -> #{status_message}" unless status_message.nil?
 
       error_msg
-    end
-
-    # Obtains the decrypted string from an Encrypted node element in XML,
-    # given multiple private keys to try.
-    # @param encrypted_node [REXML::Element] The Encrypted element
-    # @param private_keys [Array<OpenSSL::PKey::RSA>] The SP private key
-    # @return [String] The decrypted data
-    def decrypt_multi(encrypted_node, private_keys)
-      raise ArgumentError.new('private_keys must be specified') if !private_keys || private_keys.empty?
-
-      if private_keys.none?(OpenSSL::PKey::RSA)
-        raise ArgumentError.new('private_keys must be OpenSSL::PKey::RSA keys')
-      end
-
-      error = nil
-      private_keys.each do |key|
-        return decrypt_data(encrypted_node, key)
-      rescue OpenSSL::PKey::PKeyError => e
-        error ||= e
-      end
-
-      raise(error) if error
-    end
-
-    # Obtains the decrypted string from an Encrypted node element in XML
-    # @param encrypted_node [REXML::Element] The Encrypted element
-    # @param private_key [OpenSSL::PKey::RSA] The SP private key
-    # @return [String] The decrypted data
-    def decrypt_data(encrypted_node, private_key)
-      encrypt_data = REXML::XPath.first(
-        encrypted_node,
-        "./xenc:EncryptedData",
-        { 'xenc' => XENC }
-      )
-      symmetric_key = retrieve_symmetric_key(encrypt_data, private_key)
-      cipher_value = REXML::XPath.first(
-        encrypt_data,
-        "./xenc:CipherData/xenc:CipherValue",
-        { 'xenc' => XENC }
-      )
-      node = Base64.decode64(element_text(cipher_value))
-      encrypt_method = REXML::XPath.first(
-        encrypt_data,
-        "./xenc:EncryptionMethod",
-        { 'xenc' => XENC }
-      )
-      algorithm = encrypt_method.attributes['Algorithm']
-      retrieve_plaintext(node, symmetric_key, algorithm)
-    end
-
-    # Obtains the symmetric key from the EncryptedData element
-    # @param encrypt_data [REXML::Element]     The EncryptedData element
-    # @param private_key [OpenSSL::PKey::RSA] The SP private key
-    # @return [String] The symmetric key
-    def retrieve_symmetric_key(encrypt_data, private_key)
-      encrypted_key = REXML::XPath.first(
-        encrypt_data,
-        "./ds:KeyInfo/xenc:EncryptedKey | ./KeyInfo/xenc:EncryptedKey | //xenc:EncryptedKey[@Id=$id]",
-        { "ds" => DSIG, "xenc" => XENC },
-        { "id" => retrieve_symetric_key_reference(encrypt_data) }
-      )
-
-      encrypted_symmetric_key_element = REXML::XPath.first(
-        encrypted_key,
-        "./xenc:CipherData/xenc:CipherValue",
-        "xenc" => XENC
-      )
-
-      cipher_text = Base64.decode64(element_text(encrypted_symmetric_key_element))
-
-      encrypt_method = REXML::XPath.first(
-        encrypted_key,
-        "./xenc:EncryptionMethod",
-        "xenc" => XENC
-      )
-
-      algorithm = encrypt_method.attributes['Algorithm']
-      retrieve_plaintext(cipher_text, private_key, algorithm)
-    end
-
-    def retrieve_symetric_key_reference(encrypt_data)
-      REXML::XPath.first(
-        encrypt_data,
-        "substring-after(./ds:KeyInfo/ds:RetrievalMethod/@URI, '#')",
-        { "ds" => DSIG }
-      )
-    end
-
-    # Obtains the deciphered text
-    # @param cipher_text [String]   The ciphered text
-    # @param symmetric_key [String] The symmetric key used to encrypt the text
-    # @param algorithm [String]     The encrypted algorithm
-    # @return [String] The deciphered text
-    def retrieve_plaintext(cipher_text, symmetric_key, algorithm)
-      case algorithm
-      when 'http://www.w3.org/2001/04/xmlenc#tripledes-cbc' then cipher = OpenSSL::Cipher.new('DES-EDE3-CBC').decrypt
-      when 'http://www.w3.org/2001/04/xmlenc#aes128-cbc' then cipher = OpenSSL::Cipher.new('AES-128-CBC').decrypt
-      when 'http://www.w3.org/2001/04/xmlenc#aes192-cbc' then cipher = OpenSSL::Cipher.new('AES-192-CBC').decrypt
-      when 'http://www.w3.org/2001/04/xmlenc#aes256-cbc' then cipher = OpenSSL::Cipher.new('AES-256-CBC').decrypt
-      when 'http://www.w3.org/2009/xmlenc11#aes128-gcm' then auth_cipher = OpenSSL::Cipher.new('aes-128-gcm').decrypt
-      when 'http://www.w3.org/2009/xmlenc11#aes192-gcm' then auth_cipher = OpenSSL::Cipher.new('aes-192-gcm').decrypt
-      when 'http://www.w3.org/2009/xmlenc11#aes256-gcm' then auth_cipher = OpenSSL::Cipher.new('aes-256-gcm').decrypt
-      when 'http://www.w3.org/2001/04/xmlenc#rsa-1_5' then rsa = symmetric_key
-      when 'http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p' then oaep = symmetric_key
-      end
-
-      if cipher
-        iv_len = cipher.iv_len
-        data = cipher_text[iv_len..]
-        cipher.padding = 0
-        cipher.key = symmetric_key
-        cipher.iv = cipher_text[0..iv_len-1]
-        assertion_plaintext = cipher.update(data)
-        assertion_plaintext << cipher.final
-      elsif auth_cipher
-        iv_len = auth_cipher.iv_len
-        text_len = cipher_text.length
-        tag_len = 16
-        data = cipher_text[iv_len..text_len-1-tag_len]
-        auth_cipher.padding = 0
-        auth_cipher.key = symmetric_key
-        auth_cipher.iv = cipher_text[0..iv_len-1]
-        auth_cipher.auth_data = ''
-        auth_cipher.auth_tag = cipher_text[text_len-tag_len..]
-        assertion_plaintext = auth_cipher.update(data)
-        assertion_plaintext << auth_cipher.final
-      elsif rsa
-        rsa.private_decrypt(cipher_text)
-      elsif oaep
-        oaep.private_decrypt(cipher_text, OpenSSL::PKey::RSA::PKCS1_OAEP_PADDING)
-      else
-        cipher_text
-      end
     end
 
     # @deprecated Use RubySaml::Settings#sp_uuid_prefix instead.
@@ -432,7 +299,11 @@ module RubySaml
     # that there all children other than text nodes can be ignored (e.g. comments). If nil is
     # passed, nil will be returned.
     def element_text(element)
-      element.texts.map(&:value).join if element
+      if element.is_a?(REXML::Element)
+        element.texts.map(&:value).join
+      else
+        element&.content
+      end
     end
 
     # Given a private key PEM string, return an array of OpenSSL::PKey::PKey classes

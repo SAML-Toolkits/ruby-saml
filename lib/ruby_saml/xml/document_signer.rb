@@ -33,7 +33,7 @@ module RubySaml
       # Modifies an existing Nokogiri document to add a signature.
       def sign_document!(noko, private_key, certificate, signature_method = RubySaml::XML::RSA_SHA256, digest_method = RubySaml::XML::SHA256)
         signature_element = build_signature_element(noko, private_key, certificate, signature_method, digest_method)
-        issuer_element = noko.at_xpath('//saml:Issuer', 'saml' => 'urn:oasis:names:tc:SAML:2.0:assertion')
+        issuer_element = noko.at_xpath('//saml:Issuer', 'saml' => RubySaml::XML::NS_ASSERTION)
         if issuer_element
           issuer_element.after(signature_element)
         elsif noko.root.children.any?
@@ -90,7 +90,7 @@ module RubySaml
         hash_algorithm = RubySaml::XML.hash_algorithm(digest_method)
 
         canon_doc = document.canonicalize(canon_algorithm, inclusive_namespaces)
-        Base64.encode64(hash_algorithm.digest(canon_doc)).strip
+        Base64.strict_encode64(hash_algorithm.digest(canon_doc))
       end
 
       def signature_value(signed_info_element, private_key, signature_method)
@@ -98,12 +98,12 @@ module RubySaml
         hash_algorithm = RubySaml::XML.hash_algorithm(signature_method).new
 
         canon_string = signed_info_element.canonicalize(canon_algorithm)
-        Base64.encode64(private_key.sign(hash_algorithm, canon_string)).delete("\n")
+        Base64.strict_encode64(private_key.sign(hash_algorithm, canon_string))
       end
 
       def certificate_value(certificate)
         certificate = OpenSSL::X509::Certificate.new(certificate) if certificate.is_a?(String)
-        Base64.encode64(certificate.to_der).delete("\n")
+        Base64.strict_encode64(certificate.to_der)
       end
     end
   end

@@ -344,6 +344,10 @@ class Minitest::Test
     @invalid_logout_request_document
   end
 
+  def logout_request_original
+    @logout_request_original ||= File.read(File.join(File.dirname(__FILE__), 'logout_requests', 'slo_request.xml')).gsub("\n", "\r\n").strip
+  end
+
   def logout_request_base64
     @logout_request_base64 ||= File.read(File.join(File.dirname(__FILE__), 'logout_requests', 'slo_request.xml.base64'))
   end
@@ -380,16 +384,12 @@ class Minitest::Test
     read_certificate("ruby-saml.key")
   end
 
-  #
-  # logoutresponse fixtures
-  #
+  # LogoutResponse fixtures
   def random_id
     "_#{RubySaml::Utils.generate_uuid}"
   end
 
-  #
-  # decodes a base64 encoded SAML response for use in SloLogoutresponse tests
-  #
+  # Decodes a base64 encoded SAML response for use in SloLogoutresponse tests
   def decode_saml_response_payload(unauth_url)
     payload = CGI.unescape(unauth_url.split("SAMLResponse=").last)
     decoded = Base64.decode64(payload)
@@ -401,9 +401,7 @@ class Minitest::Test
     inflated
   end
 
-  #
-  # decodes a base64 encoded SAML request for use in Logoutrequest tests
-  #
+  # Decodes a base64 encoded SAML request for use in Logoutrequest tests
   def decode_saml_request_payload(unauth_url)
     payload = CGI.unescape(unauth_url.split("SAMLRequest=").last)
     decoded = Base64.decode64(payload)
@@ -415,33 +413,11 @@ class Minitest::Test
     inflated
   end
 
-  SCHEMA_DIR = File.expand_path(File.join(__FILE__, '../../lib/ruby_saml/schemas'))
-
-  #
-  # validate an xml document against the given schema
-  #
+  # Validate an xml document against the given schema
   def validate_xml!(document, schema)
-    Dir.chdir(SCHEMA_DIR) do
-      xsd = if schema.is_a? Nokogiri::XML::Schema
-              schema
-            else
-              Nokogiri::XML::Schema(File.read(schema))
-            end
-
-      xml = if document.is_a? Nokogiri::XML::Document
-              document
-            else
-              Nokogiri::XML(document, &:strict)
-            end
-
-      result = xsd.validate(xml)
-
-      if result.length != 0
-        raise "Schema validation failed! XSD validation errors: #{result.join(", ")}"
-      else
-        true
-      end
-    end
+    result = load_schema(schema).validate(load_xml(document))
+    raise "Schema validation failed! XSD validation errors: #{result.join(", ")}" if result.length != 0
+    true
   end
 
   # Allows to emulate Azure AD request behavior
@@ -496,6 +472,23 @@ class Minitest::Test
     XML
 
     encrypted_assertion_xml
+  end
+
+  private
+
+  def load_schema(schema)
+    return schema if schema.is_a?(Nokogiri::XML::Schema)
+
+    # Dir.chdir is necessary to load related schema files
+    Dir.chdir(File.expand_path('../lib/ruby_saml/schemas', __dir__)) do
+      Nokogiri::XML::Schema(File.read(schema))
+    end
+  end
+
+  def load_xml(document)
+    return document if document.is_a?(Nokogiri::XML::Document)
+
+    Nokogiri::XML(document, &:strict)
   end
 end
 

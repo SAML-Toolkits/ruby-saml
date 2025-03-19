@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 require_relative 'test_helper'
-require 'ruby_saml/authrequest'
-require 'ruby_saml/setting_error'
 
 class AuthrequestTest < Minitest::Test
 

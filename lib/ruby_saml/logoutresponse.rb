@@ -40,7 +40,7 @@ module RubySaml
       end
 
       @options = options
-      @response = decode_raw_saml(response, settings)
+      @response = RubySaml::XML::Decoder.decode_message(response, @settings&.message_max_bytesize)
       @document = RubySaml::XML::SignedDocument.new(@response)
       super()
     end
@@ -64,7 +64,7 @@ module RubySaml
         node = REXML::XPath.first(
           document,
           "/p:LogoutResponse",
-          { "p" => PROTOCOL }
+          { "p" => RubySaml::XML::NS_PROTOCOL }
         )
         node.nil? ? nil : node.attributes['InResponseTo']
       end
@@ -77,7 +77,7 @@ module RubySaml
         node = REXML::XPath.first(
           document,
           "/p:LogoutResponse/a:Issuer",
-          { "p" => PROTOCOL, "a" => ASSERTION }
+          { "p" => RubySaml::XML::NS_PROTOCOL, "a" => RubySaml::XML::NS_ASSERTION }
         )
         Utils.element_text(node)
       end
@@ -87,7 +87,7 @@ module RubySaml
     #
     def status_code
       @status_code ||= begin
-        node = REXML::XPath.first(document, "/p:LogoutResponse/p:Status/p:StatusCode", { "p" => PROTOCOL })
+        node = REXML::XPath.first(document, "/p:LogoutResponse/p:Status/p:StatusCode", { "p" => RubySaml::XML::NS_PROTOCOL })
         node.nil? ? nil : node.attributes["Value"]
       end
     end
@@ -97,7 +97,7 @@ module RubySaml
         node = REXML::XPath.first(
           document,
           "/p:LogoutResponse/p:Status/p:StatusMessage",
-          { "p" => PROTOCOL }
+          { "p" => RubySaml::XML::NS_PROTOCOL }
         )
         Utils.element_text(node)
       end
