@@ -14,10 +14,11 @@ module RubySaml
     # @param valid_until [DateTime] Metadata's valid time
     # @param cache_duration [Integer] Duration of the cache in seconds
     # @return [String] XML Metadata of the Service Provider
-    def generate(settings, pretty_print=false, valid_until=nil, cache_duration=nil)
+    def generate(settings, pretty_print = false, valid_until = nil, cache_duration = nil)
       builder = Nokogiri::XML::Builder.new(encoding: 'UTF-8') do |xml|
         root_attributes = {
-          'xmlns:md' => 'urn:oasis:names:tc:SAML:2.0:metadata',
+          'xmlns:md' => RubySaml::XML::NS_METADATA,
+          'xmlns:ds' => RubySaml::XML::DSIG,
           'ID' => RubySaml::Utils.uuid,
           'entityID' => settings.sp_entity_id
         }
@@ -151,7 +152,7 @@ module RubySaml
     def add_certificate_element(xml, cert, use)
       cert_text = Base64.encode64(cert.to_der).delete("\n")
       xml['md'].KeyDescriptor('use' => use.to_s) do
-        xml['ds'].KeyInfo('xmlns:ds' => 'http://www.w3.org/2000/09/xmldsig#') do
+        xml['ds'].KeyInfo do
           xml['ds'].X509Data do
             xml['ds'].X509Certificate(cert_text)
           end
