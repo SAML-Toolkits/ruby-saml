@@ -18,6 +18,12 @@ settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
 settings.security[:digest_method] = XMLSecurity::Document::SHA256
 ```
 
+### JRuby users should upgrade to JRuby 1.19 or later
+
+JRuby users should upgrade to Nokogiri gem version 1.19 or later, to avoid 
+[this Nokogiri issue affecting how XML is generated on JRuby](https://github.com/sparklemotion/nokogiri/pull/3456).
+This issue is likely not critical for most IdPs, but since it is not tested, it is recommended to upgrade.
+
 ### Root "OneLogin" namespace changed to "RubySaml"
 
 RubySaml version `2.0.0` changes the root namespace from `OneLogin::RubySaml::` to just `RubySaml::`.
