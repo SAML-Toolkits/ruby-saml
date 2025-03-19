@@ -4,21 +4,28 @@ module RubySaml
   module Sp
     module Builders
       # SAML AuthnRequest builder (SSO, SP-initiated)
-      class AuthnRequest < MessageBuilder
-        alias_method :request_id, :uuid
+      module AuthnRequest
+        extend MessageBuilder
+        extend self
 
-        def create(settings, old_params = {}, relay_state: nil)
+        def create(settings, old_params = {}, uuid: nil, relay_state: nil)
           super
         end
 
         private
 
-        def message_flow
-          :sso
+        # Determine the binding type from settings
+        def binding_type(settings)
+          settings.idp_sso_service_binding
+        end
+
+        # Get the service URL from settings based on type
+        def service_url(settings)
+          settings.idp_sso_service_url
         end
 
         # Build the XML document
-        def create_xml(settings)
+        def create_xml(settings, uuid: nil)
           time = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
 
           root_attributes = {

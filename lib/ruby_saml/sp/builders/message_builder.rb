@@ -6,22 +6,17 @@ module RubySaml
     class MessageBuilder < Message
       attr_accessor :uuid
 
-      # Generate a signed XML document
-      # def build_message(settings, root_name, attributes, security_option, &block)
-      #   document = create_xml_document(root_name, attributes, &block)
-      #   sign_document(document, settings, security_option)
-      # end
+      # TODO: REFACTOR TO HAVE THESE:
+      # public methods:
+      # - create_url
+      # - create_url_params
+      # - create_xml
       #
-      # # Create URL parameters including signatures if needed
-      # def build_params(settings, xml_doc, relay_state, param_name, security_option, binding_type)
-      #   binding_redirect = binding_type == Utils::BINDINGS[:redirect]
-      #   create_params(settings, xml_doc, binding_redirect, relay_state, security_option, param_name)
-      # end
-      #
-      # # Build the final URL
-      # def build_url(settings, params, service_url, param_name)
-      #   create_url(settings, params, service_url, param_name)
-      # end
+      # private methods:
+      # - create_unsigned_xml
+      # - ...
+
+
 
       # Create the LogoutResponse
       def create(settings,
@@ -38,48 +33,35 @@ module RubySaml
         @uuid = generate_uuid(settings)
         relay_state = process_relay_state(params)
 
-
-
-        service_url = service_url(settings, :slo_response)
+        # LogoutResponse
+        service_url = service_url(settings, :slo)
         raise SettingsError.new('Missing IdP SLO service URL') if service_url.nil? || service_url.empty?
 
+        # LogoutRequest
+        #   service_url = service_url(settings, :slo)
+        #   raise SettingsError.new("Missing IdP SLO service URL") if service_url.nil? || service_url.empty?
 
+        # AuthnRequest
+        #   service_url = service_url(settings, :sso)
+        #   raise SettingsError.new("Missing IdP SSO service URL") if service_url.nil? || service_url.empty?
 
         xml_doc = create_logout_response_xml(settings, request_id, logout_message, status_code)
 
         binding = binding_type(settings, :slo)
-        response_params = build_params(
-          settings, xml_doc, relay_state, "SAMLResponse", :logout_responses_signed, binding
+        params = build_params(
+          settings, xml_doc, relay_state, 'SAMLResponse', :logout_responses_signed, binding
         )
+        #   request_params = build_params(
+        #     settings, xml_doc, relay_state, "SAMLRequest", :logout_requests_signed, binding
+        #   )
+        #   request_params = build_params(
+        #     settings, xml_doc, relay_state, 'SAMLRequest', :authn_requests_signed, binding
+        #   )
 
-        @logout_url = build_url(settings, response_params, service_url, "SAMLResponse")
+        build_url(settings, params, service_url, 'SAMLResponse')
       end
 
-      # Create the LogoutRequest
-      def create(settings,
-                 old_params = {},
-                 relay_state: nil)
-        # @uuid = generate_uuid(settings)
-        # relay_state = process_relay_state(params)
-
-
-
-
-        service_url = service_url(settings, :slo)
-        raise SettingsError.new("Missing IdP SLO service URL") if service_url.nil? || service_url.empty?
-
-
-
-
-        xml_doc = create_xml(settings)
-
-        binding = binding_type(settings, :slo)
-        request_params = build_params(
-          settings, xml_doc, relay_state, "SAMLRequest", :logout_requests_signed, binding
-        )
-
-        @logout_url = build_url(settings, request_params, service_url, "SAMLRequest")
-      end
+      private
 
       def deprecate_positional_args(old_request_id, old_status_message, old_relay_state, old_status_code)
         return if old_request_id.nil? && old_status_message.nil? && old_relay_state.nil? && old_status_code.nil?
@@ -88,51 +70,11 @@ module RubySaml
              'Please use keyword arguments instead.'
       end
 
-      # Create the AuthnRequest
-      def create(settings,
-                 old_params = {},
-                 relay_state: nil)
-        # @uuid = generate_uuid(settings)
-        # relay_state = process_relay_state(params)
-
-
-
-
-        service_url = service_url(settings, :sso)
-        raise SettingsError.new("Missing IdP SSO service URL") if service_url.nil? || service_url.empty?
-
-
-
-
-        xml_doc = create_authn_request_xml(settings)
-
-        binding = binding_type(settings, :sso)
-        request_params = build_params(
-          settings, xml_doc, relay_state, 'SAMLRequest', :authn_requests_signed, binding
-        )
-
-        @login_url = build_url(settings, request_params, service_url, "SAMLRequest")
-      end
-
-      private
-
-
-
-      # Get the service URL from settings based on type
-      def service_url(settings, type)
-        case type
-        when :sso then settings.idp_sso_service_url
-        when :slo then settings.idp_slo_service_url
-        when :slo_response then settings.idp_slo_response_service_url || settings.idp_slo_service_url
-        else nil
-        end
-      end
-
       # Create URL with SAML parameters
-      def create_url(params, service_url, param_name)
+      def build_url(params, service_url, param_name)
         raise ValidationError.new("Service URL cannot be nil") if service_url.nil? || service_url.empty?
 
-        params_prefix = /\?/.match?(service_url) ? '&' : '?'
+        params_prefix = service_url.include?('?') ? '&' : '?'
         param_value = CGI.escape(params.delete(param_name))
         url_params = +"#{params_prefix}#{param_name}=#{param_value}"
 
@@ -162,7 +104,7 @@ module RubySaml
 
         if binding_redirect && settings.security[security_option] && sp_signing_key
           params['SigAlg'] = settings.get_sp_signature_method
-          url_string = RubySaml::Utils.build_query(
+          url_string = build_query(
             type: @request_type,
             data: base64_data,
             relay_state: relay_state,
@@ -205,13 +147,21 @@ module RubySaml
         message_params
       end
 
-      # Determine the binding type from settings
-      def binding_type(settings, type = :service)
-        case type
-        when :sso then settings.idp_sso_service_binding
-        when :slo then settings.idp_slo_service_binding
-        else nil
-        end
+      # Build the Query String signature that will be used in the HTTP-Redirect binding
+      # to generate the Signature
+      # @param params [Hash] Parameters to build the Query String
+      # @option params [String] :type 'SAMLRequest' or 'SAMLResponse'
+      # @option params [String] :data Base64 encoded SAMLRequest or SAMLResponse
+      # @option params [String] :relay_state The RelayState parameter
+      # @option params [String] :sig_alg The SigAlg parameter
+      # @return [String] The Query String
+      def build_query(params)
+        type, data, relay_state, sig_alg = params.values_at(:type, :data, :relay_state, :sig_alg)
+
+        url_string = +"#{type}=#{CGI.escape(data)}"
+        url_string << "&RelayState=#{CGI.escape(relay_state)}" if relay_state
+        url_string << "&SigAlg=#{CGI.escape(sig_alg)}"
+        url_string
       end
 
       # Generate a UUID

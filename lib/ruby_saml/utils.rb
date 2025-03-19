@@ -145,23 +145,6 @@ module RubySaml
       raise error
     end
 
-    # Build the Query String signature that will be used in the HTTP-Redirect binding
-    # to generate the Signature
-    # @param params [Hash] Parameters to build the Query String
-    # @option params [String] :type 'SAMLRequest' or 'SAMLResponse'
-    # @option params [String] :data Base64 encoded SAMLRequest or SAMLResponse
-    # @option params [String] :relay_state The RelayState parameter
-    # @option params [String] :sig_alg The SigAlg parameter
-    # @return [String] The Query String
-    #
-    def build_query(params)
-      type, data, relay_state, sig_alg = params.values_at(:type, :data, :relay_state, :sig_alg)
-
-      url_string = +"#{type}=#{CGI.escape(data)}"
-      url_string << "&RelayState=#{CGI.escape(relay_state)}" if relay_state
-      url_string << "&SigAlg=#{CGI.escape(sig_alg)}"
-    end
-
     # Reconstruct a canonical query string from raw URI-encoded parts, to be used in verifying a signature
     #
     # @param params [Hash] Parameters to build the Query String

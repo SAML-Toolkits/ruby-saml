@@ -9,12 +9,18 @@ module RubySaml
 
         private
 
-        def message_flow
-          :slo
+        # Determine the binding type from settings
+        def binding_type(settings)
+          settings.idp_slo_service_binding
+        end
+
+        # Get the service URL from settings based on type
+        def service_url(settings)
+          settings.idp_slo_response_service_url || settings.idp_slo_service_url
         end
 
         # Build the XML document
-        def create_xml(settings, request_id: nil, status_message: nil, status_code: nil)
+        def create_xml(settings, uuid: nil, status_message: nil, status_code: nil)
           time = Time.now.utc.strftime('%Y-%m-%dT%H:%M:%SZ')
 
           # Default values if not provided
