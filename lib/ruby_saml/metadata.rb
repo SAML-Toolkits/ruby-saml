@@ -1,140 +1,132 @@
 # frozen_string_literal: true
 
 require "uri"
-
 require "ruby_saml/logging"
 require "ruby_saml/utils"
 
-# Only supports SAML 2.0
 module RubySaml
-
   # SAML2 Metadata. XML Metadata Builder
-  #
   class Metadata
-
     # Return SP metadata based on the settings.
     # @param settings [RubySaml::Settings|nil] Toolkit settings
     # @param pretty_print [Boolean] Pretty print or not the response
-    #                               (No pretty print if you gonna validate the signature)
+    #   (No pretty print if you gonna validate the signature)
     # @param valid_until [DateTime] Metadata's valid time
     # @param cache_duration [Integer] Duration of the cache in seconds
     # @return [String] XML Metadata of the Service Provider
-    #
-    def generate(settings, pretty_print=false, valid_until=nil, cache_duration=nil)
-      meta_doc = RubySaml::XML::Document.new
-      meta_doc.context[:attribute_quote] = :quote
-      add_xml_declaration(meta_doc)
-      root = add_root_element(meta_doc, settings, valid_until, cache_duration)
-      sp_sso = add_sp_sso_element(root, settings)
-      add_sp_certificates(sp_sso, settings)
-      add_sp_service_elements(sp_sso, settings)
-      add_extras(root, settings)
+    def generate(settings, pretty_print = false, valid_until = nil, cache_duration = nil)
+      builder = Nokogiri::XML::Builder.new(encoding: 'UTF-8') do |xml|
+        root_attributes = {
+          'xmlns:md' => RubySaml::XML::NS_METADATA,
+          'xmlns:ds' => RubySaml::XML::DSIG,
+          'ID' => RubySaml::Utils.uuid,
+          'entityID' => settings.sp_entity_id
+        }
+
+        if valid_until
+          root_attributes['validUntil'] = valid_until.utc.strftime('%Y-%m-%dT%H:%M:%SZ')
+        end
+
+        if cache_duration
+          root_attributes['cacheDuration'] = "PT#{cache_duration}S"
+        end
+
+        # Add saml namespace if attribute consuming service is configured
+        if settings.attribute_consuming_service.configured?
+          root_attributes['xmlns:saml'] = 'urn:oasis:names:tc:SAML:2.0:assertion'
+        end
+
+        xml['md'].EntityDescriptor(root_attributes) do
+          sp_sso_attributes = {
+            'protocolSupportEnumeration' => 'urn:oasis:names:tc:SAML:2.0:protocol',
+            'AuthnRequestsSigned' => settings.security[:authn_requests_signed] ? 'true' : 'false',
+            'WantAssertionsSigned' => settings.security[:want_assertions_signed] ? 'true' : 'false'
+          }
+
+          xml['md'].SPSSODescriptor(sp_sso_attributes) do
+            # Add certificates
+            certs = settings.get_sp_certs
+            certs[:signing].each do |cert, _|
+              add_certificate_element(xml, cert, :signing) if cert
+            end
+            if settings.security[:want_assertions_encrypted]
+              certs[:encryption].each do |cert, _|
+                add_certificate_element(xml, cert, :encryption) if cert
+              end
+            end
+
+            # Add SingleLogoutService if configured
+            if settings.single_logout_service_url
+              xml['md'].SingleLogoutService(
+                'Binding' => settings.single_logout_service_binding,
+                'Location' => settings.single_logout_service_url,
+                'ResponseLocation' => settings.single_logout_service_url
+              )
+            end
+
+            # Add NameIDFormat if configured
+            if settings.name_identifier_format
+              xml['md'].NameIDFormat(settings.name_identifier_format)
+            end
+
+            # Add AssertionConsumerService if configured
+            if settings.assertion_consumer_service_url
+              xml['md'].AssertionConsumerService(
+                'Binding' => settings.assertion_consumer_service_binding,
+                'Location' => settings.assertion_consumer_service_url,
+                'isDefault' => 'true',
+                'index' => '0'
+              )
+            end
+
+            # Add AttributeConsumingService if configured
+            if settings.attribute_consuming_service.configured?
+              xml['md'].AttributeConsumingService(
+                'isDefault' => 'true',
+                'index' => settings.attribute_consuming_service.index
+              ) do
+                xml['md'].ServiceName(
+                  settings.attribute_consuming_service.name,
+                  'xml:lang' => 'en'
+                )
+
+                settings.attribute_consuming_service.attributes.each do |attribute|
+                  attr_options = {
+                    'NameFormat' => attribute[:name_format],
+                    'Name' => attribute[:name],
+                    'FriendlyName' => attribute[:friendly_name],
+                    'isRequired' => attribute[:is_required] ? 'true' : 'false'
+                  }
+
+                  xml['md'].RequestedAttribute(attr_options) do
+                    # Add AttributeValues if present
+                    unless attribute[:attribute_value].nil?
+                      Array(attribute[:attribute_value]).each do |value|
+                        xml['saml'].AttributeValue(value.to_s)
+                      end
+                    end
+                  end
+                end
+              end
+            end
+          end
+
+          # Add any extra elements (can be overridden in subclass)
+          add_extras(xml, settings)
+        end
+      end
+
+      # Get the XML document
+      meta_doc = builder.doc
       embed_signature(meta_doc, settings)
       output_xml(meta_doc, pretty_print)
     end
 
     protected
 
-    def add_xml_declaration(meta_doc)
-      meta_doc << REXML::XMLDecl.new('1.0', 'UTF-8')
-    end
-
-    def add_root_element(meta_doc, settings, valid_until, cache_duration)
-      namespaces = {
-        "xmlns:md" => "urn:oasis:names:tc:SAML:2.0:metadata"
-      }
-
-      if settings.attribute_consuming_service.configured?
-        namespaces["xmlns:saml"] = "urn:oasis:names:tc:SAML:2.0:assertion"
-      end
-
-      root = meta_doc.add_element("md:EntityDescriptor", namespaces)
-      root.attributes["ID"] = RubySaml::Utils.uuid
-      root.attributes["entityID"] = settings.sp_entity_id if settings.sp_entity_id
-      root.attributes["validUntil"] = valid_until.utc.strftime('%Y-%m-%dT%H:%M:%SZ') if valid_until
-      root.attributes["cacheDuration"] = "PT#{cache_duration}S" if cache_duration
-      root
-    end
-
-    def add_sp_sso_element(root, settings)
-      root.add_element "md:SPSSODescriptor", {
-          "protocolSupportEnumeration" => "urn:oasis:names:tc:SAML:2.0:protocol",
-          "AuthnRequestsSigned" => settings.security[:authn_requests_signed],
-          "WantAssertionsSigned" => settings.security[:want_assertions_signed]
-      }
-    end
-
-    # Add KeyDescriptor elements for SP certificates.
-    def add_sp_certificates(sp_sso, settings)
-      certs = settings.get_sp_certs
-
-      certs[:signing].each { |cert, _| add_sp_cert_element(sp_sso, cert, :signing) }
-
-      if settings.security[:want_assertions_encrypted]
-        certs[:encryption].each { |cert, _| add_sp_cert_element(sp_sso, cert, :encryption) }
-      end
-
-      sp_sso
-    end
-
-    def add_sp_service_elements(sp_sso, settings)
-      if settings.single_logout_service_url
-        sp_sso.add_element "md:SingleLogoutService", {
-            "Binding" => settings.single_logout_service_binding,
-            "Location" => settings.single_logout_service_url,
-            "ResponseLocation" => settings.single_logout_service_url
-        }
-      end
-
-      if settings.name_identifier_format
-        nameid = sp_sso.add_element "md:NameIDFormat"
-        nameid.text = settings.name_identifier_format
-      end
-
-      if settings.assertion_consumer_service_url
-        sp_sso.add_element "md:AssertionConsumerService", {
-            "Binding" => settings.assertion_consumer_service_binding,
-            "Location" => settings.assertion_consumer_service_url,
-            "isDefault" => true,
-            "index" => 0
-        }
-      end
-
-      if settings.attribute_consuming_service.configured?
-        sp_acs = sp_sso.add_element "md:AttributeConsumingService", {
-          "isDefault" => "true",
-          "index" => settings.attribute_consuming_service.index
-        }
-        srv_name = sp_acs.add_element "md:ServiceName", {
-          "xml:lang" => "en"
-        }
-        srv_name.text = settings.attribute_consuming_service.name
-        settings.attribute_consuming_service.attributes.each do |attribute|
-          sp_req_attr = sp_acs.add_element "md:RequestedAttribute", {
-            "NameFormat" => attribute[:name_format],
-            "Name" => attribute[:name],
-            "FriendlyName" => attribute[:friendly_name],
-            "isRequired" => attribute[:is_required] || false
-          }
-          next if attribute[:attribute_value].nil?
-
-          Array(attribute[:attribute_value]).each do |value|
-            sp_attr_val = sp_req_attr.add_element "saml:AttributeValue"
-            sp_attr_val.text = value.to_s
-          end
-        end
-      end
-
-      # With OpenSSO, it might be required to also include
-      #  <md:RoleDescriptor xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:query="urn:oasis:names:tc:SAML:metadata:ext:query" xsi:type="query:AttributeQueryDescriptorType" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol"/>
-      #  <md:XACMLAuthzDecisionQueryDescriptor WantAssertionsSigned="false" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol"/>
-
-      sp_sso
-    end
-
     # can be overridden in subclass
-    def add_extras(root, _settings)
-      root
+    def add_extras(_xml, _settings)
+      # Do nothing by default
     end
 
     def embed_signature(meta_doc, settings)
@@ -143,32 +135,29 @@ module RubySaml
       cert, private_key = settings.get_sp_signing_pair
       return unless private_key && cert
 
-      meta_doc.sign_document(private_key, cert, settings.get_sp_signature_method, settings.get_sp_digest_method)
+      RubySaml::XML::DocumentSigner.sign_document!(meta_doc, private_key, cert, settings.get_sp_signature_method, settings.get_sp_digest_method)
     end
 
+    # pretty print the XML so IdP administrators can easily see what the SP supports
     def output_xml(meta_doc, pretty_print)
-      ret = +''
-
-      # pretty print the XML so IdP administrators can easily see what the SP supports
       if pretty_print
-        meta_doc.write(ret, 1)
+        meta_doc.to_xml(indent: 1)
       else
-        ret = meta_doc.to_s
+        meta_doc.to_xml(save_with: Nokogiri::XML::Node::SaveOptions::AS_XML)
       end
-
-      ret
     end
 
     private
 
-    def add_sp_cert_element(sp_sso, cert, use)
-      return unless cert
-      cert_text = Base64.encode64(cert.to_der).gsub("\n", '')
-      kd = sp_sso.add_element "md:KeyDescriptor", { "use" => use.to_s }
-      ki = kd.add_element "ds:KeyInfo", { "xmlns:ds" => "http://www.w3.org/2000/09/xmldsig#" }
-      xd = ki.add_element "ds:X509Data"
-      xc = xd.add_element "ds:X509Certificate"
-      xc.text = cert_text
+    def add_certificate_element(xml, cert, use)
+      cert_text = Base64.encode64(cert.to_der).delete("\n")
+      xml['md'].KeyDescriptor('use' => use.to_s) do
+        xml['ds'].KeyInfo do
+          xml['ds'].X509Data do
+            xml['ds'].X509Certificate(cert_text)
+          end
+        end
+      end
     end
   end
 end

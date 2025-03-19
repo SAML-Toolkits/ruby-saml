@@ -52,7 +52,7 @@ class XmlTest < Minitest::Test
 
     it "should raise Key validation error" do
       decoded_response.sub!("<ds:DigestValue>pJQ7MS/ek4KRRWGmv/H43ReHYMs=</ds:DigestValue>",
-                    "<ds:DigestValue>b9xsAXLsynugg3Wc1CI3kpWku+0=</ds:DigestValue>")
+                            "<ds:DigestValue>b9xsAXLsynugg3Wc1CI3kpWku+0=</ds:DigestValue>")
       mod_document = RubySaml::XML::SignedDocument.new(decoded_response)
       base64cert = mod_document.elements["//ds:X509Certificate"].text
       exception = assert_raises(RubySaml::ValidationError) do
@@ -63,13 +63,14 @@ class XmlTest < Minitest::Test
     end
 
     it "correctly obtain the digest method with alternate namespace declaration" do
-      adfs_document = RubySaml::XML::SignedDocument.new(fixture(:adfs_response_xmlns, false))
-      base64cert = adfs_document.elements["//X509Certificate"].text
+      adfs_document = fixture(:adfs_response_xmlns, false)
+      base64cert = adfs_document[%r{<X509Certificate>(.*?)</X509Certificate>}, 1]
+      adfs_document = RubySaml::XML::SignedDocument.new(adfs_document)
       assert adfs_document.validate_signature(base64cert, false)
     end
 
     it "raise validation error when the X509Certificate is missing and no cert provided" do
-      decoded_response.sub!(/<ds:X509Certificate>.*<\/ds:X509Certificate>/, "")
+      decoded_response.sub!(%r{<ds:X509Certificate>.*</ds:X509Certificate>}, '')
       mod_document = RubySaml::XML::SignedDocument.new(decoded_response)
       exception = assert_raises(RubySaml::ValidationError) do
         mod_document.validate_document("a fingerprint", false) # The fingerprint isn't relevant to this test
@@ -236,66 +237,69 @@ class XmlTest < Minitest::Test
     end
 
     describe "RubySaml::XML::DSIG" do
-      before do
+      let(:settings) do
+        settings = RubySaml::Settings.new
         settings.idp_sso_service_url = "https://idp.example.com/sso"
         settings.protocol_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
         settings.idp_slo_service_url = "https://idp.example.com/slo",
         settings.sp_entity_id = "https://sp.example.com/saml2"
         settings.assertion_consumer_service_url = "https://sp.example.com/acs"
         settings.single_logout_service_url = "https://sp.example.com/sls"
+        settings
       end
 
-      it "sign an AuthNRequest" do
-        request = RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
-        request.sign_document(ruby_saml_key, ruby_saml_cert)
-        # verify our signature
-        signed_doc = RubySaml::XML::SignedDocument.new(request.to_s)
-        assert signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
-
-        request2 = RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
-        request2.sign_document(ruby_saml_key, ruby_saml_cert_text)
-        # verify our signature
-        signed_doc2 = RubySaml::XML::SignedDocument.new(request2.to_s)
-        assert signed_doc2.validate_document(ruby_saml_cert_fingerprint, false)
-      end
-
-      it "sign an AuthNRequest with certificate as text" do
-        request = RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
-        request.sign_document(ruby_saml_key, ruby_saml_cert_text)
+      it "signs an AuthNRequest with a certificate object" do
+        request_doc = RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+        request_doc = RubySaml::XML::DocumentSigner.sign_document(request_doc, ruby_saml_key, ruby_saml_cert)
 
         # verify our signature
-        signed_doc = RubySaml::XML::SignedDocument.new(request.to_s)
+        signed_doc = RubySaml::XML::SignedDocument.new(request_doc.to_s)
         assert signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
       end
 
-      it "sign a LogoutRequest" do
-        logout_request = RubySaml::Logoutrequest.new.create_logout_request_xml_doc(settings)
-        logout_request.sign_document(ruby_saml_key, ruby_saml_cert)
-        # verify our signature
-        signed_doc = RubySaml::XML::SignedDocument.new(logout_request.to_s)
-        assert signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
+      it "signs an AuthNRequest with a certificate string" do
+        request_doc = RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
+        request_doc = RubySaml::XML::DocumentSigner.sign_document(request_doc, ruby_saml_key, ruby_saml_cert_text)
 
-        logout_request2 = RubySaml::Logoutrequest.new.create_logout_request_xml_doc(settings)
-        logout_request2.sign_document(ruby_saml_key, ruby_saml_cert_text)
-        # verify our signature
-        signed_doc2 = RubySaml::XML::SignedDocument.new(logout_request2.to_s)
-        signed_doc2.validate_document(ruby_saml_cert_fingerprint, false)
-        assert signed_doc2.validate_document(ruby_saml_cert_fingerprint, false)
+        # verify signature
+        signed_doc = RubySaml::XML::SignedDocument.new(request_doc.to_s)
+        assert signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
       end
 
-      it "sign a LogoutResponse" do
-        logout_response = RubySaml::SloLogoutresponse.new.create_logout_response_xml_doc(settings, 'request_id_example', "Custom Logout Message")
-        logout_response.sign_document(ruby_saml_key, ruby_saml_cert)
-        # verify our signature
-        signed_doc = RubySaml::XML::SignedDocument.new(logout_response.to_s)
-        assert signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
+      it "signs a LogoutRequest with a certificate object" do
+        logout_request_doc = RubySaml::Logoutrequest.new.create_logout_request_xml_doc(settings)
+        logout_request_doc = RubySaml::XML::DocumentSigner.sign_document(logout_request_doc, ruby_saml_key, ruby_saml_cert)
 
-        logout_response2 = RubySaml::SloLogoutresponse.new.create_logout_response_xml_doc(settings, 'request_id_example', "Custom Logout Message")
-        logout_response2.sign_document(ruby_saml_key, ruby_saml_cert_text)
-        # verify our signature
-        signed_doc2 = RubySaml::XML::SignedDocument.new(logout_response2.to_s)
-        signed_doc2.validate_document(ruby_saml_cert_fingerprint, false)
-        assert signed_doc2.validate_document(ruby_saml_cert_fingerprint, false)
+        # verify signature
+        signed_doc = RubySaml::XML::SignedDocument.new(logout_request_doc.to_s)
+        assert signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
+      end
+
+      it "signs a LogoutRequest with a certificate string" do
+        logout_request_doc = RubySaml::Logoutrequest.new.create_logout_request_xml_doc(settings)
+        logout_request_doc = RubySaml::XML::DocumentSigner.sign_document(logout_request_doc, ruby_saml_key, ruby_saml_cert_text)
+
+        # verify signature
+        signed_doc = RubySaml::XML::SignedDocument.new(logout_request_doc.to_s)
+        assert signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
+      end
+
+      it "signs a LogoutResponse with a certificate object" do
+        logout_response_doc = RubySaml::SloLogoutresponse.new.create_logout_response_xml_doc(settings, 'request_id_example', "Custom Logout Message")
+        logout_response_doc = RubySaml::XML::DocumentSigner.sign_document(logout_response_doc, ruby_saml_key, ruby_saml_cert)
+
+        # verify signature
+        signed_doc = RubySaml::XML::SignedDocument.new(logout_response_doc.to_s)
+        assert signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
+      end
+
+      it "signs a LogoutResponse with a certificate string" do
+        logout_response_doc = RubySaml::SloLogoutresponse.new.create_logout_response_xml_doc(settings, 'request_id_example', "Custom Logout Message")
+        logout_response_doc = RubySaml::XML::DocumentSigner.sign_document(logout_response_doc, ruby_saml_key, ruby_saml_cert_text)
+
+        # verify signature
+        signed_doc = RubySaml::XML::SignedDocument.new(logout_response_doc.to_s)
+        assert signed_doc.validate_document(ruby_saml_cert_fingerprint, false)
       end
     end
 

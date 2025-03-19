@@ -35,6 +35,8 @@ module RubySaml
     SHA512        = 'http://www.w3.org/2001/04/xmlenc#sha512'
     ENVELOPED_SIG = 'http://www.w3.org/2000/09/xmldsig#enveloped-signature'
 
+    NS_METADATA = 'urn:oasis:names:tc:SAML:2.0:metadata'
+
     NOKOGIRI_OPTIONS = Nokogiri::XML::ParseOptions::STRICT |
                        Nokogiri::XML::ParseOptions::NONET
 
@@ -129,7 +131,6 @@ module RubySaml
   end
 end
 
-require 'ruby_saml/xml/base_document'
-require 'ruby_saml/xml/document'
+require 'ruby_saml/xml/document_signer'
 require 'ruby_saml/xml/signed_document'
 require 'ruby_saml/xml/deprecated'

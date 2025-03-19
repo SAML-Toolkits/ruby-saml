@@ -6,11 +6,8 @@ require 'nokogiri'
 
 require "ruby_saml/saml_message"
 
-# Only supports SAML 2.0
 module RubySaml
-
   # SAML2 Logout Request (SLO IdP initiated, Parser)
-  #
   class SloLogoutrequest < SamlMessage
     include ErrorHandling
 

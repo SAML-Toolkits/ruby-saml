@@ -4,11 +4,8 @@ require "ruby_saml/xml"
 require "ruby_saml/saml_message"
 require "time"
 
-# Only supports SAML 2.0
 module RubySaml
-
   # SAML2 Logout Response (SLO IdP initiated, Parser)
-  #
   class Logoutresponse < SamlMessage
     include ErrorHandling
 
@@ -255,6 +252,7 @@ module RubySaml
             query_string: query_string
           )
           next unless valid
+
           if settings.security[:check_idp_cert_expiration] && RubySaml::Utils.is_cert_expired(signing_idp_cert)
             expired = true
           end

@@ -5,11 +5,8 @@ require "ruby_saml/attributes"
 require "time"
 require "nokogiri"
 
-# Only supports SAML 2.0
 module RubySaml
-
   # SAML2 Authentication Response. SAML Response
-  #
   class Response < SamlMessage
     include ErrorHandling
 

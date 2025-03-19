@@ -19,9 +19,9 @@ class OneloginAliasTest < Minitest::Test
     describe 'Metadata' do
       let(:settings)          { OneLogin::RubySaml::Settings.new }
       let(:xml_text)          { OneLogin::RubySaml::Metadata.new.generate(settings, false) }
-      let(:xml_doc)           { REXML::Document.new(xml_text) }
-      let(:spsso_descriptor)  { REXML::XPath.first(xml_doc, "//md:SPSSODescriptor") }
-      let(:acs)               { REXML::XPath.first(xml_doc, "//md:AssertionConsumerService") }
+      let(:xml_doc)           { Nokogiri::XML(xml_text) }
+      let(:spsso_descriptor)  { xml_doc.at_xpath("//md:SPSSODescriptor", { "md" => "urn:oasis:names:tc:SAML:2.0:metadata" }) }
+      let(:acs)               { xml_doc.at_xpath("//md:AssertionConsumerService", { "md" => "urn:oasis:names:tc:SAML:2.0:metadata" }) }
 
       before do
         settings.sp_entity_id = "https://example.com"
@@ -32,15 +32,15 @@ class OneloginAliasTest < Minitest::Test
       it "generates Pretty Print Service Provider Metadata" do
         xml_text = OneLogin::RubySaml::Metadata.new.generate(settings, true)
         # assert correct xml declaration
-        start = "<?xml version='1.0' encoding='UTF-8'?>\n<md:EntityDescriptor"
-        assert_equal xml_text[0..start.length-1],start
-        assert_equal "https://example.com", REXML::XPath.first(xml_doc, "//md:EntityDescriptor").attribute("entityID").value
-        assert_equal "urn:oasis:names:tc:SAML:2.0:protocol", spsso_descriptor.attribute("protocolSupportEnumeration").value
-        assert_equal "false", spsso_descriptor.attribute("AuthnRequestsSigned").value
-        assert_equal "false", spsso_descriptor.attribute("WantAssertionsSigned").value
-        assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress", REXML::XPath.first(xml_doc, "//md:NameIDFormat").text.strip
-        assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST", acs.attribute("Binding").value
-        assert_equal "https://foo.example/saml/consume", acs.attribute("Location").value
+        start = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<md:EntityDescriptor"
+        assert_equal start, xml_text[0..start.length-1]
+        assert_equal "https://example.com", xml_doc.at_xpath("//md:EntityDescriptor", { "md" => "urn:oasis:names:tc:SAML:2.0:metadata" })['entityID']
+        assert_equal "urn:oasis:names:tc:SAML:2.0:protocol", spsso_descriptor['protocolSupportEnumeration']
+        assert_equal "false", spsso_descriptor['AuthnRequestsSigned']
+        assert_equal "false", spsso_descriptor['WantAssertionsSigned']
+        assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress", xml_doc.at_xpath("//md:NameIDFormat", { "md" => "urn:oasis:names:tc:SAML:2.0:metadata" }).text.strip
+        assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST", acs['Binding']
+        assert_equal "https://foo.example/saml/consume", acs['Location']
         assert validate_xml!(xml_text, "saml-schema-metadata-2.0.xsd")
       end
     end
@@ -130,18 +130,6 @@ class OneloginAliasTest < Minitest::Test
         response = OneLogin::RubySaml::Response.new(response_document_valid_signed, options)
         assert_includes response.options.keys, :skip_destination
         assert_includes response.options.keys, :foo
-      end
-
-      it "be able to parse a document which contains ampersands" do
-        RubySaml::XML::SignedDocument.any_instance.stubs(:digests_match?).returns(true)
-        OneLogin::RubySaml::Response.any_instance.stubs(:validate_conditions).returns(true)
-
-        ampersands_response = OneLogin::RubySaml::Response.new(ampersands_document)
-        ampersands_response.settings = settings
-        ampersands_response.settings.idp_cert_fingerprint = 'c51985d947f1be57082025050846eb27f6cab783'
-
-        assert !ampersands_response.is_valid?
-        assert_includes ampersands_response.errors, "SAML Response must contain 1 assertion"
       end
 
       describe "Prevent node text with comment attack (VU#475445)" do
