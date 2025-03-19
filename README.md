@@ -928,7 +928,7 @@ or underscore, and can only contain letters, digits, underscores, hyphens, and p
 ### Custom Metadata Fields
 
 Some IdPs may require to add SPs to add additional fields (Organization, ContactPerson, etc.)
-into the SP metadata. This can be achieved by extending the `RubySaml::Metadata` class and
+into the SP metadata. This can be done by extending the `RubySaml::Metadata` class and
 overriding the `#add_extras` method using a Nokogiri XML builder as per the following example:
 
 ```ruby
