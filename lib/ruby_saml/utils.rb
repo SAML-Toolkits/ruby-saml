@@ -288,5 +288,9 @@ module RubySaml
                  end
       Array(priority) | [OpenSSL::PKey::RSA, OpenSSL::PKey::DSA, OpenSSL::PKey::EC]
     end
+
+    def utc_timestamp(time = Time.now)
+      time.utc.strftime('%Y-%m-%dT%H:%M:%SZ')
+    end
   end
 end

@@ -5,48 +5,59 @@ module RubySaml
     module Builders
       # SAML LogoutResponse builder (SLO, IdP-initiated)
       class LogoutResponse < MessageBuilder
-        alias_method :response_id, :uuid
+        DEFAULT_STATUS_CODE = 'urn:oasis:names:tc:SAML:2.0:status:Success'
+        DEFAULT_STATUS_MESSAGE = 'Successfully Signed Out'
+
+        def initialize(settings, in_response_to:, uuid: nil, relay_state: nil, status_code: nil, status_message: nil)
+          super(settings, uuid: uuid, relay_state: relay_state)
+          @in_response_to = in_response_to
+          @status_code = status_code || DEFAULT_STATUS_CODE
+          @status_message = status_message || DEFAULT_STATUS_MESSAGE
+        end
 
         private
 
+        attr_reader :in_response_to,
+                    :status_code,
+                    :status_message
+
+        def message_type
+          'SAMLResponse'
+        end
+
         # Determine the binding type from settings
-        def binding_type(settings)
+        def binding_type
           settings.idp_slo_service_binding
         end
 
-        # Get the service URL from settings based on type
-        def service_url(settings)
-          settings.idp_slo_response_service_url || settings.idp_slo_service_url
+        # Get the service URL from settings with validation
+        def service_url
+          url = settings.idp_slo_response_service_url || settings.idp_slo_service_url
+          raise SettingError.new "Invalid settings, IdP SLO service URL is not set!" if url.nil? || url.empty?
+          url
         end
 
-        # Build the XML document
-        def create_xml(settings, uuid: nil, status_message: nil, status_code: nil)
-          time = Time.now.utc.strftime('%Y-%m-%dT%H:%M:%SZ')
+        def sign?
+          settings.security[:logout_responses_signed]
+        end
 
-          # Default values if not provided
-          status_code ||= 'urn:oasis:names:tc:SAML:2.0:status:Success'
-          status_message ||= 'Successfully Signed Out'
+        def build_xml_document
+          Nokogiri::XML::Builder.new do |xml|
+            xml['samlp'].LogoutResponse(xml_root_attributes) do
+              xml['saml'].Issuer(settings.sp_entity_id) if settings.sp_entity_id
 
-          root_attributes = {
-            'xmlns:samlp' => RubySaml::XML::NS_PROTOCOL,
-            'xmlns:saml' => RubySaml::XML::NS_ASSERTION,
-            'ID' => uuid,
-            'IssueInstant' => time,
-            'Version' => '2.0',
-            'InResponseTo' => request_id,
-            'Destination' => service_url(settings, :slo_response)
-          }.compact
-
-          build_message(settings, 'LogoutResponse', root_attributes, :logout_responses_signed) do |xml|
-            # Add Issuer
-            xml['saml'].Issuer(settings.sp_entity_id) if settings.sp_entity_id
-
-            # Add Status
-            xml['samlp'].Status do
-              xml['samlp'].StatusCode(Value: status_code)
-              xml['samlp'].StatusMessage(status_message)
+              xml['samlp'].Status do
+                xml['samlp'].StatusCode(Value: status_code)
+                xml['samlp'].StatusMessage(status_message)
+              end
             end
-          end
+          end.doc
+        end
+
+        def xml_root_attributes
+          hash = super
+          hash['InResponseTo'] = in_response_to
+          compact_blank!(hash)
         end
       end
     end

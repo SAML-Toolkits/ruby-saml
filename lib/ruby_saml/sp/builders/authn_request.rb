@@ -4,78 +4,78 @@ module RubySaml
   module Sp
     module Builders
       # SAML AuthnRequest builder (SSO, SP-initiated)
-      module AuthnRequest
-        extend MessageBuilder
-        extend self
-
-        def create(settings, old_params = {}, uuid: nil, relay_state: nil)
-          super
-        end
+      class AuthnRequest < MessageBuilder
 
         private
 
+        def message_type
+          'SAMLRequest'
+        end
+
         # Determine the binding type from settings
-        def binding_type(settings)
+        def binding_type
           settings.idp_sso_service_binding
         end
 
         # Get the service URL from settings based on type
-        def service_url(settings)
-          settings.idp_sso_service_url
+        def service_url
+          url = settings.idp_sso_service_url
+          raise SettingError.new "Invalid settings, idp_sso_service_url is not set!" if url.nil? || url.empty?
+          url
         end
 
-        # Build the XML document
-        def create_xml(settings, uuid: nil)
-          time = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
+        def sign?
+          settings.security[:authn_requests_signed]
+        end
 
-          root_attributes = {
-            'xmlns:samlp' => RubySaml::XML::NS_PROTOCOL,
-            'xmlns:saml' => RubySaml::XML::NS_ASSERTION,
-            'ID' => uuid,
-            'IssueInstant' => time,
-            'Version' => '2.0',
-            'Destination' => settings.idp_sso_service_url,
-            'IsPassive' => settings.passive,
-            'ProtocolBinding' => settings.protocol_binding,
-            'AttributeConsumingServiceIndex' => settings.attributes_index,
-            'ForceAuthn' => settings.force_authn,
-            'AssertionConsumerServiceURL' => settings.assertion_consumer_service_url
-          }
+        # TODO: Re-add comments
+        def build_xml_document
+          Nokogiri::XML::Builder.new do |xml|
+            xml['samlp'].AuthnRequest(compact_blank(xml_root_attributes)) do
 
-          build_message(settings, 'AuthnRequest', root_attributes, :authn_requests_signed) do |xml|
-            # Add Issuer
-            xml['saml'].Issuer(settings.sp_entity_id) if settings.sp_entity_id
+              # Add Issuer element if sp_entity_id is present
+              xml['saml'].Issuer(settings.sp_entity_id) if settings.sp_entity_id
 
-            # Add Subject if requested
-            if settings.name_identifier_value_requested
-              xml['saml'].Subject do
-                nameid_attrs = {}
-                nameid_attrs['Format'] = settings.name_identifier_format if settings.name_identifier_format
-                xml['saml'].NameID(settings.name_identifier_value_requested, nameid_attrs)
-                xml['saml'].SubjectConfirmation(Method: 'urn:oasis:names:tc:SAML:2.0:cm:bearer')
-              end
-            end
-
-            # Add NameIDPolicy if format is specified
-            if settings.name_identifier_format
-              xml['samlp'].NameIDPolicy(AllowCreate: 'true', Format: settings.name_identifier_format)
-            end
-
-            # Add RequestedAuthnContext if needed
-            if settings.authn_context || settings.authn_context_decl_ref
-              comparison = settings.authn_context_comparison || 'exact'
-
-              xml['samlp'].RequestedAuthnContext(Comparison: comparison) do
-                Array(settings.authn_context).each do |context_class|
-                  xml['saml'].AuthnContextClassRef(context_class)
+              if settings.name_identifier_value_requested
+                xml['saml'].Subject do
+                  xml['saml'].NameID(settings.name_identifier_value_requested, xml_nameid_attributes)
+                  xml['saml'].SubjectConfirmation(Method: 'urn:oasis:names:tc:SAML:2.0:cm:bearer')
                 end
+              end
 
-                Array(settings.authn_context_decl_ref).each do |decl_ref|
-                  xml['saml'].AuthnContextDeclRef(decl_ref)
+              if settings.name_identifier_format
+                xml['samlp'].NameIDPolicy(AllowCreate: 'true', Format: settings.name_identifier_format)
+              end
+
+              if settings.authn_context || settings.authn_context_decl_ref
+                comparison = settings.authn_context_comparison || 'exact'
+
+                xml['samlp'].RequestedAuthnContext(Comparison: comparison) do
+                  Array(settings.authn_context).each do |authn_context_class_ref|
+                    xml['saml'].AuthnContextClassRef(authn_context_class_ref)
+                  end
+
+                  Array(settings.authn_context_decl_ref).each do |authn_context_decl_ref|
+                    xml['saml'].AuthnContextDeclRef(authn_context_decl_ref)
+                  end
                 end
               end
             end
-          end
+          end.doc
+        end
+
+        def xml_root_attributes
+          hash = super
+          hash['IsPassive'] = settings.passive,
+          hash['ProtocolBinding'] = settings.protocol_binding,
+          hash['AttributeConsumingServiceIndex'] = settings.attributes_index,
+          hash['ForceAuthn'] = settings.force_authn,
+          hash['AssertionConsumerServiceURL'] = settings.assertion_consumer_service_url
+          compact_blank!(hash)
+        end
+
+        def xml_nameid_attributes
+          compact_blank!('Format' => settings.name_identifier_format)
         end
       end
     end
