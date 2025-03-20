@@ -526,7 +526,7 @@ pp(response.attributes.fetch(/givenname/))
 # => ["usersName"]
 ```
 
-The `saml:AuthnContextClassRef` of the AuthNRequest can be provided by `settings.authn_context`; possible values are described at [SAMLAuthnCxt]. The comparison method can be set using `settings.authn_context_comparison` parameter. Possible values include: 'exact', 'better', 'maximum' and 'minimum' (default value is 'exact').
+The `saml:AuthnContextClassRef` of the AuthnRequest can be provided by `settings.authn_context`; possible values are described at [SAMLAuthnCxt]. The comparison method can be set using `settings.authn_context_comparison` parameter. Possible values include: 'exact', 'better', 'maximum' and 'minimum' (default value is 'exact').
 To add a `saml:AuthnContextDeclRef`, define `settings.authn_context_decl_ref`.
 
 In a SP-initiated flow, the SP can indicate to the IdP the subject that should be authenticated. This is done by defining the `settings.name_identifier_value_requested` before
@@ -618,7 +618,7 @@ settings.private_key = "PRIVATE KEY TEXT WITH BEGIN/END HEADER AND FOOTER"
 Next, you may specify the specific SP SAML messages you would like to sign:
 
 ```ruby
-settings.security[:authn_requests_signed]   = true  # Enable signature on AuthNRequest
+settings.security[:authn_requests_signed]   = true  # Enable signature on AuthnRequest
 settings.security[:logout_requests_signed]  = true  # Enable signature on Logout Request
 settings.security[:logout_responses_signed] = true  # Enable signature on Logout Response
 ```
@@ -918,7 +918,7 @@ The `attribute_value` option additionally accepts an array of possible values.
 
 ### SP-Originated Message IDs
 
-Ruby SAML automatically generates message IDs for SP-originated messages (AuthNRequest, etc.)
+Ruby SAML automatically generates message IDs for SP-originated messages (AuthnRequest, etc.)
 By default, this is a UUID prefixed by the `_` character, for example `"_ea8b5fdf-0a71-4bef-9f87-5406ee746f5b"`. 
 To override this behavior, you may set `settings.sp_uuid_prefix` to a string of your choice.
 Note that the SAML specification requires that this type (`xsd:ID`) be an

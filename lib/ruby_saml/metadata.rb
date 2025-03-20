@@ -19,7 +19,7 @@ module RubySaml
         root_attributes = {
           'xmlns:md' => RubySaml::XML::NS_METADATA,
           'xmlns:ds' => RubySaml::XML::DSIG,
-          'ID' => RubySaml::Utils.uuid,
+          'ID' => RubySaml::Utils.generate_uuid,
           'entityID' => settings.sp_entity_id
         }
 
