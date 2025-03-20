@@ -44,15 +44,19 @@ module RubySaml
         def build_xml_document
           Nokogiri::XML::Builder.new do |xml|
             xml['samlp'].LogoutRequest(compact_blank(xml_root_attributes)) do
+              # Add Issuer element if sp_entity_id is present
               xml['saml'].Issuer(settings.sp_entity_id) if settings.sp_entity_id
 
+              # Add NameID element
               if settings.name_identifier_value
                 xml['saml'].NameID(settings.name_identifier_value, xml_nameid_attributes)
               else
+                # If no NameID is present in the settings we generate one
                 xml['saml'].NameID(RubySaml::Utils.generate_uuid,
                                    'Format' => 'urn:oasis:names:tc:SAML:2.0:nameid-format:transient')
               end
 
+              # Add SessionIndex element if sessionindex is present
               xml['samlp'].SessionIndex(settings.sessionindex) if settings.sessionindex
             end
           end.doc

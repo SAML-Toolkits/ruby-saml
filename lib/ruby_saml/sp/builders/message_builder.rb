@@ -11,6 +11,8 @@ module RubySaml
       # - Message signing
       # - Parameter handling
       class MessageBuilder
+        include RubySaml::Memoizable
+
         # Creates a new message builder instance
         # @param settings [RubySaml::Settings] Toolkit settings
         # @param id [String|nil] ID for the message (if nil, one will be generated)
@@ -139,7 +141,7 @@ module RubySaml
         end
 
         # Returns the hash algorithm
-        # @return [Class] The hash algorithm class
+        # @return [OpenSSL::Digest::Base] The hash algorithm class
         def hash_algorithm
           @hash_algorithm ||= RubySaml::XML.hash_algorithm(signature_method)
         end

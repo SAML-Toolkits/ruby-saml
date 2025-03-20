@@ -48,6 +48,7 @@ module RubySaml
               # Add Issuer element if sp_entity_id is present
               xml['saml'].Issuer(settings.sp_entity_id) if settings.sp_entity_id
 
+              # Add Subject element if name_identifier_value_requested is present
               if settings.name_identifier_value_requested
                 xml['saml'].Subject do
                   xml['saml'].NameID(settings.name_identifier_value_requested, xml_nameid_attributes)
@@ -55,10 +56,12 @@ module RubySaml
                 end
               end
 
+              # Add NameIDPolicy element if name_identifier_format is present
               if settings.name_identifier_format
                 xml['samlp'].NameIDPolicy(AllowCreate: 'true', Format: settings.name_identifier_format)
               end
 
+              # Add RequestedAuthnContext if authn_context or authn_context_decl_ref is present
               if settings.authn_context || settings.authn_context_decl_ref
                 comparison = settings.authn_context_comparison || 'exact'
 

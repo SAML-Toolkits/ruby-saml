@@ -65,8 +65,10 @@ module RubySaml
         def build_xml_document
           Nokogiri::XML::Builder.new do |xml|
             xml['samlp'].LogoutResponse(xml_root_attributes) do
+              # Add Issuer element if sp_entity_id is present
               xml['saml'].Issuer(settings.sp_entity_id) if settings.sp_entity_id
 
+              # Add Status section
               xml['samlp'].Status do
                 xml['samlp'].StatusCode(Value: status_code)
                 xml['samlp'].StatusMessage(status_message)
