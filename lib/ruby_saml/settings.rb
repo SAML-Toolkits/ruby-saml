@@ -248,13 +248,13 @@ module RubySaml
     {
       double_quote_xml_attribute_values: true
     }.each do |old_param, new_value|
-      # @deprecated Will be removed in v2.1.0
+      # @deprecated Will be removed in v3.0.0
       define_method(old_param) do
         removed_deprecation(old_param, new_value)
         new_value
       end
 
-      # @deprecated Will be removed in v2.1.0
+      # @deprecated Will be removed in v3.0.0
       define_method(:"#{old_param}=") do |_|
         removed_deprecation(old_param, new_value)
         new_value
@@ -268,13 +268,13 @@ module RubySaml
       assertion_consumer_logout_service_url: :single_logout_service_url,
       assertion_consumer_logout_service_binding: :single_logout_service_binding
     }.each do |old_param, new_param|
-      # @deprecated Will be removed in v2.1.0
+      # @deprecated Will be removed in v3.0.0
       define_method(old_param) do
         replaced_deprecation(old_param, new_param)
         send(new_param)
       end
 
-      # @deprecated Will be removed in v2.1.0
+      # @deprecated Will be removed in v3.0.0
       define_method(:"#{old_param}=") do |value|
         replaced_deprecation(old_param, new_param)
         send(:"#{new_param}=", value)
@@ -318,49 +318,49 @@ module RubySaml
       end
     end
 
-    # @deprecated Will be removed in v2.1.0
+    # @deprecated Will be removed in v3.0.0
     def idp_cert_fingerprint=(value)
       idp_cert_fingerprint_deprecation
       @idp_cert_fingerprint = value
     end
 
-    # @deprecated Will be removed in v2.1.0
+    # @deprecated Will be removed in v3.0.0
     def idp_cert_fingerprint_algorithm=(value)
       idp_cert_fingerprint_deprecation
       @idp_cert_fingerprint_algorithm = value
     end
 
-    # @deprecated Will be removed in v2.1.0
+    # @deprecated Will be removed in v3.0.0
     def certificate_new
       certificate_new_deprecation
       @certificate_new
     end
 
-    # @deprecated Will be removed in v2.1.0
+    # @deprecated Will be removed in v3.0.0
     def certificate_new=(value)
       certificate_new_deprecation
       @certificate_new = value
     end
 
-    # @deprecated Will be removed in v2.1.0
+    # @deprecated Will be removed in v3.0.0
     def compress_request
       compress_deprecation('compress_request', 'idp_sso_service_binding')
       defined?(@compress_request) ? @compress_request : true
     end
 
-    # @deprecated Will be removed in v2.1.0
+    # @deprecated Will be removed in v3.0.0
     def compress_request=(value)
       compress_deprecation('compress_request', 'idp_sso_service_binding')
       @compress_request = value
     end
 
-    # @deprecated Will be removed in v2.1.0
+    # @deprecated Will be removed in v3.0.0
     def compress_response
       compress_deprecation('compress_response', 'idp_slo_service_binding')
       defined?(@compress_response) ? @compress_response : true
     end
 
-    # @deprecated Will be removed in v2.1.0
+    # @deprecated Will be removed in v3.0.0
     def compress_response=(value)
       compress_deprecation('compress_response', 'idp_slo_service_binding')
       @compress_response = value
@@ -368,36 +368,36 @@ module RubySaml
 
     private
 
-    # @deprecated Will be removed in v2.1.0
+    # @deprecated Will be removed in v3.0.0
     def removed_deprecation(old_param, new_value)
-      Logging.deprecate "`RubySaml::Settings##{old_param}` is deprecated and will be removed in RubySaml 2.1.0. " \
+      Logging.deprecate "`RubySaml::Settings##{old_param}` is deprecated and will be removed in RubySaml 3.0.0. " \
                         "It no longer has any effect, and will behave as if always set to #{new_value.inspect}."
     end
 
-    # @deprecated Will be removed in v2.1.0
+    # @deprecated Will be removed in v3.0.0
     def replaced_deprecation(old_param, new_param)
-      Logging.deprecate "`RubySaml::Settings##{old_param}` is deprecated and will be removed in RubySaml 2.1.0. " \
+      Logging.deprecate "`RubySaml::Settings##{old_param}` is deprecated and will be removed in RubySaml 3.0.0. " \
                         "Please set the same value to `RubySaml::Settings##{new_param}` instead."
     end
 
-    # @deprecated Will be removed in v2.1.0
+    # @deprecated Will be removed in v3.0.0
     def idp_cert_fingerprint_deprecation
       Logging.deprecate '`RubySaml::Settings#idp_cert_fingerprint` and `#idp_cert_fingerprint_algorithm` are ' \
-                        'deprecated and will be removed in RubySaml v2.1.0. Please provide the full IdP certificate in ' \
+                        'deprecated and will be removed in RubySaml v3.0.0. Please provide the full IdP certificate in ' \
                         '`RubySaml::Settings#idp_cert` instead.'
     end
 
-    # @deprecated Will be removed in v2.1.0
+    # @deprecated Will be removed in v3.0.0
     def certificate_new_deprecation
-      Logging.deprecate '`RubySaml::Settings#certificate_new` is deprecated and will be removed in RubySaml v2.1.0. ' \
+      Logging.deprecate '`RubySaml::Settings#certificate_new` is deprecated and will be removed in RubySaml v3.0.0. ' \
                         'Please set `RubySaml::Settings#sp_cert_multi` instead. ' \
                         'Please refer to documentation as `sp_cert_multi` has a different value type.'
     end
 
-    # @deprecated Will be removed in v2.1.0
+    # @deprecated Will be removed in v3.0.0
     def compress_deprecation(old_param, new_param)
       Logging.deprecate "`RubySaml::Settings##{old_param}` is deprecated and no longer functional. " \
-                        'It will be removed in RubySaml 2.1.0. ' \
+                        'It will be removed in RubySaml 3.0.0. ' \
                         "Its functionality is now handled by `RubySaml::Settings##{new_param}` instead: " \
                         '"HTTP-Redirect" will always be compressed, and "HTTP-POST" will always be uncompressed.'
     end

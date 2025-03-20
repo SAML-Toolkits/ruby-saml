@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require 'rexml/element'
 require 'openssl'
 require 'nokogiri'
 require 'digest/sha1'
@@ -50,28 +49,52 @@ module RubySaml
     NOKOGIRI_OPTIONS = Nokogiri::XML::ParseOptions::STRICT |
                        Nokogiri::XML::ParseOptions::NONET
 
-    # Safely load the SAML Message XML.
-    # @param document [REXML::Document] The message to be loaded
-    # @param check_malformed_doc [Boolean] check_malformed_doc Enable or Disable the check for malformed XML
-    # @return [Nokogiri::XML] The nokogiri document
-    # @raise [ValidationError] If there was a problem loading the SAML Message XML
-    def self.safe_load_nokogiri(document, check_malformed_doc: true)
-      doc_str = document.to_s
-      raise StandardError.new('Dangerous XML detected. No Doctype nodes allowed') if doc_str.include?('<!DOCTYPE')
+    # TODO: safe_load_message (rename safe_load_nokogiri --> safe_load_xml)
+    # def safe_load_message(message, check_malformed_doc: true)
+    #   message = Decoder.decode(message)
+    #   begin
+    #     safe_load_nokogiri(message, check_malformed_doc: check_malformed_doc)
+    #   rescue RubySaml::Errors::XMLLoadError
+    #     Nokogiri::XML::Document.new
+    #   end
+    # end
 
-      begin
-        xml = Nokogiri::XML(doc_str) do |config|
-          config.options = NOKOGIRI_OPTIONS
+    # Safely load the SAML Message XML.
+    # @param document [String | Nokogiri::XML::Document] The message to be loaded
+    # @param check_malformed_doc [Boolean] check_malformed_doc Enable or Disable the check for malformed XML
+    # @return [Nokogiri::XML::Document] The nokogiri document
+    # @raise [ValidationError] If there was a problem loading the SAML Message XML
+    def safe_load_nokogiri(document, check_malformed_doc: true)
+      doc_str = document.to_s
+      error = nil
+      error = StandardError.new('Dangerous XML detected. No Doctype nodes allowed') if doc_str.include?('<!DOCTYPE')
+
+      xml = nil
+      unless error
+        begin
+          xml = Nokogiri::XML(doc_str) do |config|
+            config.options = NOKOGIRI_OPTIONS
+          end
+        rescue StandardError => e
+          error ||= e
+          # raise StandardError.new(e.message)
         end
-      rescue StandardError => e
-        raise StandardError.new(e.message)
       end
 
-      raise StandardError.new('Dangerous XML detected. No Doctype nodes allowed') if xml.internal_subset
-
-      raise StandardError.new("There were XML errors when parsing: #{xml.errors}") if check_malformed_doc && !xml.errors.empty?
+      # TODO: This is messy, its shims how the old REXML parser works
+      if xml
+        error ||= StandardError.new('Dangerous XML detected. No Doctype nodes allowed') if xml.internal_subset
+        error ||= StandardError.new("There were XML errors when parsing: #{xml.errors}") if check_malformed_doc && !xml.errors.empty?
+      end
+      return Nokogiri::XML::Document.new if error || !xml
 
       xml
+    end
+
+    def copy_nokogiri(noko)
+      Nokogiri::XML(noko.to_xml(save_with: Nokogiri::XML::Node::SaveOptions::AS_XML)) do |config|
+        config.options = NOKOGIRI_OPTIONS
+      end
     end
 
     # Lookup XML canonicalization algorithm.
@@ -132,8 +155,6 @@ module RubySaml
     def get_algorithm_attr(element)
       if element.is_a?(Nokogiri::XML::Element)
         element['Algorithm']
-      elsif element.is_a?(REXML::Element)
-        element.attribute('Algorithm').value
       elsif element
         element
       end
@@ -144,5 +165,6 @@ end
 require 'ruby_saml/xml/decoder'
 require 'ruby_saml/xml/decryptor'
 require 'ruby_saml/xml/document_signer'
-require 'ruby_saml/xml/signed_document'
+require 'ruby_saml/xml/signed_document_info'
+require 'ruby_saml/xml/signed_document_validator'
 require 'ruby_saml/xml/deprecated'
