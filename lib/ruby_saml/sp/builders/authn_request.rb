@@ -66,10 +66,10 @@ module RubySaml
 
         def xml_root_attributes
           hash = super
-          hash['IsPassive'] = settings.passive,
-          hash['ProtocolBinding'] = settings.protocol_binding,
-          hash['AttributeConsumingServiceIndex'] = settings.attributes_index,
-          hash['ForceAuthn'] = settings.force_authn,
+          hash['IsPassive'] = settings.passive
+          hash['ProtocolBinding'] = settings.protocol_binding
+          hash['AttributeConsumingServiceIndex'] = settings.attributes_index
+          hash['ForceAuthn'] = settings.force_authn
           hash['AssertionConsumerServiceURL'] = settings.assertion_consumer_service_url
           compact_blank!(hash)
         end

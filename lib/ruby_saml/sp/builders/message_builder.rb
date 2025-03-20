@@ -3,134 +3,74 @@
 module RubySaml
   module Sp
     module Builders
-      # Base builder for SAML messages
       class MessageBuilder
-        def initialize(settings, uuid: nil, params: nil, relay_state: nil)
+        def initialize(settings, id: nil, relay_state: nil, params: nil)
           @settings = settings
-          @uuid = uuid || generate_uuid
+          @id = id || generate_uuid
           @relay_state = relay_state
+          @params = normalize_params(params)
         end
 
         def url
-          binding_redirect? ? redirect_uri : post_uri
+          binding_redirect? ? redirect_url : post_url
         end
 
-        def params
-          binding_redirect? ? nil : post_params
+        def body
+          post_body unless binding_redirect?
         end
 
         def redirect_url
-
+          query_prefix = service_url.include?('?') ? '&' : '?'
+          "#{service_url}#{query_prefix}#{URI.encode_www_form(build_payload(true))}"
         end
         memoize_method :redirect_url
 
         alias_method :post_url, :service_url
+        memoize_method :post_url
 
-        def post_params
-
+        def post_body
+          build_payload(false)
         end
         memoize_method :post_params
-
-
-
-        # TODO:
-        # if saml_settings.idp_sso_service_binding.end_with?('HTTP-POST')
-        #   render json: { http_post_uri: saml_settings.idp_sso_service_url,
-        #                  http_post_params: auth.create_params(saml_settings, auth_params) }
-        # else
-        #   render json: { http_redirect_uri: auth.create(saml_settings, auth_params) }
-        # end
-
-
-
-        # TODO: Add this method
-        def extract_relay_state(relay_state, params)
-          # relay_state = params[:RelayState] || params['RelayState']
-          # if relay_state.nil?
-          #   params.delete(:RelayState)
-          #   params.delete('RelayState')
-          # end
-        end
-
-        def url
-          params_prefix = service_url.include?('?') ? '&' : '?'
-          param_value = CGI.escape(url_params.delete(message_type))
-          query = +"#{params_prefix}#{message_type}=#{param_value}"
-          params.each_pair do |key, value|
-            query << "&#{key}=#{CGI.escape(value.to_s)}"
-          end
-          service_url + query
-        end
-        memoize_method :url
-        alias_method :create_url, :url
-
-        def url_params
-          # raw params
-        end
-
-        def url_query
-          message = xml_doc.to_xml(save_with: Nokogiri::XML::Node::SaveOptions::AS_XML)
-          base64_message = RubySaml::XML::Decoder.encode_message(message, compress: binding_redirect?)
-          message_params = { message_type => base64_message }
-          message_params[:RelayState] = relay_state if relay_state
-          message_params.merge(
-            build_signature_params(
-              base64_message,
-              relay_state,
-              binding_redirect,
-              message_type
-            )
-          )
-        end
-        memoize_method :url_query
-
-        def build_signature_params
-          if binding_redirect && sign? && signing_key
-            url_string = +"#{message_type}=#{CGI.escape(data)}"
-            url_string << "&RelayState=#{CGI.escape(relay_state)}" if relay_state
-            url_string << "&SigAlg=#{CGI.escape(signature_method)}"
-            url_string
-            signature = signing_key.sign(signature_hash_algorithm.new, url_string)
-            params['Signature'] = Base64.strict_encode64(signature)
-          end
-          params
-        end
-
-        def xml
-          noko = build_xml_document
-          sign_document!(noko)
-          noko.to_xml(save_with: Nokogiri::XML::Node::SaveOptions::AS_XML)
-        end
-        memoize_method :xml
-        alias_method :create_xml, :xml
 
         private
 
         attr_reader :settings,
-                    :uuid,
+                    :id,
                     :relay_state
 
-        # def create_unsigned_xml
-        #   create_xml_document(settings)
-        # end
+        def build_payload(redirect)
+          noko = build_xml_document
+          sign_xml_document!(noko) unless redirect
+          message_data = noko.to_xml(save_with: Nokogiri::XML::Node::SaveOptions::AS_XML)
+          message_data = RubySaml::XML::Decoder.encode_message(message_data, compress: redirect)
+
+          payload = { message_type => message_data }
+          payload['RelayState'] = relay_state if relay_state
+
+          if redirect && sign? && signing_key
+            params['SigAlg'] = signature_method
+            signed_params = url_encode(params.slice(message_type, 'RelayState', 'SigAlg'))
+            signature = signing_key.sign(hash_algorithm.new, signed_params)
+            params['Signature'] = Base64.strict_encode64(signature)
+          end
+
+          payload.reverse_merge!(params)
+          payload
+        end
 
         def xml_root_attributes
           compact_blank!(
             'xmlns:samlp' => RubySaml::XML::NS_PROTOCOL,
             'xmlns:saml' => RubySaml::XML::NS_ASSERTION,
-            'ID' => uuid,
-            'IssueInstant' => RubySaml::Utils.utc_timestamp,
+            'ID' => id,
+            'IssueInstant' => utc_timestamp,
             'Version' => '2.0',
             'Destination' => service_url
           )
         end
 
-        def sign_document!(noko)
-          return unless sign?
-
-          cert, private_key = settings.get_sp_signing_pair
-          return noko unless binding_post? && sign? && private_key && cert
-
+        def sign_xml_document!(noko)
           RubySaml::XML::DocumentSigner.sign_document!(
             noko,
             private_key,
@@ -138,27 +78,6 @@ module RubySaml
             signature_method,
             digest_method
           )
-        end
-
-        def compact_blank!(hash)
-          hash.reject! { |_, v| v.nil? || (v.respond_to?(:empty?) && v.empty?) }
-          hash
-        end
-
-        # def xml_document
-        #   raise NoMethodError.new('Subclass must implement binding_type')
-        # end
-        # TODO: add these
-        # def binding_type(settings)
-        #   raise NoMethodError.new('Subclass must implement binding_type')
-        # end
-        #
-        # def service_url(settings)
-        #   raise NoMethodError.new('Subclass must implement service_url')
-        # end
-
-        def generate_uuid
-          RubySaml::Utils.generate_uuid(settings.sp_uuid_prefix)
         end
 
         def binding_redirect?
@@ -177,12 +96,40 @@ module RubySaml
           @signature_method ||= settings.sp_signature_method
         end
 
-        def signature_hash_algorithm
-          @signature_algorithm ||= RubySaml::XML.hash_algorithm(signature_method)
+        def hash_algorithm
+          @hash_algorithm ||= RubySaml::XML.hash_algorithm(signature_method)
         end
 
         def digest_method
           @digest_method ||= settings.get_sp_digest_method
+        end
+
+        # Intentionally memoized
+        def utc_timestamp
+          @utc_timestamp ||= RubySaml::Utils.utc_timestamp
+        end
+
+        def generate_uuid
+          RubySaml::Utils.generate_uuid(settings.sp_uuid_prefix)
+        end
+
+        def normalize_params(params)
+          (params || {}).to_h do |key, value|
+            next if value.nil? || value.empty?
+
+            [key.to_s, value.to_s]
+          end
+        end
+
+        def compact_blank!(hash)
+          hash.reject! { |_, v| v.nil? || (v.respond_to?(:empty?) && v.empty?) }
+          hash
+        end
+
+        %i[message_type binding_type service_url sign? build_xml_document].each do |method_name|
+          define_method(method_name) do
+            raise NoMethodError.new("Subclass must implement #{method_name}")
+          end
         end
       end
     end

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'cgi'
+require 'uri'
 require 'zlib'
 require 'base64'
 require 'time'
