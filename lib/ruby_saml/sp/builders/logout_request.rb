@@ -43,7 +43,7 @@ module RubySaml
         # @return [Nokogiri::XML::Document] A XML document containing the request
         def build_xml_document
           Nokogiri::XML::Builder.new do |xml|
-            xml['samlp'].LogoutRequest(compact_blank(xml_root_attributes)) do
+            xml['samlp'].LogoutRequest(xml_root_attributes) do
               # Add Issuer element if sp_entity_id is present
               xml['saml'].Issuer(settings.sp_entity_id) if settings.sp_entity_id
 

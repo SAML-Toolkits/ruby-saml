@@ -21,7 +21,7 @@ module RubySaml
         # @param status_code [String|nil] Status code for the response (default: Success)
         # @param status_message [String|nil] Status message for the response (default: "Successfully Signed Out")
         def initialize(settings, in_response_to:, id: nil, relay_state: nil, params: nil, status_code: nil, status_message: nil)
-          super(settings, id: id, relay_state: relay_state, params: nil)
+          super(settings, id: id, relay_state: relay_state, params: params)
           @in_response_to = in_response_to
           @status_code = status_code || DEFAULT_STATUS_CODE
           @status_message = status_message || DEFAULT_STATUS_MESSAGE

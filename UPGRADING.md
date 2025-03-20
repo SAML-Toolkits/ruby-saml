@@ -1,6 +1,104 @@
 # Ruby SAML Migration Guide
 
-## Updating from 1.x to 2.0.0
+## Upgrading from 2.0.x to 2.1.0
+
+**IMPORTANT: Please read this section carefully as it contains potentially breaking changes!**
+
+RubySaml 2.1.0 introduces a greatly simplified API and class-based errors.
+
+We have attempted our best to "shim" the old functionality and methods to the new API,
+in such a way that all tests pass and the gem should work as before. However, there are
+a few minor changes to be aware.
+
+### Before upgrading
+
+Please ensure you have first upgraded to latest 2.0.x, and that it is running
+smoothly in production. Refer to "Upgrading from 1.x to 2.0.0" below.
+
+### Deprecation of SP message builder classes (`Authrequest`, `Logoutrequest`, `SloLogoutresponse`)
+
+| Old Class                      | New Class                                |
+|--------------------------------|------------------------------------------|
+| `RubySaml::Authrequest`        | `RubySaml::Builders::SP::AuthnRequest`   |
+| `RubySaml::Logoutrequest`      | `RubySaml::Builders::SP::LogoutRequest`  |
+| `RubySaml::SloLogoutresponse`  | `RubySaml::Builders::SP::LogoutResponse` |
+
+For each of these, the method usage has changed:
+
+| Old Method             | New Method                                |
+|------------------------|-------------------------------------------|
+| `#create`              | `#url` (or `#redirect_url` / `#post_url`) |
+| `#create_params`       | `#body` (or `#post_body`)                 |
+| `#create_xml_document` | `#xml`                                    |
+
+### Deprecation of IdP message parser classes (`Response`, `Logoutresponse`, `SloLogoutrequest`)
+
+| Old Class                    | New Class                                |
+|------------------------------|------------------------------------------|
+| `RubySaml::Response`         | `RubySaml::Parsers::IdP::Response`       |
+| `RubySaml::Logoutresponse`   | `RubySaml::Parsers::IdP::LogoutResponse` |
+| `RubySaml::SloLogoutrequest` | `RubySaml::Parsers::IdP::LogoutRequest`  |
+
+
+### Deprecation of metadata-related classes
+
+| Old Class                     | New Class                          |
+|-------------------------------|------------------------------------|
+| `RubySaml::Metadata`          | `RubySaml::Builders::SP::Metadata` |
+| `RubySaml::IdpMetadataParser` | `RubySaml::Parsers::IdP::Metadata` |
+
+
+### New Shortcut API
+
+```ruby
+app = RubySaml::SPApplication(settings)
+
+# Create your RubySaml::Builder::SP::AuthnRequest object
+app.build('AuthnRequest', **options)
+
+app.parse('Response', params)
+```
+
+
+```ruby
+class MySamlController < ActionController::Base
+  def index
+    sp_app = RubySaml::SPApplication(settings)
+    authn = sp_app.build('AuthnRequest', **options)
+
+    if authn.binding_post?
+      @saml_message = authn
+      render 'saml_post_form'
+    else
+      redirect_to authn.redirect_url, allow_other_host: true
+    end
+  end
+end
+```
+
+```html
+<form id="saml-post-form" method="post" action="<%= @saml_message.post_url %>" style="display:none;">
+  <% @saml_message.post_body.each do |name, value| %>
+  <input type="hidden" name="<%= name %>" value="<%= value %>" />
+  <% end %>
+  <noscript><button type="submit">Continue to Identity Provider</button></noscript>
+</form>
+<script>document.getElementById('saml-post-form').submit();</script>
+```
+
+
+ap
+
+authn.url
+authn.url
+
+
+RubySaml::Application(settings).sp.build('AuthnRequest', **options)
+
+
+
+
+## Upgrading from 1.x to 2.0.0
 
 **IMPORTANT: Please read this section carefully as it contains breaking changes!**
 
@@ -212,7 +310,7 @@ and `#format_private_key` methods. Specifically:
   stripped out.
 - Case 7: If no valid certificates are found, the entire original string will be returned.
 
-## Updating from 1.17.x to 1.18.0
+## Upgrading from 1.17.x to 1.18.0
 
 Version `1.18.0` changes the way the toolkit validates SAML signatures. There is a new order
 how validation happens in the toolkit and also the toolkit by default will check malformed doc
@@ -222,7 +320,7 @@ The SignedDocument class defined at xml_security.rb experienced several changes.
 We don't expect compatibilty issues if you use the main methods offered by ruby-saml, but if
 you use a fork or customized usage, is possible that you need to adapt your code.
 
-## Updating from 1.12.x to 1.13.0
+## Upgrading from 1.12.x to 1.13.0
 
 Version `1.13.0` adds `settings.idp_sso_service_binding` and `settings.idp_slo_service_binding`, and
 deprecates `settings.security[:embed_sign]`. If specified, new binding parameters will be used in place of `:embed_sign`

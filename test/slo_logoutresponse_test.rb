@@ -32,15 +32,15 @@ class SloLogoutresponseTest < Minitest::Test
       unauth_url = RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, nil, { :foo => "bar" })
       assert_match(/&foo=bar$/, unauth_url)
 
-      unauth_url = RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, nil, { :RelayState => "http://idp.example.com" })
-      assert_match(/&RelayState=http%3A%2F%2Fidp.example.com$/, unauth_url)
+      unauth_url = RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, nil, { 'RelayState' => "http://idp.example.com" })
+      assert_match(/&RelayState=http%3A%2F%2Fidp\.example\.com$/, unauth_url)
     end
 
     it "RelayState cases" do
-      unauth_url = RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, nil, { :RelayState => nil })
+      unauth_url = RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, nil, { 'RelayState' => nil })
       assert !unauth_url.include?('RelayState')
 
-      unauth_url = RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, nil, { :RelayState => "http://example.com" })
+      unauth_url = RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, nil, { 'RelayState' => "http://example.com" })
       assert unauth_url.include?('&RelayState=http%3A%2F%2Fexample.com')
 
       unauth_url = RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, nil, { 'RelayState' => nil })
@@ -271,15 +271,15 @@ class SloLogoutresponseTest < Minitest::Test
         end
 
         it "creates a signature parameter and validate it" do
-          params = RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message", :RelayState => 'http://example.com')
+          params = RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message", 'RelayState' => 'http://example.com')
 
           assert params['SAMLResponse']
-          assert params[:RelayState]
+          assert params['RelayState']
           assert params['Signature']
           assert_equal params['SigAlg'], signature_method(sp_key_algo, sp_hash_algo)
 
           query_string = "SAMLResponse=#{CGI.escape(params['SAMLResponse'])}"
-          query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
+          query_string << "&RelayState=#{CGI.escape(params['RelayState'])}"
           query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
           assert @cert.public_key.verify(RubySaml::XML.hash_algorithm(params['SigAlg']).new, Base64.decode64(params['Signature']), query_string)
@@ -290,15 +290,15 @@ class SloLogoutresponseTest < Minitest::Test
             # RSA is ignored here; only the hash sp_key_algo is used
             settings.security[:signature_method] = RubySaml::XML::RSA_SHA256
             logout_request.settings = settings
-            params = RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message", :RelayState => 'http://example.com')
+            params = RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message", 'RelayState' => 'http://example.com')
 
             assert params['SAMLResponse']
-            assert params[:RelayState]
+            assert params['RelayState']
             assert params['Signature']
             assert_equal params['SigAlg'], signature_method(sp_key_algo, :sha256)
 
             query_string = "SAMLResponse=#{CGI.escape(params['SAMLResponse'])}"
-            query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
+            query_string << "&RelayState=#{CGI.escape(params['RelayState'])}"
             query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
             assert @cert.public_key.verify(RubySaml::XML.hash_algorithm(params['SigAlg']).new, Base64.decode64(params['Signature']), query_string)
@@ -307,15 +307,15 @@ class SloLogoutresponseTest < Minitest::Test
           it 'using mixed signature and digest methods (digest SHA256)' do
             settings.security[:digest_method] = RubySaml::XML::SHA256
             logout_request.settings = settings
-            params = RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message", :RelayState => 'http://example.com')
+            params = RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message", 'RelayState' => 'http://example.com')
 
             assert params['SAMLResponse']
-            assert params[:RelayState]
+            assert params['RelayState']
             assert params['Signature']
             assert_equal params['SigAlg'], signature_method(sp_key_algo, sp_hash_algo)
 
             query_string = "SAMLResponse=#{CGI.escape(params['SAMLResponse'])}"
-            query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
+            query_string << "&RelayState=#{CGI.escape(params['RelayState'])}"
             query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
             assert @cert.public_key.verify(RubySaml::XML.hash_algorithm(params['SigAlg']).new, Base64.decode64(params['Signature']), query_string)
@@ -332,15 +332,15 @@ class SloLogoutresponseTest < Minitest::Test
               CertificateHelper.generate_pem_hash
             ]
           }
-          params = RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message", :RelayState => 'http://example.com')
+          params = RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message", 'RelayState' => 'http://example.com')
 
           assert params['SAMLResponse']
-          assert params[:RelayState]
+          assert params['RelayState']
           assert params['Signature']
           assert_equal params['SigAlg'], signature_method(sp_key_algo, sp_hash_algo)
 
           query_string = "SAMLResponse=#{CGI.escape(params['SAMLResponse'])}"
-          query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
+          query_string << "&RelayState=#{CGI.escape(params['RelayState'])}"
           query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
           assert cert.public_key.verify(RubySaml::XML.hash_algorithm(params['SigAlg']).new, Base64.decode64(params['Signature']), query_string)
@@ -351,7 +351,7 @@ class SloLogoutresponseTest < Minitest::Test
           settings.security[:check_sp_cert_expiration] = true
 
           assert_raises(RubySaml::ValidationError, 'The SP certificate expired.') do
-            RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message", :RelayState => 'http://example.com')
+            RubySaml::SloLogoutresponse.new.create_params(settings, logout_request.id, "Custom Logout Message", 'RelayState' => 'http://example.com')
           end
         end
       end

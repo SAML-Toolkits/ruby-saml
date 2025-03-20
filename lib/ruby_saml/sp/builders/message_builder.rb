@@ -22,7 +22,7 @@ module RubySaml
           @settings = settings
           @id = id || generate_uuid
           @relay_state = relay_state
-          @params = normalize_params(params)
+          @params = params
         end
 
         # Returns the full URL for the SAML message
@@ -47,7 +47,9 @@ module RubySaml
 
         # Alias for service_url, used with POST binding
         # @return [String] Service URL for POST binding
-        alias_method :post_url, :service_url
+        def post_url
+          service_url
+        end
         memoize_method :post_url
 
         # Builds the POST request body
@@ -55,7 +57,7 @@ module RubySaml
         def post_body
           build_payload(false)
         end
-        memoize_method :post_params
+        memoize_method :post_body
 
         private
 
@@ -67,24 +69,22 @@ module RubySaml
         # Builds the payload for the SAML message
         # @param redirect [Boolean] Whether to build for redirect binding
         # @return [Hash] Parameters for the SAML message
-        def build_payload(redirect)
+        def build_payload(is_redirect)
           noko = build_xml_document
-          sign_xml_document!(noko) unless redirect
+          sign_xml_document!(noko) unless is_redirect
           message_data = noko.to_xml(save_with: Nokogiri::XML::Node::SaveOptions::AS_XML)
-          message_data = RubySaml::XML::Decoder.encode_message(message_data, compress: redirect)
+          message_data = RubySaml::XML::Decoder.encode_message(message_data, compress: is_redirect)
 
           payload = { message_type => message_data }
           payload['RelayState'] = relay_state if relay_state
+          params.each { |key, value| payload[key.to_s] ||= value.to_s }
+          payload.delete('RelayState') if payload['RelayState'].nil? || payload['RelayState'].empty?
 
-          if redirect && sign? && signing_key
+          if is_redirect && sign? && signing_key
             payload['SigAlg'] = signature_method
-            signed_params = URI.encode_www_form(payload.slice(message_type, 'RelayState', 'SigAlg'))
-            signature = signing_key.sign(hash_algorithm.new, signed_params)
+            params_to_sign = URI.encode_www_form(payload.slice(message_type, 'RelayState', 'SigAlg'))
+            signature = signing_key.sign(hash_algorithm.new, params_to_sign)
             payload['Signature'] = Base64.strict_encode64(signature)
-          end
-
-          params.each do |key, value|
-            payload[key] = value unless payload.key?(key)
           end
 
           payload
@@ -107,6 +107,9 @@ module RubySaml
         # @param noko [Nokogiri::XML::Document] The XML document to sign
         # @return [Nokogiri::XML::Document] The signed XML document
         def sign_xml_document!(noko)
+          cert, private_key = settings.get_sp_signing_pair
+          return unless cert && private_key
+
           RubySaml::XML::DocumentSigner.sign_document!(
             noko,
             private_key,
@@ -137,7 +140,7 @@ module RubySaml
         # Returns the signature method
         # @return [String] The signature method
         def signature_method
-          @signature_method ||= settings.sp_signature_method
+          @signature_method ||= settings.get_sp_signature_method
         end
 
         # Returns the hash algorithm
@@ -162,17 +165,6 @@ module RubySaml
         # @return [String] A generated UUID
         def generate_uuid
           RubySaml::Utils.generate_uuid(settings.sp_uuid_prefix)
-        end
-
-        # Normalizes parameters
-        # @param params [Hash|nil] The parameters to normalize
-        # @return [Hash] Normalized parameters
-        def normalize_params(params)
-          (params || {}).to_h do |key, value|
-            next if value.nil? || value.empty?
-
-            [key.to_s, value.to_s]
-          end
         end
 
         # Removes blank values from a hash

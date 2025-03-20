@@ -10,6 +10,11 @@ require 'nokogiri'
 require 'ruby_saml/logging'
 require 'ruby_saml/xml'
 require 'ruby_saml/settings'
+require 'ruby_saml/memoizable'
+
+require 'ruby_saml/authrequest'
+require 'ruby_saml/logoutrequest'
+require 'ruby_saml/slo_logoutresponse'
 
 require 'ruby_saml/sp/builders/message_builder'
 require 'ruby_saml/sp/builders/authn_request'
