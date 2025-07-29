@@ -84,12 +84,12 @@ module OneLogin
       # @return [String] The plain SAML Message
       #
       def decode_raw_saml(saml, settings = nil)
-        return saml unless base64_encoded?(saml)
-
         settings = OneLogin::RubySaml::Settings.new if settings.nil?
         if saml.bytesize > settings.message_max_bytesize
           raise ValidationError.new("Encoded SAML Message exceeds " + settings.message_max_bytesize.to_s + " bytes, so was rejected")
         end
+
+        return saml unless base64_encoded?(saml)
 
         decoded = decode(saml)
         begin

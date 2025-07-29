@@ -82,5 +82,18 @@ class RubySamlTest < Minitest::Test
         end
       end
     end
+
+    describe "Prevent DOS attack via base64_encoded? validation" do
+      let(:large_saml_message) { "A" * (OneLogin::RubySaml::Settings::DEFAULTS[:message_max_bytesize] + 100) }
+
+      it "rejects oversized payloads before attempting Base64 validation" do
+        assert_raises(OneLogin::RubySaml::ValidationError, "Encoded SAML Message exceeds #{OneLogin::RubySaml::Settings::DEFAULTS[:message_max_bytesize]} bytes, so was rejected") do
+          saml_message = OneLogin::RubySaml::SamlMessage.new
+          saml_message.expects(:base64_encoded?).never
+
+          saml_message.send(:decode_raw_saml, large_saml_message)
+        end
+      end
+    end
   end
 end
