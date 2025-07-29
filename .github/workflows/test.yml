@@ -57,6 +57,8 @@ jobs:
             ruby-version: jruby-9.4
           - os: windows-latest
             ruby-version: truffleruby
+          - os: ubuntu-22.04
+            ruby-version: 2.2
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
