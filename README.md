@@ -34,6 +34,9 @@ Thanks to the following sponsors for securing the open source ecosystem,
 
 ## Vulnerabilities
 
+CVE-2025-54572 affects version ruby-saml < 1.18.1
+
+
 There are critical vulnerabilities affecting ruby-saml < 1.18.0, two of them allows SAML authentication bypass (CVE-2025-25291, CVE-2025-25292, CVE-2025-25293). Please upgrade to a fixed version (1.18.0)
 
 ## Overview
