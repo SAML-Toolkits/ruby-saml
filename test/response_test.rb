@@ -8,6 +8,7 @@ class RubySamlTest < Minitest::Test
 
     let(:settings) { OneLogin::RubySaml::Settings.new }
     let(:response) { OneLogin::RubySaml::Response.new(response_document_without_recipient) }
+    let(:response_without_recipient) { OneLogin::RubySaml::Response.new(signed_response_document_without_recipient) }
     let(:response_without_attributes) { OneLogin::RubySaml::Response.new(response_document_without_attributes) }
     let(:response_with_multiple_attribute_statements) { OneLogin::RubySaml::Response.new(fixture(:response_with_multiple_attribute_statements)) }
     let(:response_without_reference_uri) { OneLogin::RubySaml::Response.new(response_document_without_reference_uri) }
@@ -139,7 +140,8 @@ class RubySamlTest < Minitest::Test
       it "raise when evil attack vector is present, soft = false " do
         @response.soft = false
 
-        assert_raises(OneLogin::RubySaml::ValidationError) do
+        error_msg = "XML load failed: Dangerous XML detected. No Doctype nodes allowed"
+        assert_raises(OneLogin::RubySaml::ValidationError, error_msg) do
           @response.send(:validate_structure)
         end
       end
@@ -246,13 +248,14 @@ class RubySamlTest < Minitest::Test
 
         it "raise when encountering a condition that prevents the document from being valid" do
           settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
-          response.settings = settings
-          response.soft = false
+          response_without_recipient.settings = settings
+          response_without_recipient.soft = false
           error_msg = "Current time is on or after NotOnOrAfter condition"
           assert_raises(OneLogin::RubySaml::ValidationError, error_msg) do
-            response.is_valid?
+            response_without_recipient.is_valid?
           end
-          assert_includes response.errors[0], error_msg
+          assert !response_without_recipient.errors.empty?
+          assert_includes response_without_recipient.errors[0], error_msg
         end
 
         it "raise when encountering a SAML Response with bad formatted" do
@@ -266,7 +269,7 @@ class RubySamlTest < Minitest::Test
 
         it "raise when the inResponseTo value does not match the Request ID" do
           settings.soft = false
-          settings.idp_cert_fingerprint = signature_fingerprint_1
+          settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
           opts = {}
           opts[:settings] = settings
           opts[:matches_request_id] = "invalid_request_id"
@@ -279,7 +282,7 @@ class RubySamlTest < Minitest::Test
         end
 
         it "raise when there is no valid audience" do
-          settings.idp_cert_fingerprint = signature_fingerprint_1
+          settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
           settings.sp_entity_id = 'invalid'
           response_valid_signed.settings = settings
           response_valid_signed.soft = false
@@ -287,6 +290,7 @@ class RubySamlTest < Minitest::Test
           assert_raises(OneLogin::RubySaml::ValidationError, error_msg) do
             response_valid_signed.is_valid?
           end
+
           assert_includes response_valid_signed.errors, error_msg
         end
 
@@ -407,10 +411,11 @@ class RubySamlTest < Minitest::Test
 
         it "return false when encountering a condition that prevents the document from being valid" do
           settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
-          response.settings = settings
+          response_without_recipient.settings = settings
           error_msg = "Current time is on or after NotOnOrAfter condition"
-          assert !response.is_valid?
-          assert_includes response.errors[0], error_msg
+          assert !response_without_recipient.is_valid?
+          assert !response_without_recipient.errors.empty?
+          assert_includes response_without_recipient.errors[0], error_msg
         end
 
         it "return false when encountering a SAML Response with bad formatted" do
@@ -424,7 +429,7 @@ class RubySamlTest < Minitest::Test
 
         it "return false when the inResponseTo value does not match the Request ID" do
           settings.soft = true
-          settings.idp_cert_fingerprint = signature_fingerprint_1
+          settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
           opts = {}
           opts[:settings] = settings
           opts[:matches_request_id] = "invalid_request_id"
@@ -434,7 +439,7 @@ class RubySamlTest < Minitest::Test
         end
 
         it "return false when there is no valid audience" do
-          settings.idp_cert_fingerprint = signature_fingerprint_1
+          settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
           settings.sp_entity_id = 'invalid'
           response_valid_signed.settings = settings
           response_valid_signed.is_valid?
