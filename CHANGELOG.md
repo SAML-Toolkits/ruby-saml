@@ -2,6 +2,8 @@
 
 ### 1.18.1  (Jul 29, 2025)
 * Fix vulnerability CVE-2025-54572 Prevent DOS due large SAML Message
+* Adapt tests to be able to execute signature validation sooner
+* CI Improvements. Support Ruby 3.4
 
 ### 1.18.0  (Mar 12, 2025)
 * [#750](https://github.com/SAML-Toolkits/ruby-saml/pull/750) Fix vulnerabilities: CVE-2025-25291, CVE-2025-25292: SAML authentication bypass via Signature Wrapping attack allowed due parser differential. Fix vulnerability: CVE-2025-25293: Potential DOS abusing of compressed messages.
