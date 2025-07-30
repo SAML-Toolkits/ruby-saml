@@ -151,6 +151,10 @@ class Minitest::Test
     @response_document_without_recipient ||= read_response("response_with_undefined_recipient.xml.base64")
   end
 
+  def signed_response_document_without_recipient
+    @signed_response_document_without_recipient ||= read_response("signed_response_with_undefined_recipient.xml.base64")
+  end
+
   def response_document_without_recipient_with_time_updated
     doc = Base64.decode64(response_document_without_recipient)
     doc.gsub!(/NotBefore="(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z"/, "NotBefore=\"#{(Time.now-300).getutc.strftime("%Y-%m-%dT%XZ")}\"")
