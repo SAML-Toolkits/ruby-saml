@@ -15,13 +15,13 @@ module RubySaml
       #   to prevent a possible DoS attack.
       # @return [String] The plain SAML Message
       def decode_message(message, max_bytesize = nil)
-        return message unless base64_encoded?(message)
-
         max_bytesize ||= DEFAULT_MAX_BYTESIZE
 
         if message.bytesize > max_bytesize # rubocop:disable Style/IfUnlessModifier
           raise ValidationError.new("Encoded SAML Message exceeds #{max_bytesize} bytes, so was rejected")
         end
+
+        return message unless base64_encoded?(message)
 
         message = try_inflate(base64_decode(message))
 
