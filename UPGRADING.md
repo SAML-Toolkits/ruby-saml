@@ -74,24 +74,33 @@ settings.security[:signature_method] = RubySaml::XML::RSA_SHA1
 ### Replacement of REXML with Nokogiri
 
 RubySaml `1.x` used a combination of REXML and Nokogiri for XML parsing and generation.
-In `2.0.0`, REXML has been replaced with Nokogiri. This change should be transparent
-to most users, however, see note about Custom Metadata Fields below.
+In `2.0.0`, REXML has been replaced with Nokogiri. As a result, there are minor differences
+in how XML is generated, ncluding SAML requests and SP Metadata: 
+
+1. All XML namespace declarations will be on the root node of the XML. Previously,
+   some declarations such as `xmlns:ds` were done on child nodes.
+2. The ordering of attributes on each node may be different.
+
+These differences should not affect how the XML is parsed by various XML parsing libraries.
+However, if you are strictly asserting that the generated XML is an exact string in your tests,
+such tests may need to be adjusted accordingly.
 
 ### Custom Metadata Fields now use Nokogiri XML Builder
 
 If you have added custom fields to your SP metadata generation by overriding
-the `RubySaml::Metadata#add_extras` method, you will need to update your code to use
-[Nokogiri::XML::Builder](https://nokogiri.org/rdoc/Nokogiri/XML/Builder.html) format
-instead of REXML. Here is an example of the new format:
+the `RubySaml::Metadata#add_extras` method, you will need to update your code
+so that the first arg of the method is a
+[Nokogiri::XML::Builder](https://nokogiri.org/rdoc/Nokogiri/XML/Builder.html)
+object. Here is an example of the new format:
 
 ```ruby
 class MyMetadata < RubySaml::Metadata
   private
 
-  def add_extras(xml, _settings)
-    xml['md'].ContactPerson('contactType' => 'technical') do
-      xml['md'].GivenName('ACME SAML Team')
-      xml['md'].EmailAddress('saml@acme.com')
+  def add_extras(builder, _settings)
+    builder.ContactPerson('contactType' => 'technical') do
+      builder.GivenName { builder.text 'ACME SAML Team' }
+      builder.EmailAddress { builder.text 'saml@acme.com' }
     end
   end
 end
