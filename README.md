@@ -929,22 +929,24 @@ or underscore, and can only contain letters, digits, underscores, hyphens, and p
 
 Some IdPs may require to add SPs to add additional fields (Organization, ContactPerson, etc.)
 into the SP metadata. This can be done by extending the `RubySaml::Metadata` class and
-overriding the `#add_extras` method using a Nokogiri XML builder as per the following example:
+overriding the `#add_extras` method where the first arg is a
+[Nokogiri::XML::Builder](https://nokogiri.org/rdoc/Nokogiri/XML/Builder.html) object as per
+the following example:
 
 ```ruby
 class MyMetadata < RubySaml::Metadata
   private
 
   def add_extras(xml, _settings)
-    xml['md'].Organization do
-      xml['md'].OrganizationName('ACME Inc.', 'xml:lang' => 'en-US')
-      xml['md'].OrganizationDisplayName('ACME', 'xml:lang' => 'en-US')
-      xml['md'].OrganizationURL('https://www.acme.com', 'xml:lang' => 'en-US')
+    xml.Organization do
+      xml.OrganizationName('xml:lang' => 'en-US') { xml.text 'ACME Inc.' }
+      xml.OrganizationDisplayName('xml:lang' => 'en-US') { xml.text 'ACME' }
+      xml.OrganizationURL('xml:lang' => 'en-US') { xml.text 'https://www.acme.com' }
     end
 
-    xml['md'].ContactPerson('contactType' => 'technical') do
-      xml['md'].GivenName('ACME SAML Team')
-      xml['md'].EmailAddress('saml@acme.com')
+    xml.ContactPerson('contactType' => 'technical') do
+      xml.GivenName { xml.text 'ACME SAML Team' }
+      xml.EmailAddress { xml.text 'saml@acme.com' }
     end
   end
 end
