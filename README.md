@@ -9,9 +9,18 @@ Ruby SAML minor versions may introduce breaking changes. Please read
 
 ## Vulnerability Notice
 
-There are **critical vulnerabilities** affecting ruby-saml < 1.18.0 which allow
-SAML authentication bypass (CVE-2024-45409, CVE-2025-25291, CVE-2025-25292, CVE-2025-25293).
-**Please upgrade to a fixed version (1.18.0 or 2.0.0) as soon as possible.**
+Please note the following **critical vulnerabilities**:
+
+- CVE-2025-54572 (DOS attack vector) affects version ruby-saml < 1.18.1
+- CVE-2024-45409, CVE-2025-25291, CVE-2025-25292, CVE-2025-25293 (SAML authentication bypass) affects ruby-saml < 1.18.0
+
+**Please upgrade to a fixed version (2.0.0 or 1.18.1) as soon as possible.**
+
+## Sponsors
+
+Thanks to the following sponsors for securing the open source ecosystem,
+
+[<img alt="84codes" src="https://avatars.githubusercontent.com/u/5353257" width="75px">](https://www.84codes.com)
 
 ## Overview
 
@@ -46,7 +55,7 @@ it by email to the maintainer: sixto.martin.garcia+security@gmail.com
 The following Ruby versions are covered by CI testing:
 
 * Ruby (MRI) 3.0 to 3.4
-* JRuby 9.4
+* JRuby 9.4 to 10.0
 * TruffleRuby (latest)
 
 Older Ruby versions are supported on the 1.x release of Ruby SAML.

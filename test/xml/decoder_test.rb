@@ -67,6 +67,29 @@ class XmlDecoderTest < Minitest::Test
         end
       end
 
+      it 'rejects oversized payloads before attempting Base64 validation' do
+        large_saml_message = 'A' * (RubySaml::XML::Decoder::DEFAULT_MAX_BYTESIZE + 100)
+
+        assert_raises(RubySaml::ValidationError, "Encoded SAML Message exceeds #{RubySaml::XML::Decoder::DEFAULT_MAX_BYTESIZE} bytes, so was rejected") do
+          # Mock to ensure base64_encoded? is never called on oversized input
+          RubySaml::XML::Decoder.expects(:base64_encoded?).never
+
+          RubySaml::XML::Decoder.decode_message(large_saml_message)
+        end
+      end
+
+      it 'rejects oversized payloads before attempting Base64 validation with custom max' do
+        custom_max = 1000
+        large_saml_message = 'A' * (custom_max + 100)
+
+        assert_raises(RubySaml::ValidationError, "Encoded SAML Message exceeds #{custom_max} bytes, so was rejected") do
+          # Mock to ensure base64_encoded? is never called on oversized input
+          RubySaml::XML::Decoder.expects(:base64_encoded?).never
+
+          RubySaml::XML::Decoder.decode_message(large_saml_message, custom_max)
+        end
+      end
+
       it "rejects Zlib bomb attacks" do
         # Create a message that when inflated would be extremely large
         bomb_prefix = <<~XML

@@ -26,14 +26,14 @@ This issue is likely not critical for most IdPs, but since it is not tested, it 
 
 ### Root "OneLogin" namespace changed to "RubySaml"
 
-RubySaml version `2.0.0` changes the root namespace from `OneLogin::RubySaml::` to just `RubySaml::`.
-Please remove `OneLogin::` and `onelogin/` everywhere in your codebase. Aside from this namespace change,
+RubySaml version `2.0.0` changes the root namespace from `RubySaml::` to just `RubySaml::`.
+Please remove `` and `onelogin/` everywhere in your codebase. Aside from this namespace change,
 the class names themselves have intentionally been kept the same.
 
 Note that the project folder structure has also been updated accordingly. Notably, the directory
 `lib/onelogin/schemas` is now `lib/ruby_saml/schemas`.
 
-For backward compatibility, the alias `OneLogin = Object` has been set, so `OneLogin::RubySaml::` will still work
+For backward compatibility, the alias `OneLogin = Object` has been set, so `RubySaml::` will still work
 as before. This alias will be removed in RubySaml version `3.0.0`.
 
 ### Deprecation and removal of "XMLSecurity" namespace
@@ -319,7 +319,7 @@ options = {
     "RelayState" => raw_query_params["RelayState"],
   },
 }
-slo_logout_request = OneLogin::RubySaml::SloLogoutrequest.new(query_params["SAMLRequest"], settings, options)
+slo_logout_request = RubySaml::SloLogoutrequest.new(query_params["SAMLRequest"], settings, options)
 raise "Invalid Logout Request" unless slo_logout_request.is_valid?
 ```
 
@@ -379,4 +379,4 @@ Version `0.9` adds many new features and improvements.
 
 ## Upgrading from 0.7.x to 0.8.x
 
-Version `0.8.x` changes the namespace of the gem from `OneLogin::Saml` to `OneLogin::RubySaml`.  Please update your implementations of the gem accordingly.
+Version `0.8.x` changes the namespace of the gem from `Saml` to `RubySaml`.  Please update your implementations of the gem accordingly.
