@@ -7,7 +7,7 @@ unless defined?(XMLSecurity)
   REXML::Security.entity_expansion_limit = 0
 
   module XMLSecurity
-    # @deprecated Will be removed in v2.1.0.
+    # @deprecated Will be removed in v3.0.0.
     # @api private
     class BaseDocument < REXML::Document
       # @deprecated Constants
@@ -15,22 +15,22 @@ unless defined?(XMLSecurity)
       DSIG = RubySaml::XML::DSIG
       NOKOGIRI_OPTIONS = RubySaml::XML::NOKOGIRI_OPTIONS
 
-      # @deprecated Will be removed in v2.1.0.
+      # @deprecated Will be removed in v3.0.0.
       def canon_algorithm(algorithm)
-        RubySaml::Logging.deprecate 'XMLSecurity::BaseDocument#canon_algorithm is deprecated and will be removed in v2.1.0. ' \
+        RubySaml::Logging.deprecate 'XMLSecurity::BaseDocument#canon_algorithm is deprecated and will be removed in v3.0.0. ' \
                                     'Use RubySaml::XML.canon_algorithm instead.'
         RubySaml::XML.canon_algorithm(algorithm)
       end
 
-      # @deprecated Will be removed in v2.1.0.
+      # @deprecated Will be removed in v3.0.0.
       def algorithm(algorithm)
-        RubySaml::Logging.deprecate 'XMLSecurity::BaseDocument#algorithm is deprecated and will be removed in v2.1.0. ' \
+        RubySaml::Logging.deprecate 'XMLSecurity::BaseDocument#algorithm is deprecated and will be removed in v3.0.0. ' \
                                     'Use RubySaml::XML.hash_algorithm instead.'
         RubySaml::XML.hash_algorithm(algorithm)
       end
     end
 
-    # @deprecated Will be removed in v2.1.0.
+    # @deprecated Will be removed in v3.0.0.
     # @api private
     class Document < BaseDocument
       # @deprecated Constants
@@ -54,14 +54,14 @@ unless defined?(XMLSecurity)
       SHA512        = RubySaml::XML::SHA512
       ENVELOPED_SIG = RubySaml::XML::ENVELOPED_SIG
 
-      # @deprecated Will be removed in v2.1.0.
+      # @deprecated Will be removed in v3.0.0.
       def initialize(*args, **_kwargs)
-        RubySaml::Logging.deprecate 'XMLSecurity::Document is deprecated and will be removed in v2.1.0. ' \
+        RubySaml::Logging.deprecate 'XMLSecurity::Document is deprecated and will be removed in v3.0.0. ' \
                                     'Use RubySaml::XML::DocumentSigner.sign_document instead.'
         super(args[0])
       end
 
-      # @deprecated Will be removed in v2.1.0.
+      # @deprecated Will be removed in v3.0.0.
       def sign_document(*_args, **_kwargs)
         msg = 'XMLSecurity::Document#sign_document has been removed. ' \
               'Use RubySaml::XML::DocumentSigner.sign_document instead.'
@@ -69,24 +69,24 @@ unless defined?(XMLSecurity)
       end
     end
 
-    # @deprecated Will be removed in v2.1.0.
+    # @deprecated Will be removed in v3.0.0.
     # @api private
     class SignedDocument < BaseDocument
-      # @deprecated Will be removed in v2.1.0.
+      # @deprecated Will be removed in v3.0.0.
       def initialize(*args, **_kwargs)
-        RubySaml::Logging.deprecate 'XMLSecurity::SignedDocument is deprecated and will be removed in v2.1.0.' \
+        RubySaml::Logging.deprecate 'XMLSecurity::SignedDocument is deprecated and will be removed in v3.0.0.' \
                                     'Use RubySaml::XML::SignedDocumentValidator.validate_document instead.'
         super(args[0])
       end
 
-      # @deprecated Will be removed in v2.1.0.
+      # @deprecated Will be removed in v3.0.0.
       def validate_document(*_args, **_kwargs)
         msg = 'XMLSecurity::SignedDocument#validate_document has been removed. ' \
               'Use RubySaml::XML::SignedDocumentValidator.validate_document instead.'
         raise ::NoMethodError.new(msg)
       end
 
-      # @deprecated Will be removed in v2.1.0.
+      # @deprecated Will be removed in v3.0.0.
       def extract_inclusive_namespaces
         msg = 'XMLSecurity::SignedDocument#extract_inclusive_namespaces has been removed.'
         raise ::NoMethodError.new(msg)

@@ -161,7 +161,7 @@ module RubySaml
     end
 
     def parse_to_idp_metadata_array(idp_metadata, options = {})
-      @document = Nokogiri::XML(idp_metadata)
+      @document = Nokogiri::XML(idp_metadata) # TODO: RubySaml::XML.safe_load_nokogiri
       @options = options
 
       idpsso_descriptors = self.class.get_idps(@document, options[:entity_id])
@@ -348,14 +348,14 @@ module RubySaml
           unless signing_nodes.empty?
             certs['signing'] = []
             signing_nodes.each do |cert_node|
-              certs['signing'] << cert_node.content
+              certs['signing'] << cert_node.text
             end
           end
 
           unless encryption_nodes.empty?
             certs['encryption'] = []
             encryption_nodes.each do |cert_node|
-              certs['encryption'] << cert_node.content
+              certs['encryption'] << cert_node.text
             end
           end
           certs

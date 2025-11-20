@@ -74,7 +74,7 @@ class RubySamlTest < Minitest::Test
     end
 
     it "be able to parse a document which contains ampersands" do
-      RubySaml::XML::SignedDocument.any_instance.stubs(:digests_match?).returns(true)
+      RubySaml::XML::SignedDocumentValidator.stubs(:digests_match?).returns(true)
       RubySaml::Response.any_instance.stubs(:validate_conditions).returns(true)
 
       ampersands_response = RubySaml::Response.new(ampersands_document)
@@ -139,7 +139,7 @@ class RubySamlTest < Minitest::Test
       it "raise when evil attack vector is present, soft = false " do
         @response.soft = false
         error_msg = "XML load failed: Dangerous XML detected. No Doctype nodes allowed"
-        assert_raises(OneLogin::RubySaml::ValidationError, error_msg) do
+        assert_raises(RubySaml::ValidationError, error_msg) do
           @response.send(:validate_structure)
         end
       end
@@ -213,23 +213,23 @@ class RubySamlTest < Minitest::Test
         end
 
         it "raise when no signature" do
-            settings.idp_cert_fingerprint = signature_fingerprint_1
-            response_no_signed_elements.settings = settings
-            response_no_signed_elements.soft = false
-            error_msg = "Found an unexpected number of Signature Element. SAML Response rejected"
-            assert_raises(RubySaml::ValidationError, error_msg) do
-                response_no_signed_elements.is_valid?
-            end
+          settings.idp_cert_fingerprint = signature_fingerprint_1
+          response_no_signed_elements.settings = settings
+          response_no_signed_elements.soft = false
+          error_msg = "Found an unexpected number of Signature Element. SAML Response rejected"
+          assert_raises(RubySaml::ValidationError, error_msg) do
+            response_no_signed_elements.is_valid?
+          end
         end
 
         it "raise when multiple signatures" do
-            settings.idp_cert_fingerprint = signature_fingerprint_1
-            response_multiple_signed.settings = settings
-            response_multiple_signed.soft = false
-            error_msg = "Duplicated ID. SAML Response rejected"
-            assert_raises(RubySaml::ValidationError, error_msg) do
-                response_multiple_signed.is_valid?
-            end
+          settings.idp_cert_fingerprint = signature_fingerprint_1
+          response_multiple_signed.settings = settings
+          response_multiple_signed.soft = false
+          error_msg = "Duplicated ID. SAML Response rejected"
+          assert_raises(RubySaml::ValidationError, error_msg) do
+            response_multiple_signed.is_valid?
+          end
         end
 
         it "validate SAML 2.0 XML structure" do
@@ -658,11 +658,11 @@ class RubySamlTest < Minitest::Test
     end
 
     describe "validate_formatted_x509_certificate" do
-      let(:response_with_formatted_x509certificate) {
+      let(:response_with_formatted_x509certificate) do
         RubySaml::Response.new(read_response("valid_response_with_formatted_x509certificate.xml.base64"), {
           :skip_conditions => true,
           :skip_subject_confirmation => true })
-        }
+      end
 
       it "be able to parse the response wihout errors" do
         response_with_formatted_x509certificate.settings = settings
@@ -910,7 +910,7 @@ class RubySamlTest < Minitest::Test
         assert_includes response.errors, "Invalid Signature on SAML Response"
       end
 
-      it "return false when no X509Certificate and not cert provided at settings" do
+      it "return false when no X509Certificate and no cert provided in settings" do
         settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
         settings.idp_cert = nil
         response_valid_signed_without_x509certificate.settings = settings
@@ -940,8 +940,8 @@ class RubySamlTest < Minitest::Test
         settings.idp_cert_fingerprint = nil
         settings.idp_cert = ruby_saml_cert_text
         content = read_response('response_with_signed_message_and_assertion.xml')
-        content = content.sub(/<ds:X509Certificate>.*<\/ds:X509Certificate>/,
-                       "<ds:X509Certificate>an-invalid-certificate</ds:X509Certificate>")
+        content = content.sub(%r{<ds:X509Certificate>.*</ds:X509Certificate>},
+                              "<ds:X509Certificate>an-invalid-certificate</ds:X509Certificate>")
         response_invalid_x509certificate = RubySaml::Response.new(content)
         response_invalid_x509certificate.settings = settings
         assert !response_invalid_x509certificate.send(:validate_signature)
@@ -1227,7 +1227,7 @@ class RubySamlTest < Minitest::Test
         it "raise error when the assertion contains encrypted attributes but no private key to decrypt" do
           settings.private_key = nil
           response_encrypted_attrs.settings = settings
-          assert_raises(RubySaml::ValidationError, "An encrypted element was found, but the Settings does not contain any SP private keys to decrypt it") do
+          assert_raises(RubySaml::ValidationError, "An EncryptedAttribute found and no SP private key found on the settings to decrypt it") do
             response_encrypted_attrs.attributes
           end
         end
@@ -1236,9 +1236,8 @@ class RubySamlTest < Minitest::Test
           settings.certificate = ruby_saml_cert_text
           settings.private_key = ruby_saml_key_text
           response_encrypted_attrs.settings = settings
-          attributes = response_encrypted_attrs.attributes
-          assert_equal "test", attributes[:uid]
-          assert_equal "test@example.com", attributes[:mail]
+          assert_equal "test", response_encrypted_attrs.attributes[:uid]
+          assert_equal "test@example.com", response_encrypted_attrs.attributes[:mail]
         end
       end
 
@@ -1381,7 +1380,10 @@ class RubySamlTest < Minitest::Test
         $evalled = nil
         malicious_response_document = fixture('response_eval', false)
         malicious_response = RubySaml::Response.new(malicious_response_document)
-        malicious_response.send(:xpath_first_from_signed_assertion)
+        begin
+          malicious_response.send(:xpath_first_from_signed_assertion)
+        rescue RubySaml::ValidationError # TODO: This should be a more specific error
+        end
         assert_nil $evalled
       end
     end
@@ -1450,6 +1452,7 @@ class RubySamlTest < Minitest::Test
         assert_equal "test@onelogin.com", response_encrypted_nameid.nameid
         assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress", response_encrypted_nameid.name_id_format
       end
+
     end
 
     describe 'try to initialize an encrypted response' do
@@ -1568,16 +1571,15 @@ class RubySamlTest < Minitest::Test
         it "is not possible to decrypt the assertion if no private key" do
           response = RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, settings: settings)
 
-          encrypted_assertion_node = REXML::XPath.first(
-            response.document,
-            "(/p:Response/EncryptedAssertion)|(/p:Response/a:EncryptedAssertion)",
+          encrypted_assertion_node = response.document.at_xpath(
+            "/p:Response/EncryptedAssertion | /p:Response/a:EncryptedAssertion",
             { "p" => RubySaml::XML::NS_PROTOCOL, "a" => RubySaml::XML::NS_ASSERTION }
           )
           response.settings.private_key = nil
 
           error_msg = "An EncryptedAssertion found and no SP private key found on the settings to decrypt it"
           assert_raises(RubySaml::ValidationError, error_msg) do
-            RubySaml::XML::Decryptor.decrypt_assertion(encrypted_assertion_node, settings.get_sp_decryption_keys)
+            RubySaml::XML::Decryptor.decrypt_assertion(response.document, encrypted_assertion_node)
           end
         end
 
@@ -1592,16 +1594,15 @@ class RubySamlTest < Minitest::Test
         it "is possible to decrypt the assertion if private key" do
           response = RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, settings: settings)
 
-          encrypted_assertion_node = REXML::XPath.first(
-            response.document,
-            "(/p:Response/EncryptedAssertion)|(/p:Response/a:EncryptedAssertion)",
+          encrypted_assertion_node = response.document.at_xpath(
+            "/p:Response/EncryptedAssertion | /p:Response/a:EncryptedAssertion",
             { "p" => RubySaml::XML::NS_PROTOCOL, "a" => RubySaml::XML::NS_ASSERTION }
           )
           decrypted = RubySaml::XML::Decryptor.decrypt_assertion(encrypted_assertion_node, settings.get_sp_decryption_keys)
 
           encrypted_assertion_node2 = decrypted.at_xpath(
-            "(/p:Response/EncryptedAssertion)|(/p:Response/a:EncryptedAssertion)",
-            { "p" => RubySaml::XML::NS_PROTOCOL, "a" => RubySaml::XML::NS_ASSERTION }
+            "/p:Response/EncryptedAssertion | /p:Response/a:EncryptedAssertion",
+            { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
           )
           assert_nil encrypted_assertion_node2
           assert decrypted.name, "Assertion"
@@ -1617,9 +1618,8 @@ class RubySamlTest < Minitest::Test
           }
           response = RubySaml::Response.new(signed_message_encrypted_unsigned_assertion, settings: settings)
 
-          encrypted_assertion_node = REXML::XPath.first(
-            response.document,
-            "(/p:Response/EncryptedAssertion)|(/p:Response/a:EncryptedAssertion)",
+          encrypted_assertion_node = response.document.at_xpath(
+            "/p:Response/EncryptedAssertion | /p:Response/a:EncryptedAssertion",
             { "p" => RubySaml::XML::NS_PROTOCOL, "a" => RubySaml::XML::NS_ASSERTION }
           )
           decrypted = RubySaml::XML::Decryptor.decrypt_assertion(encrypted_assertion_node, settings.get_sp_decryption_keys)
@@ -1632,16 +1632,15 @@ class RubySamlTest < Minitest::Test
           resp = read_response('response_with_retrieval_method.xml')
           response = RubySaml::Response.new(resp, settings: settings)
 
-          encrypted_assertion_node = REXML::XPath.first(
-            response.document,
-            "(/p:Response/EncryptedAssertion)|(/p:Response/a:EncryptedAssertion)",
+          encrypted_assertion_node = response.document.at_xpath(
+            "/p:Response/EncryptedAssertion | /p:Response/a:EncryptedAssertion",
             { "p" => RubySaml::XML::NS_PROTOCOL, "a" => RubySaml::XML::NS_ASSERTION }
           )
           decrypted = RubySaml::XML::Decryptor.decrypt_assertion(encrypted_assertion_node, settings.get_sp_decryption_keys)
 
           encrypted_assertion_node2 = decrypted.at_xpath(
-            "(/p:Response/EncryptedAssertion)|(/p:Response/a:EncryptedAssertion)",
-            { "p" => RubySaml::XML::NS_PROTOCOL, "a" => RubySaml::XML::NS_ASSERTION }
+            "/p:Response/EncryptedAssertion | /p:Response/a:EncryptedAssertion",
+            { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
           )
 
           assert_nil encrypted_assertion_node2
@@ -1651,16 +1650,16 @@ class RubySamlTest < Minitest::Test
         it "is possible to decrypt the assertion if private key but no saml namespace on the Assertion Element that is inside the EncryptedAssertion" do
           unsigned_message_encrypted_assertion_without_saml_namespace = read_response('unsigned_message_encrypted_assertion_without_saml_namespace.xml.base64')
           response = RubySaml::Response.new(unsigned_message_encrypted_assertion_without_saml_namespace, settings: settings)
-          encrypted_assertion_node = REXML::XPath.first(
-            response.document,
-            "(/p:Response/EncryptedAssertion)|(/p:Response/a:EncryptedAssertion)",
+
+          encrypted_assertion_node = response.document.at_xpath(
+            "/p:Response/EncryptedAssertion | /p:Response/a:EncryptedAssertion",
             { "p" => RubySaml::XML::NS_PROTOCOL, "a" => RubySaml::XML::NS_ASSERTION }
           )
           decrypted = RubySaml::XML::Decryptor.decrypt_assertion(encrypted_assertion_node, settings.get_sp_decryption_keys)
 
           encrypted_assertion_node2 = decrypted.at_xpath(
-            "(/p:Response/EncryptedAssertion)|(/p:Response/a:EncryptedAssertion)",
-            { "p" => RubySaml::XML::NS_PROTOCOL, "a" => RubySaml::XML::NS_ASSERTION }
+            "/p:Response/EncryptedAssertion | /p:Response/a:EncryptedAssertion",
+            { "p" => "urn:oasis:names:tc:SAML:2.0:protocol", "a" => "urn:oasis:names:tc:SAML:2.0:assertion" }
           )
           assert_nil encrypted_assertion_node2
           assert decrypted.name, "Assertion"
@@ -1720,6 +1719,7 @@ class RubySamlTest < Minitest::Test
           assert_equal "_ce3d2948b4cf20146dee0a0b3dd6f69b6cf86f62d7", response.nameid
         end
       end
+
     end
 
     describe "#status_code" do
@@ -1792,10 +1792,9 @@ class RubySamlTest < Minitest::Test
     each_signature_algorithm do |idp_key_algo, idp_hash_algo|
       describe "#validate_signature" do
         let(:xml_signed) do
-          RubySaml::XML::DocumentSigner.sign_document(read_response('response_unsigned2.xml'),
-                                                      @pkey, @cert,
-                                                      signature_method(idp_key_algo, idp_hash_algo),
-                                                      digest_method(idp_hash_algo)).to_s
+          doc = read_response('response_unsigned2.xml')
+          RubySaml::XML::DocumentSigner.sign_document(doc, @pkey, @cert, signature_method(idp_key_algo, idp_hash_algo), digest_method(idp_hash_algo))
+                                       .to_s
         end
 
         before do

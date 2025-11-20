@@ -325,39 +325,35 @@ class UtilsTest < Minitest::Test
       end
     end
 
-    describe '.element_text' do
+    describe 'Nokogiri::XML::Node#text' do
       it 'returns the element text' do
-        element = REXML::Document.new('<element>element text</element>').elements.first
-        assert_equal 'element text', RubySaml::Utils.element_text(element)
+        element = Nokogiri::XML('<element>element text</element>').root
+        assert_equal 'element text', element.text
       end
 
       it 'returns all segments of the element text' do
-        element = REXML::Document.new('<element>element <!-- comment -->text</element>').elements.first
-        assert_equal 'element text', RubySaml::Utils.element_text(element)
+        element = Nokogiri::XML('<element>element <!-- comment -->text</element>').root
+        assert_equal 'element text', element.text
       end
 
       it 'returns normalized element text' do
-        element = REXML::Document.new('<element>element &amp; text</element>').elements.first
-        assert_equal 'element & text', RubySaml::Utils.element_text(element)
+        element = Nokogiri::XML('<element>element &amp; text</element>').root
+        assert_equal 'element & text', element.text
       end
 
       it 'returns the CDATA element text' do
-        element = REXML::Document.new('<element><![CDATA[element & text]]></element>').elements.first
-        assert_equal 'element & text', RubySaml::Utils.element_text(element)
+        element = Nokogiri::XML('<element><![CDATA[element & text]]></element>').root
+        assert_equal 'element & text', element.text
       end
 
       it 'returns the element text with newlines and additional whitespace' do
-        element = REXML::Document.new("<element>  element \n text  </element>").elements.first
-        assert_equal "  element \n text  ", RubySaml::Utils.element_text(element)
-      end
-
-      it 'returns nil when element is nil' do
-        assert_nil RubySaml::Utils.element_text(nil)
+        element = Nokogiri::XML("<element>  element \n text  </element>").root
+        assert_equal "  element \n text  ", element.text
       end
 
       it 'returns empty string when element has no text' do
-        element = REXML::Document.new('<element></element>').elements.first
-        assert_equal '', RubySaml::Utils.element_text(element)
+        element = Nokogiri::XML('<element></element>').root
+        assert_equal '', element.text
       end
     end
   end

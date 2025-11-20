@@ -1,6 +1,6 @@
 # Ruby SAML Migration Guide
 
-## Updating from 1.x to 2.0.0
+## Upgrading from 1.x to 2.0.0
 
 **IMPORTANT: Please read this section carefully as it contains breaking changes!**
 
@@ -34,7 +34,7 @@ Note that the project folder structure has also been updated accordingly. Notabl
 `lib/onelogin/schemas` is now `lib/ruby_saml/schemas`.
 
 For backward compatibility, the alias `OneLogin = Object` has been set, so `OneLogin::RubySaml::` will still work
-as before. This alias will be removed in RubySaml version `2.1.0`.
+as before. This alias will be removed in RubySaml version `3.0.0`.
 
 ### Deprecation and removal of "XMLSecurity" namespace
 
@@ -74,24 +74,33 @@ settings.security[:signature_method] = RubySaml::XML::RSA_SHA1
 ### Replacement of REXML with Nokogiri
 
 RubySaml `1.x` used a combination of REXML and Nokogiri for XML parsing and generation.
-In `2.0.0`, REXML has been replaced with Nokogiri. This change should be transparent
-to most users, however, see note about Custom Metadata Fields below.
+In `2.0.0`, REXML has been replaced with Nokogiri. As a result, there are minor differences
+in how XML is generated, ncluding SAML requests and SP Metadata: 
+
+1. All XML namespace declarations will be on the root node of the XML. Previously,
+   some declarations such as `xmlns:ds` were done on child nodes.
+2. The ordering of attributes on each node may be different.
+
+These differences should not affect how the XML is parsed by various XML parsing libraries.
+However, if you are strictly asserting that the generated XML is an exact string in your tests,
+such tests may need to be adjusted accordingly.
 
 ### Custom Metadata Fields now use Nokogiri XML Builder
 
 If you have added custom fields to your SP metadata generation by overriding
-the `RubySaml::Metadata#add_extras` method, you will need to update your code to use
-[Nokogiri::XML::Builder](https://nokogiri.org/rdoc/Nokogiri/XML/Builder.html) format
-instead of REXML. Here is an example of the new format:
+the `RubySaml::Metadata#add_extras` method, you will need to update your code
+so that the first arg of the method is a
+[Nokogiri::XML::Builder](https://nokogiri.org/rdoc/Nokogiri/XML/Builder.html)
+object. Here is an example of the new format:
 
 ```ruby
 class MyMetadata < RubySaml::Metadata
   private
 
-  def add_extras(xml, _settings)
-    xml['md'].ContactPerson('contactType' => 'technical') do
-      xml['md'].GivenName('ACME SAML Team')
-      xml['md'].EmailAddress('saml@acme.com')
+  def add_extras(builder, _settings)
+    builder.ContactPerson('contactType' => 'technical') do
+      builder.GivenName { builder.text 'ACME SAML Team' }
+      builder.EmailAddress { builder.text 'saml@acme.com' }
     end
   end
 end
@@ -101,7 +110,7 @@ end
 
 RubySaml now always uses double quotes for attribute values when generating XML.
 The `settings.double_quote_xml_attribute_values` parameter now always behaves as `true`,
-and will be removed in RubySaml 2.1.0.
+and will be removed in RubySaml 3.0.0.
 
 The reasons for this change are:
 - RubySaml will use Nokogiri instead of REXML to generate XML. Nokogiri does not support
@@ -154,7 +163,7 @@ a different `sp_uuid_prefix` is passed-in on subsequent calls.
 ### Deprecation of compression settings
 
 The `settings.compress_request` and `settings.compress_response` parameters have been deprecated
-and are no longer functional. They will be removed in RubySaml 2.1.0. Please remove `compress_request`
+and are no longer functional. They will be removed in RubySaml 3.0.0. Please remove `compress_request`
 and `compress_response` everywhere within your project code.
 
 The SAML SP request/response message compression behavior is now controlled automatically by the
@@ -166,13 +175,15 @@ compression may be achieved by enabling `Content-Encoding: gzip` on your webserv
 ### Deprecation of IdP certificate fingerprint settings
 
 The `settings.idp_cert_fingerprint` and `settings.idp_cert_fingerprint_algorithm` are deprecated
-and will be removed in RubySaml 2.1.0. Please use `settings.idp_cert` or `settings.idp_cert_multi` instead.
-The reasons for this deprecation are that (1) fingerprint cannot be used with HTTP-Redirect binding,
-and (2) fingerprint is theoretically susceptible to collision attacks.
+and will be removed in RubySaml 3.0.0. Please use `settings.idp_cert` or `settings.idp_cert_multi` instead.
+
+The reasons for this deprecation are:
+- Fingerprint cannot be used with HTTP-Redirect binding
+- Fingerprint is theoretically susceptible to collision attacks.
 
 ### Other settings deprecations
 
-The following parameters in `RubySaml::Settings` are deprecated and will be removed in RubySaml 2.1.0:
+The following parameters in `RubySaml::Settings` are deprecated and will be removed in RubySaml 3.0.0:
 
 - `#issuer` is deprecated and replaced 1:1 by `#sp_entity_id`
 - `#idp_sso_target_url` is deprecated and replaced 1:1 by `#idp_sso_service_url`
@@ -212,7 +223,7 @@ and `#format_private_key` methods. Specifically:
   stripped out.
 - Case 7: If no valid certificates are found, the entire original string will be returned.
 
-## Updating from 1.17.x to 1.18.0
+## Upgrading from 1.17.x to 1.18.0
 
 Version `1.18.0` changes the way the toolkit validates SAML signatures. There is a new order
 how validation happens in the toolkit and also the toolkit by default will check malformed doc
@@ -222,7 +233,7 @@ The SignedDocument class defined at xml_security.rb experienced several changes.
 We don't expect compatibilty issues if you use the main methods offered by ruby-saml, but if
 you use a fork or customized usage, is possible that you need to adapt your code.
 
-## Updating from 1.12.x to 1.13.0
+## Upgrading from 1.12.x to 1.13.0
 
 Version `1.13.0` adds `settings.idp_sso_service_binding` and `settings.idp_slo_service_binding`, and
 deprecates `settings.security[:embed_sign]`. If specified, new binding parameters will be used in place of `:embed_sign`
