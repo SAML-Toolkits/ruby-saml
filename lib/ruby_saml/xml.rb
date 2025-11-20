@@ -133,6 +133,7 @@ module RubySaml
     end
 
     # Lookup XML digest hashing algorithm.
+    # @return [OpenSSL::Digest::Base] The hash algorithm class
     # @api private
     def hash_algorithm(element)
       alg = get_algorithm_attr(element)

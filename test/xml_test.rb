@@ -256,7 +256,7 @@ class XmlTest < Minitest::Test
         settings
       end
 
-      it "signs an AuthNRequest with a certificate object" do
+      it "signs an AuthnRequest with a certificate object" do
         request_doc = RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
         request_doc = RubySaml::XML::DocumentSigner.sign_document(request_doc, ruby_saml_key, ruby_saml_cert)
 
@@ -264,7 +264,7 @@ class XmlTest < Minitest::Test
         assert RubySaml::XML::SignedDocumentValidator.validate_document(request_doc.to_s, ruby_saml_cert_fingerprint, soft: false)
       end
 
-      it "signs an AuthNRequest with a certificate string" do
+      it "signs an AuthnRequest with a certificate string" do
         request_doc = RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
         request_doc = RubySaml::XML::DocumentSigner.sign_document(request_doc, ruby_saml_key, ruby_saml_cert_text)
 

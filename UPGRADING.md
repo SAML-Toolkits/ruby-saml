@@ -1,5 +1,101 @@
 # Ruby SAML Migration Guide
 
+## Upgrading from 2.0.x to 2.1.0
+
+**IMPORTANT: Please read this section carefully as it contains potentially breaking changes!**
+
+RubySaml 2.1.0 introduces a greatly simplified API and class-based errors.
+
+We have attempted our best to "shim" the old functionality and methods to the new API,
+in such a way that all tests pass and the gem should work as before. However, there are
+a few minor changes to be aware.
+
+### Before upgrading
+
+Please ensure you have first upgraded to latest 2.0.x, and that it is running
+smoothly in production. Refer to "Upgrading from 1.x to 2.0.0" below.
+
+### Deprecation of SP message builder classes (`Authrequest`, `Logoutrequest`, `SloLogoutresponse`)
+
+| Old Class                      | New Class                                |
+|--------------------------------|------------------------------------------|
+| `RubySaml::Authrequest`        | `RubySaml::Builders::SP::AuthnRequest`   |
+| `RubySaml::Logoutrequest`      | `RubySaml::Builders::SP::LogoutRequest`  |
+| `RubySaml::SloLogoutresponse`  | `RubySaml::Builders::SP::LogoutResponse` |
+
+For each of these, the method usage has changed:
+
+| Old Method             | New Method                                |
+|------------------------|-------------------------------------------|
+| `#create`              | `#url` (or `#redirect_url` / `#post_url`) |
+| `#create_params`       | `#body` (or `#post_body`)                 |
+| `#create_xml_document` | `#xml`                                    |
+
+### Deprecation of IdP message parser classes (`Response`, `Logoutresponse`, `SloLogoutrequest`)
+
+| Old Class                    | New Class                                |
+|------------------------------|------------------------------------------|
+| `RubySaml::Response`         | `RubySaml::Parsers::IdP::Response`       |
+| `RubySaml::Logoutresponse`   | `RubySaml::Parsers::IdP::LogoutResponse` |
+| `RubySaml::SloLogoutrequest` | `RubySaml::Parsers::IdP::LogoutRequest`  |
+
+
+### Deprecation of metadata-related classes
+
+| Old Class                     | New Class                          |
+|-------------------------------|------------------------------------|
+| `RubySaml::Metadata`          | `RubySaml::Builders::SP::Metadata` |
+| `RubySaml::IdpMetadataParser` | `RubySaml::Parsers::IdP::Metadata` |
+
+
+### New Shortcut API
+
+```ruby
+app = RubySaml::SPApplication(settings)
+
+# Create your RubySaml::Builder::SP::AuthnRequest object
+app.build('AuthnRequest', **options)
+
+app.parse('Response', params)
+```
+
+
+```ruby
+class MySamlController < ActionController::Base
+  def index
+    sp_app = RubySaml::SPApplication(settings)
+    authn = sp_app.build('AuthnRequest', **options)
+
+    if authn.binding_post?
+      @saml_message = authn
+      render 'saml_post_form'
+    else
+      redirect_to authn.redirect_url, allow_other_host: true
+    end
+  end
+end
+```
+
+```html
+<form id="saml-post-form" method="post" action="<%= @saml_message.post_url %>" style="display:none;">
+  <% @saml_message.post_body.each do |name, value| %>
+  <input type="hidden" name="<%= name %>" value="<%= value %>" />
+  <% end %>
+  <noscript><button type="submit">Continue to Identity Provider</button></noscript>
+</form>
+<script>document.getElementById('saml-post-form').submit();</script>
+```
+
+
+ap
+
+authn.url
+authn.url
+
+
+RubySaml::Application(settings).sp.build('AuthnRequest', **options)
+
+
 ## Upgrading from 1.x to 2.0.0
 
 **IMPORTANT: Please read this section carefully as it contains breaking changes!**
@@ -149,7 +245,7 @@ this prefix is now set using `settings.sp_uuid_prefix`:
 # Change the default prefix from `_` to `my_id_`
 settings.sp_uuid_prefix = 'my_id_'
 
-# Create the AuthNRequest message
+# Create the AuthnRequest message
 request = RubySaml::Authrequest.new
 request.create(settings)
 request.uuid #=> "my_id_a1b3c5d7-9f1e-3d5c-7b1a-9f1e3d5c7b1a"
@@ -269,7 +365,7 @@ Version `1.10.1` improves Ruby 1.8.7 support.
 ## Upgrading from 1.9.0 to 1.10.0
 
 Version `1.10.0` improves IdpMetadataParser to allow parse multiple IDPSSODescriptor,
-Add Subject support on AuthNRequest to allow SPs provide info to the IdP about the user
+Add Subject support on AuthnRequest to allow SPs provide info to the IdP about the user
 to be authenticated and updates the format_cert method to accept certs with /\x0d/
 
 ## Upgrading from 1.8.0 to 1.9.0

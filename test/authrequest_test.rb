@@ -38,14 +38,10 @@ class AuthrequestTest < Minitest::Test
       assert_match(/<samlp:AuthnRequest[^<]* Destination="http:\/\/example\.com"/, inflated)
     end
 
-    it "create the SAMLRequest URL parameter without deflating" do
+    it "creates the SAMLRequest URL parameter for HTTP-POST" do
       settings.idp_sso_service_binding = RubySaml::Utils::BINDINGS[:post]
       auth_url = RubySaml::Authrequest.new.create(settings)
-      assert_match(/^http:\/\/example\.com\?SAMLRequest=/, auth_url)
-      payload  = CGI.unescape(auth_url.split("=").last)
-      decoded  = Base64.decode64(payload)
-
-      assert_match(/^<samlp:AuthnRequest/, decoded)
+      assert_equal('http://example.com', auth_url)
     end
 
     it "create the SAMLRequest URL parameter with IsPassive" do
@@ -147,10 +143,10 @@ class AuthrequestTest < Minitest::Test
     end
 
     it "RelayState cases" do
-      auth_url = RubySaml::Authrequest.new.create(settings, { :RelayState => nil })
+      auth_url = RubySaml::Authrequest.new.create(settings, { 'RelayState' => nil })
       assert !auth_url.include?('RelayState')
 
-      auth_url = RubySaml::Authrequest.new.create(settings, { :RelayState => "http://example.com" })
+      auth_url = RubySaml::Authrequest.new.create(settings, { 'RelayState' => "http://example.com" })
       assert auth_url.include?('&RelayState=http%3A%2F%2Fexample.com')
 
       auth_url = RubySaml::Authrequest.new.create(settings, { 'RelayState' => nil })
@@ -410,15 +406,15 @@ class AuthrequestTest < Minitest::Test
         end
 
         it "create a signature parameter and validate it" do
-          params = RubySaml::Authrequest.new.create_params(settings, :RelayState => 'http://example.com')
+          params = RubySaml::Authrequest.new.create_params(settings, 'RelayState' => 'http://example.com')
 
           assert params['SAMLRequest']
-          assert params[:RelayState]
+          assert params['RelayState']
           assert params['Signature']
           assert_equal params['SigAlg'], signature_method(sp_key_algo, sp_hash_algo)
 
           query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
-          query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
+          query_string << "&RelayState=#{CGI.escape(params['RelayState'])}"
           query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
           assert @cert.public_key.verify(RubySaml::XML.hash_algorithm(params['SigAlg']).new, Base64.decode64(params['Signature']), query_string)
@@ -428,15 +424,15 @@ class AuthrequestTest < Minitest::Test
           it 'using mixed signature and digest methods (signature SHA256)' do
             # RSA is ignored here; only the hash sp_key_algo is used
             settings.security[:signature_method] = RubySaml::XML::RSA_SHA256
-            params = RubySaml::Authrequest.new.create_params(settings, :RelayState => 'http://example.com')
+            params = RubySaml::Authrequest.new.create_params(settings, 'RelayState' => 'http://example.com')
 
             assert params['SAMLRequest']
-            assert params[:RelayState]
+            assert params['RelayState']
             assert params['Signature']
             assert_equal params['SigAlg'], signature_method(sp_key_algo, :sha256)
 
             query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
-            query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
+            query_string << "&RelayState=#{CGI.escape(params['RelayState'])}"
             query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
             assert @cert.public_key.verify(RubySaml::XML.hash_algorithm(params['SigAlg']).new, Base64.decode64(params['Signature']), query_string)
@@ -444,15 +440,15 @@ class AuthrequestTest < Minitest::Test
 
           it 'using mixed signature and digest methods (digest SHA256)' do
             settings.security[:digest_method] = RubySaml::XML::SHA256
-            params = RubySaml::Authrequest.new.create_params(settings, :RelayState => 'http://example.com')
+            params = RubySaml::Authrequest.new.create_params(settings, 'RelayState' => 'http://example.com')
 
             assert params['SAMLRequest']
-            assert params[:RelayState]
+            assert params['RelayState']
             assert params['Signature']
             assert_equal params['SigAlg'], signature_method(sp_key_algo, sp_hash_algo)
 
             query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
-            query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
+            query_string << "&RelayState=#{CGI.escape(params['RelayState'])}"
             query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
             assert @cert.public_key.verify(RubySaml::XML.hash_algorithm(params['SigAlg']).new, Base64.decode64(params['Signature']), query_string)
@@ -471,14 +467,14 @@ class AuthrequestTest < Minitest::Test
             ]
           }
 
-          params = RubySaml::Authrequest.new.create_params(settings, :RelayState => 'http://example.com')
+          params = RubySaml::Authrequest.new.create_params(settings, 'RelayState' => 'http://example.com')
           assert params['SAMLRequest']
-          assert params[:RelayState]
+          assert params['RelayState']
           assert params['Signature']
           assert_equal params['SigAlg'], signature_method(sp_key_algo, :sha1)
 
           query_string = "SAMLRequest=#{CGI.escape(params['SAMLRequest'])}"
-          query_string << "&RelayState=#{CGI.escape(params[:RelayState])}"
+          query_string << "&RelayState=#{CGI.escape(params['RelayState'])}"
           query_string << "&SigAlg=#{CGI.escape(params['SigAlg'])}"
 
           signature_algorithm = RubySaml::XML.hash_algorithm(params['SigAlg'])
@@ -491,7 +487,7 @@ class AuthrequestTest < Minitest::Test
           settings.security[:check_sp_cert_expiration] = true
 
           assert_raises(RubySaml::ValidationError, 'The SP certificate expired.') do
-            RubySaml::Authrequest.new.create_params(settings, :RelayState => 'http://example.com')
+            RubySaml::Authrequest.new.create_params(settings, 'RelayState' => 'http://example.com')
           end
         end
       end

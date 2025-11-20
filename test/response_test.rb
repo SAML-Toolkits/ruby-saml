@@ -272,7 +272,7 @@ class RubySamlTest < Minitest::Test
           opts[:settings] = settings
           opts[:matches_request_id] = "invalid_request_id"
           response_valid_signed = RubySaml::Response.new(response_document_valid_signed, opts)
-          error_msg = "The InResponseTo of the Response: _fc4a34b0-7efb-012e-caae-782bcb13bb38, does not match the ID of the AuthNRequest sent by the SP: invalid_request_id"
+          error_msg = "The InResponseTo of the Response: _fc4a34b0-7efb-012e-caae-782bcb13bb38, does not match the ID of the AuthnRequest sent by the SP: invalid_request_id"
           assert_raises(RubySaml::ValidationError, error_msg) do
             response_valid_signed.is_valid?
           end
@@ -432,7 +432,7 @@ class RubySamlTest < Minitest::Test
           opts[:matches_request_id] = "invalid_request_id"
           response_valid_signed = RubySaml::Response.new(response_document_valid_signed, opts)
           response_valid_signed.is_valid?
-          assert_includes response_valid_signed.errors, "The InResponseTo of the Response: _fc4a34b0-7efb-012e-caae-782bcb13bb38, does not match the ID of the AuthNRequest sent by the SP: invalid_request_id"
+          assert_includes response_valid_signed.errors, "The InResponseTo of the Response: _fc4a34b0-7efb-012e-caae-782bcb13bb38, does not match the ID of the AuthnRequest sent by the SP: invalid_request_id"
         end
 
         it "return false when there is no valid audience" do
@@ -688,7 +688,7 @@ class RubySamlTest < Minitest::Test
       it "return false when the inResponseTo value does not match the Request ID" do
         response = RubySaml::Response.new(response_document_valid_signed, settings: settings, matches_request_id: "invalid_request_id")
         assert !response.send(:validate_in_response_to)
-        assert_includes response.errors, "The InResponseTo of the Response: _fc4a34b0-7efb-012e-caae-782bcb13bb38, does not match the ID of the AuthNRequest sent by the SP: invalid_request_id"
+        assert_includes response.errors, "The InResponseTo of the Response: _fc4a34b0-7efb-012e-caae-782bcb13bb38, does not match the ID of the AuthnRequest sent by the SP: invalid_request_id"
       end
     end
 
