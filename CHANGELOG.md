@@ -21,6 +21,11 @@
 * [#731](https://github.com/SAML-Toolkits/ruby-saml/pull/731) Add CI coverage for Ruby 3.4. Remove CI coverage for Ruby 1.x and 2.x.
 * [#735](https://github.com/SAML-Toolkits/ruby-saml/pull/735) Add `Settings#sp_uuid_prefix` and deprecate `Utils#set_prefix`.
 
+### 1.18.1  (Jul 29, 2025)
+* Fix vulnerability CVE-2025-54572 Prevent DOS due large SAML Message
+* Adapt tests to be able to execute signature validation sooner
+* CI Improvements. Support Ruby 3.4
+
 ### 1.18.0  (Mar 12, 2025)
 * [#750](https://github.com/SAML-Toolkits/ruby-saml/pull/750) Fix vulnerabilities: CVE-2025-25291, CVE-2025-25292: SAML authentication bypass via Signature Wrapping attack allowed due parser differential. Fix vulnerability: CVE-2025-25293: Potential DOS abusing of compressed messages.
 * [#718](https://github.com/SAML-Toolkits/ruby-saml/pull/718/) Add support to retrieve from SAMLResponse the AuthnInstant and AuthnContextClassRef values
@@ -61,7 +66,7 @@
 * [#614](https://github.com/SAML-Toolkits/ruby-saml/pull/614) Support :name_id_format option for IdpMetadataParser
 * [#611](https://github.com/SAML-Toolkits/ruby-saml/pull/611) IdpMetadataParser should always set idp_cert_multi, even when there is only one cert
 * [#610](https://github.com/SAML-Toolkits/ruby-saml/pull/610) New IDP sso/slo binding params which deprecate :embed_sign
-* [#602](https://github.com/SAML-Toolkits/ruby-saml/pull/602) Refactor the OneLogin::RubySaml::Metadata class
+* [#602](https://github.com/SAML-Toolkits/ruby-saml/pull/602) Refactor the RubySaml::Metadata class
 * [#586](https://github.com/SAML-Toolkits/ruby-saml/pull/586) Support milliseconds in cacheDuration parsing
 * [#585](https://github.com/SAML-Toolkits/ruby-saml/pull/585) Do not append " | " to StatusCode unnecessarily
 * [#607](https://github.com/SAML-Toolkits/ruby-saml/pull/607) Clean up
@@ -136,7 +141,7 @@
 * Updated invalid audience error message
 
 ### 1.7.2 (Feb 28, 2018)
-* [#446](https://github.com/SAML-Toolkits/ruby-saml/pull/446) Normalize text returned by OneLogin::RubySaml::Utils.element_text
+* [#446](https://github.com/SAML-Toolkits/ruby-saml/pull/446) Normalize text returned by RubySaml::Utils.element_text
 
 ### 1.7.1 (Feb 28, 2018)
 * [#444](https://github.com/SAML-Toolkits/ruby-saml/pull/444) Fix audience validation for empty audience restriction
@@ -266,7 +271,7 @@
 * [#226](https://github.com/SAML-Toolkits/ruby-saml/pull/226) Ensure IdP certificate is formatted properly
 * [#225](https://github.com/SAML-Toolkits/ruby-saml/pull/225) Add documentation to several methods. Fix xpath injection on xml_security.rb
 * [#223](https://github.com/SAML-Toolkits/ruby-saml/pull/223) Allow logging to be delegated to an arbitrary Logger
-* [#222](https://github.com/SAML-Toolkits/ruby-saml/pull/222) No more silent failure fetching idp metadata (OneLogin::RubySaml::HttpError raised).
+* [#222](https://github.com/SAML-Toolkits/ruby-saml/pull/222) No more silent failure fetching idp metadata (RubySaml::HttpError raised).
 
 ### 0.9.2 (Apr 28, 2015)
 * [#216](https://github.com/SAML-Toolkits/ruby-saml/pull/216) Add fingerprint algorithm support
@@ -314,10 +319,10 @@
 * [#183](https://github.com/SAML-Toolkits/ruby-saml/pull/183) Resolved a security vulnerability where string interpolation in a `REXML::XPath.first()` method call allowed for arbitrary code execution.
 
 ### 0.8.0 (Feb 21, 2014)
-**IMPORTANT**: This release changed namespace of the gem from `OneLogin::Saml` to `OneLogin::RubySaml`.  Please update your implementations of the gem accordingly.
+**IMPORTANT**: This release changed namespace of the gem from `Saml` to `RubySaml`.  Please update your implementations of the gem accordingly.
 
-* [#111](https://github.com/SAML-Toolkits/ruby-saml/pull/111) `Onelogin::` is `OneLogin::`
-* [#108](https://github.com/SAML-Toolkits/ruby-saml/pull/108) Change namespacing from `Onelogin::Saml` to `Onelogin::Rubysaml`
+* [#111](https://github.com/SAML-Toolkits/ruby-saml/pull/111) `` is ``
+* [#108](https://github.com/SAML-Toolkits/ruby-saml/pull/108) Change namespacing from `Saml` to `Rubysaml`
 
 ### 0.7.3 (Feb 20, 2014)
 Updated gem dependencies to be compatible with Ruby 1.8.7-p374 and 1.9.3-p448. Removed unnecessary `canonix` gem dependency.

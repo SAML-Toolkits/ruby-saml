@@ -39,5 +39,5 @@ require 'ruby_saml/pem_formatter'
 require 'ruby_saml/utils'
 require 'ruby_saml/version'
 
-# @deprecated This alias adds compatibility with v1.x and will be removed in v2.1.0
+# @deprecated This alias adds compatibility with v1.x and will be removed in v3.0.0
 OneLogin = Object

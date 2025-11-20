@@ -7,6 +7,7 @@ class RubySamlTest < Minitest::Test
   describe "Response" do
     let(:settings) { RubySaml::Settings.new }
     let(:response) { RubySaml::Response.new(response_document_without_recipient) }
+    let(:response_without_recipient) { RubySaml::Response.new(signed_response_document_without_recipient) }
     let(:response_without_attributes) { RubySaml::Response.new(response_document_without_attributes) }
     let(:response_with_multiple_attribute_statements) { RubySaml::Response.new(fixture(:response_with_multiple_attribute_statements)) }
     let(:response_without_reference_uri) { RubySaml::Response.new(response_document_without_reference_uri) }
@@ -137,8 +138,8 @@ class RubySamlTest < Minitest::Test
 
       it "raise when evil attack vector is present, soft = false " do
         @response.soft = false
-
-        assert_raises(RubySaml::ValidationError) do
+        error_msg = "XML load failed: Dangerous XML detected. No Doctype nodes allowed"
+        assert_raises(RubySaml::ValidationError, error_msg) do
           @response.send(:validate_structure)
         end
       end
@@ -245,13 +246,14 @@ class RubySamlTest < Minitest::Test
 
         it "raise when encountering a condition that prevents the document from being valid" do
           settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
-          response.settings = settings
-          response.soft = false
+          response_without_recipient.settings = settings
+          response_without_recipient.soft = false
           error_msg = "Current time is on or after NotOnOrAfter condition"
           assert_raises(RubySaml::ValidationError, error_msg) do
-            response.is_valid?
+            response_without_recipient.is_valid?
           end
-          assert_includes response.errors[0], error_msg
+          assert !response_without_recipient.errors.empty?
+          assert_includes response_without_recipient.errors[0], error_msg
         end
 
         it "raise when encountering a SAML Response with bad formatted" do
@@ -265,7 +267,7 @@ class RubySamlTest < Minitest::Test
 
         it "raise when the inResponseTo value does not match the Request ID" do
           settings.soft = false
-          settings.idp_cert_fingerprint = signature_fingerprint_1
+          settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
           opts = {}
           opts[:settings] = settings
           opts[:matches_request_id] = "invalid_request_id"
@@ -278,7 +280,7 @@ class RubySamlTest < Minitest::Test
         end
 
         it "raise when there is no valid audience" do
-          settings.idp_cert_fingerprint = signature_fingerprint_1
+          settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
           settings.sp_entity_id = 'invalid'
           response_valid_signed.settings = settings
           response_valid_signed.soft = false
@@ -406,10 +408,11 @@ class RubySamlTest < Minitest::Test
 
         it "return false when encountering a condition that prevents the document from being valid" do
           settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
-          response.settings = settings
+          response_without_recipient.settings = settings
           error_msg = "Current time is on or after NotOnOrAfter condition"
-          assert !response.is_valid?
-          assert_includes response.errors[0], error_msg
+          assert !response_without_recipient.is_valid?
+          assert !response_without_recipient.errors.empty?
+          assert_includes response_without_recipient.errors[0], error_msg
         end
 
         it "return false when encountering a SAML Response with bad formatted" do
@@ -423,7 +426,7 @@ class RubySamlTest < Minitest::Test
 
         it "return false when the inResponseTo value does not match the Request ID" do
           settings.soft = true
-          settings.idp_cert_fingerprint = signature_fingerprint_1
+          settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
           opts = {}
           opts[:settings] = settings
           opts[:matches_request_id] = "invalid_request_id"
@@ -433,7 +436,7 @@ class RubySamlTest < Minitest::Test
         end
 
         it "return false when there is no valid audience" do
-          settings.idp_cert_fingerprint = signature_fingerprint_1
+          settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
           settings.sp_entity_id = 'invalid'
           response_valid_signed.settings = settings
           response_valid_signed.is_valid?
@@ -1746,6 +1749,74 @@ class RubySamlTest < Minitest::Test
         assert_empty response.errors
         assert_equal "test", response.attributes[:uid]
         assert_equal "ZdrjpwEdw22vKoxWAbZB78/gQ7s=", response.attributes.single('urn:oid:1.3.6.1.4.1.5923.1.1.1.10')
+      end
+    end
+
+    describe "DOS attack via oversized payload" do
+      it "rejects oversized payloads before attempting Base64 validation" do
+        large_saml_response = "A" * (RubySaml::Settings::DEFAULTS[:message_max_bytesize] + 100)
+
+        assert_raises(RubySaml::ValidationError, "Encoded SAML Message exceeds #{RubySaml::Settings::DEFAULTS[:message_max_bytesize]} bytes, so was rejected") do
+          RubySaml::Response.new(large_saml_response)
+        end
+      end
+
+      it "rejects oversized payloads before attempting Base64 validation with custom max_bytesize" do
+        custom_max = 10000
+        large_saml_response = "A" * (custom_max + 100)
+        custom_settings = RubySaml::Settings.new({ message_max_bytesize: custom_max })
+
+        assert_raises(RubySaml::ValidationError, "Encoded SAML Message exceeds #{custom_max} bytes, so was rejected") do
+          RubySaml::Response.new(large_saml_response, settings: custom_settings)
+        end
+      end
+    end
+
+    describe "Zlib bomb attack" do
+      it "rejects Zlib bomb attacks" do
+        # Create a message that when inflated would be extremely large
+        bomb_prefix = <<~XML
+          <?xml version='1.0' encoding='UTF-8'?>
+          <samlp:Response xmlns:samlp='urn:oasis:names:tc:SAML:2.0:protocol' xmlns:saml='urn:oasis:names:tc:SAML:2.0:assertion' ID='_test_response_id' Version='2.0' IssueInstant='2014-07-18T01:13:06Z' Destination='http://sp.example.com/saml/acs'>
+          <saml:Issuer>http://idp.example.com/</saml:Issuer>
+          <samlp:Status><samlp:StatusCode Value='urn:oasis:names:tc:SAML:2.0:status:Success'/></samlp:Status>
+          <saml:Assertion xmlns:saml='urn:oasis:names:tc:SAML:2.0:assertion' ID='_test_assertion_id' IssueInstant='2014-07-18T01:13:06Z' Version='2.0'>
+          <saml:Issuer>http://idp.example.com/</saml:Issuer>
+          <saml:Subject><saml:NameID>
+        XML
+
+        bomb_suffix = <<~XML
+          </saml:NameID></saml:Subject>
+          </saml:Assertion>
+          </samlp:Response>
+        XML
+
+        bomb_data = bomb_prefix + 'A' * (200_000 * 1024) + bomb_suffix
+        bomb = Base64.strict_encode64(Zlib::Deflate.deflate(bomb_data, 9)[2..-5])
+
+        assert_raises(RubySaml::ValidationError) do
+          RubySaml::Response.new(bomb)
+        end
+      end
+
+      it "rejects Zlib bomb attacks with custom max_bytesize" do
+        custom_max = 100_000
+        custom_settings = RubySaml::Settings.new({:message_max_bytesize => custom_max})
+
+        bomb_prefix = <<~XML
+          <?xml version='1.0' encoding='UTF-8'?>
+          <samlp:Response xmlns:samlp='urn:oasis:names:tc:SAML:2.0:protocol' ID='_test' Version='2.0'>
+          <saml:Issuer xmlns:saml='urn:oasis:names:tc:SAML:2.0:assertion'>http://idp.example.com/</saml:Issuer>
+        XML
+
+        bomb_suffix = "</samlp:Response>"
+
+        bomb_data = bomb_prefix + 'A' * (custom_max + 100) + bomb_suffix
+        bomb = Base64.strict_encode64(Zlib::Deflate.deflate(bomb_data, 9)[2..-5])
+
+        assert_raises(RubySaml::ValidationError, "SAML Message exceeds #{custom_max} bytes, so was rejected") do
+          RubySaml::Response.new(bomb, settings: custom_settings)
+        end
       end
     end
 

@@ -9,9 +9,18 @@ Ruby SAML minor versions may introduce breaking changes. Please read
 
 ## Vulnerability Notice
 
-There are **critical vulnerabilities** affecting ruby-saml < 1.18.0 which allow
-SAML authentication bypass (CVE-2024-45409, CVE-2025-25291, CVE-2025-25292, CVE-2025-25293).
-**Please upgrade to a fixed version (1.18.0 or 2.0.0) as soon as possible.**
+Please note the following **critical vulnerabilities**:
+
+- CVE-2025-54572 (DOS attack vector) affects version ruby-saml < 1.18.1
+- CVE-2024-45409, CVE-2025-25291, CVE-2025-25292, CVE-2025-25293 (SAML authentication bypass) affects ruby-saml < 1.18.0
+
+**Please upgrade to a fixed version (2.0.0 or 1.18.1) as soon as possible.**
+
+## Sponsors
+
+Thanks to the following sponsors for securing the open source ecosystem,
+
+[<img alt="84codes" src="https://avatars.githubusercontent.com/u/5353257" width="75px">](https://www.84codes.com)
 
 ## Overview
 
@@ -46,7 +55,7 @@ it by email to the maintainer: sixto.martin.garcia+security@gmail.com
 The following Ruby versions are covered by CI testing:
 
 * Ruby (MRI) 3.0 to 3.4
-* JRuby 9.4
+* JRuby 9.4 to 10.0
 * TruffleRuby (latest)
 
 Older Ruby versions are supported on the 1.x release of Ruby SAML.
@@ -929,22 +938,24 @@ or underscore, and can only contain letters, digits, underscores, hyphens, and p
 
 Some IdPs may require to add SPs to add additional fields (Organization, ContactPerson, etc.)
 into the SP metadata. This can be done by extending the `RubySaml::Metadata` class and
-overriding the `#add_extras` method using a Nokogiri XML builder as per the following example:
+overriding the `#add_extras` method where the first arg is a
+[Nokogiri::XML::Builder](https://nokogiri.org/rdoc/Nokogiri/XML/Builder.html) object as per
+the following example:
 
 ```ruby
 class MyMetadata < RubySaml::Metadata
   private
 
   def add_extras(xml, _settings)
-    xml['md'].Organization do
-      xml['md'].OrganizationName('ACME Inc.', 'xml:lang' => 'en-US')
-      xml['md'].OrganizationDisplayName('ACME', 'xml:lang' => 'en-US')
-      xml['md'].OrganizationURL('https://www.acme.com', 'xml:lang' => 'en-US')
+    xml.Organization do
+      xml.OrganizationName('xml:lang' => 'en-US') { xml.text 'ACME Inc.' }
+      xml.OrganizationDisplayName('xml:lang' => 'en-US') { xml.text 'ACME' }
+      xml.OrganizationURL('xml:lang' => 'en-US') { xml.text 'https://www.acme.com' }
     end
 
-    xml['md'].ContactPerson('contactType' => 'technical') do
-      xml['md'].GivenName('ACME SAML Team')
-      xml['md'].EmailAddress('saml@acme.com')
+    xml.ContactPerson('contactType' => 'technical') do
+      xml.GivenName { xml.text 'ACME SAML Team' }
+      xml.EmailAddress { xml.text 'saml@acme.com' }
     end
   end
 end
