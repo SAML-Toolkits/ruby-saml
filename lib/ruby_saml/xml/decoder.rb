@@ -23,7 +23,7 @@ module RubySaml
 
         return message unless base64_encoded?(message)
 
-        message = try_inflate(base64_decode(message))
+        message = try_inflate(base64_decode(message), max_bytesize)
 
         if message.bytesize > max_bytesize # rubocop:disable Style/IfUnlessModifier
           raise ValidationError.new("SAML Message exceeds #{max_bytesize} bytes, so was rejected")
@@ -66,18 +66,48 @@ module RubySaml
 
       # Attempt inflating a string, if it fails, return the original string.
       # @param data [String] The string
+      # @param max_bytesize [Integer] The maximum allowed size of the SAML Message,
+      #   to prevent a possible DoS attack.
       # @return [String] The inflated or original string
-      def try_inflate(data)
-        inflate(data)
+      def try_inflate(data, max_bytesize = nil)
+        inflate(data, max_bytesize)
       rescue Zlib::Error
         data
       end
 
       # Inflate method.
       # @param deflated [String] The string
+      # @param max_bytesize [Integer] The maximum allowed size of the SAML Message,
+      #   to prevent a possible DoS attack.
       # @return [String] The inflated string
-      def inflate(deflated)
-        Zlib::Inflate.new(-Zlib::MAX_WBITS).inflate(deflated)
+      def inflate(deflated, max_bytesize = nil)
+        unless max_bytesize.nil?
+          inflater = Zlib::Inflate.new(-Zlib::MAX_WBITS)
+
+          # Use a StringIO buffer to build the inflated message incrementally.
+          buffer = StringIO.new
+
+          inflater.inflate(deflated) do |chunk|
+            if buffer.length + chunk.bytesize > max_bytesize
+              inflater.close
+              raise ValidationError, "SAML Message exceeds #{max_bytesize} bytes during decompression, so was rejected"
+            end
+            buffer << chunk
+          end
+
+          final_chunk = inflater.finish
+          unless final_chunk.empty?
+            if buffer.length + final_chunk.bytesize > max_bytesize
+              raise ValidationError, "SAML Message exceeds #{max_bytesize} bytes during decompression, so was rejected"
+            end
+            buffer << final_chunk
+          end
+
+          inflater.close
+          buffer.string
+        else
+          Zlib::Inflate.new(-Zlib::MAX_WBITS).inflate(deflated)
+        end
       end
 
       # Deflate method.
