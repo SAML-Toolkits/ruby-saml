@@ -123,7 +123,7 @@ class RubySamlTest < Minitest::Test
           assert_includes logoutresponse.errors, "The status code of the Logout Response was not Success, was Requester -> Logoutrequest expired"
         end
 
-        it "invalidate logout response when in lack of sp_entity_id setting" do
+        it "invalidate logout response when the sp_entity_id setting is missing" do
           bad_settings = settings
           bad_settings.issuer = nil
           bad_settings.sp_entity_id = nil
@@ -304,7 +304,7 @@ class RubySamlTest < Minitest::Test
             )
             # Modify the query string so that it encodes the same values,
             # but with different percent-encoding. Sanity-check that they
-            # really are equialent before moving on.
+            # really are equivalent before moving on.
             original_query = query.dup
             query.gsub!("example", "ex%61mple")
 
@@ -340,14 +340,14 @@ class RubySamlTest < Minitest::Test
             )
             # Modify the query string so that it encodes the same values,
             # but with different percent-encoding. Sanity-check that they
-            # really are equialent before moving on.
+            # really are equivalent before moving on.
             original_query = query.dup
             query.gsub!("example", "ex%61mple")
 
             refute_equal(query, original_query)
             assert_equal(CGI.unescape(query), CGI.unescape(original_query))
 
-            # Make normalised signature based on our modified params.
+            # Make normalized signature based on our modified params.
             hash_algorithm = RubySaml::XML.hash_algorithm(settings.security[:signature_method])
             signature = settings.get_sp_signing_key.sign(hash_algorithm.new, query)
             params['Signature'] = Base64.strict_encode64(signature)
@@ -369,7 +369,7 @@ class RubySamlTest < Minitest::Test
               settings.idp_cert = nil
             end
 
-            it "return true when at least a idp_cert is valid" do
+            it "return true when at least one IdP cert is valid" do
               params['RelayState'] = params[:RelayState]
               options = {}
               options[:get_params] = params
@@ -382,7 +382,7 @@ class RubySamlTest < Minitest::Test
               assert logoutresponse_sign_test.send(:validate_signature)
             end
 
-            it "return false when cert expired and check_idp_cert_expiration expired" do
+            it "return false when cert is expired and check_idp_cert_expiration is enabled" do
               settings.security[:check_idp_cert_expiration] = true
               settings.idp_cert = nil
               settings.idp_cert_multi = {

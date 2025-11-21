@@ -538,7 +538,7 @@ class IdpMetadataParserTest < Minitest::Test
       assert_equal entity_id, settings.idp_entity_id
     end
 
-    it "should retreive data" do
+    it "should retrieve data" do
       assert_equal "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified", @settings.name_identifier_format
       assert_equal "https://hello.example.com/access/saml/login", @settings.idp_sso_service_url
       assert_equal "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", @settings.idp_sso_service_binding
@@ -566,7 +566,7 @@ class IdpMetadataParserTest < Minitest::Test
       @idp_metadata = no_idp_metadata_descriptor
     end
 
-    it "raise due no IDPSSODescriptor element" do
+    it "raise due to no IDPSSODescriptor element" do
         assert_raises(ArgumentError) { @idp_metadata_parser.parse(@idp_metadata) }
     end
   end
@@ -578,7 +578,7 @@ class IdpMetadataParserTest < Minitest::Test
       @settings = @idp_metadata_parser.parse(@idp_metadata)
     end
 
-    it "should return a idp_cert_multi and no idp_cert and no idp_cert_fingerprint" do
+    it "should return an idp_cert_multi and no idp_cert and no idp_cert_fingerprint" do
       assert_nil @settings.idp_cert
       assert_nil @settings.idp_cert_fingerprint
 
@@ -649,7 +649,7 @@ WQO0LPxPqRiUqUzyhDhLo/xXNrHCu4VbMw=="]
       @settings = @idp_metadata_parser.parse(@idp_metadata)
     end
 
-    it "should return a idp_cert_multi and no idp_cert and no idp_cert_fingerprint" do
+    it "should return an idp_cert_multi and no idp_cert and no idp_cert_fingerprint" do
       assert_nil @settings.idp_cert
       assert_nil @settings.idp_cert_fingerprint
 
@@ -742,7 +742,7 @@ QOPR6cEwFZzP0tHTYbI839WgxX6hfhIUTUz6mLqq4+3P4BG3+1OXeVDg63y8Uh78
       @settings = @idp_metadata_parser.parse(@idp_metadata)
     end
 
-    it "should return a idp_cert_multi and no idp_cert and no idp_cert_fingerprint" do
+    it "should return an idp_cert_multi and no idp_cert and no idp_cert_fingerprint" do
       assert_nil @settings.idp_cert
       assert_nil @settings.idp_cert_fingerprint
 
@@ -806,7 +806,7 @@ WQO0LPxPqRiUqUzyhDhLo/xXNrHCu4VbMw=="]
   end
 
   describe "metadata with different singlelogout response location" do
-    it "should return the responselocation if it exists" do
+    it "should return the responseLocation if it exists" do
       idp_metadata_parser = RubySaml::IdpMetadataParser.new
 
       settings = idp_metadata_parser.parse(idp_different_slo_response_location)
@@ -816,7 +816,7 @@ WQO0LPxPqRiUqUzyhDhLo/xXNrHCu4VbMw=="]
       assert_equal "https://hello.example.com/access/saml/logout/return", settings.idp_slo_response_service_url
     end
 
-    it "should set the responselocation to nil if it doesnt exist" do
+    it "should set the responseLocation to nil if it doesn't exist" do
       idp_metadata_parser = RubySaml::IdpMetadataParser.new
 
       settings = idp_metadata_parser.parse(idp_without_slo_response_location)

@@ -102,7 +102,7 @@ module RubySaml
 
     # Make comparable to another Attributes collection based on attributes
     # @param other [Attributes] An Attributes object to compare with
-    # @return [Boolean] True if are contains the same attributes and values
+    # @return [Boolean] True if it contains the same attributes and values
     #
     def ==(other)
       if other.is_a?(Attributes)

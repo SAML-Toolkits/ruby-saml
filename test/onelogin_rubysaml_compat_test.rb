@@ -107,7 +107,7 @@ class OneLoginRubySamlCompatTest < Minitest::Test
       let(:response_no_status) { OneLogin::RubySaml::Response.new(read_invalid_response("no_status.xml.base64")) }
       let(:response_no_statuscode) { OneLogin::RubySaml::Response.new(read_invalid_response("no_status_code.xml.base64")) }
       let(:response_statuscode_responder) { OneLogin::RubySaml::Response.new(read_invalid_response("status_code_responder.xml.base64")) }
-      let(:response_statuscode_responder_and_msg) { OneLogin::RubySaml::Response.new(read_invalid_response("status_code_responer_and_msg.xml.base64")) }
+      let(:response_statuscode_responder_and_msg) { OneLogin::RubySaml::Response.new(read_invalid_response("status_code_responder_and_msg.xml.base64")) }
       let(:response_double_statuscode) { OneLogin::RubySaml::Response.new(response_document_double_status_code) }
       let(:response_encrypted_attrs) { OneLogin::RubySaml::Response.new(response_document_encrypted_attrs) }
       let(:response_no_signed_elements) { OneLogin::RubySaml::Response.new(read_invalid_response("no_signature.xml.base64")) }
@@ -182,7 +182,7 @@ class OneLoginRubySamlCompatTest < Minitest::Test
           @response.settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
         end
 
-        it "it normalizes CDATA but reject SAMLResponse due signature invalidation" do
+        it "it normalizes CDATA but rejects the SAMLResponse due to signature invalidation" do
           assert_equal "test@onelogin.com.evil.com", @response.name_id
           assert !@response.is_valid?
           assert_includes @response.errors, "Invalid Signature on SAML Response"

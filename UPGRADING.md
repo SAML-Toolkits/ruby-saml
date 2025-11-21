@@ -238,7 +238,7 @@ how validation happens in the toolkit and also the toolkit by default will check
 when parsing a SAML Message (`settings.check_malformed_doc`).
 
 The SignedDocument class defined at xml_security.rb experienced several changes.
-We don't expect compatibilty issues if you use the main methods offered by ruby-saml, but if
+We don't expect compatibility issues if you use the main methods offered by ruby-saml, but if
 you use a fork or customized usage, it is possible that you will need to adapt your code.
 
 ## Upgrading from 1.12.x to 1.13.0
@@ -276,7 +276,7 @@ Version `1.10.1` improves Ruby 1.8.7 support.
 
 ## Upgrading from 1.9.0 to 1.10.0
 
-Version `1.10.0` improves IdpMetadataParser to allow parse multiple IDPSSODescriptor,
+Version `1.10.0` improves IdpMetadataParser to allow parsing multiple IDPSSODescriptor,
 Add Subject support on AuthNRequest to allow SPs provide info to the IdP about the user
 to be authenticated and updates the format_cert method to accept certs with /\x0d/
 

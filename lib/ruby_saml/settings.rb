@@ -130,7 +130,7 @@ module RubySaml
       end
     end
 
-    # @return [OpenSSL::X509::Certificate|nil] Build the IdP certificate from the settings (previously format it)
+    # @return [OpenSSL::X509::Certificate|nil] Build the IdP certificate from the settings (previously formatting it)
     #
     def get_idp_cert
       RubySaml::Utils.build_cert_object(idp_cert)
@@ -190,7 +190,7 @@ module RubySaml
       node[0] if node
     end
 
-    # @return [OpenSSL::PKey::RSA] The SP signing key.
+    # @return [OpenSSL::PKey::PKey] The SP signing key.
     def get_sp_signing_key
       node = get_sp_signing_pair
       node[1] if node

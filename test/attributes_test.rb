@@ -6,10 +6,10 @@ class AttributesTest < Minitest::Test
   describe 'Attributes' do
     let(:attributes) do
       RubySaml::Attributes.new({
-        'email' => ['tom@hanks.com'],
-        'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname' => ['Tom'],
-        'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname' => ['Hanks']
-      })
+                                 'email' => ['tom@hanks.com'],
+                                 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname' => ['Tom'],
+                                 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname' => ['Hanks']
+                               })
     end
 
     it 'fetches string attribute' do
