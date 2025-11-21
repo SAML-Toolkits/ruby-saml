@@ -61,7 +61,7 @@ module RubySaml
       # @param string [String] string to check the encoding of
       # @return [true, false] whether or not the string is base64 encoded
       def base64_encoded?(string)
-        string.gsub(/[\s\r\n]|\\r|\\n/, '').match?(BASE64_FORMAT)
+        string.gsub(/\s|\\r|\\n/, '').match?(BASE64_FORMAT)
       end
 
       # Attempt inflating a string, if it fails, return the original string.
