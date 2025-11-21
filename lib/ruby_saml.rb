@@ -20,5 +20,17 @@ require 'ruby_saml/pem_formatter'
 require 'ruby_saml/utils'
 require 'ruby_saml/version'
 
-# @deprecated This alias adds compatibility with v1.x and will be removed in v3.0.0
-OneLogin = Object
+# @deprecated This module adds compatibility with v1.x and will be removed in v3.0.0
+unless defined?(::OneLogin)
+    module OneLogin
+        RubySaml = ::RubySaml
+    end
+end
+
+unless defined?(::OneLogin::RubySaml::Logging)
+    module OneLogin
+        module RubySaml
+            Logging = ::RubySaml::Logging
+        end
+    end
+end

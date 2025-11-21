@@ -2,16 +2,34 @@
 
 require_relative 'test_helper'
 
-class OneloginAliasTest < Minitest::Test
+class OneLoginRubySamlCompatTest < Minitest::Test
 
-  describe 'legacy OneLogin namespace alias' do
+  describe 'legacy OneLogin namespace compatibility' do
 
-    describe 'equality with Object' do
-      it "should be equal" do
-        assert_equal OneLogin, Object
-        assert_equal ::OneLogin, Object
-        assert_equal OneLogin::RubySaml, OneLogin::RubySaml
+    describe 'namespace equality' do
+      it "defines OneLogin::RubySaml as an alias to the RubySaml module" do
+        assert defined?(OneLogin::RubySaml), "Expected OneLogin::RubySaml to be defined"
         assert_equal ::OneLogin::RubySaml, ::RubySaml
+        assert_equal RubySaml.object_id, OneLogin::RubySaml.object_id, "Expected OneLogin::RubySaml to alias RubySaml"
+      end
+
+      it "exposes Logging under OneLogin::RubySaml::Logging as an alias to RubySaml::Logging" do
+        assert defined?(OneLogin::RubySaml::Logging), "Expected OneLogin::RubySaml::Logging to be defined"
+        assert_equal ::OneLogin::RubySaml::Logging, ::RubySaml::Logging
+        assert_equal RubySaml::Logging.object_id, OneLogin::RubySaml::Logging.object_id, "Expected OneLogin::RubySaml::Logging to alias RubySaml::Logging"
+      end
+
+      it "shares the same logger instance between RubySaml::Logging and OneLogin::RubySaml::Logging" do
+        logger = mock("Logger")
+
+        RubySaml::Logging.logger = logger
+        assert_same logger, OneLogin::RubySaml::Logging.logger
+
+        other_logger = mock("OtherLogger")
+        OneLogin::RubySaml::Logging.logger = other_logger
+        assert_same other_logger, RubySaml::Logging.logger
+      ensure
+        RubySaml::Logging.logger = ::TEST_LOGGER
       end
     end
 

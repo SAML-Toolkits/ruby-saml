@@ -33,8 +33,15 @@ the class names themselves have intentionally been kept the same.
 Note that the project folder structure has also been updated accordingly. Notably, the directory
 `lib/onelogin/schemas` is now `lib/ruby_saml/schemas`.
 
-For backward compatibility, the alias `OneLogin = Object` has been set, so `RubySaml::` will still work
-as before. This alias will be removed in RubySaml version `3.0.0`.
+For backward compatibility, a module is defined at lib/ruby_saml.rb, so `RubySaml::` will still work
+as before. This module will be removed in RubySaml version `3.0.0`.
+```
+unless defined?(::OneLogin)
+    module OneLogin
+        RubySaml = ::RubySaml
+    end
+end
+```
 
 
 ### Deprecation and removal of "XMLSecurity" namespace
