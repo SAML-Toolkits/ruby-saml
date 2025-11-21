@@ -31,7 +31,7 @@ Response assertions from Identity Providers (IdPs).
 **Important:** This libary does not support the IdP-side of SAML authentication,
 such as creating SAML Response messages to assert a user's identity.
 
-A Rails 4 reference implemenation is avaiable at the
+A Rails 4 reference implementation is available at the
 [Ruby SAML Demo Project](https://github.com/saml-toolkits/ruby-saml-example).
 
 ### Vulnerability Reporting
@@ -46,9 +46,10 @@ it by email to the maintainer: sixto.martin.garcia+security@gmail.com
   and from a trusted source. Ruby SAML does not perform any validation that the URL
   you entered is correct and/or safe.
 - **False-Positive Security Warnings:** Some tools may incorrectly report Ruby SAML as a
-  potential security vulnerability, due to it's dependency on Nokogiri. Such warnings can
+  potential security vulnerability, due to its dependency on Nokogiri. Such warnings can
   be ignored; Ruby SAML uses Nokogiri in a safe way, by always disabling its DTDLOAD option
   and enabling its NONET option.
+- **Prevent Replay attacks:** A replay attack is when an attacker intercepts a valid SAML assertion and "replays" it at a later time to gain unauthorized access. The `ruby-saml` library provides the tools to prevent this, but **you, the developer, must implement the core logic**, see an specific section later in the README.
 
 ### Supported Ruby Versions
 
@@ -179,7 +180,7 @@ def saml_settings
 end
 ```
 
-The use of settings.issuer is deprecated in favour of settings.sp_entity_id since version 1.11.0
+The use of settings.issuer is deprecated in favor of settings.sp_entity_id since version 1.11.0
 
 Some assertion validations can be skipped by passing parameters to `RubySaml::Response.new()`.
 For example, you can skip the `AuthnStatement`, `Conditions`, `Recipient`, or the `SubjectConfirmation`
@@ -255,13 +256,13 @@ Ruby SAML allows different ways to validate the signature of the SAML Response:
   `idp_cert_fingerprint` and `idp_cert_fingerprint_algorithm` parameters.
 
 In addition, you may pass the option `:relax_signature_validation` to `SloLogoutrequest` and
-`Logoutresponse` if want to skip signature validation on logout.
+`Logoutresponse` if you want to skip signature validation on logout.
 
 The `idp_cert_fingerprint` option is deprecated for the following reasons. It will be
 removed in Ruby SAML version 2.1.0.
 1. It only works with HTTP-POST binding, not HTTP-Redirect, since the full certificate
    is not sent in the Redirect URL parameters.
-2. It is theoretically be susceptible to collision attacks, by which a malicious
+2. It is theoretically susceptible to collision attacks, by which a malicious
    actor could impersonate the IdP. (However, as of January 2025, such attacks have not
    been publicly demonstrated for SHA-256.)
 3. It has been removed already from several other SAML libraries in other languages.
@@ -365,8 +366,7 @@ Those return an Hash instead of a `Settings` object, which may be useful for con
 
 ### Validating Signature of Metadata and retrieve settings
 
-Right now there is no method at ruby_saml to validate the signature of the metadata that gonna be parsed,
-but it can be done as follows:
+Right now there is no method at ruby_saml to validate the signature of the metadata that is going to be parsed, but it can be done as follows:
 * Download the XML.
 * Validate the Signature, providing the cert.
 * Provide the XML to the parse method if the signature was validated
@@ -403,7 +403,7 @@ if valid
     entity_id: "<entity_id_of_the_entity_to_be_retrieved>"
   )
 else
-  print "Metadata Signarture failed to be verified with the cert provided"
+  print "Metadata Signature failed to be verified with the cert provided"
 end
 ```
 
@@ -632,7 +632,7 @@ settings.security[:logout_requests_signed]  = true  # Enable signature on Logout
 settings.security[:logout_responses_signed] = true  # Enable signature on Logout Response
 ```
 
-Signatures will be handled automatically for both `HTTP-Redirect` and `HTTP-Redirect` Binding.
+Signatures will be handled automatically for both `HTTP-POST` and `HTTP-Redirect` Binding.
 Note that the RelayState parameter is used when creating the Signature on the `HTTP-Redirect` Binding.
 Remember to provide it to the Signature builder if you are sending a `GET RelayState` parameter or the
 signature validation process will fail at the IdP.
@@ -655,7 +655,7 @@ settings.security[:want_assertions_encrypted] = true # Invalidate SAML messages 
 ### Verifying Signature on IdP Assertions
 
 You may require the IdP to sign its SAML Assertions using the following setting.
-With will add `<md:SPSSODescriptor WantAssertionsSigned="true">` to your SP Metadata XML.
+This will add `<md:SPSSODescriptor WantAssertionsSigned="true">` to your SP Metadata XML.
 The signature will be checked against the `<md:KeyDescriptor use="signing">` element
 present in the IdP's metadata.
 
@@ -729,7 +729,7 @@ JRuby cannot support ECDSA due to a [known issue](https://github.com/jruby/jruby
 ### Audience Validation
 
 A service provider should only consider a SAML response valid if the IdP includes an <AudienceRestriction>
-element containting an <Audience> element that uniquely identifies the service provider. Unless you specify
+element containing an <Audience> element that uniquely identifies the service provider. Unless you specify
 the `skip_audience` option, Ruby SAML will validate that each SAML response includes an <Audience> element
 whose contents matches `settings.sp_entity_id`.
 
@@ -762,7 +762,7 @@ def sp_logout_request
   settings = saml_settings
 
   if settings.idp_slo_service_url.nil?
-    logger.info "SLO IdP Endpoint not found in settings, executing then a normal logout'"
+    logger.info "SLO IdP Endpoint not found in settings, then executing a normal logout'"
     delete_session
   else
 
@@ -936,7 +936,7 @@ or underscore, and can only contain letters, digits, underscores, hyphens, and p
 
 ### Custom Metadata Fields
 
-Some IdPs may require to add SPs to add additional fields (Organization, ContactPerson, etc.)
+Some IdPs may require SPs to add additional fields (Organization, ContactPerson, etc.)
 into the SP metadata. This can be done by extending the `RubySaml::Metadata` class and
 overriding the `#add_extras` method where the first arg is a
 [Nokogiri::XML::Builder](https://nokogiri.org/rdoc/Nokogiri/XML/Builder.html) object as per
