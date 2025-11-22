@@ -687,7 +687,7 @@ advanced usage scenarios:
 - Specifying separate SP certificates for signing and encryption.
 
 The `sp_cert_multi` parameter replaces `certificate` and `private_key`
-(you may not specify both pparameters at the same time.) `sp_cert_multi` has the following shape:
+(you may not specify both parameters at the same time.) `sp_cert_multi` has the following shape:
 
 ```ruby
 settings.sp_cert_multi = {
@@ -910,7 +910,7 @@ end
 
 ### Attribute Service
 
-To request attributes from the IdP the SP needs to provide an attribute service within it's metadata and reference the index in the assertion.
+To request attributes from the IdP the SP needs to provide an attribute service within its metadata and reference the index in the assertion.
 
 ```ruby
 settings = RubySaml::Settings.new
@@ -962,6 +962,111 @@ end
 
 # Output XML with custom metadata
 MyMetadata.new.generate(settings)
+```
+
+### Preventing Replay Attacks
+
+A replay attack is when an attacker intercepts a valid SAML assertion and "replays" it at a later time to gain unauthorized access.
+
+The library only checks the assertion's validity window (`NotBefore` and `NotOnOrAfter` conditions). An attacker can replay a valid assertion as many times as they want within this window.
+
+A robust defense requires tracking of assertion IDs to ensure any given assertion is only accepted once.
+
+#### 1. Extract the Assertion ID after Validation
+
+After a response has been successfully validated, get the assertion ID. The library makes this available via `response.assertion_id`.
+
+
+#### 2. Store the ID with an Expiry
+
+You must store this ID in a persistent cache (like Redis or Memcached) that is shared across your servers. Do not store it in the user's session, as that is not a secure cache.
+
+The ID should be stored until the assertion's validity window has passed. You will need to check how long the trusted IdPs consider the assertion valid and then add the allowed_clock_drift.
+
+You can define a global value, or set this value dinamically based on the `not_on_or_after` value of the re + `allowed_clock_drift`.
+
+```ruby
+# In your `consume` action, after a successful validation:
+if response.is_valid?
+  # Prevent replay of this specific assertion
+  assertion_id = response.assertion_id
+  authorize_failure("Assertion ID is mandatory") if assertion_id.nil?
+
+  assertion_not_on_or_after = response.not_on_or_after
+  # We set a default of 5 min expiration in case is not provided
+  assertion_expiry = (Time.now.utc + 300) if assertion_not_on_or_after.nil?
+
+  # `is_new_assertion?` is your application's method to check and set the ID
+  # in a shared, persistent cache (e.g., Redis, Memcached).
+  if is_new_assertion?(assertion_id, expires_at: assertion_expiry)
+    # This is a new assertion, so we can proceed
+    session[:userid] = response.nameid
+    session[:attributes] = response.attributes
+    # ...
+  else
+    # This assertion ID has been seen before. This is a REPLAY ATTACK.
+    # Log the security event and reject the user.
+    authorize_failure("Replay attack detected")
+  end
+else
+  authorize_failure("Invalid response")
+end
+```
+
+Your `is_new_assertion?` method would look something like this (example for Redis):
+
+```ruby
+
+def is_new_assertion?(assertion_id, expires_at)
+  ttl = (expires_at - Time.now.utc).to_i
+  return false if ttl <= 0 # The assertion has already expired
+
+  # The 'nx' option tells Redis to only set the key if it does not already exist.
+  # The command returns `true` if the key was set, `false` otherwise.
+  $redis.set("saml_assertion_ids:#{assertion_id}", "1", ex: ttl, nx: true)
+end
+```
+
+### Enforce SP-Initiated Flow with `InResponseTo` validation
+
+This is the best way to prevent IdP-initiated logins and ensure that you only accept assertions that you recently requested.
+
+#### 1. Store the `AuthnRequest` ID
+
+When you create an `AuthnRequest`, the library assigns it a unique ID. You must store this ID, for example in the user's session *before* redirecting them to the IdP.
+
+```ruby
+def init
+  request = OneLogin::RubySaml::Authrequest.new
+  # The unique ID of the request is in request.uuid
+  session[:saml_request_id] = request.uuid
+  redirect_to(request.create(saml_settings))
+end
+```
+
+#### 2. Validate the `InResponseTo` value of the `Response` with the Stored ID
+
+When you process the `SAMLResponse`, retrieve the ID from the session and pass it to the `Response` constructor. Use `session.delete` to ensure the ID can only be used once.
+
+```ruby
+def consume
+  request_id = session.delete(:saml_request_id) # Use delete to prevent re-use
+
+  # You can reject the response if no previous saml_request_id was stored
+  raise "IdP-initiaited detected" if request_id.nil?
+
+  response = OneLogin::RubySaml::Response.new(
+    params[:SAMLResponse],
+    settings: saml_settings,
+    matches_request_id: request_id
+  )
+
+  if response.is_valid?
+    # ... authorize user
+  else
+    # Response is invalid, errors in response.errors
+  end
+end
 ```
 
 ## Contributing
