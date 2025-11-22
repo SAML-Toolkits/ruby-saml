@@ -25,7 +25,7 @@ class SloLogoutresponseTest < Minitest::Test
       assert_match(/^<samlp:LogoutResponse/, inflated)
     end
 
-    it "support additional params" do
+    it "supports additional params" do
       unauth_url = RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, nil, { :hello => nil })
       assert_match(/&hello=$/, unauth_url)
 
@@ -149,7 +149,7 @@ class SloLogoutresponseTest < Minitest::Test
           refute_match(/<ds:DigestMethod/, inflated)
         end
 
-        it "signs an unsigned request" do
+        it "signs an unsigned response" do
           unauth_res = RubySaml::SloLogoutresponse.new
           unauth_res_doc = unauth_res.create_xml_document(settings)
           inflated = unauth_res_doc.to_s

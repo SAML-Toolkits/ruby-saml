@@ -2,16 +2,34 @@
 
 require_relative 'test_helper'
 
-class OneloginAliasTest < Minitest::Test
+class OneLoginRubySamlCompatTest < Minitest::Test
 
-  describe 'legacy OneLogin namespace alias' do
+  describe 'legacy OneLogin namespace compatibility' do
 
-    describe 'equality with Object' do
-      it "should be equal" do
-        assert_equal OneLogin, Object
-        assert_equal ::OneLogin, Object
-        assert_equal OneLogin::RubySaml, OneLogin::RubySaml
+    describe 'namespace equality' do
+      it "defines OneLogin::RubySaml as an alias to the RubySaml module" do
+        assert defined?(OneLogin::RubySaml), "Expected OneLogin::RubySaml to be defined"
         assert_equal ::OneLogin::RubySaml, ::RubySaml
+        assert_equal RubySaml.object_id, OneLogin::RubySaml.object_id, "Expected OneLogin::RubySaml to alias RubySaml"
+      end
+
+      it "exposes Logging under OneLogin::RubySaml::Logging as an alias to RubySaml::Logging" do
+        assert defined?(OneLogin::RubySaml::Logging), "Expected OneLogin::RubySaml::Logging to be defined"
+        assert_equal ::OneLogin::RubySaml::Logging, ::RubySaml::Logging
+        assert_equal RubySaml::Logging.object_id, OneLogin::RubySaml::Logging.object_id, "Expected OneLogin::RubySaml::Logging to alias RubySaml::Logging"
+      end
+
+      it "shares the same logger instance between RubySaml::Logging and OneLogin::RubySaml::Logging" do
+        logger = mock("Logger")
+
+        RubySaml::Logging.logger = logger
+        assert_same logger, OneLogin::RubySaml::Logging.logger
+
+        other_logger = mock("OtherLogger")
+        OneLogin::RubySaml::Logging.logger = other_logger
+        assert_same other_logger, RubySaml::Logging.logger
+      ensure
+        RubySaml::Logging.logger = ::TEST_LOGGER
       end
     end
 
@@ -89,7 +107,7 @@ class OneloginAliasTest < Minitest::Test
       let(:response_no_status) { OneLogin::RubySaml::Response.new(read_invalid_response("no_status.xml.base64")) }
       let(:response_no_statuscode) { OneLogin::RubySaml::Response.new(read_invalid_response("no_status_code.xml.base64")) }
       let(:response_statuscode_responder) { OneLogin::RubySaml::Response.new(read_invalid_response("status_code_responder.xml.base64")) }
-      let(:response_statuscode_responder_and_msg) { OneLogin::RubySaml::Response.new(read_invalid_response("status_code_responer_and_msg.xml.base64")) }
+      let(:response_statuscode_responder_and_msg) { OneLogin::RubySaml::Response.new(read_invalid_response("status_code_responder_and_msg.xml.base64")) }
       let(:response_double_statuscode) { OneLogin::RubySaml::Response.new(response_document_double_status_code) }
       let(:response_encrypted_attrs) { OneLogin::RubySaml::Response.new(response_document_encrypted_attrs) }
       let(:response_no_signed_elements) { OneLogin::RubySaml::Response.new(read_invalid_response("no_signature.xml.base64")) }
@@ -164,7 +182,7 @@ class OneloginAliasTest < Minitest::Test
           @response.settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
         end
 
-        it "it normalizes CDATA but reject SAMLResponse due signature invalidation" do
+        it "it normalizes CDATA but rejects the SAMLResponse due to signature invalidation" do
           assert_equal "test@onelogin.com.evil.com", @response.name_id
           assert !@response.is_valid?
           assert_includes @response.errors, "Invalid Signature on SAML Response"
