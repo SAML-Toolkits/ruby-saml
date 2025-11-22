@@ -81,7 +81,9 @@ module RubySaml
       #   to prevent a possible DoS attack.
       # @return [String] The inflated string
       def inflate(deflated, max_bytesize = nil)
-        unless max_bytesize.nil?
+        if max_bytesize.nil?
+          Zlib::Inflate.new(-Zlib::MAX_WBITS).inflate(deflated)
+        else
           inflater = Zlib::Inflate.new(-Zlib::MAX_WBITS)
 
           # Use a StringIO buffer to build the inflated message incrementally.
@@ -90,23 +92,20 @@ module RubySaml
           inflater.inflate(deflated) do |chunk|
             if buffer.length + chunk.bytesize > max_bytesize
               inflater.close
-              raise ValidationError, "SAML Message exceeds #{max_bytesize} bytes during decompression, so was rejected"
+              raise ValidationError.new("SAML Message exceeds #{max_bytesize} bytes during decompression, so was rejected")
             end
             buffer << chunk
           end
 
           final_chunk = inflater.finish
           unless final_chunk.empty?
-            if buffer.length + final_chunk.bytesize > max_bytesize
-              raise ValidationError, "SAML Message exceeds #{max_bytesize} bytes during decompression, so was rejected"
-            end
+            raise ValidationError.new("SAML Message exceeds #{max_bytesize} bytes during decompression, so was rejected") if buffer.length + final_chunk.bytesize > max_bytesize
+
             buffer << final_chunk
           end
 
           inflater.close
           buffer.string
-        else
-          Zlib::Inflate.new(-Zlib::MAX_WBITS).inflate(deflated)
         end
       end
 
