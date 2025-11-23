@@ -18,7 +18,7 @@ module OneLogin
       ASSERTION = "urn:oasis:names:tc:SAML:2.0:assertion".freeze
       PROTOCOL  = "urn:oasis:names:tc:SAML:2.0:protocol".freeze
 
-      BASE64_FORMAT = %r(\A([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?\Z)
+      BASE64_FORMAT = %r{\A([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?\Z}
 
       # @return [Nokogiri::XML::Schema] Gets the schema object of the SAML 2.0 Protocol schema
       #
@@ -91,18 +91,13 @@ module OneLogin
 
         return saml unless base64_encoded?(saml)
 
-        decoded = decode(saml)
-        begin
-            message = inflate(decoded)
-        rescue
-            message = decoded
-        end
+        saml = try_inflate(decode(saml), settings.message_max_bytesize)
 
-        if message.bytesize > settings.message_max_bytesize
+        if saml.bytesize > settings.message_max_bytesize
             raise ValidationError.new("SAML Message exceeds " + settings.message_max_bytesize.to_s + " bytes, so was rejected")
         end
 
-        message
+        saml
       end
 
       # Deflate, base64 encode and url-encode a SAML Message (To be used in the HTTP-redirect binding)
@@ -144,12 +139,50 @@ module OneLogin
         !!string.gsub(/[\r\n]|\\r|\\n|\s/, "").match(BASE64_FORMAT)
       end
 
-      # Inflate method
+      # Attempt inflating a string, if it fails, return the original string.
+      # @param data [String] The string
+      # @param max_bytesize [Integer] The maximum allowed size of the SAML Message,
+      #   to prevent a possible DoS attack.
+      # @return [String] The inflated or original string
+      def try_inflate(data, max_bytesize = nil)
+        inflate(data, max_bytesize)
+      rescue Zlib::Error
+        data
+      end
+
+      # Inflate method.
       # @param deflated [String] The string
+      # @param max_bytesize [Integer] The maximum allowed size of the SAML Message,
+      #   to prevent a possible DoS attack.
       # @return [String] The inflated string
-      #
-      def inflate(deflated)
-        Zlib::Inflate.new(-Zlib::MAX_WBITS).inflate(deflated)
+      def inflate(deflated, max_bytesize = nil)
+        unless max_bytesize.nil?
+          inflater = Zlib::Inflate.new(-Zlib::MAX_WBITS)
+
+          # Use a StringIO buffer to build the inflated message incrementally.
+          buffer = StringIO.new
+
+          inflater.inflate(deflated) do |chunk|
+            if buffer.length + chunk.bytesize > max_bytesize
+              inflater.close
+              raise ValidationError, "SAML Message exceeds #{max_bytesize} bytes during decompression, so was rejected"
+            end
+            buffer << chunk
+          end
+
+          final_chunk = inflater.finish
+          unless final_chunk.empty?
+            if buffer.length + final_chunk.bytesize > max_bytesize
+              raise ValidationError, "SAML Message exceeds #{max_bytesize} bytes during decompression, so was rejected"
+            end
+            buffer << final_chunk
+          end
+
+          inflater.close
+          buffer.string
+        else
+          Zlib::Inflate.new(-Zlib::MAX_WBITS).inflate(deflated)
+        end
       end
 
       # Deflate method
