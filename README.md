@@ -18,9 +18,17 @@ Please note the following **critical vulnerabilities**:
 
 ## Sponsors
 
-Thanks to the following sponsors for securing the open source ecosystem,
+Thanks to the following sponsors for securing the open source ecosystem:
 
-[<img alt="84codes" src="https://avatars.githubusercontent.com/u/5353257" width="75px">](https://www.84codes.com)
+#### [<img class="circle" src="https://avatars.githubusercontent.com/u/34724717" width="26" height="26" alt="@serpapi">](https://serpapi.com) [<sup>SerpApi</sup>](https://github.com/serpapi)
+<sup>*A real-time API to access Google search results. It handle proxies, solve captchas, and parse all rich structured data for you*</sup>
+
+#### [<img class="circle" src="https://avatars.githubusercontent.com/u/9919" width="26" height="26" alt="@github">](https://github.com/) [<sup>Github</sup>](https://github.com/github)
+<sup>*The complete developer platform to build, scale, and deliver secure software.*</sup>
+
+#### [<img alt="84codes" src="https://avatars.githubusercontent.com/u/5353257" width="26" height="26">](https://www.84codes.com) [<sup>84codes</sup>](https://github.com/84codes)
+<sup>*Simplifying Message Queuing and Streaming. Leave server management to the experts, so you can focus on building great applications.*</sup>
+
 
 ## Overview
 
@@ -1103,9 +1111,17 @@ behind paywalls.
 
 ### Sponsors
 
-Thanks to the following sponsors for securing the open source ecosystem.
+Thanks to the following sponsors for securing the open source ecosystem:
 
-[<img alt="84codes" src="https://avatars.githubusercontent.com/u/5353257" width="75px">](https://www.84codes.com)
+#### [<img class="circle" src="https://avatars.githubusercontent.com/u/34724717" width="26" height="26" alt="@serpapi">](https://serpapi.com) [<sup>SerpApi</sup>](https://github.com/serpapi)
+<sup>*A real-time API to access Google search results. It handle proxies, solve captchas, and parse all rich structured data for you*</sup>
+
+#### [<img class="circle" src="https://avatars.githubusercontent.com/u/9919" width="26" height="26" alt="@github">](https://github.com/) [<sup>Github</sup>](https://github.com/github)
+<sup>*The complete developer platform to build, scale, and deliver secure software.*</sup>
+
+#### [<img alt="84codes" src="https://avatars.githubusercontent.com/u/5353257" width="26" height="26">](https://www.84codes.com) [<sup>84codes</sup>](https://github.com/84codes)
+<sup>*Simplifying Message Queuing and Streaming. Leave server management to the experts, so you can focus on building great applications.*</sup>
+
 
 ### Attribution
 
