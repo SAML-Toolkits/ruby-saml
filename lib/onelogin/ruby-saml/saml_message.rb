@@ -136,7 +136,7 @@ module OneLogin
       # @return [true, false] whether or not the string is base64 encoded
       #
       def base64_encoded?(string)
-        string.gsub(/\s|\\r|\\n/, '').match?(BASE64_FORMAT)
+        !!string.gsub(/[\r\n]|\\r|\\n|\s/, "").match(BASE64_FORMAT)
       end
 
       # Attempt inflating a string, if it fails, return the original string.
