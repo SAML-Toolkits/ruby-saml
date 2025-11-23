@@ -7,37 +7,24 @@
 Minor and patch versions of Ruby SAML may introduce breaking changes. Please read
 [UPGRADING.md](UPGRADING.md) for guidance on upgrading to new Ruby SAML versions.
 
-### Pay it Forward: Support RubySAML and Strengthen Open-Source Security
 
-RubySAML is a trusted authentication library used by startups and enterprises alike.
+## Vulnerability Notice
 
-But security doesn't happen in a vacuum. Vulnerabilities in authentication libraries can
-have widespread consequences. Maintaining open-source security requires continuous
-effort, expertise, and funding. By supporting RubySAML, you’re not just securing your
-own systems—you’re strengthening auth security globally.
+CVE-2025-54572 affects version ruby-saml < 1.18.1
 
-#### How you can help
+There are critical vulnerabilities affecting ruby-saml < 1.18.0, two of them allows SAML authentication bypass (CVE-2025-25291, CVE-2025-25292, CVE-2025-25293). Please upgrade to a fixed version (1.18.0)
 
-* Sponsor RubySAML: [GitHub Sponsors](https://github.com/sponsors/SAML-Toolkits)
-* Contribute to secure-by-design improvements
-* Responsibly report vulnerabilities (see "Vulnerability Reporting" above)
+### Vulnerability Reporting
 
-Security is a shared responsibility. If RubySAML has helped your organization, please
-consider giving back. Together, we can keep authentication secure.
+If you believe you have discovered a security vulnerability in this gem, please report
+it by email to the maintainer: sixto.martin.garcia+security@gmail.com
 
-### Sponsors
+
+## Sponsors
 
 Thanks to the following sponsors for securing the open source ecosystem,
 
 [<img alt="84codes" src="https://avatars.githubusercontent.com/u/5353257" width="75px">](https://www.84codes.com)
-
-
-## Vulnerabilities
-
-CVE-2025-54572 affects version ruby-saml < 1.18.1
-
-
-There are critical vulnerabilities affecting ruby-saml < 1.18.0, two of them allows SAML authentication bypass (CVE-2025-25291, CVE-2025-25292, CVE-2025-25293). Please upgrade to a fixed version (1.18.0)
 
 ## Overview
 
@@ -50,6 +37,22 @@ SAML authorization is a two-step process and you are expected to implement suppo
 We created a demo project for Rails 4 that uses the latest version of this library:
 [ruby-saml-example](https://github.com/saml-toolkits/ruby-saml-example)
 
+
+### Security Considerations
+
+- **Validation of the IdP Metadata URL:** When loading IdP Metadata from a URLs,
+  Ruby SAML requires you (the developer/administrator) to ensure the supplied URL is correct
+  and from a trusted source. Ruby SAML does not perform any validation that the URL
+  you entered is correct and/or safe.
+- **False-Positive Security Warnings:** Some tools may incorrectly report Ruby SAML as a
+  potential security vulnerability, due to its dependency on Nokogiri. Such warnings can
+  be ignored; Ruby SAML uses Nokogiri in a safe way, by always disabling its DTDLOAD option
+  and enabling its NONET option.
+- **Prevent Replay attacks:** A replay attack is when an attacker intercepts a valid SAML
+assertion and "replays" it at a later time to gain unauthorized access. The `ruby-saml`
+library provides the tools to prevent this, but **you, the developer, must implement thecore logic**, see an specific section later in the README.
+
+
 ### Supported Ruby Versions
 
 The following Ruby versions are covered by CI testing:
@@ -58,38 +61,6 @@ The following Ruby versions are covered by CI testing:
 * JRuby 9.1 to 9.4
 * TruffleRuby (latest)
 
-## Adding Features, Pull Requests
-
-* Fork the repository
-* Make your feature addition or bug fix
-* Add tests for your new features. This is important so we don't break any features in a future version unintentionally.
-* Ensure all tests pass by running `bundle exec rake test`.
-* Do not change Rakefile, version, or history.
-* Open a pull request, following [this template](https://gist.github.com/Lordnibbler/11002759).
-
-## Security Guidelines
-
-If you believe you have discovered a security vulnerability in this gem, please report it
-by mail to the maintainer: sixto.martin.garcia+security@gmail.com
-
-### Security Warning
-
-Some tools may incorrectly report ruby-saml is a potential security vulnerability.
-ruby-saml depends on Nokogiri, and it is possible to use Nokogiri in a dangerous way
-(by enabling its DTDLOAD option and disabling its NONET option).
-This dangerous Nokogiri configuration, which is sometimes used by other components,
-can create an XML External Entity (XXE) vulnerability if the XML data is not trusted.
-However, ruby-saml never enables this dangerous Nokogiri configuration;
-ruby-saml never enables DTDLOAD, and it never disables NONET.
-
-The OneLogin::RubySaml::IdpMetadataParser class does not validate the provided URL before parsing.
-
-Usually, the same administrator who handles the Service Provider also sets the URL to
-the IdP, which should be a trusted resource.
-
-But there are other scenarios, like a SaaS app where the administrator of the app
-delegates this functionality to other users. In this case, extra precautions should
-be taken in order to validate such URL inputs and avoid attacks like SSRF.
 
 ## Getting Started
 
@@ -432,8 +403,8 @@ Those return an Hash instead of a `Settings` object, which may be useful for con
 
 ### Validating Signature of Metadata and retrieve settings
 
-Right now there is no method at ruby_saml to validate the signature of the metadata that gonna be parsed,
-but it can be done as follows:
+Right now there is no method at ruby_saml to validate the signature of the metadata that is going to be parsed, but it can be done as follows:
+
 * Download the XML.
 * Validate the Signature, providing the cert.
 * Provide the XML to the parse method if the signature was validated
@@ -722,7 +693,7 @@ SP Metadata XML, to be read by the IdP.
 #### Verifying Signature on IdP Assertions
 
 You may require the IdP to sign its SAML Assertions using the following setting.
-With will add `<md:SPSSODescriptor WantAssertionsSigned="true">` to your SP Metadata XML.
+This will add `<md:SPSSODescriptor WantAssertionsSigned="true">` to your SP Metadata XML.
 The signature will be checked against the `<md:KeyDescriptor use="signing">` element
 present in the IdP's metadata.
 
@@ -754,7 +725,7 @@ advanced usage scenarios:
 - Specifying separate SP certificates for signing and encryption.
 
 The `sp_cert_multi` parameter replaces `certificate` and `private_key`
-(you may not specify both pparameters at the same time.) `sp_cert_multi` has the following shape:
+(you may not specify both parameters at the same time.) `sp_cert_multi` has the following shape:
 
 ```ruby
 settings.sp_cert_multi = {
@@ -824,7 +795,7 @@ def sp_logout_request
   settings = saml_settings
 
   if settings.idp_slo_service_url.nil?
-    logger.info "SLO IdP Endpoint not found in settings, executing then a normal logout'"
+    logger.info "SLO IdP Endpoint not found in settings, then executing a normal logout'"
     delete_session
   else
 
@@ -1007,3 +978,151 @@ end
 # Output XML with custom metadata
 MyMetadata.new.generate(settings)
 ```
+
+### Preventing Replay Attacks
+
+A replay attack is when an attacker intercepts a valid SAML assertion and "replays" it at a later time to gain unauthorized access.
+
+The library only checks the assertion's validity window (`NotBefore` and `NotOnOrAfter` conditions). An attacker can replay a valid assertion as many times as they want within this window.
+
+A robust defense requires tracking of assertion IDs to ensure any given assertion is only accepted once.
+
+#### 1. Extract the Assertion ID after Validation
+
+After a response has been successfully validated, get the assertion ID. The library makes this available via `response.assertion_id`.
+
+
+#### 2. Store the ID with an Expiry
+
+You must store this ID in a persistent cache (like Redis or Memcached) that is shared across your servers. Do not store it in the user's session, as that is not a secure cache.
+
+The ID should be stored until the assertion's validity window has passed. You will need to check how long the trusted IdPs consider the assertion valid and then add the allowed_clock_drift.
+
+You can define a global value, or set this value dinamically based on the `not_on_or_after` value of the re + `allowed_clock_drift`.
+
+```ruby
+# In your `consume` action, after a successful validation:
+if response.is_valid?
+  # Prevent replay of this specific assertion
+  assertion_id = response.assertion_id
+  authorize_failure("Assertion ID is mandatory") if assertion_id.nil?
+
+  assertion_not_on_or_after = response.not_on_or_after
+  # We set a default of 5 min expiration in case is not provided
+  assertion_expiry = (Time.now.utc + 300) if assertion_not_on_or_after.nil?
+
+  # `is_new_assertion?` is your application's method to check and set the ID
+  # in a shared, persistent cache (e.g., Redis, Memcached).
+  if is_new_assertion?(assertion_id, expires_at: assertion_expiry)
+    # This is a new assertion, so we can proceed
+    session[:userid] = response.nameid
+    session[:attributes] = response.attributes
+    # ...
+  else
+    # This assertion ID has been seen before. This is a REPLAY ATTACK.
+    # Log the security event and reject the user.
+    authorize_failure("Replay attack detected")
+  end
+else
+  authorize_failure("Invalid response")
+end
+```
+
+Your `is_new_assertion?` method would look something like this (example for Redis):
+
+```ruby
+
+def is_new_assertion?(assertion_id, expires_at)
+  ttl = (expires_at - Time.now.utc).to_i
+  return false if ttl <= 0 # The assertion has already expired
+
+  # The 'nx' option tells Redis to only set the key if it does not already exist.
+  # The command returns `true` if the key was set, `false` otherwise.
+  $redis.set("saml_assertion_ids:#{assertion_id}", "1", ex: ttl, nx: true)
+end
+```
+
+### Enforce SP-Initiated Flow with `InResponseTo` validation
+
+This is the best way to prevent IdP-initiated logins and ensure that you only accept assertions that you recently requested.
+
+#### 1. Store the `AuthnRequest` ID
+
+When you create an `AuthnRequest`, the library assigns it a unique ID. You must store this ID, for example in the user's session *before* redirecting them to the IdP.
+
+```ruby
+def init
+  request = OneLogin::RubySaml::Authrequest.new
+  # The unique ID of the request is in request.uuid
+  session[:saml_request_id] = request.uuid
+  redirect_to(request.create(saml_settings))
+end
+```
+
+#### 2. Validate the `InResponseTo` value of the `Response` with the Stored ID
+
+When you process the `SAMLResponse`, retrieve the ID from the session and pass it to the `Response` constructor. Use `session.delete` to ensure the ID can only be used once.
+
+```ruby
+def consume
+  request_id = session.delete(:saml_request_id) # Use delete to prevent re-use
+
+  # You can reject the response if no previous saml_request_id was stored
+  raise "IdP-initiaited detected" if request_id.nil?
+
+  response = OneLogin::RubySaml::Response.new(
+    params[:SAMLResponse],
+    settings: saml_settings,
+    matches_request_id: request_id
+  )
+
+  if response.is_valid?
+    # ... authorize user
+  else
+    # Response is invalid, errors in response.errors
+  end
+end
+```
+
+## Contributing
+
+### Pay it Forward: Support RubySAML and Strengthen Open-Source Security
+
+RubySAML is a trusted authentication library used by startups and enterprises alike—
+a community-driven alternative to costly third-party services.
+
+But security doesn't happen in a vacuum. Vulnerabilities in authentication libraries can
+have widespread consequences. Maintaining open-source security requires continuous
+effort, expertise, and funding. By supporting RubySAML, you’re not just securing your
+own systems—you’re strengthening auth security globally. Instead of paying for closed
+solutions, consider investing in the community that does the real security work.
+
+#### How you can help
+
+* Sponsor RubySAML: [GitHub Sponsors](https://github.com/sponsors/SAML-Toolkits)
+* Contribute to secure-by-design improvements
+* Responsibly report vulnerabilities (see "Vulnerability Reporting" above)
+
+Security is a shared responsibility. If RubySAML has helped your organization, please
+consider giving back. Together, we can keep authentication secure—without putting it
+behind paywalls.
+
+#### Adding Features, Pull Requests
+
+* Fork the repository
+* Make your feature addition or bug fix
+* Add tests for your new features. This is important so we don't break any features in a future version unintentionally.
+* Ensure all tests pass by running `bundle exec rake test`.
+* Do not change Rakefile, version, or history.
+* Open a pull request, following [this template](https://gist.github.com/Lordnibbler/11002759).
+
+### Sponsors
+
+Thanks to the following sponsors for securing the open source ecosystem,
+
+[<img alt="84codes" src="https://avatars.githubusercontent.com/u/5353257" width="75px">](https://www.84codes.com)
+
+
+## License
+
+Ruby SAML is made available under the MIT License. Refer to [LICENSE](LICENSE).

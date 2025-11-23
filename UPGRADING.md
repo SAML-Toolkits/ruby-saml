@@ -7,7 +7,7 @@ how validation happens in the toolkit and also the toolkit by default will check
 when parsing a SAML Message (`settings.check_malformed_doc`).
 
 The SignedDocument class defined at xml_security.rb experienced several changes.
-We don't expect compatibilty issues if you use the main methods offered by ruby-saml, but if you use a fork or customized usage, is possible that you need to adapt your code.
+We don't expect compatibility issues if you use the main methods offered by ruby-saml, but if you use a fork or customized usage, is possible that you need to adapt your code.
 
 ## Updating from 1.12.x to 1.13.0
 
@@ -33,7 +33,7 @@ in favor of `idp_sso_service_url` and `idp_slo_service_url`. The `IdpMetadataPar
 
 ## Upgrading from 1.10.x to 1.11.0
 
-Version `1.11.0` deprecates the use of `settings.issuer` in favour of `settings.sp_entity_id`.
+Version `1.11.0` deprecates the use of `settings.issuer` in favor of `settings.sp_entity_id`.
 There are two new security settings: `settings.security[:check_idp_cert_expiration]` and
 `settings.security[:check_sp_cert_expiration]` (both false by default) that check if the
 IdP or SP X.509 certificate has expired, respectively.
@@ -44,7 +44,7 @@ Version `1.10.1` improves Ruby 1.8.7 support.
 
 ## Upgrading from 1.9.0 to 1.10.0
 
-Version `1.10.0` improves IdpMetadataParser to allow parse multiple IDPSSODescriptor,
+Version `1.10.0` improves IdpMetadataParser to allow parsing multiple IDPSSODescriptor,
 Add Subject support on AuthNRequest to allow SPs provide info to the IdP about the user
 to be authenticated and updates the format_cert method to accept certs with /\x0d/
 
@@ -128,7 +128,7 @@ It adds security improvements in order to prevent Signature wrapping attacks.
 
 ## Upgrading from 1.1.x to 1.2.x
 
-Version `1.2` adds IDP metadata parsing improvements, uuid deprecation in favour of SecureRandom,
+Version `1.2` adds IDP metadata parsing improvements, uuid deprecation in favor of SecureRandom,
 refactor error handling and some minor improvements.
 
 There is no compatibility issue detected.
@@ -143,7 +143,7 @@ Version `1.1` adds some improvements on signature validation and solves some nam
 
 Version `1.0` is a recommended update for all Ruby SAML users as it includes security fixes.
 
-Version `1.0` adds security improvements like entity expansion limitation, more SAML message validations, and other important improvements like decrypt support.
+Version `1.0` adds security improvements like entity expansion limitation, more SAML message validations, and other important improvements like decryption support.
 
 ### Important Changes
 

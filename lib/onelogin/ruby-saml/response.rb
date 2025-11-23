@@ -76,7 +76,7 @@ module OneLogin
       end
 
       # Validates the SAML Response with the default values (soft = true)
-      # @param collect_errors [Boolean] Stop validation when first error appears or keep validating. (if soft=true)
+      # @param collect_errors [Boolean] Stop validation when the first error appears or keep validating. (if soft=true)
       # @return [Boolean] TRUE if the SAML Response is valid
       #
       def is_valid?(collect_errors = false)
@@ -224,7 +224,7 @@ module OneLogin
       end
 
       # Checks if the Status has the "Success" code
-      # @return [Boolean] True if the StatusCode is Sucess
+      # @return [Boolean] True if the StatusCode is Success
       #
       def success?
         status_code == "urn:oasis:names:tc:SAML:2.0:status:Success"
@@ -464,7 +464,7 @@ module OneLogin
       end
 
       # Validates that the SAML Response provided in the initialization is not empty,
-      # also check that the setting and the IdP cert were also provided
+      # also check that the settings and the IdP cert were also provided
       # @return [Boolean] True if the required info is found, false otherwise
       #
       def validate_response_state
@@ -558,7 +558,7 @@ module OneLogin
       # Validates the Signed elements
       # If fails, the error is added to the errors array
       # @return [Boolean] True if there is 1 or 2 Elements signed in the SAML Response
-      #                                   an are a Response or an Assertion Element, otherwise False if soft=True
+      #                                   and are a Response or an Assertion Element, otherwise False if soft=True
       #
       def validate_signed_elements
         signature_nodes = REXML::XPath.match(
@@ -618,9 +618,9 @@ module OneLogin
         true
       end
 
-      # Validates if the provided request_id match the inResponseTo value.
+      # Validates if the provided request_id matches the inResponseTo value.
       # If fails, the error is added to the errors array
-      # @return [Boolean] True if there is no request_id or it match, otherwise False if soft=True
+      # @return [Boolean] True if there is no request_id or it matches, otherwise False if soft=True
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_in_response_to
@@ -699,7 +699,7 @@ module OneLogin
 
       # Checks that the samlp:Response/saml:Assertion/saml:AuthnStatement element exists and is unique.
       # If fails, the error is added to the errors array
-      # @return [Boolean] True if there is a authnstatement element and is unique
+      # @return [Boolean] True if there is a AuthnStatement element and is unique
       #
       def validate_one_authnstatement
         return true if options[:skip_authnstatement]
@@ -761,7 +761,7 @@ module OneLogin
         true
       end
 
-      # Validates that the Session haven't expired (If the response was initialized with the :allowed_clock_drift option,
+      # Validates that the Session hasn't expired (If the response was initialized with the :allowed_clock_drift option,
       # this time validation is relaxed by the allowed_clock_drift value)
       # If fails, the error is added to the errors array
       # @param soft [Boolean] soft Enable or Disable the soft mode (In order to raise exceptions when the response is invalid or not)
@@ -780,12 +780,12 @@ module OneLogin
         true
       end
 
-      # Validates if exists valid SubjectConfirmation (If the response was initialized with the :allowed_clock_drift option,
-      # timimg validation are relaxed by the allowed_clock_drift value. If the response was initialized with the
+      # Validates if a valid SubjectConfirmation (If the response was initialized with the :allowed_clock_drift option,
+      # timing validation are relaxed by the allowed_clock_drift value. If the response was initialized with the
       # :skip_subject_confirmation option, this validation is skipped)
       # There is also an optional Recipient check
       # If fails, the error is added to the errors array
-      # @return [Boolean] True if exists a valid SubjectConfirmation, otherwise False if soft=True
+      # @return [Boolean] True if a valid SubjectConfirmation, otherwise False if soft=True
       # @raise [ValidationError] if soft == false and validation fails
       #
       def validate_subject_confirmation
@@ -995,7 +995,7 @@ module OneLogin
         @signed_assertion ||= get_cached_signed_assertion
       end
 
-      # Extracts the first appearance that matchs the subelt (pattern)
+      # Extracts the first appearance that matches the subelt (pattern)
       # Search on any Assertion that is signed, or has a Response parent signed
       # @param subelt [String] The XPath pattern
       # @return [REXML::Element | nil] If any matches, return the Element
@@ -1010,8 +1010,8 @@ module OneLogin
         node
       end
 
-      # Extracts all the appearances that matchs the subelt (pattern)
-      # Search on any Assertion that is signed, or has a Response parent signed
+      # Extracts all the appearances that matches the subelt (pattern)
+      # Searches on any Assertion that is signed, or has a Response parent signed
       # @param subelt [String] The XPath pattern
       # @return [Array of REXML::Element] Return all matches
       #

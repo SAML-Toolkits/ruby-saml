@@ -24,7 +24,7 @@ class RubySamlTest < Minitest::Test
         logoutresponse = OneLogin::RubySaml::Logoutresponse.new(valid_logout_response_document, nil, { :foo => :bar} )
         assert !logoutresponse.options.empty?
       end
-      it "support base64 encoded responses" do
+      it "supports base64 encoded responses" do
         generated_logout_response = valid_logout_response_document
         logoutresponse = OneLogin::RubySaml::Logoutresponse.new(Base64.encode64(generated_logout_response), settings)
         assert_equal generated_logout_response, logoutresponse.response

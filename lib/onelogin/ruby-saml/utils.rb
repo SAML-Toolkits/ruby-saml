@@ -205,7 +205,7 @@ module OneLogin
       #
       # @param rawparams [Hash] Raw GET Parameters
       # @param params [Hash] GET Parameters
-      # @param lowercase_url_encoding [bool] Lowercase URL Encoding  (For ADFS urlencode compatiblity)
+      # @param lowercase_url_encoding [bool] Lowercase URL Encoding  (For ADFS urlencode compatibility)
       # @return [Hash] New raw parameters
       #
       def self.prepare_raw_get_params(rawparams, params, lowercase_url_encoding=false)
@@ -251,7 +251,7 @@ module OneLogin
 
       # Build the status error message
       # @param status_code [String] StatusCode value
-      # @param status_message [Strig] StatusMessage value
+      # @param status_message [String] StatusMessage value
       # @return [String] The status error message
       def self.status_error_msg(error_msg, raw_status_code = nil, status_message = nil)
         error_msg = error_msg.dup
@@ -416,8 +416,8 @@ module OneLogin
       end
 
       # Given two strings, attempt to match them as URIs using Rails' parse method.  If they can be parsed,
-      # then the fully-qualified domain name and the host should performa a case-insensitive match, per the
-      # RFC for URIs.  If Rails can not parse the string in to URL pieces, return a boolean match of the
+      # then the fully-qualified domain name and the host should perform a case-insensitive match, per the
+      # RFC for URIs.  If Rails can not parse the string into URL pieces, return a boolean match of the
       # two strings.  This maintains the previous functionality.
       # @return [Boolean]
       def self.uri_match?(destination_url, settings_url)

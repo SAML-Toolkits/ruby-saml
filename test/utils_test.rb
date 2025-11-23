@@ -259,13 +259,13 @@ class UtilsTest < Minitest::Test
     end
 
     describe '.uri_match?' do
-      it 'matches two urls' do
+      it 'matches two URLs' do
         destination = 'http://www.example.com/test?var=stuff'
         settings = 'http://www.example.com/test?var=stuff'
         assert OneLogin::RubySaml::Utils.uri_match?(destination, settings)
       end
 
-      it 'fails to match two urls' do
+      it 'fails to match two URLs' do
         destination = 'http://www.example.com/test?var=stuff'
         settings = 'http://www.example.com/othertest?var=stuff'
         assert !OneLogin::RubySaml::Utils.uri_match?(destination, settings)
@@ -295,13 +295,13 @@ class UtilsTest < Minitest::Test
         assert !OneLogin::RubySaml::Utils.uri_match?(destination, settings)
       end
 
-      it 'matches two non urls' do
+      it 'matches two non URLs' do
         destination = 'stuff'
         settings = 'stuff'
         assert OneLogin::RubySaml::Utils.uri_match?(destination, settings)
       end
 
-      it "fails to match two non urls" do
+      it "fails to match two non URLs" do
         destination = 'stuff'
         settings = 'not stuff'
         assert !OneLogin::RubySaml::Utils.uri_match?(destination, settings)

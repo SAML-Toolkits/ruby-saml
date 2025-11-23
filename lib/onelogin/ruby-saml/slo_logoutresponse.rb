@@ -30,7 +30,7 @@ module OneLogin
       # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
       # @param request_id [String] The ID of the LogoutRequest sent by this SP to the IdP. That ID will be placed as the InResponseTo in the logout response
       # @param logout_message [String] The Message to be placed as StatusMessage in the logout response
-      # @param params [Hash] Some extra parameters to be added in the GET for example the RelayState
+      # @param params [Hash] Some extra parameters to be added in the GET for example, the RelayState
       # @param logout_status_code [String] The StatusCode to be placed as StatusMessage in the logout response
       # @return [String] Logout Request string that includes the SAMLRequest
       #
@@ -52,7 +52,7 @@ module OneLogin
       # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
       # @param request_id [String] The ID of the LogoutRequest sent by this SP to the IdP. That ID will be placed as the InResponseTo in the logout response
       # @param logout_message [String] The Message to be placed as StatusMessage in the logout response
-      # @param params [Hash] Some extra parameters to be added in the GET for example the RelayState
+      # @param params [Hash] Some extra parameters to be added in the GET for example, the RelayState
       # @param logout_status_code [String] The StatusCode to be placed as StatusMessage in the logout response
       # @return [Hash] Parameters
       #

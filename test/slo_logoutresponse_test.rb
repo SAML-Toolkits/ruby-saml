@@ -26,7 +26,7 @@ class SloLogoutresponseTest < Minitest::Test
       assert_match(/^<samlp:LogoutResponse/, inflated)
     end
 
-    it "support additional params" do
+    it "supports additional params" do
       unauth_url = OneLogin::RubySaml::SloLogoutresponse.new.create(settings, logout_request.id, nil, { :hello => nil })
       assert_match(/&hello=$/, unauth_url)
 

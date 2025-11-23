@@ -14,7 +14,7 @@ module OneLogin
       # Return SP metadata based on the settings.
       # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
       # @param pretty_print [Boolean] Pretty print or not the response
-      #                               (No pretty print if you gonna validate the signature)
+      #                               (No pretty print if you are going to validate the signature)
       # @param valid_until [DateTime] Metadata's valid time
       # @param cache_duration [Integer] Duration of the cache in seconds
       # @return [String] XML Metadata of the Service Provider

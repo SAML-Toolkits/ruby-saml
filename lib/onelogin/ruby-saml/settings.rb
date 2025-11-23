@@ -179,7 +179,7 @@ module OneLogin
         end
       end
 
-      # @return [OpenSSL::X509::Certificate|nil] Build the IdP certificate from the settings (previously format it)
+      # @return [OpenSSL::X509::Certificate|nil] Build the IdP certificate from the settings (previously formatting it)
       #
       def get_idp_cert
         OneLogin::RubySaml::Utils.build_cert_object(idp_cert)

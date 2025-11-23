@@ -52,7 +52,7 @@ module OneLogin
       # IdP values
       #
       # @param url [String] Url where the XML of the Identity Provider Metadata is published.
-      # @param validate_cert [Boolean] If true and the URL is HTTPs, the cert of the domain is checked.
+      # @param validate_cert [Boolean] If true and the URL is HTTPS, the cert of the domain is checked.
       #
       # @param options [Hash] options used for parsing the metadata and the returned Settings instance
       # @option options [OneLogin::RubySaml::Settings, Hash] :settings the OneLogin::RubySaml::Settings object which gets the parsed metadata merged into or an hash for Settings overrides.
@@ -72,7 +72,7 @@ module OneLogin
       # Parse the Identity Provider metadata and return the results as Hash
       #
       # @param url [String] Url where the XML of the Identity Provider Metadata is published.
-      # @param validate_cert [Boolean] If true and the URL is HTTPs, the cert of the domain is checked.
+      # @param validate_cert [Boolean] If true and the URL is HTTPS, the cert of the domain is checked.
       #
       # @param options [Hash] options used for parsing the metadata
       # @option options [String, nil] :entity_id when this is given, the entity descriptor for this ID is used. When omitted, the first entity descriptor is used.
@@ -90,7 +90,7 @@ module OneLogin
       # Parse all Identity Provider metadata and return the results as Array
       #
       # @param url [String] Url where the XML of the Identity Provider Metadata is published.
-      # @param validate_cert [Boolean] If true and the URL is HTTPs, the cert of the domain is checked.
+      # @param validate_cert [Boolean] If true and the URL is HTTPS, the cert of the domain is checked.
       #
       # @param options [Hash] options used for parsing the metadata
       # @option options [String, nil] :entity_id when this is given, the entity descriptor for this ID is used. When omitted, all found IdPs are returned.
@@ -130,7 +130,7 @@ module OneLogin
           end
         end
         # Remove the cache_duration because on the settings
-        # we only gonna suppot valid_until 
+        # we only going to suppot valid_until 
         parsed_metadata.delete(:cache_duration)
 
         settings = options[:settings]
@@ -188,7 +188,7 @@ module OneLogin
 
       # Retrieve the remote IdP metadata from the URL or a cached copy.
       # @param url [String] Url where the XML of the Identity Provider Metadata is published.
-      # @param validate_cert [Boolean] If true and the URL is HTTPs, the cert of the domain is checked.
+      # @param validate_cert [Boolean] If true and the URL is HTTPS, the cert of the domain is checked.
       # @return [REXML::document] Parsed XML IdP metadata
       # @raise [HttpError] Failure to fetch remote IdP metadata
       def get_idp_metadata(url, validate_cert)
@@ -381,7 +381,7 @@ module OneLogin
           end
         end
 
-        # @return [String|nil] the fingerpint of the X509Certificate if it exists
+        # @return [String|nil] the fingerprint of the X509Certificate if it exists
         #
         def fingerprint(certificate, fingerprint_algorithm = XMLSecurity::Document::SHA1)
           return unless certificate
