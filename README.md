@@ -29,6 +29,8 @@ Thanks to the following sponsors for securing the open source ecosystem:
 #### [<img alt="84codes" src="https://avatars.githubusercontent.com/u/5353257" width="26" height="26">](https://www.84codes.com) [<sup>84codes</sup>](https://github.com/84codes)
 <sup>*Simplifying Message Queuing and Streaming. Leave server management to the experts, so you can focus on building great applications.*</sup>
 
+#### [<img alt="TableCheck" class="avatar" src="https://avatars.githubusercontent.com/u/36186781" width="26" height="26">](https://www.tablecheck.com/en/join) [<sup>TableCheck</sup>](https://www.tablecheck.com/en/join)
+<sup>*Global restaurant reservation and hospitality management platform that delivers extraordinary guest experiences.*</sup>
 
 ## Overview
 
