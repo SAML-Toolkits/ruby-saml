@@ -96,7 +96,11 @@ class RubySamlTest < Minitest::Test
 
     it "Raise ValidationError if XML contains SyntaxError trying to initialize and soft = false" do
       settings.soft = false
-      error_msg = 'XML load failed: 53:875: FATAL: Opening and ending tag mismatch: X509Certificate line 53 and SignatureValue'
+      error_msg = if jruby?
+                   'XML load failed: 53:875: FATAL: Opening and ending tag mismatch: X509Certificate line 53 and SignatureValue'
+                  else
+                   'XML load failed: The element type "ds:X509Certificate" must be terminated by the matching end-tag "</ds:X509Certificate>"'
+                  end
       assert_raises(RubySaml::ValidationError, error_msg) do
         OneLogin::RubySaml::Response.new(fixture(:response_wrong_syntax), :settings => settings)
       end
