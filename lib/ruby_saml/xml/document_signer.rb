@@ -27,7 +27,11 @@ module RubySaml
       #   <Object />
       # </Signature>
       def sign_document(document, private_key, certificate, signature_method = RubySaml::XML::RSA_SHA256, digest_method = RubySaml::XML::SHA256)
-        noko = RubySaml::XML.safe_load_nokogiri(document.to_s)
+        begin
+          noko = RubySaml::XML.safe_load_xml(document.to_s, check_malformed_doc: true)
+        rescue StandardError => e
+          raise ValidationError.new("XML load failed: #{e.message}") if e.message != 'Empty document'
+        end
 
         sign_document!(noko, private_key, certificate, signature_method, digest_method)
       end
