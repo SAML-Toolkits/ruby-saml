@@ -49,7 +49,7 @@ module RubySaml
       # Decrypts an EncryptedID element
       # @param encrypted_id_node [Nokogiri::XML::Element] The EncryptedID element
       # @param decryption_keys [Array] Array of private keys for decryption
-      # @return [Nokogiri::XML::Document] The decrypted EncrypedtID element
+      # @return [Nokogiri::XML::Document] The decrypted EncryptedID element
       def decrypt_nameid(encrypted_id_node, decryption_keys)
         decrypt_node(encrypted_id_node, %r{(.*</(\w+:)?NameID>)}m, decryption_keys)
       end
@@ -109,7 +109,7 @@ module RubySaml
 
       # Obtains the decrypted string from an Encrypted node element in XML,
       # given multiple private keys to try.
-      # @param encrypted_node [Nokogirl::XML::Element] The Encrypted element
+      # @param encrypted_node [Nokogiri::XML::Element] The Encrypted element
       # @param decryption_keys [OpenSSL::PKey::RSA | Array<OpenSSL::PKey::RSA>] The SP private key(s)
       # @return [String] The decrypted data
       def decrypt_node_with_multiple_keys(encrypted_node, decryption_keys)

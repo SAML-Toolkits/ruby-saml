@@ -18,9 +18,17 @@ Please note the following **critical vulnerabilities**:
 
 ## Sponsors
 
-Thanks to the following sponsors for securing the open source ecosystem,
+Thanks to the following sponsors for securing the open source ecosystem:
 
-[<img alt="84codes" src="https://avatars.githubusercontent.com/u/5353257" width="75px">](https://www.84codes.com)
+#### [<img class="circle" src="https://avatars.githubusercontent.com/u/34724717" width="26" height="26" alt="@serpapi">](https://serpapi.com) [<sup>SerpApi</sup>](https://github.com/serpapi)
+<sup>*A real-time API to access Google search results. It handle proxies, solve captchas, and parse all rich structured data for you*</sup>
+
+#### [<img class="circle" src="https://avatars.githubusercontent.com/u/9919" width="26" height="26" alt="@github">](https://github.com/) [<sup>Github</sup>](https://github.com/github)
+<sup>*The complete developer platform to build, scale, and deliver secure software.*</sup>
+
+#### [<img alt="84codes" src="https://avatars.githubusercontent.com/u/5353257" width="26" height="26">](https://www.84codes.com) [<sup>84codes</sup>](https://github.com/84codes)
+<sup>*Simplifying Message Queuing and Streaming. Leave server management to the experts, so you can focus on building great applications.*</sup>
+
 
 ## Overview
 
@@ -31,7 +39,7 @@ Response assertions from Identity Providers (IdPs).
 **Important:** This libary does not support the IdP-side of SAML authentication,
 such as creating SAML Response messages to assert a user's identity.
 
-A Rails 4 reference implemenation is avaiable at the
+A Rails 4 reference implementation is available at the
 [Ruby SAML Demo Project](https://github.com/saml-toolkits/ruby-saml-example).
 
 ### Vulnerability Reporting
@@ -46,9 +54,10 @@ it by email to the maintainer: sixto.martin.garcia+security@gmail.com
   and from a trusted source. Ruby SAML does not perform any validation that the URL
   you entered is correct and/or safe.
 - **False-Positive Security Warnings:** Some tools may incorrectly report Ruby SAML as a
-  potential security vulnerability, due to it's dependency on Nokogiri. Such warnings can
+  potential security vulnerability, due to its dependency on Nokogiri. Such warnings can
   be ignored; Ruby SAML uses Nokogiri in a safe way, by always disabling its DTDLOAD option
   and enabling its NONET option.
+- **Prevent Replay attacks:** A replay attack is when an attacker intercepts a valid SAML assertion and "replays" it at a later time to gain unauthorized access. The `ruby-saml` library provides the tools to prevent this, but **you, the developer, must implement the core logic**, see an specific section later in the README.
 
 ### Supported Ruby Versions
 
@@ -179,7 +188,7 @@ def saml_settings
 end
 ```
 
-The use of settings.issuer is deprecated in favour of settings.sp_entity_id since version 1.11.0
+The use of settings.issuer is deprecated in favor of settings.sp_entity_id since version 1.11.0
 
 Some assertion validations can be skipped by passing parameters to `RubySaml::Response.new()`.
 For example, you can skip the `AuthnStatement`, `Conditions`, `Recipient`, or the `SubjectConfirmation`
@@ -255,13 +264,13 @@ Ruby SAML allows different ways to validate the signature of the SAML Response:
   `idp_cert_fingerprint` and `idp_cert_fingerprint_algorithm` parameters.
 
 In addition, you may pass the option `:relax_signature_validation` to `SloLogoutrequest` and
-`Logoutresponse` if want to skip signature validation on logout.
+`Logoutresponse` if you want to skip signature validation on logout.
 
 The `idp_cert_fingerprint` option is deprecated for the following reasons. It will be
 removed in Ruby SAML version 2.1.0.
 1. It only works with HTTP-POST binding, not HTTP-Redirect, since the full certificate
    is not sent in the Redirect URL parameters.
-2. It is theoretically be susceptible to collision attacks, by which a malicious
+2. It is theoretically susceptible to collision attacks, by which a malicious
    actor could impersonate the IdP. (However, as of January 2025, such attacks have not
    been publicly demonstrated for SHA-256.)
 3. It has been removed already from several other SAML libraries in other languages.
@@ -365,8 +374,7 @@ Those return an Hash instead of a `Settings` object, which may be useful for con
 
 ### Validating Signature of Metadata and retrieve settings
 
-Right now there is no method at ruby_saml to validate the signature of the metadata that gonna be parsed,
-but it can be done as follows:
+Right now there is no method at ruby_saml to validate the signature of the metadata that is going to be parsed, but it can be done as follows:
 * Download the XML.
 * Validate the Signature, providing the cert.
 * Provide the XML to the parse method if the signature was validated
@@ -403,7 +411,7 @@ if valid
     entity_id: "<entity_id_of_the_entity_to_be_retrieved>"
   )
 else
-  print "Metadata Signarture failed to be verified with the cert provided"
+  print "Metadata Signature failed to be verified with the cert provided"
 end
 ```
 
@@ -632,7 +640,7 @@ settings.security[:logout_requests_signed]  = true  # Enable signature on Logout
 settings.security[:logout_responses_signed] = true  # Enable signature on Logout Response
 ```
 
-Signatures will be handled automatically for both `HTTP-Redirect` and `HTTP-Redirect` Binding.
+Signatures will be handled automatically for both `HTTP-POST` and `HTTP-Redirect` Binding.
 Note that the RelayState parameter is used when creating the Signature on the `HTTP-Redirect` Binding.
 Remember to provide it to the Signature builder if you are sending a `GET RelayState` parameter or the
 signature validation process will fail at the IdP.
@@ -655,7 +663,7 @@ settings.security[:want_assertions_encrypted] = true # Invalidate SAML messages 
 ### Verifying Signature on IdP Assertions
 
 You may require the IdP to sign its SAML Assertions using the following setting.
-With will add `<md:SPSSODescriptor WantAssertionsSigned="true">` to your SP Metadata XML.
+This will add `<md:SPSSODescriptor WantAssertionsSigned="true">` to your SP Metadata XML.
 The signature will be checked against the `<md:KeyDescriptor use="signing">` element
 present in the IdP's metadata.
 
@@ -687,7 +695,7 @@ advanced usage scenarios:
 - Specifying separate SP certificates for signing and encryption.
 
 The `sp_cert_multi` parameter replaces `certificate` and `private_key`
-(you may not specify both pparameters at the same time.) `sp_cert_multi` has the following shape:
+(you may not specify both parameters at the same time.) `sp_cert_multi` has the following shape:
 
 ```ruby
 settings.sp_cert_multi = {
@@ -729,7 +737,7 @@ JRuby cannot support ECDSA due to a [known issue](https://github.com/jruby/jruby
 ### Audience Validation
 
 A service provider should only consider a SAML response valid if the IdP includes an <AudienceRestriction>
-element containting an <Audience> element that uniquely identifies the service provider. Unless you specify
+element containing an <Audience> element that uniquely identifies the service provider. Unless you specify
 the `skip_audience` option, Ruby SAML will validate that each SAML response includes an <Audience> element
 whose contents matches `settings.sp_entity_id`.
 
@@ -762,7 +770,7 @@ def sp_logout_request
   settings = saml_settings
 
   if settings.idp_slo_service_url.nil?
-    logger.info "SLO IdP Endpoint not found in settings, executing then a normal logout'"
+    logger.info "SLO IdP Endpoint not found in settings, then executing a normal logout'"
     delete_session
   else
 
@@ -910,7 +918,7 @@ end
 
 ### Attribute Service
 
-To request attributes from the IdP the SP needs to provide an attribute service within it's metadata and reference the index in the assertion.
+To request attributes from the IdP the SP needs to provide an attribute service within its metadata and reference the index in the assertion.
 
 ```ruby
 settings = RubySaml::Settings.new
@@ -936,7 +944,7 @@ or underscore, and can only contain letters, digits, underscores, hyphens, and p
 
 ### Custom Metadata Fields
 
-Some IdPs may require to add SPs to add additional fields (Organization, ContactPerson, etc.)
+Some IdPs may require SPs to add additional fields (Organization, ContactPerson, etc.)
 into the SP metadata. This can be done by extending the `RubySaml::Metadata` class and
 overriding the `#add_extras` method where the first arg is a
 [Nokogiri::XML::Builder](https://nokogiri.org/rdoc/Nokogiri/XML/Builder.html) object as per
@@ -962,6 +970,111 @@ end
 
 # Output XML with custom metadata
 MyMetadata.new.generate(settings)
+```
+
+### Preventing Replay Attacks
+
+A replay attack is when an attacker intercepts a valid SAML assertion and "replays" it at a later time to gain unauthorized access.
+
+The library only checks the assertion's validity window (`NotBefore` and `NotOnOrAfter` conditions). An attacker can replay a valid assertion as many times as they want within this window.
+
+A robust defense requires tracking of assertion IDs to ensure any given assertion is only accepted once.
+
+#### 1. Extract the Assertion ID after Validation
+
+After a response has been successfully validated, get the assertion ID. The library makes this available via `response.assertion_id`.
+
+
+#### 2. Store the ID with an Expiry
+
+You must store this ID in a persistent cache (like Redis or Memcached) that is shared across your servers. Do not store it in the user's session, as that is not a secure cache.
+
+The ID should be stored until the assertion's validity window has passed. You will need to check how long the trusted IdPs consider the assertion valid and then add the allowed_clock_drift.
+
+You can define a global value, or set this value dinamically based on the `not_on_or_after` value of the re + `allowed_clock_drift`.
+
+```ruby
+# In your `consume` action, after a successful validation:
+if response.is_valid?
+  # Prevent replay of this specific assertion
+  assertion_id = response.assertion_id
+  authorize_failure("Assertion ID is mandatory") if assertion_id.nil?
+
+  assertion_not_on_or_after = response.not_on_or_after
+  # We set a default of 5 min expiration in case is not provided
+  assertion_expiry = (Time.now.utc + 300) if assertion_not_on_or_after.nil?
+
+  # `is_new_assertion?` is your application's method to check and set the ID
+  # in a shared, persistent cache (e.g., Redis, Memcached).
+  if is_new_assertion?(assertion_id, expires_at: assertion_expiry)
+    # This is a new assertion, so we can proceed
+    session[:userid] = response.nameid
+    session[:attributes] = response.attributes
+    # ...
+  else
+    # This assertion ID has been seen before. This is a REPLAY ATTACK.
+    # Log the security event and reject the user.
+    authorize_failure("Replay attack detected")
+  end
+else
+  authorize_failure("Invalid response")
+end
+```
+
+Your `is_new_assertion?` method would look something like this (example for Redis):
+
+```ruby
+
+def is_new_assertion?(assertion_id, expires_at)
+  ttl = (expires_at - Time.now.utc).to_i
+  return false if ttl <= 0 # The assertion has already expired
+
+  # The 'nx' option tells Redis to only set the key if it does not already exist.
+  # The command returns `true` if the key was set, `false` otherwise.
+  $redis.set("saml_assertion_ids:#{assertion_id}", "1", ex: ttl, nx: true)
+end
+```
+
+### Enforce SP-Initiated Flow with `InResponseTo` validation
+
+This is the best way to prevent IdP-initiated logins and ensure that you only accept assertions that you recently requested.
+
+#### 1. Store the `AuthnRequest` ID
+
+When you create an `AuthnRequest`, the library assigns it a unique ID. You must store this ID, for example in the user's session *before* redirecting them to the IdP.
+
+```ruby
+def init
+  request = OneLogin::RubySaml::Authrequest.new
+  # The unique ID of the request is in request.uuid
+  session[:saml_request_id] = request.uuid
+  redirect_to(request.create(saml_settings))
+end
+```
+
+#### 2. Validate the `InResponseTo` value of the `Response` with the Stored ID
+
+When you process the `SAMLResponse`, retrieve the ID from the session and pass it to the `Response` constructor. Use `session.delete` to ensure the ID can only be used once.
+
+```ruby
+def consume
+  request_id = session.delete(:saml_request_id) # Use delete to prevent re-use
+
+  # You can reject the response if no previous saml_request_id was stored
+  raise "IdP-initiaited detected" if request_id.nil?
+
+  response = OneLogin::RubySaml::Response.new(
+    params[:SAMLResponse],
+    settings: saml_settings,
+    matches_request_id: request_id
+  )
+
+  if response.is_valid?
+    # ... authorize user
+  else
+    # Response is invalid, errors in response.errors
+  end
+end
 ```
 
 ## Contributing
@@ -998,9 +1111,17 @@ behind paywalls.
 
 ### Sponsors
 
-Thanks to the following sponsors for securing the open source ecosystem.
+Thanks to the following sponsors for securing the open source ecosystem:
 
-[<img alt="84codes" src="https://avatars.githubusercontent.com/u/5353257" width="75px">](https://www.84codes.com)
+#### [<img class="circle" src="https://avatars.githubusercontent.com/u/34724717" width="26" height="26" alt="@serpapi">](https://serpapi.com) [<sup>SerpApi</sup>](https://github.com/serpapi)
+<sup>*A real-time API to access Google search results. It handle proxies, solve captchas, and parse all rich structured data for you*</sup>
+
+#### [<img class="circle" src="https://avatars.githubusercontent.com/u/9919" width="26" height="26" alt="@github">](https://github.com/) [<sup>Github</sup>](https://github.com/github)
+<sup>*The complete developer platform to build, scale, and deliver secure software.*</sup>
+
+#### [<img alt="84codes" src="https://avatars.githubusercontent.com/u/5353257" width="26" height="26">](https://www.84codes.com) [<sup>84codes</sup>](https://github.com/84codes)
+<sup>*Simplifying Message Queuing and Streaming. Leave server management to the experts, so you can focus on building great applications.*</sup>
+
 
 ### Attribution
 

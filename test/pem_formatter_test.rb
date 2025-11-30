@@ -7,10 +7,10 @@ class PemFormatterTest < Minitest::Test
                "l\n bGwgeW91  IqE+bSBpbn\t NhbmUKQnV0IE\r\nkndmUgZ  2/0IGEgYmxhbmsgc" \
                "3BhY+UsIGJhY nkKQW5kIEkn/Gwgd3\npdG UgeW91ciBuYW1l \n\r\n"
   BASE64_OUT = <<~BASE64.strip
-                 R290IGEgbG9uZyBsaXN0IG9mIGV4LWx/dmVycwpUaGV5J2xsIHRlbGwgeW91IqE+
-                 bSBpbnNhbmUKQnV0IEkndmUgZ2/0IGEgYmxhbmsgc3BhY+UsIGJhYnkKQW5kIEkn
-                 /Gwgd3pdGUgeW91ciBuYW1l
-               BASE64
+    R290IGEgbG9uZyBsaXN0IG9mIGV4LWx/dmVycwpUaGV5J2xsIHRlbGwgeW91IqE+
+    bSBpbnNhbmUKQnV0IEkndmUgZ2/0IGEgYmxhbmsgc3BhY+UsIGJhYnkKQW5kIEkn
+    /Gwgd3pdGUgeW91ciBuYW1l
+  BASE64
 
   describe RubySaml::PemFormatter do
     def build_pem(label, body)
@@ -112,7 +112,7 @@ class PemFormatterTest < Minitest::Test
 
       it 'ignores non-cert PEMs when multiple PEMs are given' do
         multi = "#{build_pkey('BAR=')}\n#{build_cert(BASE64_RAW)}\n #{build_cert("\n")} #{build_pkey('BAZ')} " \
-                     "#{build_pem("\t \nXXX \t\n\r CERTIFICATE \n ", 'F00==')}  #{build_pkey('QUX==')}\n"
+                "#{build_pem("\t \nXXX \t\n\r CERTIFICATE \n ", 'F00==')}  #{build_pkey('QUX==')}\n"
         input = multi.dup
         expected_ary = [build_cert(BASE64_OUT), build_cert('F00==')]
         expected_one = expected_ary.first
@@ -124,7 +124,7 @@ class PemFormatterTest < Minitest::Test
         assert_equal input, multi
       end
 
-      it 'ignores non-cert PEMs array of PEMs is given' do
+      it 'ignores non-cert PEMs when an array of PEMs is given' do
         array = [build_pkey('BAR='),
                  "#{build_cert("\n")} \n#{build_cert(BASE64_RAW)}\n #{build_pkey('BAZ')} ",
                  build_pkey('BAZ'),
@@ -312,7 +312,7 @@ class PemFormatterTest < Minitest::Test
 
       it 'formats PEM to exactly 64 characters per line' do
         input = 'A' * 130
-        expected = build_cert("#{('A' * 64)}\n#{('A' * 64)}\nAA")
+        expected = build_cert("#{'A' * 64}\n#{'A' * 64}\nAA")
 
         assert_equal [expected], RubySaml::PemFormatter.format_cert_array(input)
         assert_equal [expected], RubySaml::PemFormatter.format_cert_array(build_cert(input))
@@ -611,7 +611,7 @@ class PemFormatterTest < Minitest::Test
 
       it 'formats PEM to exactly 64 characters per line' do
         input = 'A' * 130
-        expected = build_pkey("#{('A' * 64)}\n#{('A' * 64)}\nAA")
+        expected = build_pkey("#{'A' * 64}\n#{'A' * 64}\nAA")
 
         assert_equal [expected], RubySaml::PemFormatter.format_private_key_array(input)
         assert_equal [expected], RubySaml::PemFormatter.format_private_key_array(build_pkey(input))

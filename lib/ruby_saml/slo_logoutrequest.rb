@@ -24,7 +24,7 @@ module RubySaml
     # @param request [String] A UUEncoded Logout Request from the IdP.
     # @param options [Hash]  :settings to provide the RubySaml::Settings object
     #                        Or :allowed_clock_drift for the logout request validation process to allow a clock drift when checking dates with
-    #                        Or :relax_signature_validation to accept signatures if no idp certificate registered on settings
+    #                        Or :relax_signature_validation to accept signatures if no IdP certificate registered on settings
     #
     # @raise [ArgumentError] If Request is nil
     #
@@ -60,7 +60,7 @@ module RubySaml
     end
 
     # Validates the Logout Request with the default values (soft = true)
-    # @param collect_errors [Boolean] Stop validation when first error appears or keep validating.
+    # @param collect_errors [Boolean] Stop validation when the first error appears or keep validating.
     # @return [Boolean] TRUE if the Logout Request is valid
     #
     def is_valid?(collect_errors = false)
@@ -90,7 +90,7 @@ module RubySaml
       end
     end
 
-    # @return [String|nil] Gets the ID attribute from the Logout Request. if exists.
+    # @return [String|nil] Gets the ID attribute from the Logout Request. if it exists.
     #
     def id
       super(document)
@@ -105,7 +105,7 @@ module RubySaml
       )&.text
     end
 
-    # @return [Time|nil] Gets the NotOnOrAfter Attribute value if exists.
+    # @return [Time|nil] Gets the NotOnOrAfter Attribute value if it exists.
     #
     def not_on_or_after
       @not_on_or_after ||= begin
@@ -120,7 +120,7 @@ module RubySaml
       end
     end
 
-    # @return [Array] Gets the SessionIndex if exists (Supported multiple values). Empty Array if none found
+    # @return [Array] Gets the SessionIndex if exists (Supports multiple values). Empty Array if none found
     #
     def session_indexes
       document.xpath(
@@ -138,7 +138,7 @@ module RubySaml
     end
 
     # Hard aux function to validate the Logout Request
-    # @param collect_errors [Boolean] Stop validation when first error appears or keep validating. (if soft=true)
+    # @param collect_errors [Boolean] Stop validation when the first error appears or keep validating. (if soft=true)
     # @return [Boolean] TRUE if the Logout Request is valid
     # @raise [ValidationError] if soft == false and validation fails
     #
@@ -228,7 +228,7 @@ module RubySaml
 
     # Validates the Issuer of the Logout Request
     # If fails, the error is added to the errors array
-    # @return [Boolean] True if the Issuer matchs the IdP entityId, otherwise False if soft=True
+    # @return [Boolean] True if the Issuer matches the IdP entityId, otherwise False if soft=True
     # @raise [ValidationError] if soft == false and validation fails
     #
     def validate_issuer
@@ -241,8 +241,8 @@ module RubySaml
       true
     end
 
-    # Validates the Signature if exists and GET parameters are provided
-    # @return [Boolean] True if not contains a Signature or if the Signature is valid, otherwise False if soft=True
+    # Validates the Signature if it exists and GET parameters are provided
+    # @return [Boolean] True if does not contain a Signature or if the Signature is valid, otherwise False if soft=True
     # @raise [ValidationError] if soft == false and validation fails
     #
     def validate_signature

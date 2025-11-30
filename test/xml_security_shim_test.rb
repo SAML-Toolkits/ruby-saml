@@ -60,21 +60,21 @@ class XMLSecurityTest < Minitest::Test
   end
 
   def test_document_sign_document_raises_no_method_error
-    doc = XMLSecurity::Document.new("<root/>")
+    doc = XMLSecurity::Document.new('<root/>')
     assert_raises(::NoMethodError) { doc.sign_document }
   end
 
   def test_signed_document_inherits_from_base_document
-    assert_kind_of XMLSecurity::BaseDocument, XMLSecurity::SignedDocument.new("<root/>")
+    assert_kind_of XMLSecurity::BaseDocument, XMLSecurity::SignedDocument.new('<root/>')
   end
 
   def test_signed_document_validate_document_raises_no_method_error
-    doc = XMLSecurity::SignedDocument.new("<root/>")
+    doc = XMLSecurity::SignedDocument.new('<root/>')
     assert_raises(::NoMethodError) { doc.validate_document }
   end
 
   def test_signed_document_extract_inclusive_namespaces_raises_no_method_error
-    doc = XMLSecurity::SignedDocument.new("<root/>")
+    doc = XMLSecurity::SignedDocument.new('<root/>')
     assert_raises(::NoMethodError) { doc.extract_inclusive_namespaces }
   end
 end
