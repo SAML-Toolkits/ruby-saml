@@ -59,21 +59,21 @@ module RubySaml
       raise StandardError.new('Dangerous XML detected. No Doctype nodes allowed') if doc_str.include?('<!DOCTYPE')
 
       begin
-        xml = Nokogiri::XML(doc_str) do |config|
+        doc = Nokogiri::XML(doc_str) do |config|
           config.options = NOKOGIRI_OPTIONS
         end
       rescue StandardError => e
         raise StandardError.new(e.message)
       rescue SyntaxError => e
-        raise StandardError.new(e.message) if check_malformed_doc && e.message != "Empty document"
+        raise StandardError.new(e.message) if check_malformed_doc && e.message != 'Empty document'
       end
 
-      if xml && xml.is_a?(Nokogiri::XML::Document)
-        StandardError.new('Dangerous XML detected. No Doctype nodes allowed') if xml.internal_subset
-        StandardError.new("There were XML errors when parsing: #{xml.errors}") if check_malformed_doc && !xml.errors.empty?
+      if doc.is_a?(Nokogiri::XML::Document)
+        StandardError.new('Dangerous XML detected. No Doctype nodes allowed') if doc.internal_subset
+        StandardError.new("There were XML errors when parsing: #{doc.errors}") if check_malformed_doc && !doc.errors.empty?
       end
 
-      xml
+      doc
     end
 
     def copy_xml(noko)

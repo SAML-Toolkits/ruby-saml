@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-
 require "ruby_saml/settings"
 require "ruby_saml/xml"
 require "ruby_saml/attributes"
@@ -58,9 +57,9 @@ module RubySaml
       unless options[:settings].nil?
         @settings = options[:settings]
 
-        raise ValidationError.new("Invalid settings type: expected RubySaml::Settings, got #{@settings. class. name}") if !@settings.is_a?(Settings) && !@settings.nil?
+        raise ValidationError.new("Invalid settings type: expected RubySaml::Settings, got #{@settings.class.name}") if !@settings.is_a?(Settings) && !@settings.nil?
 
-        @soft = @settings&.respond_to?(:soft) && !@settings.soft.nil?  ? @settings.soft : true
+        @soft = @settings.respond_to?(:soft) && !@settings.soft.nil?  ? @settings.soft : true
         message_max_bytesize = @settings.message_max_bytesize if @settings.respond_to?(:message_max_bytesize)
       end
 
@@ -68,15 +67,13 @@ module RubySaml
       begin
         @document = RubySaml::XML.safe_load_xml(@response, check_malformed_doc: @soft)
       rescue StandardError => e
-        @errors << "XML load failed: #{e.message}" if e.message != "Empty document"
-        return false if @soft
-        raise ValidationError.new("XML load failed: #{e.message}") if e.message != "Empty document"
+        @errors << "XML load failed: #{e.message}" if e.message != 'Empty document'
+        return if @soft
+        raise ValidationError.new("XML load failed: #{e.message}") if e.message != 'Empty document'
       end
 
-      unless @document.nil?
-        if assertion_encrypted?
+      if !@document.nil? && assertion_encrypted?
           @decrypted_document = generate_decrypted_document
-        end
       end
 
       super()

@@ -161,7 +161,12 @@ module RubySaml
     end
 
     def parse_to_idp_metadata_array(idp_metadata, options = {})
-      @document = RubySaml::XML.safe_load_xml(idp_metadata, check_malformed_doc: true)
+      begin
+        @document = RubySaml::XML.safe_load_xml(idp_metadata, check_malformed_doc: true)
+      rescue StandardError => e
+        raise ArgumentError.new("XML load failed: #{e.message}") if e.message != 'Empty document'
+      end
+
       @options = options
 
       idpsso_descriptors = self.class.get_idps(@document, options[:entity_id])

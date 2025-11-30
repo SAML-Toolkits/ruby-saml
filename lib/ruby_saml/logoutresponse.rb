@@ -33,6 +33,8 @@ module RubySaml
       raise ArgumentError.new("Logoutresponse cannot be nil") if response.nil?
       @settings = settings
 
+      raise ValidationError.new("Invalid settings type: expected RubySaml::Settings, got #{@settings.class.name}") if !@settings.is_a?(Settings) && !@settings.nil?
+
       if settings.nil? || settings.soft.nil?
         @soft = true
       else
@@ -44,8 +46,8 @@ module RubySaml
       begin
         @document = RubySaml::XML.safe_load_xml(@response, check_malformed_doc: @soft)
       rescue StandardError => e
-        @errors << e.message if e.message != "Empty document"
-        return false if @soft
+        @errors << "XML load failed: #{e.message}" if e.message != "Empty document"
+        return if @soft
         raise ValidationError.new("XML load failed: #{e.message}") if e.message != "Empty document"
       end
 

@@ -36,16 +36,20 @@ module RubySaml
       @soft = true
       unless options[:settings].nil?
         @settings = options[:settings]
-        @soft = @settings.soft unless @settings.soft.nil?
+
+        raise ValidationError.new("Invalid settings type: expected RubySaml::Settings, got #{@settings.class.name}") if !@settings.is_a?(Settings) && !@settings.nil?
+
+        @soft = @settings.respond_to?(:soft) && !@settings.soft.nil? ? @settings.soft : true
+        message_max_bytesize = @settings.message_max_bytesize if @settings.respond_to?(:message_max_bytesize)
       end
 
-      @request = RubySaml::XML::Decoder.decode_message(request, @settings&.message_max_bytesize)
+      @request = RubySaml::XML::Decoder.decode_message(request, message_max_bytesize)
       begin
         @document = RubySaml::XML.safe_load_xml(@request, check_malformed_doc: @soft)
       rescue StandardError => e
-        @errors << e.message if e.message != "Empty document"
-        return false if @soft
-        raise ValidationError.new("XML load failed: #{e.message}") if e.message != "Empty document"
+        @errors << "XML load failed: #{e.message}" if e.message != 'Empty document'
+        return if @soft
+        raise ValidationError.new("XML load failed: #{e.message}") if e.message != 'Empty document'
       end
 
       super()
