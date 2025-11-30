@@ -14,9 +14,13 @@ module RubySaml
       # @param check_malformed_doc [Boolean] Whether to check for malformed documents
       def initialize(noko, check_malformed_doc: true)
         noko = if noko.is_a?(Nokogiri::XML::Document)
-                 RubySaml::XML.copy_nokogiri(noko)
+                 RubySaml::XML.copy_xml(noko)
                else
-                 RubySaml::XML.safe_load_nokogiri(noko, check_malformed_doc: check_malformed_doc)
+                  begin
+                    @document = RubySaml::XML.safe_load_xml(noko, check_malformed_doc: check_malformed_doc)
+                  rescue StandardError => e
+                    raise ValidationError.new("XML load failed: #{e.message}") if e.message != "Empty document"
+                  end
                end
         @noko = noko
         @check_malformed_doc = check_malformed_doc

@@ -66,6 +66,15 @@ class RubySamlTest < Minitest::Test
       assert_raises(ArgumentError) { RubySaml::Response.new(nil) }
     end
 
+    it "raise an exception when the settings provided are not a RubySaml::Settings object" do
+      settings = "invalid settings"
+      error_msg = "Invalid settings type: expected RubySaml::Settings, got String"
+      options = { :settings => settings }
+      assert_raises(RubySaml::ValidationError, error_msg) do
+        RubySaml::Response.new(response_document_valid_signed, options)
+      end
+    end
+
     it "not filter available options only" do
       options = { :skip_destination => true, :foo => :bar }
       response = RubySaml::Response.new(response_document_valid_signed, options)
@@ -83,6 +92,27 @@ class RubySamlTest < Minitest::Test
 
       assert !ampersands_response.is_valid?
       assert_includes ampersands_response.errors, "SAML Response must contain 1 assertion"
+    end
+
+    it "Raise ValidationError if XML contains SyntaxError trying to initialize and soft = false" do
+      settings.soft = false
+      error_msg = 'XML load failed: 53:875: FATAL: Opening and ending tag mismatch: X509Certificate line 53 and SignatureValue'
+      assert_raises(RubySaml::ValidationError, error_msg) do
+        OneLogin::RubySaml::Response.new(fixture(:response_wrong_syntax), :settings => settings)
+      end
+    end
+
+    it "Do not raise validation error when XML contains SyntaxError and soft = true, but validation fails" do
+      settings.soft = true
+      settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
+      response = OneLogin::RubySaml::Response.new(fixture(:response_wrong_syntax), :settings => settings)
+      assert_includes response.errors, 'XML load failed: 53:875: FATAL: Opening and ending tag mismatch: X509Certificate line 53 and SignatureValue'
+
+      refute response.is_valid?
+
+      assert_includes response.errors, 'Blank response'
+      assert_nil response.nameid
+      assert_nil response.attributes
     end
 
     describe "Prevent node text with comment attack (VU#475445)" do
@@ -139,6 +169,7 @@ class RubySamlTest < Minitest::Test
       it "raise when evil attack vector is present, soft = false " do
         @response.soft = false
         error_msg = "XML load failed: Dangerous XML detected. No Doctype nodes allowed"
+
         assert_raises(RubySaml::ValidationError, error_msg) do
           @response.send(:validate_structure)
         end
@@ -252,7 +283,9 @@ class RubySamlTest < Minitest::Test
           assert_raises(RubySaml::ValidationError, error_msg) do
             response_without_recipient.is_valid?
           end
-          assert !response_without_recipient.errors.empty?
+
+          refute response_without_recipient.errors.empty?
+
           assert_includes response_without_recipient.errors[0], error_msg
         end
 
@@ -410,8 +443,8 @@ class RubySamlTest < Minitest::Test
           settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
           response_without_recipient.settings = settings
           error_msg = "Current time is on or after NotOnOrAfter condition"
-          assert !response_without_recipient.is_valid?
-          assert !response_without_recipient.errors.empty?
+          refute response_without_recipient.is_valid?
+          refute response_without_recipient.errors.empty?
           assert_includes response_without_recipient.errors[0], error_msg
         end
 
@@ -557,14 +590,14 @@ class RubySamlTest < Minitest::Test
       it "returns false on a case insenstive match on the path" do
         response_valid_signed_without_x509certificate.settings = settings
         response_valid_signed_without_x509certificate.settings.assertion_consumer_service_url = 'http://app.muda.no/SSO/consume'
-        assert !response_valid_signed_without_x509certificate.send(:validate_destination)
+        refute response_valid_signed_without_x509certificate.send(:validate_destination)
         assert_includes response_valid_signed_without_x509certificate.errors, "The response was received at #{response_valid_signed_without_x509certificate.destination} instead of #{response_valid_signed_without_x509certificate.settings.assertion_consumer_service_url}"
       end
 
       it "returns true if it can't parse out a full URI." do
         response_valid_signed_without_x509certificate.settings = settings
         response_valid_signed_without_x509certificate.settings.assertion_consumer_service_url = 'presenter'
-        assert !response_valid_signed_without_x509certificate.send(:validate_destination)
+        refute response_valid_signed_without_x509certificate.send(:validate_destination)
         assert_includes response_valid_signed_without_x509certificate.errors, "The response was received at #{response_valid_signed_without_x509certificate.destination} instead of #{response_valid_signed_without_x509certificate.settings.assertion_consumer_service_url}"
       end
     end
