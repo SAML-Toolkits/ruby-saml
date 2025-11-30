@@ -110,7 +110,12 @@ class RubySamlTest < Minitest::Test
       settings.soft = true
       settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
       response = OneLogin::RubySaml::Response.new(fixture(:response_wrong_syntax), :settings => settings)
-      assert_includes response.errors, 'XML load failed: 53:875: FATAL: Opening and ending tag mismatch: X509Certificate line 53 and SignatureValue'
+      error_msg = if jruby?
+                    'XML load failed: The element type "ds:X509Certificate" must be terminated by the matching end-tag "</ds:X509Certificate>"'
+                  else
+                   'XML load failed: 53:875: FATAL: Opening and ending tag mismatch: X509Certificate line 53 and SignatureValue'
+                  end
+      assert_includes response.errors, error_msg
 
       refute response.is_valid?
 
