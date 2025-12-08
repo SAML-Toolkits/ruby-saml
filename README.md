@@ -10,6 +10,8 @@ Minor and patch versions of Ruby SAML may introduce breaking changes. Please rea
 
 ## Vulnerability Notice
 
+[CVE-2025-66568](https://github.com/SAML-Toolkits/ruby-saml/security/advisories/GHSA-9v8j-x534-2fx3) and [CVE-2025-66567](https://github.com/SAML-Toolkits/ruby-saml/security/advisories/GHSA-9v8j-x534-2fx3) affects version ruby-saml <= 1.12.4, upgrade to 1.18.1
+
 CVE-2025-54572 affects version ruby-saml < 1.18.1
 
 There are critical vulnerabilities affecting ruby-saml < 1.18.0, two of them allows SAML authentication bypass (CVE-2025-25291, CVE-2025-25292, CVE-2025-25293). Please upgrade to a fixed version (1.18.0)
