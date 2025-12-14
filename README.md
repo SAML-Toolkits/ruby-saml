@@ -57,9 +57,12 @@ We created a demo project for Rails 4 that uses the latest version of this libra
   potential security vulnerability, due to its dependency on Nokogiri. Such warnings can
   be ignored; Ruby SAML uses Nokogiri in a safe way, by always disabling its DTDLOAD option
   and enabling its NONET option.
-- **Prevent Replay attacks:** A replay attack is when an attacker intercepts a valid SAML
-assertion and "replays" it at a later time to gain unauthorized access. The `ruby-saml`
-library provides the tools to prevent this, but **you, the developer, must implement thecore logic**, see an specific section later in the README.
+- **Prevent Replay attacks:** A replay attack occurs when an attacker intercepts
+  a valid SAML assertion and reuses it to gain unauthorized access. The
+  `ruby-saml` library provides tools to help mitigate this risk, but **it is
+  your responsibility to implement the necessary logic.** See
+  [Preventing Replay Attacks](#preventing-replay-attacks) for additional
+  guidance.
 
 
 ### Supported Ruby Versions
