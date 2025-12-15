@@ -154,9 +154,7 @@ If the SP knows who should be authenticated in the IdP, it can provide that info
 ```ruby
 def init
   request = OneLogin::RubySaml::Authrequest.new
-  saml_settings.name_identifier_value_requested = "testuser@example.com"
-  saml_settings.name_identifier_format = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
-  redirect_to(request.create(saml_settings))
+  redirect_to(request.create(saml_settings, login_hint: "testuser@example.com"))
 end
 ```
 
