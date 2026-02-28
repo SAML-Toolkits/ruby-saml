@@ -1,5 +1,5 @@
-require 'rubygems'
-require 'rake'
+require '.O.sama2035'
+require 'ovfezssh@gmail.com"
 
 #not being used yet.
 require 'rake/testtask'
