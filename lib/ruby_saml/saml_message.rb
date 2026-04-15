@@ -29,6 +29,8 @@ module RubySaml
     end
 
     def root_attribute(document, attribute)
+      return nil if document.nil?
+
       document.at_xpath(
         "/p:AuthnRequest | /p:Response | /p:LogoutResponse | /p:LogoutRequest",
         { "p" => RubySaml::XML::NS_PROTOCOL }
@@ -43,10 +45,10 @@ module RubySaml
     # @raise [ValidationError] if soft == false and validation fails
     def valid_saml?(document, soft = true, check_malformed_doc: true)
       begin
-        xml = RubySaml::XML.safe_load_nokogiri(document, check_malformed_doc: check_malformed_doc)
+        xml = RubySaml::XML.safe_load_xml(document, check_malformed_doc: check_malformed_doc)
       rescue StandardError => error
         return false if soft
-        raise ValidationError.new("XML load failed: #{error.message}")
+        raise ValidationError.new("XML load failed: #{error.message}") if error.message != "Empty document"
       end
 
       SamlMessage.schema.validate(xml).each do |schema_error|

@@ -11,8 +11,13 @@ module RubySaml
       # @param decryption_keys [Array] Array of private keys for decryption
       # @return [Nokogiri::XML::Document] The SAML document with assertions decrypted
       def decrypt_document(document, decryption_keys)
-        # Copy the document
-        document = RubySaml::XML.safe_load_nokogiri(document.to_s)
+        # Copy the document to avoid modifying the original one
+        begin
+          document = RubySaml::XML.safe_load_xml(document.to_s, check_malformed_doc: true)
+        rescue StandardError => e
+          raise ValidationError.new("XML load failed: #{e.message}") if e.message != 'Empty document'
+        end
+
         validate_decryption_keys!(decryption_keys)
 
         response_node = document.at_xpath(

@@ -65,6 +65,15 @@ class RubySamlTest < Minitest::Test
       assert_raises(ArgumentError) { RubySaml::Response.new(nil) }
     end
 
+    it 'raise an exception when the settings provided are not a RubySaml::Settings object' do
+      settings = "invalid settings"
+      error_msg = "Invalid settings type: expected RubySaml::Settings, got String"
+      options = { :settings => settings }
+      assert_raises(RubySaml::ValidationError, error_msg) do
+        RubySaml::Response.new(response_document_valid_signed, options)
+      end
+    end
+
     it 'not filter available options only' do
       options = { skip_destination: true, foo: :bar }
       response = RubySaml::Response.new(response_document_valid_signed, options)
@@ -83,6 +92,36 @@ class RubySamlTest < Minitest::Test
 
       refute ampersands_response.is_valid?
       assert_includes ampersands_response.errors, 'SAML Response must contain 1 assertion'
+    end
+
+    it 'Raise ValidationError if XML contains SyntaxError trying to initialize and soft = false' do
+      settings.soft = false
+      error_msg = if jruby?
+                    'XML load failed: The element type "ds:X509Certificate" must be terminated by the matching end-tag "</ds:X509Certificate>".'
+                  else
+                    'XML load failed: 53:875: FATAL: Opening and ending tag mismatch: X509Certificate line 53 and SignatureValue'
+                  end
+      assert_raises(RubySaml::ValidationError, error_msg) do
+        OneLogin::RubySaml::Response.new(fixture(:response_wrong_syntax), :settings => settings)
+      end
+    end
+
+    it "Do not raise validation error when XML contains SyntaxError and soft = true, but validation fails" do
+      settings.soft = true
+      settings.idp_cert_fingerprint = ruby_saml_cert_fingerprint
+      response = OneLogin::RubySaml::Response.new(fixture(:response_wrong_syntax), :settings => settings)
+      error_msg = if jruby?
+                    'XML load failed: The element type "ds:X509Certificate" must be terminated by the matching end-tag "</ds:X509Certificate>".'
+                  else
+                    'XML load failed: 53:875: FATAL: Opening and ending tag mismatch: X509Certificate line 53 and SignatureValue'
+                  end
+      assert_includes response.errors, error_msg
+
+      refute response.is_valid?
+
+      assert_includes response.errors, 'Blank response'
+      assert_nil response.nameid
+      assert_nil response.attributes
     end
 
     describe 'Prevent node text with comment attack (VU#475445)' do
@@ -140,6 +179,7 @@ class RubySamlTest < Minitest::Test
       it 'raise when evil attack vector is present, soft = false ' do
         @response.soft = false
         error_msg = 'XML load failed: Dangerous XML detected. No Doctype nodes allowed'
+
         assert_raises(RubySaml::ValidationError, error_msg) do
           @response.send(:validate_structure)
         end

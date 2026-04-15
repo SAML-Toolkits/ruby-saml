@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "ruby_saml/settings"
 require "ruby_saml/xml"
 require "ruby_saml/attributes"
 require "time"
@@ -52,18 +53,27 @@ module RubySaml
 
       @options = options
       @soft = true
+      message_max_bytesize = nil
       unless options[:settings].nil?
         @settings = options[:settings]
-        unless @settings.soft.nil?
-          @soft = @settings.soft
-        end
+
+        raise ValidationError.new("Invalid settings type: expected RubySaml::Settings, got #{@settings.class.name}") if !@settings.is_a?(Settings) && !@settings.nil?
+
+        @soft = @settings.respond_to?(:soft) && !@settings.soft.nil?  ? @settings.soft : true
+        message_max_bytesize = @settings.message_max_bytesize if @settings.respond_to?(:message_max_bytesize)
       end
 
-      @response = RubySaml::XML::Decoder.decode_message(response, @settings&.message_max_bytesize)
-      @document = RubySaml::XML.safe_load_nokogiri(@response)
+      @response = RubySaml::XML::Decoder.decode_message(response, message_max_bytesize)
+      begin
+        @document = RubySaml::XML.safe_load_xml(@response, check_malformed_doc: @soft)
+      rescue StandardError => e
+        @errors << "XML load failed: #{e.message}" if e.message != 'Empty document'
+        return if @soft
+        raise ValidationError.new("XML load failed: #{e.message}") if e.message != 'Empty document'
+      end
 
-      if assertion_encrypted?
-        @decrypted_document = generate_decrypted_document
+      if !@document.nil? && assertion_encrypted?
+          @decrypted_document = generate_decrypted_document
       end
 
       super()
@@ -131,6 +141,8 @@ module RubySaml
     # @raise [ValidationError] if there are 2+ Attribute with the same Name
     #
     def attributes
+      return nil if @document.nil?
+
       @attr_statements ||= begin
         attributes = Attributes.new
 
@@ -367,6 +379,9 @@ module RubySaml
     #
     def validate(collect_errors = false)
       reset_errors!
+
+      return append_error("Blank response") if @document.nil?
+
       return false unless validate_response_state
 
       validations = %i[
@@ -417,8 +432,10 @@ module RubySaml
     def validate_structure
       structure_error_msg = "Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd"
 
+      doc_to_analize = @document.nil? ? @response : @document
+
       check_malformed_doc = check_malformed_doc_enabled?
-      unless valid_saml?(document, soft, check_malformed_doc: check_malformed_doc)
+      unless valid_saml?(doc_to_analize, soft, check_malformed_doc: check_malformed_doc)
         return append_error(structure_error_msg)
       end
 
@@ -900,6 +917,8 @@ module RubySaml
     end
 
     def name_id_node
+      return nil if @document.nil?
+
       @name_id_node ||=
         begin
           encrypted_node = xpath_first_from_signed_assertion('/a:Subject/a:EncryptedID')

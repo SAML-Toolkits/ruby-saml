@@ -36,11 +36,22 @@ module RubySaml
       @soft = true
       unless options[:settings].nil?
         @settings = options[:settings]
-        @soft = @settings.soft unless @settings.soft.nil?
+
+        raise ValidationError.new("Invalid settings type: expected RubySaml::Settings, got #{@settings.class.name}") if !@settings.is_a?(Settings) && !@settings.nil?
+
+        @soft = @settings.respond_to?(:soft) && !@settings.soft.nil? ? @settings.soft : true
+        message_max_bytesize = @settings.message_max_bytesize if @settings.respond_to?(:message_max_bytesize)
       end
 
-      @request = RubySaml::XML::Decoder.decode_message(request, @settings&.message_max_bytesize)
-      @document = RubySaml::XML.safe_load_nokogiri(@request)
+      @request = RubySaml::XML::Decoder.decode_message(request, message_max_bytesize)
+      begin
+        @document = RubySaml::XML.safe_load_xml(@request, check_malformed_doc: @soft)
+      rescue StandardError => e
+        @errors << "XML load failed: #{e.message}" if e.message != 'Empty document'
+        return if @soft
+        raise ValidationError.new("XML load failed: #{e.message}") if e.message != 'Empty document'
+      end
+
       super()
     end
 
@@ -157,6 +168,8 @@ module RubySaml
     # @return [Boolean] True if the Logout Request contains an ID, otherwise returns False
     #
     def validate_id
+      return append_error("Missing ID attribute on Logout Request") if document.nil?
+
       return true if id
       append_error("Missing ID attribute on Logout Request")
     end
@@ -166,6 +179,8 @@ module RubySaml
     # @return [Boolean] True if the Logout Request is 2.0, otherwise returns False
     #
     def validate_version
+      return append_error("Unsupported SAML version") if document.nil?
+
       return true if version(document) == "2.0"
       append_error("Unsupported SAML version")
     end
@@ -191,8 +206,10 @@ module RubySaml
     # @raise [ValidationError] if soft == false and validation fails
     #
     def validate_structure
+      doc_to_analize = @document.nil? ? @request : @document
+
       check_malformed_doc = check_malformed_doc?(settings)
-      unless valid_saml?(document, soft, check_malformed_doc: check_malformed_doc)
+      unless valid_saml?(doc_to_analize, soft, check_malformed_doc: check_malformed_doc)
         return append_error("Invalid SAML Logout Request. Not match the saml-schema-protocol-2.0.xsd")
       end
 

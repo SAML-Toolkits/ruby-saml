@@ -33,6 +33,8 @@ module RubySaml
       raise ArgumentError.new("Logoutresponse cannot be nil") if response.nil?
       @settings = settings
 
+      raise ValidationError.new("Invalid settings type: expected RubySaml::Settings, got #{@settings.class.name}") if !@settings.is_a?(Settings) && !@settings.nil?
+
       if settings.nil? || settings.soft.nil?
         @soft = true
       else
@@ -41,7 +43,14 @@ module RubySaml
 
       @options = options
       @response = RubySaml::XML::Decoder.decode_message(response, @settings&.message_max_bytesize)
-      @document = RubySaml::XML.safe_load_nokogiri(@response)
+      begin
+        @document = RubySaml::XML.safe_load_xml(@response, check_malformed_doc: @soft)
+      rescue StandardError => e
+        @errors << "XML load failed: #{e.message}" if e.message != "Empty document"
+        return if @soft
+        raise ValidationError.new("XML load failed: #{e.message}") if e.message != "Empty document"
+      end
+
       super()
     end
 
@@ -136,9 +145,13 @@ module RubySaml
     # @raise [ValidationError] if soft == false and validation fails
     #
     def validate_structure
+      structure_error_msg = "Invalid SAML Logout Response. Not match the saml-schema-protocol-2.0.xsd"
+
+      doc_to_analize = @document.nil? ? @response : @document
+
       check_malformed_doc = check_malformed_doc?(settings)
-      unless valid_saml?(document, soft, check_malformed_doc: check_malformed_doc)
-        return append_error("Invalid SAML Logout Response. Not match the saml-schema-protocol-2.0.xsd")
+      unless valid_saml?(doc_to_analize, soft, check_malformed_doc: check_malformed_doc)
+        return append_error(structure_error_msg)
       end
 
       true
