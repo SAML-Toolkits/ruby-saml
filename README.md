@@ -29,6 +29,8 @@ Thanks to the following sponsors for securing the open source ecosystem:
 #### [<img alt="84codes" src="https://avatars.githubusercontent.com/u/5353257" width="26" height="26">](https://www.84codes.com) [<sup>84codes</sup>](https://github.com/84codes)
 <sup>*Simplifying Message Queuing and Streaming. Leave server management to the experts, so you can focus on building great applications.*</sup>
 
+#### [<img alt="TableCheck" class="avatar" src="https://avatars.githubusercontent.com/u/36186781" width="26" height="26">](https://www.tablecheck.com/en/join) [<sup>TableCheck</sup>](https://www.tablecheck.com/en/join)
+<sup>*Global restaurant reservation and hospitality management platform that delivers extraordinary guest experiences.*</sup>
 
 ## Overview
 
@@ -1109,9 +1111,9 @@ behind paywalls.
 * Do not change rakefile, version, or history.
 * Open a pull request, following [this template](https://gist.github.com/Lordnibbler/11002759).
 
-### Sponsors
+### Sponsorship
 
-Thanks to the following sponsors for securing the open source ecosystem:
+Please [donate](https://github.com/sponsors/SAML-Toolkits) to the project, the following sponsors contributed for securing the open source ecosystem:
 
 #### [<img class="circle" src="https://avatars.githubusercontent.com/u/34724717" width="26" height="26" alt="@serpapi">](https://serpapi.com) [<sup>SerpApi</sup>](https://github.com/serpapi)
 <sup>*A real-time API to access Google search results. It handle proxies, solve captchas, and parse all rich structured data for you*</sup>
@@ -1122,6 +1124,8 @@ Thanks to the following sponsors for securing the open source ecosystem:
 #### [<img alt="84codes" src="https://avatars.githubusercontent.com/u/5353257" width="26" height="26">](https://www.84codes.com) [<sup>84codes</sup>](https://github.com/84codes)
 <sup>*Simplifying Message Queuing and Streaming. Leave server management to the experts, so you can focus on building great applications.*</sup>
 
+#### [<img alt="TableCheck" class="avatar" src="https://avatars.githubusercontent.com/u/36186781" width="26" height="26">](https://www.tablecheck.com/en/join) [<sup>TableCheck</sup>](https://www.tablecheck.com/en/join)
+<sup>*Global restaurant reservation and hospitality management platform that delivers extraordinary guest experiences.*</sup>
 
 ### Attribution
 
