@@ -123,7 +123,7 @@ Using RubyGems
 
 ```sh
 gem install nokogiri --version '~> 1.5.10'
-````
+```
 
 ### Configuring Logging
 
@@ -752,7 +752,7 @@ settings.sp_cert_multi = {
 }
 ```
 
-Certificate rotation is acheived by inserting new certificates at the bottom of each list,
+Certificate rotation is achieved by inserting new certificates at the bottom of each list,
 and then removing the old certificates from the top of the list once your IdPs have migrated.
 A common practice is for apps to publish the current SP metadata at a URL endpoint and have
 the IdP regularly poll for updates.
@@ -803,7 +803,7 @@ Here is an example that we could add to our previous controller to generate and 
 ```ruby
 # Create a SP initiated SLO
 def sp_logout_request
-  # LogoutRequest accepts plain browser requests w/o paramters
+  # LogoutRequest accepts plain browser requests w/o parameters
   settings = saml_settings
 
   if settings.idp_slo_service_url.nil?
@@ -1010,7 +1010,7 @@ You must store this ID in a persistent cache (like Redis or Memcached) that is s
 
 The ID should be stored until the assertion's validity window has passed. You will need to check how long the trusted IdPs consider the assertion valid and then add the allowed_clock_drift.
 
-You can define a global value, or set this value dinamically based on the `not_on_or_after` value of the re + `allowed_clock_drift`.
+You can define a global value, or set this value dynamically based on the `not_on_or_after` value of the re + `allowed_clock_drift`.
 
 ```ruby
 # In your `consume` action, after a successful validation:
