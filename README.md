@@ -444,7 +444,7 @@ xml = response.body
 errors = []
 doc = XMLSecurity::SignedDocument.new(xml, errors)
 cert_str = "<include_cert_here>"
-cert = OneLogin::RubySaml::Utils.format_cert("cert_str")
+cert = OneLogin::RubySaml::Utils.format_cert(cert_str)
 metadata_sign_cert = OpenSSL::X509::Certificate.new(cert)
 valid = doc.validate_document_with_cert(metadata_sign_cert, true)
 if valid
