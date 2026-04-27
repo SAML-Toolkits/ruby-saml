@@ -86,7 +86,7 @@ Using `Gemfile`
 gem 'ruby-saml', '~> 1.18.0'
 
 # or track master for bleeding-edge
-gem 'ruby-saml', :github => 'saml-toolkit/ruby-saml'
+gem 'ruby-saml', :github => 'saml-toolkits/ruby-saml'
 ```
 
 Using RubyGems
