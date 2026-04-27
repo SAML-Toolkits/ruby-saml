@@ -69,7 +69,7 @@ We created a demo project for Rails 4 that uses the latest version of this libra
 
 The following Ruby versions are covered by CI testing:
 
-* Ruby (MRI) 2.1 to 3.4
+* Ruby (MRI) 2.1 to 4.0
 * JRuby 9.1 to 9.4
 * TruffleRuby (latest)
 
