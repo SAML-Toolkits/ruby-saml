@@ -921,7 +921,12 @@ Server clocks tend to drift naturally. If during validation of the response you 
 
 First, ensure that both systems synchronize their clocks, using for example the industry standard [Network Time Protocol (NTP)](http://en.wikipedia.org/wiki/Network_Time_Protocol).
 
-Even then you may experience intermittent issues, as the clock of the Identity Provider may drift slightly ahead of your system clocks. To allow for a small amount of clock drift, you can initialize the response by passing in an option named `:allowed_clock_drift`. Its value must be given in a number (and/or fraction) of seconds. The value given is added to the current time at which the response is validated before it's tested against the `NotBefore` assertion. For example:
+Even then you may experience intermittent issues, as the clock of the Identity Provider may drift slightly ahead of your system clocks. To allow for a small amount of clock drift, you can initialize the response by passing in an option named `:allowed_clock_drift`. Its value must be given in a number (and/or fraction) of seconds. The value given is:
+
+* added to the current time at which the response is validated before it's tested against the `NotBefore` assertion
+* subtracted from the current time at which the response is validated before it's tested against the `NotOnOrAfter` assertion
+
+For example:
 
 ```ruby
 response = OneLogin::RubySaml::Response.new(params[:SAMLResponse], :allowed_clock_drift => 1.second)
