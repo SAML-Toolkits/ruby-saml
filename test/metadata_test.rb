@@ -87,6 +87,13 @@ class MetadataTest < Minitest::Test
       assert_equal "PT604800S", REXML::XPath.first(doc_metadata, "//md:EntityDescriptor").attribute("cacheDuration").value
     end
 
+    it "raises error when the settings is nil" do
+      err = assert_raises ArgumentError do
+        OneLogin::RubySaml::Metadata.new.generate(nil)
+      end
+      assert_match(/settings should not be nil/, err.message)
+    end
+
     describe "WantAssertionsSigned" do
       it "generates Service Provider Metadata with WantAssertionsSigned = false" do
         settings.security[:want_assertions_signed] = false

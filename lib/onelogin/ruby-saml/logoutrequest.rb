@@ -26,11 +26,13 @@ module OneLogin
       end
 
       # Creates the Logout Request string.
-      # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @param settings [OneLogin::RubySaml::Settings] Toolkit settings
       # @param params [Hash] Some extra parameters to be added in the GET for example the RelayState
       # @return [String] Logout Request string that includes the SAMLRequest
       #
       def create(settings, params={})
+        raise ArgumentError, "Invalid settings, settings should not be nil!" if settings.nil?
+
         params = create_params(settings, params)
         params_prefix = (settings.idp_slo_service_url =~ /\?/) ? '&' : '?'
         saml_request = CGI.escape(params.delete("SAMLRequest"))
@@ -43,11 +45,13 @@ module OneLogin
       end
 
       # Creates the Get parameters for the logout request.
-      # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @param settings [OneLogin::RubySaml::Settings] Toolkit settings
       # @param params [Hash] Some extra parameters to be added in the GET for example the RelayState
       # @return [Hash] Parameters
       #
       def create_params(settings, params={})
+        raise ArgumentError, "Invalid settings, settings should not be nil!" if settings.nil?
+
         # The method expects :RelayState but sometimes we get 'RelayState' instead.
         # Based on the HashWithIndifferentAccess value in Rails we could experience
         # conflicts so this line will solve them.
@@ -92,10 +96,12 @@ module OneLogin
       end
 
       # Creates the SAMLRequest String.
-      # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @param settings [OneLogin::RubySaml::Settings] Toolkit settings
       # @return [String] The SAMLRequest String.
       #
       def create_logout_request_xml_doc(settings)
+        raise ArgumentError, "Invalid settings, settings should not be nil!" if settings.nil?
+
         document = create_xml_document(settings)
         sign_document(document, settings)
       end

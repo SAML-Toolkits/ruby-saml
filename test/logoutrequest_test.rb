@@ -66,6 +66,15 @@ class RequestTest < Minitest::Test
       assert_match %r(#{name_identifier_value}</saml:NameID>), inflated
     end
 
+    describe "when the settings is nil" do
+      it "raises an error with a descriptive message" do
+        err = assert_raises ArgumentError do
+          OneLogin::RubySaml::Logoutrequest.new.create(nil)
+        end
+        assert_match(/settings should not be nil/, err.message)
+      end
+    end
+
     describe "when the target url doesn't contain a query string" do
       it "create the SAMLRequest parameter correctly" do
         unauth_url = OneLogin::RubySaml::Logoutrequest.new.create(settings)
@@ -107,6 +116,20 @@ class RequestTest < Minitest::Test
         assert_match(/^test/, request.uuid)
         OneLogin::RubySaml::Utils::set_prefix("_")
       end
+    end
+
+    it "raises error when settings is nil on create_params" do
+      err = assert_raises ArgumentError do
+        OneLogin::RubySaml::Logoutrequest.new.create_params(nil)
+      end
+      assert_match(/settings should not be nil/, err.message)
+    end
+
+    it "raises error when settings is nil on create_logout_request_xml_doc" do
+      err = assert_raises ArgumentError do
+        OneLogin::RubySaml::Logoutrequest.new.create_logout_request_xml_doc(nil)
+      end
+      assert_match(/settings should not be nil/, err.message)
     end
 
     describe "signing with HTTP-POST binding" do

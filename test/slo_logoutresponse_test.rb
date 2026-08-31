@@ -83,6 +83,13 @@ class SloLogoutresponseTest < Minitest::Test
       assert_match(/Destination='http:\/\/unauth.com\/logout\/return'/, inflated)
     end
 
+    it "raises error when the settings is nil" do
+      err = assert_raises ArgumentError do
+        OneLogin::RubySaml::SloLogoutresponse.new.create(nil)
+      end
+      assert_match(/settings should not be nil/, err.message)
+    end
+
     describe "playgin with preix" do
       it "creates request with ID prefixed with default '_'" do
         request = OneLogin::RubySaml::SloLogoutresponse.new
@@ -96,6 +103,20 @@ class SloLogoutresponseTest < Minitest::Test
         assert_match(/^test/, request.uuid)
         OneLogin::RubySaml::Utils::set_prefix("_")
       end
+    end
+
+    it "raises error when settings is nil on create_params" do
+      err = assert_raises ArgumentError do
+        OneLogin::RubySaml::SloLogoutresponse.new.create_params(nil)
+      end
+      assert_match(/settings should not be nil/, err.message)
+    end
+
+    it "raises error when settings is nil on create_logout_response_xml_doc" do
+      err = assert_raises ArgumentError do
+        OneLogin::RubySaml::SloLogoutresponse.new.create_logout_response_xml_doc(nil)
+      end
+      assert_match(/settings should not be nil/, err.message)
     end
 
     describe "signing with HTTP-POST binding" do

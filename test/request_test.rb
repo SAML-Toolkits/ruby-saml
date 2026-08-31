@@ -176,6 +176,15 @@ class RequestTest < Minitest::Test
       OneLogin::RubySaml::Utils::set_prefix("_")
     end
 
+    describe "when the settings is nil" do
+      it "raises an error with a descriptive message" do
+        err = assert_raises ArgumentError do
+          OneLogin::RubySaml::Authrequest.new.create(nil)
+        end
+        assert_match(/settings should not be nil/, err.message)
+      end
+    end
+
     describe "when the target url is not set" do
       before do
         settings.idp_sso_service_url = nil
@@ -238,6 +247,15 @@ class RequestTest < Minitest::Test
       settings.authn_context_decl_ref = 'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport'
       auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
       assert_match(/<saml:AuthnContextDeclRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport<\/saml:AuthnContextDeclRef>/, auth_doc.to_s)
+    end
+
+    describe "#create_params signing with nil settings" do
+      it "raises ArgumentError" do
+        err = assert_raises ArgumentError do
+          OneLogin::RubySaml::Authrequest.new.create_params(nil)
+        end
+        assert_match(/settings should not be nil/, err.message)
+      end
     end
 
     describe "#create_params signing with HTTP-POST binding" do
@@ -428,6 +446,13 @@ class RequestTest < Minitest::Test
       auth_doc = OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(settings)
       assert auth_doc.to_s =~ /<saml:AuthnContextDeclRef>name\/password\/uri<\/saml:AuthnContextDeclRef>/
       assert auth_doc.to_s =~ /<saml:AuthnContextDeclRef>example\/decl\/ref<\/saml:AuthnContextDeclRef>/
+    end
+
+    it "raises error when settings is nil" do
+      err = assert_raises ArgumentError do
+        OneLogin::RubySaml::Authrequest.new.create_authentication_xml_doc(nil)
+      end
+      assert_match(/settings should not be nil/, err.message)
     end
 
     describe "DEPRECATED: #create_params signing with HTTP-POST binding via :embed_sign" do

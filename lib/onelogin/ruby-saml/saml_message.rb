@@ -100,17 +100,6 @@ module OneLogin
         saml
       end
 
-      # Deflate, base64 encode and url-encode a SAML Message (To be used in the HTTP-redirect binding)
-      # @param saml [String] The plain SAML Message
-      # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
-      # @return [String] The deflated and encoded SAML Message (encoded if the compression is requested)
-      #
-      def encode_raw_saml(saml, settings)
-        saml = deflate(saml) if settings.compress_request
-
-        CGI.escape(encode(saml))
-      end
-
       # Base 64 decode method
       # @param string [String] The string message
       # @return [String] The decoded string
