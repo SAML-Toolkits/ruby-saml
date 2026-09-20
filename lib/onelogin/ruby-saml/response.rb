@@ -407,6 +407,7 @@ module OneLogin
           :validate_num_assertion,
           :validate_signed_elements,
           :validate_structure,
+          :validate_signature,
           :validate_no_duplicated_attributes,
           :validate_in_response_to,
           :validate_one_conditions,
@@ -417,8 +418,7 @@ module OneLogin
           :validate_issuer,
           :validate_session_expiration,
           :validate_subject_confirmation,
-          :validate_name_id,
-          :validate_signature
+          :validate_name_id
         ]
 
         if collect_errors
