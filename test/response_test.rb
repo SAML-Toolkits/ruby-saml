@@ -1411,6 +1411,28 @@ class RubySamlTest < Minitest::Test
         end
         assert_empty signed_response.errors
       end
+
+      it 'sign an unsigned SAML2 Response XML and initiate the SAML object with it' do
+        xml = Base64.decode64(fixture("test_sign_saml2.xml"))
+
+        document = XMLSecurity::Document.new(xml)
+
+        formatted_cert = OneLogin::RubySaml::Utils.format_cert(ruby_saml_cert_text)
+        cert = OpenSSL::X509::Certificate.new(formatted_cert)
+
+        formatted_private_key = OneLogin::RubySaml::Utils.format_private_key(ruby_saml_key_text)
+        private_key = OpenSSL::PKey::RSA.new(formatted_private_key)
+        document.sign_document(private_key, cert)
+
+        signed_response = OneLogin::RubySaml::Response.new(document.to_s)
+        settings.assertion_consumer_service_url = "https://example.hello.com/access/saml"
+        settings.idp_cert = ruby_saml_cert_text
+        signed_response.settings = settings
+        Timecop.freeze(Time.parse("2011-06-21 14:09:38Z")) do
+          signed_response.is_valid?
+        end
+        assert_empty signed_response.errors
+      end
     end
 
     describe '#want_assertion_signed' do

@@ -185,8 +185,9 @@ module XMLSecurity
       x509_cert_element.text = Base64.encode64(certificate.to_der).gsub(/\n/, "")
 
       # add the signature
-      issuer_element = elements["//saml:Issuer"]
-      if issuer_element
+      if issuer_element = elements["//saml:Issuer"]
+        root.insert_after(issuer_element, signature_element)
+      elsif issuer_element = elements["//saml2:Issuer"]
         root.insert_after(issuer_element, signature_element)
       elsif first_child = root.children[0]
         root.insert_before(first_child, signature_element)
