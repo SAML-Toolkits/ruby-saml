@@ -12,7 +12,7 @@ module OneLogin
     class Metadata
 
       # Return SP metadata based on the settings.
-      # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @param settings [OneLogin::RubySaml::Settings] Toolkit settings
       # @param pretty_print [Boolean] Pretty print or not the response
       #                               (No pretty print if you are going to validate the signature)
       # @param valid_until [DateTime] Metadata's valid time
@@ -20,6 +20,8 @@ module OneLogin
       # @return [String] XML Metadata of the Service Provider
       #
       def generate(settings, pretty_print=false, valid_until=nil, cache_duration=nil)
+        raise ArgumentError, "Invalid settings, settings should not be nil!" if settings.nil?
+
         meta_doc = XMLSecurity::Document.new
         add_xml_declaration(meta_doc)
         root = add_root_element(meta_doc, settings, valid_until, cache_duration)

@@ -27,7 +27,7 @@ module OneLogin
       end
 
       # Creates the Logout Response string.
-      # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @param settings [OneLogin::RubySaml::Settings] Toolkit settings
       # @param request_id [String] The ID of the LogoutRequest sent by this SP to the IdP. That ID will be placed as the InResponseTo in the logout response
       # @param logout_message [String] The Message to be placed as StatusMessage in the logout response
       # @param params [Hash] Some extra parameters to be added in the GET for example, the RelayState
@@ -35,6 +35,8 @@ module OneLogin
       # @return [String] Logout Request string that includes the SAMLRequest
       #
       def create(settings, request_id = nil, logout_message = nil, params = {}, logout_status_code = nil)
+        raise ArgumentError, "Invalid settings, settings should not be nil!" if settings.nil?
+
         params = create_params(settings, request_id, logout_message, params, logout_status_code)
         params_prefix = (settings.idp_slo_service_url =~ /\?/) ? '&' : '?'
         url = settings.idp_slo_response_service_url || settings.idp_slo_service_url
@@ -49,7 +51,7 @@ module OneLogin
       end
 
       # Creates the Get parameters for the logout response.
-      # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @param settings [OneLogin::RubySaml::Settings] Toolkit settings
       # @param request_id [String] The ID of the LogoutRequest sent by this SP to the IdP. That ID will be placed as the InResponseTo in the logout response
       # @param logout_message [String] The Message to be placed as StatusMessage in the logout response
       # @param params [Hash] Some extra parameters to be added in the GET for example, the RelayState
@@ -57,6 +59,8 @@ module OneLogin
       # @return [Hash] Parameters
       #
       def create_params(settings, request_id = nil, logout_message = nil, params = {}, logout_status_code = nil)
+        raise ArgumentError, "Invalid settings, settings should not be nil!" if settings.nil?
+
         # The method expects :RelayState but sometimes we get 'RelayState' instead.
         # Based on the HashWithIndifferentAccess value in Rails we could experience
         # conflicts so this line will solve them.
@@ -101,13 +105,15 @@ module OneLogin
       end
 
       # Creates the SAMLResponse String.
-      # @param settings [OneLogin::RubySaml::Settings|nil] Toolkit settings
+      # @param settings [OneLogin::RubySaml::Settings] Toolkit settings
       # @param request_id [String] The ID of the LogoutRequest sent by this SP to the IdP. That ID will be placed as the InResponseTo in the logout response
       # @param logout_message [String] The Message to be placed as StatusMessage in the logout response
       # @param logout_status_code [String] The StatusCode to be placed as StatusMessage in the logout response
       # @return [String] The SAMLResponse String.
       #
       def create_logout_response_xml_doc(settings, request_id = nil, logout_message = nil, logout_status_code = nil)
+        raise ArgumentError, "Invalid settings, settings should not be nil!" if settings.nil?
+
         document = create_xml_document(settings, request_id, logout_message, logout_status_code)
         sign_document(document, settings)
       end
